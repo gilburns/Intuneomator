@@ -62,3 +62,4 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 /Intuneomator.xcodeproj/xcuserdata
 /Intuneomator.xcodeproj/xcuserdata
+.DS_Store
