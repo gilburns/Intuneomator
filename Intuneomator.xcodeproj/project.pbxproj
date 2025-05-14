@@ -1,0 +1,524 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1B7D2A422D8F94EE0062D053 /* process_label.sh in Resources */ = {isa = PBXBuildFile; fileRef = 1B7D2A412D8F94EE0062D053 /* process_label.sh */; };
+		1BB046FE2D899E64004B6F3E /* Ink in Frameworks */ = {isa = PBXBuildFile; productRef = 1BB046FD2D899E64004B6F3E /* Ink */; };
+		1BB0472A2D8A37F1004B6F3E /* LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = 1BB047292D8A37F1004B6F3E /* LICENSE.md */; };
+		1BB0472C2D8A406A004B6F3E /* entra-app-setup.md in Resources */ = {isa = PBXBuildFile; fileRef = 1BB0472B2D8A406A004B6F3E /* entra-app-setup.md */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1BB046642D81324E004B6F3E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		1B7D2A412D8F94EE0062D053 /* process_label.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = process_label.sh; sourceTree = "<group>"; };
+		1BB046502D81321F004B6F3E /* Intuneomator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Intuneomator.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1BB046662D81324E004B6F3E /* IntuneomatorService */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = IntuneomatorService; sourceTree = BUILT_PRODUCTS_DIR; };
+		1BB047292D8A37F1004B6F3E /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
+		1BB0472B2D8A406A004B6F3E /* entra-app-setup.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "entra-app-setup.md"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1B55F3B92DC7AE29003A06BD /* Exceptions for "LaunchDaemon" folder in "Intuneomator" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				com.gilburns.intuneomator.cachecleaner.plist,
+			);
+			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
+		};
+		1BB046722D822B48004B6F3E /* Exceptions for "SharedCode" folder in "IntuneomatorService" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"App Dmg Pkg/AppInspector.swift",
+				"App Dmg Pkg/DMGCreator.swift",
+				"App Dmg Pkg/PKGCreator.swift",
+				"App Dmg Pkg/PKGCreatorUniversal.swift",
+				"App Dmg Pkg/PkgInspector.swift",
+				"App Dmg Pkg/SignatureInspector.swift",
+				AutomationCheck.swift,
+				Constants.swift,
+				Extensions.swift,
+				FileFolderManagerUtil.swift,
+				HelperToolProtocol.swift,
+				IconExporter.swift,
+				InstallomatorLabelProcessor.swift,
+				InstallomatorLabels.swift,
+				Logging.swift,
+				LogManagerUtil.swift,
+				XPCServiceProtocol.swift,
+			);
+			target = 1BB046652D81324E004B6F3E /* IntuneomatorService */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		1BB046522D81321F004B6F3E /* Intuneomator */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Intuneomator;
+			sourceTree = "<group>";
+		};
+		1BB046672D81324E004B6F3E /* IntuneomatorService */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = IntuneomatorService;
+			sourceTree = "<group>";
+		};
+		1BB0466D2D822AFF004B6F3E /* SharedCode */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1BB046722D822B48004B6F3E /* Exceptions for "SharedCode" folder in "IntuneomatorService" target */,
+			);
+			path = SharedCode;
+			sourceTree = "<group>";
+		};
+		1BB046AC2D872F90004B6F3E /* LaunchDaemon */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1B55F3B92DC7AE29003A06BD /* Exceptions for "LaunchDaemon" folder in "Intuneomator" target */,
+			);
+			path = LaunchDaemon;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1BB0464D2D81321F004B6F3E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1BB046FE2D899E64004B6F3E /* Ink in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1BB046632D81324E004B6F3E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1BB046472D81321F004B6F3E = {
+			isa = PBXGroup;
+			children = (
+				1BB046522D81321F004B6F3E /* Intuneomator */,
+				1BB046672D81324E004B6F3E /* IntuneomatorService */,
+				1BB0466D2D822AFF004B6F3E /* SharedCode */,
+				1BB046AC2D872F90004B6F3E /* LaunchDaemon */,
+				1BB046512D81321F004B6F3E /* Products */,
+				1BB047292D8A37F1004B6F3E /* LICENSE.md */,
+				1BB0472B2D8A406A004B6F3E /* entra-app-setup.md */,
+				1B7D2A412D8F94EE0062D053 /* process_label.sh */,
+			);
+			sourceTree = "<group>";
+		};
+		1BB046512D81321F004B6F3E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1BB046502D81321F004B6F3E /* Intuneomator.app */,
+				1BB046662D81324E004B6F3E /* IntuneomatorService */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1BB0464F2D81321F004B6F3E /* Intuneomator */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1BB0465F2D813221004B6F3E /* Build configuration list for PBXNativeTarget "Intuneomator" */;
+			buildPhases = (
+				1BB0464C2D81321F004B6F3E /* Sources */,
+				1BB0464D2D81321F004B6F3E /* Frameworks */,
+				1BB0464E2D81321F004B6F3E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1BB046522D81321F004B6F3E /* Intuneomator */,
+				1BB0466D2D822AFF004B6F3E /* SharedCode */,
+				1BB046AC2D872F90004B6F3E /* LaunchDaemon */,
+			);
+			name = Intuneomator;
+			packageProductDependencies = (
+				1BB046FD2D899E64004B6F3E /* Ink */,
+			);
+			productName = Intuneomator;
+			productReference = 1BB046502D81321F004B6F3E /* Intuneomator.app */;
+			productType = "com.apple.product-type.application";
+		};
+		1BB046652D81324E004B6F3E /* IntuneomatorService */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1BB0466A2D81324E004B6F3E /* Build configuration list for PBXNativeTarget "IntuneomatorService" */;
+			buildPhases = (
+				1BB046622D81324E004B6F3E /* Sources */,
+				1BB046632D81324E004B6F3E /* Frameworks */,
+				1BB046642D81324E004B6F3E /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1BB046672D81324E004B6F3E /* IntuneomatorService */,
+			);
+			name = IntuneomatorService;
+			packageProductDependencies = (
+			);
+			productName = IntuneomatorService;
+			productReference = 1BB046662D81324E004B6F3E /* IntuneomatorService */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1BB046482D81321F004B6F3E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					1BB0464F2D81321F004B6F3E = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					1BB046652D81324E004B6F3E = {
+						CreatedOnToolsVersion = 16.2;
+					};
+				};
+			};
+			buildConfigurationList = 1BB0464B2D81321F004B6F3E /* Build configuration list for PBXProject "Intuneomator" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 1BB046472D81321F004B6F3E;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				1BB046FC2D899E64004B6F3E /* XCRemoteSwiftPackageReference "ink" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1BB046512D81321F004B6F3E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1BB0464F2D81321F004B6F3E /* Intuneomator */,
+				1BB046652D81324E004B6F3E /* IntuneomatorService */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1BB0464E2D81321F004B6F3E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1BB0472A2D8A37F1004B6F3E /* LICENSE.md in Resources */,
+				1B7D2A422D8F94EE0062D053 /* process_label.sh in Resources */,
+				1BB0472C2D8A406A004B6F3E /* entra-app-setup.md in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1BB0464C2D81321F004B6F3E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1BB046622D81324E004B6F3E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1BB0465D2D813221004B6F3E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		1BB0465E2D813221004B6F3E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		1BB046602D813221004B6F3E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = Intuneomator/Intuneomator.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = G4MQ57TVLE;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Intuneomator/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Intuneomator;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomator;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1BB046612D813221004B6F3E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = Intuneomator/Intuneomator.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = G4MQ57TVLE;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Intuneomator/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Intuneomator;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomator;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		1BB0466B2D81324E004B6F3E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = IntuneomatorService/IntuneomatorService.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = G4MQ57TVLE;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomatorcli;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1BB0466C2D81324E004B6F3E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = IntuneomatorService/IntuneomatorService.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = G4MQ57TVLE;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomatorcli;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1BB0464B2D81321F004B6F3E /* Build configuration list for PBXProject "Intuneomator" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1BB0465D2D813221004B6F3E /* Debug */,
+				1BB0465E2D813221004B6F3E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1BB0465F2D813221004B6F3E /* Build configuration list for PBXNativeTarget "Intuneomator" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1BB046602D813221004B6F3E /* Debug */,
+				1BB046612D813221004B6F3E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1BB0466A2D81324E004B6F3E /* Build configuration list for PBXNativeTarget "IntuneomatorService" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1BB0466B2D81324E004B6F3E /* Debug */,
+				1BB0466C2D81324E004B6F3E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		1BB046FC2D899E64004B6F3E /* XCRemoteSwiftPackageReference "ink" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/johnsundell/ink.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		1BB046FD2D899E64004B6F3E /* Ink */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1BB046FC2D899E64004B6F3E /* XCRemoteSwiftPackageReference "ink" */;
+			productName = Ink;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 1BB046482D81321F004B6F3E /* Project object */;
+}
