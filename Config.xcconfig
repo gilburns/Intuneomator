@@ -1,0 +1,12 @@
+//
+//  Config.xcconfig
+//  Intuneomator
+//
+//  Created by Gil Burns on 5/14/25.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+GENERATE_INFOPLIST_FILE=YES
+CURRENT_PROJECT_VERSION=28
+ENABLE_USER_SCRIPT_SANDBOXING=NO
