@@ -1,0 +1,93 @@
+//
+//  XPCManager+Settings.swift
+//  Intuneomator
+//
+//  Created by Gil Burns on 5/4/25.
+//
+
+import Foundation
+
+extension XPCManager {
+    
+    // MARK: - Set Methods
+    func setFirstRunCompleted(_ completed: Bool, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setFirstRunStatus(completed, reply: $1) }, completion: completion)
+    }
+    
+    func setAppsToKeep(_ appCount: Int, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setAppsToKeep(appCount, reply: $1) }, completion: completion)
+    }
+
+    func setAuthMethod(_ method: String, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setAuthMethod(method, reply: $1) }, completion: completion)
+    }
+    
+    func setTenantID(_ tenantID: String, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setTenantID(tenantID, reply: $1) }, completion: completion)
+    }
+    
+    func setApplicationID(_ appID: String, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setApplicationID(appID, reply: $1) }, completion: completion)
+    }
+    
+    func setTeamsNotificationsEnabled(_ enabled: Bool, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setTeamsNotificationsEnabled(enabled, reply: $1) }, completion: completion)
+    }
+    
+    func setTeamsWebhookURL(_ url: String, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setTeamsWebhookURL(url, reply: $1) }, completion: completion)
+    }
+    
+    // MARK: - Get Methods
+    func getFirstRunCompleted(completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.getFirstRunStatus(reply: $1) }, completion: completion)
+    }
+    
+    func getAppsToKeep(completion: @escaping (Int?) -> Void) {
+        sendRequest({ $0.getAppsToKeep(reply: $1) }, completion: completion)
+    }
+
+    func getAuthMethod(completion: @escaping (String?) -> Void) {
+        sendRequest({ $0.getAuthMethod(reply: $1) }, completion: completion)
+    }
+    
+    func getTenantID(completion: @escaping (String?) -> Void) {
+        sendRequest({ $0.getTenantID(reply: $1) }, completion: completion)
+    }
+    
+    func getApplicationID(completion: @escaping (String?) -> Void) {
+        sendRequest({ $0.getApplicationID(reply: $1) }, completion: completion)
+    }
+    
+    func getTeamsNotificationsEnabled(completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.getTeamsNotificationsEnabled(reply: $1) }, completion: completion)
+    }
+    
+    func getTeamsWebhookURL(completion: @escaping (String?) -> Void) {
+        sendRequest({ $0.getTeamsWebhookURL(reply: $1) }, completion: completion)
+    }
+
+    func getCertThumbprint(completion: @escaping (String?) -> Void) {
+        sendRequest({ $0.getCertThumbprint(reply: $1) }, completion: completion)
+    }
+
+    func getCertExpiration(completion: @escaping (Date?) -> Void) {
+        sendRequest({ $0.getCertExpiration(reply: $1) }, completion: completion)
+    }
+
+    
+    func getClientSecret(completion: @escaping (String?) -> Void) {
+        sendRequest({ $0.getClientSecret(reply: $1) }, completion: completion)
+    }
+
+    
+    func getLogFolderSize(completion: @escaping (Int64?) -> Void) {
+        sendRequest({ $0.getLogFolderSize(completion: $1) }, completion: completion)
+    }
+
+    func getCacheFolderSize(completion: @escaping (Int64?) -> Void) {
+        sendRequest({ $0.getCacheFolderSize(completion: $1) }, completion: completion)
+    }
+    
+}
+
