@@ -52,7 +52,7 @@ class PkgInspector {
             completion(.success(items))
         } catch {
             // Cleanup on failure
-//            try? FileManager.default.removeItem(at: tempExpandedDir)
+            try? FileManager.default.removeItem(at: tempExpandedDir)
             completion(.failure(error))
         }
     }
