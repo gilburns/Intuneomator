@@ -44,10 +44,23 @@ class PkgInspector {
                 // Parse `PackageInfo` file
                 let packageInfoXML = try String(contentsOf: packageInfoPath, encoding: .utf8)
                 items = parsePackageInfoXML(packageInfoXML)
-            } else {
-                throw NSError(domain: "PkgInspector", code: 404, userInfo: [NSLocalizedDescriptionKey: "No valid metadata file found in the pkg"])
+            } //else {
+            //                throw NSError(domain: "PkgInspector", code: 404, userInfo: [NSLocalizedDescriptionKey: "No valid metadata file found in the pkg"])
+            //            }
+            
+            // Find and inspect all .app and .framework bundles
+            let bundleURLs = findBundles(in: tempExpandedDir)
+            for bundleURL in bundleURLs {
+                if let bundleInfo = extractBundleInfo(from: bundleURL) {
+                    items.append(bundleInfo)
+                }
             }
-                        
+            
+            if items.isEmpty {
+                throw NSError(domain: "PkgInspector", code: 404, userInfo: [NSLocalizedDescriptionKey: "No valid metadata found in the pkg"])
+            }
+            
+            
             // Return the results
             completion(.success(items))
         } catch {
@@ -89,6 +102,93 @@ class PkgInspector {
             }
         }
         return items
+    }
+    
+    /// Recursively finds all `.app` and `.framework` bundles in a directory.
+    private func findBundles(in directory: URL) -> [URL] {
+        let fileManager = FileManager.default
+        var bundleURLs: [URL] = []
+        
+        guard let enumerator = fileManager.enumerator(
+            at: directory,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return []
+        }
+        
+        for case let fileURL as URL in enumerator {
+            do {
+                let resourceValues = try fileURL.resourceValues(forKeys: [.isDirectoryKey])
+                if resourceValues.isDirectory == true {
+                    let pathExtension = fileURL.pathExtension.lowercased()
+                    if pathExtension == "app" || pathExtension == "framework" {
+                        bundleURLs.append(fileURL)
+                    }
+                }
+            } catch {
+                print("Error reading resource values: \(error)")
+            }
+        }
+        
+        print("Bundle URLs: \(bundleURLs)")
+        
+        return bundleURLs
+    }
+    
+    /// Extracts bundle identifier and version from a bundle's Info.plist.
+    private func extractBundleInfo(from bundleURL: URL) -> (String, String)? {
+        let fileManager = FileManager.default
+        var infoPlistURL: URL?
+        
+        // Check bundle type
+        let pathExtension = bundleURL.pathExtension.lowercased()
+        
+        if pathExtension == "app" {
+            // For .app bundles, check standard macOS location
+            infoPlistURL = bundleURL.appendingPathComponent("Contents/Info.plist")
+        } else if pathExtension == "framework" {
+            // For .framework bundles, try the standard Resources symlink path
+            let resourcesPath = bundleURL.appendingPathComponent("Resources/Info.plist")
+            
+            if fileManager.fileExists(atPath: resourcesPath.path) {
+                infoPlistURL = resourcesPath
+            } else {
+                // If not in Resources, try the versioned structure
+                // First check for Current version
+                let currentVersionPath = bundleURL.appendingPathComponent("Versions/Current/Resources/Info.plist")
+                if fileManager.fileExists(atPath: currentVersionPath.path) {
+                    infoPlistURL = currentVersionPath
+                } else {
+                    // Try version A directly
+                    let versionAPath = bundleURL.appendingPathComponent("Versions/A/Resources/Info.plist")
+                    if fileManager.fileExists(atPath: versionAPath.path) {
+                        infoPlistURL = versionAPath
+                    }
+                }
+            }
+        }
+        
+        guard let plistURL = infoPlistURL, fileManager.fileExists(atPath: plistURL.path) else {
+            return nil
+        }
+        
+        do {
+            let infoPlistData = try Data(contentsOf: plistURL)
+            if let plist = try PropertyListSerialization.propertyList(
+                from: infoPlistData,
+                options: [],
+                format: nil
+            ) as? [String: Any],
+               let bundleID = plist["CFBundleIdentifier"] as? String,
+               let version = plist["CFBundleShortVersionString"] as? String {
+                return (bundleID, version)
+            }
+        } catch {
+            print("Error reading Info.plist at \(plistURL.path): \(error)")
+        }
+        
+        return nil
     }
 }
 

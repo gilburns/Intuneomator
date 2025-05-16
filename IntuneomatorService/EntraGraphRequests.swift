@@ -842,16 +842,7 @@ class EntraGraphRequests {
         let fileName = URL(fileURLWithPath: app.appLocalURL).lastPathComponent
         let arch = ["arm64", "x86_64"].first { fileName.contains($0) }
         
-        let intuneVersIsDetectedVers = app.appIntuneVersIsDetectedVers
-        
-        var intuneDisplayVersion = ""
-        if intuneVersIsDetectedVers {
-            intuneDisplayVersion = app.appVersionExpected
-        } else {
-            intuneDisplayVersion = app.appVersionActual
-        }
-        
-        let displayName = "\(app.appDisplayName) \(intuneDisplayVersion)\(arch.map { " \($0)" } ?? "")"
+        let displayName = "\(app.appDisplayName) \(app.appVersionActual)\(arch.map { " \($0)" } ?? "")"
         
         var metadata: [String: Any] = [
             "@odata.type": "#microsoft.graph.macOSLobApp",

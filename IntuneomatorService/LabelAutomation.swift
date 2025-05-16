@@ -129,7 +129,6 @@ class LabelAutomation {
         let featured = metadata?.isFeatured ?? false
         let ignoreVersion = metadata?.ignoreVersionDetection ?? false
         let informationURL = metadata?.informationUrl ?? ""
-        let intuneVersIsDetectedVers = metadata?.intuneVersIsDetectedVers ?? false
         let managed = metadata?.isManaged ?? false
         let notes = metadata?.notes ?? ""
         let owner = metadata?.owner ?? ""
@@ -305,7 +304,6 @@ class LabelAutomation {
             appIconURL: validatedLabelIcon,
             appIgnoreVersion: ignoreVersion,
             appInfoURL: informationURL,
-            appIntuneVersIsDetectedVers: intuneVersIsDetectedVers,
             appIsDualArchCapable: titleIsDualArch,
             appIsFeatured: featured,
             appIsManaged: managed,

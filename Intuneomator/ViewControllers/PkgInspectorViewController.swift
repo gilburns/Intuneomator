@@ -47,6 +47,9 @@ class PkgInspectorViewController: NSViewController {
     var itemGUID: String = ""
     var directoryPath: String = ""
     
+    // Image Popover and Images
+    private var imagesPopover: NSPopover?
+    private var availableImages: [URL: NSImage] = [:]
     
     // Selected Icon Path for Saving
     private var selectedIconPath: URL?
@@ -62,6 +65,51 @@ class PkgInspectorViewController: NSViewController {
         // Populate UI with input data
         populateUI()
 
+        // Find all images in the package
+        availableImages = findAllImages()
+
+        print("Available Images: \(availableImages.count)")
+        print("Available Images: \(availableImages.keys)")
+        
+        // Set an app image as the default if available
+        if !availableImages.isEmpty {
+            // First try to find an image from an .app bundle
+            var foundAppImage = false
+            
+            for (path, image) in availableImages {
+                if path.pathExtension.lowercased() == "app" {
+                    // Found an app bundle, use its image
+                    pkgImageButton.image = image
+                    selectedIconPath = path
+                    
+                    // Update checkbox state
+                    if useImageCheckbox.state == .off {
+                        useImageCheckbox.state = .on
+                    }
+                    
+                    foundAppImage = true
+                    break
+                }
+            }
+            
+            // If no app image was found, fall back to the first image
+            if !foundAppImage, let firstPath = availableImages.keys.first,
+               let firstImage = availableImages[firstPath] {
+                pkgImageButton.image = firstImage
+                selectedIconPath = firstPath
+                
+                // Update checkbox state
+                if useImageCheckbox.state == .off {
+                    useImageCheckbox.state = .on
+                }
+            }
+        }
+        
+        
+        // Connect the image button to the popover action
+        pkgImageButton.target = self
+        pkgImageButton.action = #selector(showImageSelector(_:))
+        
     }
     
     // MARK: - UI Setup
@@ -72,7 +120,7 @@ class PkgInspectorViewController: NSViewController {
         pkgIDPopupButton.addItems(withTitles: ids)
         if !ids.isEmpty {
             pkgIDPopupButton.selectItem(at: 0)
-            updateVersionAndIconForSelectedID()
+            updateVersionForSelectedID()
         }
         
         // Populate signature fields
@@ -93,9 +141,49 @@ class PkgInspectorViewController: NSViewController {
     }
     
     // MARK: - Buttons
+    
+    @IBAction func showImageSelector(_ sender: NSButton) {
+        
+        if availableImages.isEmpty {
+            let alert = NSAlert()
+            alert.messageText = "No Images Found"
+            alert.informativeText = "No suitable images were found in the package."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.beginSheetModal(for: self.view.window!) { _ in }
+            return
+        }
+        
+        // Create the popover if it doesn't exist
+        if imagesPopover == nil {
+            imagesPopover = NSPopover()
+            imagesPopover?.behavior = .transient
+            
+            // Create the view controller for the popover
+            let imageSelectorVC = ImageSelectorViewController()
+            imageSelectorVC.images = Array(availableImages.values)
+            imageSelectorVC.imagePaths = Array(availableImages.keys)
+            imageSelectorVC.delegate = self
+            imageSelectorVC.popover = imagesPopover
+            
+            imagesPopover?.contentViewController = imageSelectorVC
+            imagesPopover?.contentSize = NSSize(width: 400, height: 300)
+        } else {
+            // Update the images in the existing popover
+            if let imageSelectorVC = imagesPopover?.contentViewController as? ImageSelectorViewController {
+                imageSelectorVC.images = Array(availableImages.values)
+                imageSelectorVC.imagePaths = Array(availableImages.keys)
+            }
+        }
+        
+        // Show the popover
+        imagesPopover?.show(relativeTo: sender.bounds, of: sender, preferredEdge: .maxY)
+    }
+    
+    
     @IBAction func pkgIDPopupChanged(_ sender: NSPopUpButton) {
         // Update version and icon when ID is changed
-        updateVersionAndIconForSelectedID()
+        updateVersionForSelectedID()
 
     }
     
@@ -175,13 +263,9 @@ class PkgInspectorViewController: NSViewController {
                 }
             }
         }
-        
-        print ("Found \(foundFiles.count) \(ext) files")
-        print ("FoundFiles: \(foundFiles)")
-        
+                
         // Sort by shortest full path length
         foundFiles.sort { $0.path.count < $1.path.count }
-        print ("FoundFiles: \(foundFiles)")
 
         return foundFiles
     }
@@ -198,7 +282,7 @@ class PkgInspectorViewController: NSViewController {
     }
 
     
-    private func updateVersionAndIconForSelectedID() {
+    private func updateVersionForSelectedID() {
         guard let selectedID = pkgIDPopupButton.titleOfSelectedItem else { return }
         
         // Clean up the version string before updating the text field
@@ -207,13 +291,158 @@ class PkgInspectorViewController: NSViewController {
             pkgVersionTextField.stringValue = cleanedVersion
         }
         
-        // Find and set the icon based on the selected ID
-        loadAndSetIconAndMinOS(forID: selectedID)
-        
+        // Find and set minimum OS based on the selected ID
+        loadMinOSForSelectedPackage(id: selectedID)
+
         updateCheckboxState()
         
     }
+    
+    private func loadMinOSForSelectedPackage(id: String) {
+        guard let pkgURL = pkgURL else {
+            return
+        }
 
+        let expandedPkgDir = pkgURL.deletingLastPathComponent().appendingPathComponent("expanded_pkg")
+        
+        // Look for metadata files: Distribution or PackageInfo
+        let distributionPath = expandedPkgDir.appendingPathComponent("Distribution")
+        let packageInfoPath = expandedPkgDir.appendingPathComponent("PackageInfo")
+        let xmlFilePath: URL
+        
+        if FileManager.default.fileExists(atPath: distributionPath.path) {
+            xmlFilePath = distributionPath
+        } else if FileManager.default.fileExists(atPath: packageInfoPath.path) {
+            xmlFilePath = packageInfoPath
+        } else {
+            print("No valid metadata file found")
+            return
+        }
+        
+        do {
+            let xmlData = try Data(contentsOf: xmlFilePath)
+            guard let xmlDocument = try? XMLDocument(data: xmlData, options: .documentTidyXML) else {
+                print("Error: Failed to parse XML")
+                return
+            }
+
+            // Get the selected version
+            guard let selectedVersionRaw = pkgItems.first(where: { $0.0 == id })?.1 else {
+                print("Error: No version found for ID: \(id)")
+                return
+            }
+
+            // Clean the version string
+            let cleanedVersion = selectedVersionRaw.replacingOccurrences(of: "&quot;", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+
+            // Define possible formats for the version attribute
+            let possibleVersions = [
+                selectedVersionRaw,
+                "\"\(cleanedVersion)\"",
+                "&quot;\(cleanedVersion)&quot;",
+                "&quot;\(cleanedVersion)&quot; "
+            ]
+
+            var matchedPkgRefNode: XMLElement? = nil
+
+            // Try each possible version format
+            for version in possibleVersions {
+                let pkgRefXPath = "//pkg-ref[@id='\(id)' and @version='\(version)']"
+                if let pkgRefNode = try? xmlDocument.nodes(forXPath: pkgRefXPath).first as? XMLElement {
+                    matchedPkgRefNode = pkgRefNode
+                    break
+                }
+            }
+
+            guard let pkgRefNode = matchedPkgRefNode,
+                  let pkgRefValue = pkgRefNode.stringValue,
+                  pkgRefValue.hasPrefix("#") else {
+                print("Error: No matching pkg-ref found")
+                return
+            }
+
+            let encodedFolderName = String(pkgRefValue.dropFirst()) // Remove the `#`
+            guard let folderName = encodedFolderName.removingPercentEncoding else {
+                print("Error: Failed to decode percent-encoded folder name")
+                return
+            }
+
+            let payloadDir = expandedPkgDir.appendingPathComponent(folderName).appendingPathComponent("Payload")
+            
+            let apps = try findFiles(inFolder: URL(fileURLWithPath: payloadDir.path), withExtension: "app")
+            
+            if let appPath = apps.first {
+                // Look up LSMinimumSystemVersion and update the text field
+                let infoPlistPath = appPath.appendingPathComponent("Contents/Info.plist")
+                if let infoPlist = NSDictionary(contentsOf: infoPlistPath),
+                   let minOSVersion = infoPlist["LSMinimumSystemVersion"] as? String {
+                    let display = displayName(forMinimumOS: minOSVersion)
+                    pkgMinOSTextField.stringValue = display
+                } else {
+                    print("LSMinimumSystemVersion not found in Info.plist")
+                    pkgMinOSTextField.stringValue = ""
+                }
+            }
+        } catch {
+            print("Error processing XML: \(error)")
+        }
+    }
+
+    private func findAllImages() -> [URL: NSImage] {
+        var imageMap = [URL: NSImage]()
+        
+        guard let pkgURL = pkgURL else {
+            return imageMap
+        }
+        
+        let expandedPkgDir = pkgURL.deletingLastPathComponent().appendingPathComponent("expanded_pkg")
+        
+        do {
+            // Find all app bundles
+            let appBundles = try findFiles(inFolder: expandedPkgDir, withExtension: "app")
+            
+            // Extract icons from app bundles
+            for appBundle in appBundles {
+                let icon = NSWorkspace.shared.icon(forFile: appBundle.path)
+                icon.size = NSSize(width: 512, height: 512)
+                imageMap[appBundle] = icon
+            }
+            
+            // Find all icns files
+            let icnsFiles = try findFiles(inFolder: expandedPkgDir, withExtension: "icns")
+            for icnsFile in icnsFiles {
+                if let image = NSImage(contentsOfFile: icnsFile.path) {
+                    image.size = NSSize(width: 512, height: 512)
+                    imageMap[icnsFile] = image
+                }
+            }
+            
+            // Find all png files that might be app icons
+            let pngFiles = try findFiles(inFolder: expandedPkgDir, withExtension: "png")
+            for pngFile in pngFiles {
+                // Only consider PNG files that might be icons (in certain directories or meeting size criteria)
+                let fileName = pngFile.lastPathComponent.lowercased()
+                if fileName.contains("icon") || fileName.contains("app") ||
+                   pngFile.path.lowercased().contains("resources") {
+                    if let image = NSImage(contentsOfFile: pngFile.path) {
+                        // Check if the image is square and reasonably sized to be an icon
+                        let imgRep = image.representations.first
+                        if let width = imgRep?.pixelsWide, let height = imgRep?.pixelsHigh,
+                           width >= 64 && height >= 64 && abs(width - height) < 10 {
+                            image.size = NSSize(width: 512, height: 512)
+                            imageMap[pngFile] = image
+                        }
+                    }
+                }
+            }
+        } catch {
+            print("Error finding images: \(error)")
+        }
+        
+        return imageMap
+    }
+    
+    
     private func loadAndSetIconAndMinOS(forID id: String) {
         guard let pkgURL = pkgURL else {
             print("Error: pkgURL is nil. Cannot load icon.")
@@ -319,7 +548,7 @@ class PkgInspectorViewController: NSViewController {
             for app in apps {
                 print(app.path)
                 let appName = app.deletingPathExtension().lastPathComponent
-//                print("App name: \(appName)")
+                print("App name: \(appName)")
                 
             }
             
@@ -345,17 +574,17 @@ class PkgInspectorViewController: NSViewController {
                     let display = displayName(forMinimumOS: minOSVersion)
                     pkgMinOSTextField.stringValue = display
                 } else {
-//                    print("LSMinimumSystemVersion not found in Info.plist for app at: \(appPath.path)")
+                    print("LSMinimumSystemVersion not found in Info.plist for app at: \(appPath.path)")
                     pkgMinOSTextField.stringValue = ""
                 }
                 
             } else {
-//                print("No .app found in Payload directory for ID: \(id)")
+                print("No .app found in Payload directory for ID: \(id)")
                 pkgImageButton.image = nil
                 selectedIconPath = nil
             }
         } catch {
-//            print("Error processing XML or locating Payload folder: \(error)")
+            print("Error processing XML or locating Payload folder: \(error)")
             pkgImageButton.image = nil
             selectedIconPath = nil
         }
@@ -372,9 +601,9 @@ class PkgInspectorViewController: NSViewController {
             do {
                 try unmountProcess.run()
                 unmountProcess.waitUntilExit()
-                //                print("DMG unmounted successfully.")
+                                print("DMG unmounted successfully.")
             } catch {
-                //                print("Failed to unmount DMG: \(error)")
+                                print("Failed to unmount DMG: \(error)")
             }
         }
     }
@@ -407,8 +636,6 @@ class PkgInspectorViewController: NSViewController {
     // MARK: - Actions
     @IBAction func saveChanges(_ sender: NSButton) {
         
-//        print("saveChanges")
-        
         // Save the image if the checkbox is checked
         if useImageCheckbox.state == .on, let image = pkgImageButton.image {
             let folderName = "\(label)_\(itemGUID)"
@@ -424,32 +651,31 @@ class PkgInspectorViewController: NSViewController {
                    let bitmap = NSBitmapImageRep(data: tiffData),
                    let pngData = bitmap.representation(using: .png, properties: [:]) {
                     try pngData.write(to: URL(fileURLWithPath: imageURL.path))
-//                    print("Image saved to: \(imageURL)")
+                    print("Image saved to: \(imageURL)")
                 }
             } catch {
-//                print("Failed to save image: \(error)")
+                print("Failed to save image: \(error)")
             }
 
             // copy to permanent location
             do {
                 XPCManager.shared.importIconToLabel(imageURL.path, folderName) { success in
                     if success! {
-//                        print("Saved icon")
                         // clean up temp folder/icon
                         do {
                             try FileManager.default.removeItem(atPath: folderPath.path)
-//                            print("Temp folder removed.")
+                            print("Temp folder removed.")
                         } catch {
-//                            print("Failed to remove temp folder: \(error)")
+                            print("Failed to remove temp folder: \(error)")
                         }
                     } else {
-//                        print("Failed to reset icon")
+                        print("Failed to reset icon")
                     }
                 }
             }
             
         } else {
-//            print("No image to save.")
+            print("No image to save.")
         }
 
         
@@ -465,7 +691,7 @@ class PkgInspectorViewController: NSViewController {
         
         // Clean up working folder
         if let workingFolder = workingFolderURL(for: pkgURL) {
-//            print("Working folder: \(workingFolder.path)")
+            print("Working folder: \(workingFolder.path)")
             try? FileManager.default.removeItem(at: workingFolder)
         }
 
@@ -482,11 +708,23 @@ class PkgInspectorViewController: NSViewController {
         
         // Clean up working folder
         if let workingFolder = workingFolderURL(for: pkgURL) {
-//            print("Working folder: \(workingFolder.path)")
+            print("Working folder: \(workingFolder.path)")
             try? FileManager.default.removeItem(at: workingFolder)
         }
 
         dismiss(self) // Dismiss without saving
     }
     
+}
+
+
+extension PkgInspectorViewController: ImageSelectorDelegate {
+    func didSelectImage(_ image: NSImage, at path: URL) {
+        // Set the selected image
+        pkgImageButton.image = image
+        selectedIconPath = path
+        
+        // Update the checkbox state
+        updateCheckboxState()
+    }
 }

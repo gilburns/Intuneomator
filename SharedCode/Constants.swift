@@ -82,7 +82,6 @@ struct ProcessedAppResults {
     var appIconURL: String
     var appIgnoreVersion: Bool
     var appInfoURL: String
-    var appIntuneVersIsDetectedVers: Bool
     var appIsDualArchCapable: Bool
     var appIsFeatured: Bool
     var appIsManaged: Bool
@@ -180,7 +179,6 @@ struct Metadata: Codable, Equatable {
     var deploymentTypeTag: Int = 0
     var developer: String?
     var informationUrl: String?
-    var intuneVersIsDetectedVers: Bool?
     var ignoreVersionDetection: Bool
     var isFeatured: Bool
     var isManaged: Bool

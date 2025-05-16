@@ -46,8 +46,6 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
 
     @IBOutlet weak var fieldIntuneID: NSTextField!
     @IBOutlet weak var fieldIntuneVersion: NSTextField!
-    @IBOutlet weak var buttonIntuneDisplayVersIsDetectedVers: NSButton!
-
     
     @IBOutlet weak var fieldAppNewVersion: NSTextField!
     @IBOutlet weak var fieldDownloadFile: NSTextField!
@@ -293,10 +291,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         buttonManagedApp.state = appMetadata?.isManaged ?? false ? .on : .off
         radioYes.state = appMetadata?.ignoreVersionDetection ?? false ? .on : .off
         radioNo.state = appMetadata?.ignoreVersionDetection ?? true ? .off : .on
-        
-        buttonIntuneDisplayVersIsDetectedVers.state = appMetadata?.intuneVersIsDetectedVers ?? false ? .on : .off
-        appMetadata?.intuneVersIsDetectedVers = (buttonIntuneDisplayVersIsDetectedVers.state == .on)
-        
+                
         // Populate categories
         let loadedCategoryIDs = appMetadata?.categories.map { $0.id }
         selectedCategories = Set(loadedCategoryIDs ?? []) // Update the selected categories
@@ -680,7 +675,6 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
             deploymentTypeTag: 0,
             developer: "",
             informationUrl: "",
-            intuneVersIsDetectedVers: false,
             ignoreVersionDetection: false,
             isFeatured: false,
             isManaged: false,
@@ -934,7 +928,6 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
             deploymentTypeTag: getDeploymentTypeTag() ?? 0,
             developer: developer,
             informationUrl: informationURL,
-            intuneVersIsDetectedVers: (buttonIntuneDisplayVersIsDetectedVers.state == .on),
             ignoreVersionDetection: (radioYes.state == .on),
             isFeatured: (buttonFeatureApp.state == .on),
             isManaged: (buttonManagedApp.state == .on),
@@ -1024,12 +1017,6 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
             hasUnsavedChanges = true
         }
 
-        // Highlight if ignoreVersionDetection is not its default value
-        if currentMetadata.intuneVersIsDetectedVers != false { // Assume false as default
-            highlightField(buttonIntuneDisplayVersIsDetectedVers)
-            hasUnsavedChanges = true
-        }
-
         // Highlight if isFeature is not its default value
         if currentMetadata.isFeatured != false { // Assume false as default
             highlightField(buttonFeatureApp)
@@ -1061,7 +1048,6 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         fieldPublisher.backgroundColor = nil
         buttonPopUpMinimumOs.layer?.backgroundColor = nil
         buttonDeployAsArch.layer?.backgroundColor = nil
-        buttonIntuneDisplayVersIsDetectedVers.layer?.backgroundColor = nil
         fieldIntuneID.backgroundColor = nil
         radioYes.layer?.backgroundColor = nil
         radioNo.layer?.backgroundColor = nil
@@ -1136,13 +1122,6 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         } else {
             clearHighlight(radioYes)
             clearHighlight(radioNo)
-        }
-
-        // Check intuneVersIsDetectedVers
-        if currentMetadata.intuneVersIsDetectedVers != lastMetadata.intuneVersIsDetectedVers {
-            highlightField(buttonIntuneDisplayVersIsDetectedVers)
-        } else {
-            clearHighlight(buttonIntuneDisplayVersIsDetectedVers)
         }
 
         // Check feature in Company Portal
@@ -1299,11 +1278,6 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     }
 
     @IBAction func buttonManagedAppDidChange(_ sender: NSButton) {
-        trackChanges()
-    }
-
-    
-    @IBAction func buttonIntuneDisplayVersIsDetectedVersDidChange(_ sender: NSButton) {
         trackChanges()
     }
 
@@ -2443,7 +2417,6 @@ extension EditViewController: TabSaveable {
             deploymentTypeTag: getDeploymentTypeTag() ?? 0,
             developer: partialDeveloper ?? "",
             informationUrl: partialInformationURL ?? "",
-            intuneVersIsDetectedVers: (buttonIntuneDisplayVersIsDetectedVers.state == .on),
             ignoreVersionDetection: (radioNo.state == .off),
             isFeatured: (buttonFeatureApp.state == .on),
             isManaged: (buttonManagedApp.state == .on),
