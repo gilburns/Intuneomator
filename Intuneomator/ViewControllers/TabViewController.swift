@@ -9,12 +9,13 @@ import Foundation
 import Cocoa
 
 class TabViewController: NSViewController {
-    
+
+    @IBOutlet weak var labelAppName: NSTextField!
+
     @IBOutlet var tabView: NSTabView!
     
     @IBOutlet weak var saveButton: NSButton!
     @IBOutlet weak var cancelButton: NSButton!
-    
     
     
     @IBOutlet weak var labelCustomLabel: NSTextField!
@@ -41,6 +42,7 @@ class TabViewController: NSViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        labelAppName.stringValue = "Editing: \(appData?.name ?? "Application:")"
 
         tabView.delegate = self
         setupTabs()
