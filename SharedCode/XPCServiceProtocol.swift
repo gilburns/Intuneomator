@@ -35,6 +35,7 @@ import Foundation
     // Installomator Labels
     func addNewLabelContent(_ labelName: String, _ source: String, reply: @escaping (String?) -> Void)
     func updateLabelsFromGitHub(reply: @escaping (Bool) -> Void)
+
     func removeLabelContent(_ labelDirectory: String, reply: @escaping (Bool) -> Void)
     
     // TabView Settings
