@@ -59,6 +59,13 @@ class InstallomatorLabels {
         }
     }
 
+    static func installInstallomatorLabels(completion: @escaping (Bool, String) -> Void) {
+        Task {
+            let result = await installInstallomatorLabelsAsync()
+            completion(result.0, result.1)
+        }
+    }
+
     // Async version for CLI use
     static func installInstallomatorLabelsAsync() async -> (Bool, String) {
         let tempDir = AppConstants.intuneomatorTempFolderURL
@@ -97,7 +104,7 @@ class InstallomatorLabels {
             if FileManager.default.fileExists(atPath: destinationDirectory) {
                 try FileManager.default.removeItem(atPath: destinationDirectory)
             }
-            try FileManager.default.createDirectory(atPath: destinationDirectory, withIntermediateDirectories: true, attributes: nil)
+
             try FileManager.default.copyItem(atPath: sourceDirectory.path, toPath: destinationDirectory)
 
             let installomatorShPath = extractedDirURL.appendingPathComponent("Installomator.sh")
@@ -126,13 +133,6 @@ class InstallomatorLabels {
         } catch {
             Logger.log("Error installing labels: \(error.localizedDescription)", logType: "InstallomatorLabels")
             return (false, "Error: \(error.localizedDescription)")
-        }
-    }
-
-    static func installInstallomatorLabels(completion: @escaping (Bool, String) -> Void) {
-        Task {
-            let result = await installInstallomatorLabelsAsync()
-            completion(result.0, result.1)
         }
     }
 
