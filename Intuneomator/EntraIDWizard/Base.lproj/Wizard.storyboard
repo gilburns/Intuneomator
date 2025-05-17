@@ -472,6 +472,10 @@ The Public certificate key should be uploaded to Entra ID under the Intuneomator
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
+                                <connections>
+                                    <action selector="fieldTenentIDValueChanged:" target="SQu-E4-wfH" id="JUn-gM-peb"/>
+                                    <outlet property="nextKeyView" destination="l12-lm-yuL" id="W6Y-LA-zil"/>
+                                </connections>
                             </textField>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ZCd-rf-nrU">
                                 <rect key="frame" x="32" y="142" width="93" height="16"/>
@@ -490,6 +494,10 @@ The Public certificate key should be uploaded to Entra ID under the Intuneomator
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
+                                <connections>
+                                    <action selector="fieldApplicationIDValueChanged:" target="SQu-E4-wfH" id="DZ7-Mj-Tx9"/>
+                                    <outlet property="nextKeyView" destination="O6L-ph-jvo" id="IHm-5E-vjp"/>
+                                </connections>
                             </textField>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="O6L-ph-jvo">
                                 <rect key="frame" x="304" y="104" width="133" height="32"/>
@@ -500,6 +508,7 @@ The Public certificate key should be uploaded to Entra ID under the Intuneomator
                                 </buttonCell>
                                 <connections>
                                     <action selector="validateEntraCredentialsButtonClicked:" target="SQu-E4-wfH" id="FHW-Nh-rJ6"/>
+                                    <outlet property="nextKeyView" destination="drq-og-dgE" id="NoM-M7-z4n"/>
                                 </connections>
                             </button>
                         </subviews>
