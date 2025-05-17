@@ -199,8 +199,8 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         openPanel.allowsMultipleSelection = false
         openPanel.canChooseFiles = true
         openPanel.canChooseDirectories = false
-        openPanel.title = "Select a .p12 File"
-        openPanel.message = "Select a .p12 File"
+        openPanel.title = "Select a .p12 or .pfx File"
+        openPanel.message = "Select a .p12 or .pfx File"
         
         openPanel.begin { result in
             if result == .OK, let selectedFileURL = openPanel.url {
@@ -210,9 +210,11 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
     }
     
     private func requestPassphrase(for fileURL: URL) {
+        let fileExtension = fileURL.pathExtension
+        
         let alert = NSAlert()
         alert.messageText = "Enter Passphrase"
-        alert.informativeText = "Enter the passphrase for the selected .p12 file."
+        alert.informativeText = "Enter the passphrase for the selected .\(fileExtension) file."
         alert.alertStyle = .informational
         alert.addButton(withTitle: "OK")
         alert.addButton(withTitle: "Cancel")
