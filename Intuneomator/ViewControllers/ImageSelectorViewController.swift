@@ -126,7 +126,8 @@ class ImageItemView: NSCollectionViewItem {
         textField.isBordered = false
         textField.drawsBackground = false
         textField.alignment = .center
-        textField.lineBreakMode = .byTruncatingTail
+        textField.font = .systemFont(ofSize: 10)
+        textField.lineBreakMode = .byTruncatingMiddle
         self.textField = textField
         view.addSubview(textField)
     }
