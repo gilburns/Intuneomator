@@ -42,8 +42,6 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     @IBOutlet weak var radioYes: NSButton!
     @IBOutlet weak var radioNo: NSButton!
 
-    @IBOutlet weak var fieldLabelDetails: NSTextField!
-
     @IBOutlet weak var fieldIntuneID: NSTextField!
     @IBOutlet weak var fieldIntuneVersion: NSTextField!
     
@@ -195,7 +193,6 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     }
     
     private func populateFieldsFromAppData() {
-        fieldLabelDetails.stringValue = "\(appData!.name) Details:"
         fieldItemGUID.stringValue = "Tracking ID: \(appData!.guid)"
 
         var plistURL: URL
