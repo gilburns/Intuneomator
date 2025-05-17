@@ -13,6 +13,13 @@ extension XPCService {
     func scanAllManagedLabels(reply: @escaping (Bool) -> Void) {
         Task {
             do {
+                let managedLabelsURL = AppConstants.intuneomatorManagedTitlesFolderURL
+                var isDir: ObjCBool = false
+                if !FileManager.default.fileExists(atPath: managedLabelsURL.path, isDirectory: &isDir) {
+                    try FileManager.default.createDirectory(at: managedLabelsURL, withIntermediateDirectories: true, attributes: nil)
+                    reply(true)
+                    return
+                }
                 let directoryContents = try FileManager.default.contentsOfDirectory(
                     at: URL(fileURLWithPath: AppConstants.intuneomatorManagedTitlesFolderURL.path),
                     includingPropertiesForKeys: nil
