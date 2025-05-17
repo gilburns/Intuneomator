@@ -83,7 +83,29 @@ class SettingsViewController: NSViewController {
         trackChanges()
     }
     
-    
+    @IBAction func buttonValidateEntraCredentialsButtonClicked(_ sender: NSButton) {
+        buttonTestConnection.isEnabled = false
+
+        XPCManager.shared.validateCredentials { success in
+            DispatchQueue.main.async {
+                self.buttonTestConnection.isEnabled = true
+
+                let alert = NSAlert()
+                if success == true {
+                    alert.messageText = "Validation Successful"
+                    alert.informativeText = "The credentials are valid and have the required permissions."
+                    alert.alertStyle = .informational
+                } else {
+                    alert.messageText = "Validation Failed"
+                    alert.informativeText = "The credentials are either invalid or missing the required permissions.\n\nMake sure the enterprise app includes the DeviceManagementApps.ReadWrite.All permission and admin consent has been granted."
+                    alert.alertStyle = .critical
+                }
+                alert.addButton(withTitle: "OK")
+                alert.runModal()
+            }
+        }
+    }
+
     // MARK: - Certificate and Secret handling
     
     @IBAction func selectP12File(_ sender: Any) {
@@ -277,18 +299,22 @@ class SettingsViewController: NSViewController {
     
     
     @IBAction func fieldTenantIdDidChange(_ sender: NSTextField) {
+        setTestConnectionButtonState()
         trackChanges()
     }
     
     @IBAction func fieldAppIdDidChange(_ sender: NSTextField) {
+        setTestConnectionButtonState()
         trackChanges()
     }
 
     @IBAction func fieldClientSecretDidChange(_ sender: NSTextField) {
+        setTestConnectionButtonState()
         trackChanges()
     }
     
     @IBAction func fieldCertificateThumbprintDidChange(_ sender: NSTextField) {
+        setTestConnectionButtonState()
         trackChanges()
     }
     
@@ -303,6 +329,16 @@ class SettingsViewController: NSViewController {
     
     
     // MARK: - Helpers
+    
+    private func setTestConnectionButtonState() {
+        if !fieldClientID.stringValue.isEmpty && !fieldTenantID.stringValue.isEmpty && (!fieldClientSecret.stringValue.isEmpty || !fieldCertificateThumbprint.stringValue.isEmpty)
+        {
+            buttonTestConnection.isEnabled = true
+        } else {
+            buttonTestConnection.isEnabled = false
+        }
+    }
+    
     private func showAlert(title: String, message: String, style: NSAlert.Style) {
         
         DispatchQueue.main.async {
@@ -384,6 +420,7 @@ class SettingsViewController: NSViewController {
                 self.fieldCertificateThumbprint.stringValue = certThumbprint
                 self.settings.certThumbprint = certThumbprint
                 
+                self.setTestConnectionButtonState()
             }
         }
     }
@@ -395,6 +432,7 @@ class SettingsViewController: NSViewController {
                 self.fieldClientSecret.stringValue = clientSecret
                 self.settings.secret = clientSecret
                 
+                self.setTestConnectionButtonState()
             }
         }
     }
@@ -407,6 +445,8 @@ class SettingsViewController: NSViewController {
                 self.fieldTenantID.stringValue = tenantID
                 self.settings.tenantid = tenantID
                 
+                self.setTestConnectionButtonState()
+
             }
         }
     }
@@ -419,6 +459,7 @@ class SettingsViewController: NSViewController {
                 self.fieldClientID.stringValue = applicationID
                 self.settings.appid = applicationID
                 
+                self.setTestConnectionButtonState()
             }
         }
     }
