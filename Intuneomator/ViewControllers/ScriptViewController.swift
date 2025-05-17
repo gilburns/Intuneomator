@@ -12,8 +12,6 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
     
     @IBOutlet weak var scriptsTabView: NSTabView!
     @IBOutlet weak var scriptsTabButtonsStackView: NSStackView! // A vertical stack view for buttons
-
-    @IBOutlet weak var fieldTitleLabel: NSTextField!
     
     @IBOutlet weak var fieldPreInstallScript: NSTextView!
     @IBOutlet weak var fieldPostInstallScript: NSTextView!
@@ -61,9 +59,7 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
         // Set up custom tab buttons
         setupCustomTabButtons()
         updateButtonStates(selectedIndex: 0) // Default to the first tab
-        
-        populateFields()
-        
+                
         // Load the contents of the script files into the text fields
         loadScriptFields()
 
@@ -476,19 +472,6 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
         // Show the popover
         helpPopover.showHelp(anchorView: sender, helpText: helpText)
     }
-
-
-    // MARK: - Helper Methods
-
-    private func populateFields() {
-        guard let appData = appData else {
-            print("Error: appData is nil in populateFields.")
-            return
-        }
-        fieldTitleLabel.stringValue = "\(appData.name) Scripts:"
-    }
-
-
 }
 
 extension ScriptViewController: TabSaveable {
