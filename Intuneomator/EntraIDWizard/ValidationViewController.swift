@@ -31,21 +31,26 @@ class ValidationViewController: NSViewController, WizardStepProtocol {
     override func viewDidAppear() {
         super.viewDidAppear()
 
-        // Set Tenant ID
-        XPCManager.shared.getTenantID { url in
-            DispatchQueue.main.async {
-                self.tenantIDTextField.stringValue = url ?? ""
-                self.updateValidationButtonStatus()
+        if tenantIDTextField.stringValue.isEmpty {
+            // Set Tenant ID
+            XPCManager.shared.getTenantID { url in
+                DispatchQueue.main.async {
+                    self.tenantIDTextField.stringValue = url ?? ""
+                    self.updateValidationButtonStatus()
+                }
+            }
+        }
+        
+        if applicationIDTextField.stringValue.isEmpty {
+            // Set Application ID
+            XPCManager.shared.getApplicationID { url in
+                DispatchQueue.main.async {
+                    self.applicationIDTextField.stringValue = url ?? ""
+                    self.updateValidationButtonStatus()
+                }
             }
         }
 
-        // Set Application ID
-        XPCManager.shared.getApplicationID { url in
-            DispatchQueue.main.async {
-                self.applicationIDTextField.stringValue = url ?? ""
-                self.updateValidationButtonStatus()
-            }
-        }
     }
 
     
@@ -73,6 +78,30 @@ class ValidationViewController: NSViewController, WizardStepProtocol {
         }
     }
     
+    @IBAction func fieldTenentIDValueChanged(_ sender: NSTextField) {
+        
+        setTenantID()
+        updateValidationButtonStatus()
+    }
+
+    @IBAction func fieldApplicationIDValueChanged(_ sender: NSTextField) {
+        
+        setApplicationID()
+        updateValidationButtonStatus()
+    }
+
+    
+
+    
+    private func validateInputs() -> Bool {
+        return !tenantIDTextField.stringValue.isEmpty && !applicationIDTextField.stringValue.isEmpty
+    }
+    
+    private func clearInputs() {
+        tenantIDTextField.stringValue = ""
+        applicationIDTextField.stringValue = ""
+    }
+    
     
     private func updateValidationButtonStatus() {
         if tenantIDTextField.stringValue.isEmpty || applicationIDTextField.stringValue.isEmpty {
@@ -98,6 +127,22 @@ class ValidationViewController: NSViewController, WizardStepProtocol {
         alert.alertStyle = .critical
         alert.addButton(withTitle: "OK")
         alert.runModal()
+    }
+
+    
+    // MARK: - XPC Methods
+    private func setApplicationID() {
+        let appIDString = applicationIDTextField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        XPCManager.shared.setApplicationID(appIDString) { success in
+            Logger.logUser("Application ID updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+        }
+    }
+    
+    private func setTenantID() {
+        let tenantIDString = tenantIDTextField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        XPCManager.shared.setTenantID(tenantIDString) { success in
+            Logger.logUser("Tenant ID updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+        }
     }
 
     
