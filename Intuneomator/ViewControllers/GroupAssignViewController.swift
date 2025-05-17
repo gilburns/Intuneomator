@@ -10,8 +10,6 @@ import Cocoa
 
 class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesHandling, NSTableViewDelegate, NSTableViewDataSource {
     
-    @IBOutlet weak var groupViewTitleField: NSTextField!
-    
     @IBOutlet weak var groupAssignmentsTableView: NSTableView!
     
     
@@ -81,10 +79,6 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
         assignmentsFilePath = AppConstants.intuneomatorManagedTitlesFolderURL
             .appendingPathComponent("\(appData.label)_\(appData.guid)")
             .appendingPathComponent("assignments.json")
-        
-        
-        // Set Title field
-        groupViewTitleField.stringValue = "\(appData.name) Group Assignments:"
                 
         // Set up table views
         groupAssignmentsTableView.delegate = self
