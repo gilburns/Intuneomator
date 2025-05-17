@@ -360,30 +360,30 @@ class MainViewController: NSViewController {
     }
 
     
-    func iconForItemType(_ itemType: String, _ deliveryType: Int) -> NSImage? {
+    func iconForItemType(_ itemType: String, _ deliveryType: Int) -> (NSImage?, NSString?) {
         if ["pkg", "pkgInDmg", "pkgInZip", "pkgInDmgInZip"].contains(itemType) {
             if deliveryType == 1 {
-                return iconForFileExtension("pkg")
+                return (iconForFileExtension("pkg"), "PKG")
             } else if deliveryType == 2 {
                 if let cpIconPath = Bundle.main.path(forResource: "CP", ofType: "png"),
                     let icon = NSImage(contentsOfFile: cpIconPath) {
-                    return icon
+                    return (icon, "LOB")
                 }
-                return iconForApp(bundleIdentifier: "com.microsoft.CompanyPortalMac")
+                return (iconForApp(bundleIdentifier: "com.microsoft.CompanyPortalMac"), "LOB")
             } else {
-                return iconForFileExtension("pkg")
+                return (iconForFileExtension("pkg"), "PKG")
             }
         } else if ["dmg", "zip", "tbz", "appInDmgInZip"].contains(itemType) {
             if deliveryType == 0 {
-                return iconForFileExtension("dmg")
+                return (iconForFileExtension("dmg"), "DMG")
             } else if deliveryType == 1 {
-                return iconForFileExtension("pkg")
+                return (iconForFileExtension("pkg"), "PKG")
             }
             else {
-                return iconForFileExtension("dmg")
+                return (iconForFileExtension("dmg"), "DMG")
             }
         } else {
-            return NSImage(named: NSImage.cautionName)
+            return (NSImage(named: NSImage.cautionName), "???")
         }
     }
     
@@ -768,7 +768,9 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
             cell.textField?.stringValue = archString
             cell.toolTip = readyState
         case "DeliveryColumn":
-            cell.imageView?.image = iconForItemType(item.type, deploymentType)
+            cell.imageView?.image = iconForItemType(item.type, deploymentType).0
+            let toolTipText: String = iconForItemType(item.type, deploymentType).1! as String
+            cell.toolTip = toolTipText
         case "LabelColumn":
             cell.textField?.stringValue = item.label
             cell.toolTip = "Tracking ID: \(item.guid)"
