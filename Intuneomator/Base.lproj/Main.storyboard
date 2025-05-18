@@ -1766,6 +1766,15 @@ Gw
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="esa-Ca-Mnk">
+                                <rect key="frame" x="294" y="25" width="419" height="16"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" alignment="center" id="LXW-E3-bGc">
+                                    <font key="font" usesAppearanceFont="YES"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                     </view>
                     <connections>
@@ -1778,6 +1787,7 @@ Gw
                         <outlet property="progressSpinner" destination="pYc-QQ-zL6" id="byp-16-wxX"/>
                         <outlet property="removeButton" destination="dck-mO-bRM" id="g6S-Ep-HtQ"/>
                         <outlet property="statusLabel" destination="76F-5l-Cqx" id="MqF-f0-9rA"/>
+                        <outlet property="statusUpdateLabel" destination="esa-Ca-Mnk" id="221-uq-ISj"/>
                         <outlet property="tableView" destination="mDH-hJ-IT7" id="cun-ML-hIm"/>
                     </connections>
                 </viewController>
@@ -2331,7 +2341,7 @@ Gw
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cpY-sr-8nS">
                                 <rect key="frame" x="272" y="582" width="450" height="11"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" controlSize="mini" lineBreakMode="clipping" alignment="right" title="GUID" id="blx-GV-34x">
+                                <textFieldCell key="cell" controlSize="mini" lineBreakMode="clipping" selectable="YES" alignment="right" title="GUID" id="blx-GV-34x">
                                     <font key="font" metaFont="miniSystem"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
