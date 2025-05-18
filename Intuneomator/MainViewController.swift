@@ -29,6 +29,8 @@ class MainViewController: NSViewController {
     
     @IBOutlet weak var progressSpinner: NSProgressIndicator!
     
+    @IBOutlet weak var statusUpdateLabel: NSTextField!
+    
     var searchBuffer: String = ""
     var searchTimer: Timer?
 
@@ -294,6 +296,20 @@ class MainViewController: NSViewController {
         deleteAutomationMenuItem .indentationLevel = 1
         menu.addItem(deleteAutomationMenuItem)
 
+        menu.addItem(NSMenuItem.separator())
+
+        let updateMetadataAutomationMenuItem = NSMenuItem(title: "Update Intune Metadata for Item…", action: #selector(updateIntuneMetadata(_:)), keyEquivalent: "")
+        updateMetadataAutomationMenuItem .indentationLevel = 1
+        menu.addItem(updateMetadataAutomationMenuItem)
+
+        let updateAssignmentsAutomationMenuItem = NSMenuItem(title: "Update Intune Assignments for Item…", action: #selector(updateIntuneAssigments(_:)), keyEquivalent: "")
+        updateAssignmentsAutomationMenuItem .indentationLevel = 1
+        menu.addItem(updateAssignmentsAutomationMenuItem)
+
+        let updateScriptsAutomationMenuItem = NSMenuItem(title: "Update Intune Pre-Post Scripts for Item…", action: #selector(updateIntuneScripts(_:)), keyEquivalent: "")
+        updateScriptsAutomationMenuItem .indentationLevel = 1
+        menu.addItem(updateScriptsAutomationMenuItem)
+
         tableView.menu = menu
 
         tableView.target = self
@@ -413,6 +429,158 @@ class MainViewController: NSViewController {
         let buildNumber  = info?["CFBundleVersion"]            as? String ?? "?"
         return "v\(shortVersion) (build \(buildNumber))"
     }
+
+    
+    @objc func updateIntuneMetadata(_ sender: Any) {
+        let selectedRow = tableView.selectedRow
+        guard selectedRow >= 0 else { return }
+
+        // Get the name of the selected item for the confirmation dialog
+        let itemToRemove = filteredAppData[selectedRow]
+        let itemName = itemToRemove.name
+        let itemLabel = itemToRemove.label
+        let displayName = itemToRemove.name
+
+        // Create a confirmation dialog
+        let alert = NSAlert()
+        alert.messageText = "Confirm Update"
+        alert.informativeText = "Are you sure you want to update the Intune metadata for '\(itemName) - \(itemLabel)'?"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Update")
+        alert.addButton(withTitle: "Cancel")
+
+        // Show the dialog and handle the response
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+
+            // Remove the directory associated with the item
+            let folderName = "\(itemToRemove.label)_\(itemToRemove.guid)"
+
+            XPCManager.shared.updateAppMetaData(folderName, displayName) { updateResult in
+                DispatchQueue.main.async {
+                    if updateResult != nil {
+                        self.animateStatusUpdate(updateResult ?? "No result provided.")
+                    } else {
+                        print("Failed to update label content")
+                    }
+                }
+            }
+
+        } else {
+            // User canceled update
+            Logger.logUser("User canceled update")
+        }
+    }
+
+    
+    @objc func updateIntuneAssigments(_ sender: Any) {
+        let selectedRow = tableView.selectedRow
+        guard selectedRow >= 0 else { return }
+
+        // Get the name of the selected item for the confirmation dialog
+        let itemToRemove = filteredAppData[selectedRow]
+        let itemName = itemToRemove.name
+        let itemLabel = itemToRemove.label
+        let displayName = itemToRemove.name
+
+        // Create a confirmation dialog
+        let alert = NSAlert()
+        alert.messageText = "Confirm Update"
+        alert.informativeText = "Are you sure you want to update the Intune group assignemnts for '\(itemName) - \(itemLabel)'?"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Update")
+        alert.addButton(withTitle: "Cancel")
+
+        // Show the dialog and handle the response
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+
+            // Remove the directory associated with the item
+            let folderName = "\(itemToRemove.label)_\(itemToRemove.guid)"
+
+            XPCManager.shared.updateAppAssigments(folderName, displayName) { updateResult in
+                DispatchQueue.main.async {
+                    if updateResult != nil {
+                        self.animateStatusUpdate(updateResult ?? "No result provided.")
+                    } else {
+                        print("Failed to update label content")
+                    }
+                }
+            }
+
+        } else {
+            // User canceled update
+            Logger.logUser("User canceled update")
+        }
+    }
+
+
+    @objc func updateIntuneScripts(_ sender: Any) {
+        let selectedRow = tableView.selectedRow
+        guard selectedRow >= 0 else { return }
+
+        // Get the name of the selected item for the confirmation dialog
+        let itemToRemove = filteredAppData[selectedRow]
+        let itemName = itemToRemove.name
+        let itemLabel = itemToRemove.label
+        let displayName = itemToRemove.name
+
+        // Create a confirmation dialog
+        let alert = NSAlert()
+        alert.messageText = "Confirm Update"
+        alert.informativeText = "Are you sure you want to update the Intune Pre/Post scripts for '\(itemName) - \(itemLabel)'?"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Update")
+        alert.addButton(withTitle: "Cancel")
+
+        // Show the dialog and handle the response
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+
+            // Remove the directory associated with the item
+            let folderName = "\(itemToRemove.label)_\(itemToRemove.guid)"
+
+            XPCManager.shared.updateAppScripts(folderName, displayName) { updateResult in
+                DispatchQueue.main.async {
+                    if updateResult != nil {
+                        self.animateStatusUpdate(updateResult ?? "No result provided.")
+                    } else {
+                        print("Failed to update label content")
+                    }
+                }
+            }
+
+        } else {
+            // User canceled update
+            Logger.logUser("User canceled update")
+        }
+    }
+
+    
+// MARK: - Status Label Animation
+private func animateStatusUpdate(_ message: String,
+                                 fadeInDuration: TimeInterval = 0.25,
+                                 visibleDuration: TimeInterval = 5.0,
+                                 fadeOutDuration: TimeInterval = 0.25) {
+    statusUpdateLabel.alphaValue = 0
+    statusUpdateLabel.isHidden = false
+    statusUpdateLabel.stringValue = message
+
+    NSAnimationContext.runAnimationGroup({ context in
+        context.duration = fadeInDuration
+        self.statusUpdateLabel.animator().alphaValue = 1.0
+    })
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + visibleDuration) {
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = fadeOutDuration
+            self.statusUpdateLabel.animator().alphaValue = 0.0
+        }, completionHandler: {
+            self.statusUpdateLabel.isHidden = true
+            self.statusUpdateLabel.stringValue = ""
+        })
+    }
+}
 
 
     // MARK: - Notifications
