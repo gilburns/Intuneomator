@@ -50,6 +50,33 @@ extension XPCService {
         }
     }
     
+    func updateAppMetadata(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void) {
+        Task {
+            do {
+                await LabelAutomation.processFolderMetadata(named: labelFolderName)
+                reply("Updated \(displayName) metadata")
+            }
+        }
+    }
+
+    func updateAppAssignments(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void) {
+        Task {
+            do {
+                await LabelAutomation.processFolderAssignments(named: labelFolderName)
+                reply("Updated \(displayName) assignments")
+            }
+        }
+    }
+
+    func updateAppScripts(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void) {
+        Task {
+            do {
+                await LabelAutomation.processFolderScripts(named: labelFolderName)
+                reply("Updated \(displayName) scripts")
+            }
+        }
+    }
+
     
     // MARK: - New Mangeged Software Label
 
