@@ -31,7 +31,12 @@ import Foundation
     
     // Main View Controller
     func scanAllManagedLabels(reply: @escaping (Bool) -> Void)
-    
+    func updateAppMetadata(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void)
+
+    func updateAppAssignments(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void)
+
+    func updateAppScripts(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void)
+
     // Installomator Labels
     func addNewLabelContent(_ labelName: String, _ source: String, reply: @escaping (String?) -> Void)
     func updateLabelsFromGitHub(reply: @escaping (Bool) -> Void)
