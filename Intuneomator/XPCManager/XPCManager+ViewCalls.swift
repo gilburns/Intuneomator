@@ -14,6 +14,19 @@ extension XPCManager {
         sendRequest({ $0.scanAllManagedLabels(reply: $1) }, completion: completion)
     }
     
+    func updateAppMetaData(_ labelFolder: String, _ displayName: String, completion: @escaping (String?) -> Void) {
+        sendRequest({ $0.updateAppMetadata(labelFolder, displayName, reply: $1) }, completion: completion)
+    }
+
+    func updateAppAssigments(_ labelFolder: String, _ displayName: String, completion: @escaping (String?) -> Void) {
+        sendRequest({ $0.updateAppAssignments(labelFolder, displayName, reply: $1) }, completion: completion)
+    }
+
+    func updateAppScripts(_ labelFolder: String, _ displayName: String, completion: @escaping (String?) -> Void) {
+        sendRequest({ $0.updateAppScripts(labelFolder, displayName, reply: $1) }, completion: completion)
+    }
+
+    
     // Installomator Labels
     func addNewLabel(_ newLabel: String, _ source: String, completion: @escaping (String?) -> Void) {
         sendRequest({ $0.addNewLabelContent(newLabel, source, reply: $1) }, completion: completion)
