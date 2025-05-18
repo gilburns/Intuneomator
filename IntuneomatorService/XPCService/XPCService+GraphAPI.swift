@@ -50,8 +50,6 @@ extension XPCService {
                 reply(nil)
             }
         }
-    }
-
-    
+    }    
 }
 
