@@ -771,6 +771,151 @@ class EntraGraphRequests {
         Logger.log("All assignments removed for app: \(appId)", logType: "EntraGraphRequests")
     }
     
+    
+    // MARK: - Intune Update App Metadata Function
+    static func updateAppIntuneMetadata(authToken: String, app: ProcessedAppResults!, appId: String) async throws {
+        
+        // GET Intune info for displayName and data.type
+        let getURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appId)?$select=displayName")!
+        var getReq = URLRequest(url: getURL)
+        getReq.httpMethod = "GET"
+        getReq.addValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+
+        let (getData, _) = try await URLSession.shared.data(for: getReq)
+        let currentName = (try JSONSerialization.jsonObject(with: getData) as? [String:Any])?["displayName"] as? String
+          ?? app.appDisplayName
+        let currentDataType = (try JSONSerialization.jsonObject(with: getData, options: []) as? [String:Any])?["@odata.type"] as? String ?? "#microsoft.graph.macOSLobApp"
+
+        // Update metadata for an existing Intune app
+        let updateURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appId)")!
+        var request = URLRequest(url: updateURL)
+        request.httpMethod = "PATCH"
+        request.addValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        // Build the notes field
+        let fullNotes: String
+        if app.appNotes.isEmpty {
+            fullNotes = "Intuneomator ID: \(app.appTrackingID)"
+        } else {
+            fullNotes = "\(app.appNotes)\n\nIntuneomator ID: \(app.appTrackingID)"
+        }
+        
+        // Construct the payload with only the metadata fields to update
+        var metadataPayload: [String: Any] = [
+            "@odata.type": currentDataType,
+            "displayName": currentName,
+            "description": app.appDescription,
+            "developer": app.appDeveloper,
+            "publisher": app.appPublisherName,
+            "owner": app.appOwner,
+            "notes": fullNotes,
+            "privacyInformationUrl": app.appPrivacyPolicyURL,
+            "informationUrl": app.appInfoURL,
+            "ignoreVersionDetection": app.appIgnoreVersion,
+            "isFeatured": app.appIsFeatured,
+            "minimumSupportedOperatingSystem": [
+                "@odata.type": "#microsoft.graph.macOSMinimumOperatingSystem",
+                "v10_13": app.appMinimumOS.contains("v10_13"),
+                "v10_14": app.appMinimumOS.contains("v10_14"),
+                "v10_15": app.appMinimumOS.contains("v10_15"),
+                "v11_0": app.appMinimumOS.contains("v11_0"),
+                "v12_0": app.appMinimumOS.contains("v12_0"),
+                "v13_0": app.appMinimumOS.contains("v13_0"),
+                "v14_0": app.appMinimumOS.contains("v14_0"),
+                "v15_0": app.appMinimumOS.contains("v15_0")
+            ]
+        ]
+
+        // Include largeIcon only if the file exists
+        if FileManager.default.fileExists(atPath: app.appIconURL),
+           let iconData = try? Data(contentsOf: URL(fileURLWithPath: app.appIconURL)) {
+            metadataPayload["largeIcon"] = [
+                "@odata.type": "#microsoft.graph.mimeContent",
+                "type": "image/png",
+                "value": iconData.base64EncodedString()
+            ]
+        }
+        
+        // Attach the JSON body
+        request.httpBody = try JSONSerialization.data(withJSONObject: metadataPayload, options: [])
+
+        // Send the PATCH request
+        let (_, response) = try await URLSession.shared.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+            throw GraphAPIError.apiError("Failed to update metadata. Status code: \(httpResponse.statusCode)")
+        }
+        
+        Logger.log("Successfully updated metadata for app ID \(appId)", logType: "EntraGraphRequests")
+        Logger.log("Successfully updated \(app.appDisplayName) metadata for app ID \(appId)", logType: "Automation")
+    }
+
+    // MARK: - Intune Update App Scripts
+    static func updateAppIntuneScripts(authToken: String, app: ProcessedAppResults!, appId: String) async throws {
+        
+        // GET Intune info for displayName and data.type
+        let getURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appId)?$select=displayName")!
+        var getReq = URLRequest(url: getURL)
+        getReq.httpMethod = "GET"
+        getReq.addValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+
+        let (getData, _) = try await URLSession.shared.data(for: getReq)
+        let currentName = (try JSONSerialization.jsonObject(with: getData) as? [String:Any])?["displayName"] as? String
+          ?? app.appDisplayName
+        let currentDataType = (try JSONSerialization.jsonObject(with: getData, options: []) as? [String:Any])?["@odata.type"] as? String ?? "#microsoft.graph.macOSLobApp"
+
+        if currentDataType != "#microsoft.graph.macOSPkgApp" {
+            throw NSError(domain: "UnsupportedDeploymentType", code: 1, userInfo: [NSLocalizedDescriptionKey: "Scripts can only be updated for PKG apps."])
+        }
+                
+        // Update scripts for an existing Intune app
+        let updateURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appId)")!
+        var request = URLRequest(url: updateURL)
+        request.httpMethod = "PATCH"
+        request.addValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        // Construct the payload with only the metadata fields to update
+        var payload: [String: Any] = [
+            "@odata.type": currentDataType,
+            "displayName": currentName
+        ]
+
+        // Add pre-install script if present
+        let preInstall = app.appScriptPreInstall
+        if !preInstall.isEmpty {
+            payload["preInstallScript"] = [
+                "@odata.type": "#microsoft.graph.macOSAppScript",
+                "scriptContent": Data(preInstall.utf8).base64EncodedString()
+            ]
+        } else {
+            payload["preInstallScript"] = nil
+        }
+        
+        // Add post-install script if present
+        let postInstall = app.appScriptPostInstall
+        if !postInstall.isEmpty {
+            payload["postInstallScript"] = [
+                "@odata.type": "#microsoft.graph.macOSAppScript",
+                "scriptContent": Data(postInstall.utf8).base64EncodedString()
+            ]
+        } else {
+            payload["postInstallScript"] = nil
+        }
+        
+        // Attach the JSON body
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [])
+
+        // Send the PATCH request
+        let (_, response) = try await URLSession.shared.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+            throw GraphAPIError.apiError("Failed to update scripts. Status code: \(httpResponse.statusCode)")
+        }
+        
+        Logger.log("Successfully updated scripts for app ID \(appId)", logType: "EntraGraphRequests")
+        Logger.log("Successfully updated \(app.appDisplayName) scripts for app ID \(appId)", logType: "Automation")
+    }
+
     // MARK: - Intune Delete App Function
     static func deleteIntuneApp(authToken: String, appId: String) async throws {
         // First, get and remove all assignments
@@ -832,16 +977,17 @@ class EntraGraphRequests {
         request.addValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        var fullNotes: String = ""
-        if app.appNotes != "" {
-            fullNotes = "\(app.appNotes)\n\nIntuneomator ID: \(app.appTrackingID)"
-        } else {
+        // Build the notes field
+        let fullNotes: String
+        if app.appNotes.isEmpty {
             fullNotes = "Intuneomator ID: \(app.appTrackingID)"
+        } else {
+            fullNotes = "\(app.appNotes)\n\nIntuneomator ID: \(app.appTrackingID)"
         }
-        
+
+        // Determine architecture suffix for displayName
         let fileName = URL(fileURLWithPath: app.appLocalURL).lastPathComponent
         let arch = ["arm64", "x86_64"].first { fileName.contains($0) }
-        
         let displayName = "\(app.appDisplayName) \(app.appVersionActual)\(arch.map { " \($0)" } ?? "")"
         
         var metadata: [String: Any] = [
@@ -919,9 +1065,11 @@ class EntraGraphRequests {
             ])
         }
         
+        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: "EntraGraphRequests")
+        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: "Automation")
+
         // Start upload session
         do {
-            
             // Create content version
             let contentURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appId)/microsoft.graph.macOSLobApp/contentVersions")!
             var versionRequest = URLRequest(url: contentURL)
@@ -941,7 +1089,7 @@ class EntraGraphRequests {
             }
             
             let versionJson = try JSONSerialization.jsonObject(with: versionData) as? [String: Any]
-            Logger.log("Version JSON: \(versionJson as Any)", logType: "EntraGraphRequests")
+//            Logger.log("Version JSON: \(versionJson as Any)", logType: "EntraGraphRequests")
             guard let versionId = versionJson?["id"] as? String else {
                 throw NSError(domain: "UploadLOBPkg", code: 10, userInfo: [NSLocalizedDescriptionKey: "Failed to get version ID"])
             }
@@ -983,7 +1131,7 @@ class EntraGraphRequests {
             
             
             let fileJson = try JSONSerialization.jsonObject(with: fileData) as? [String: Any]
-            Logger.log("File registration response: \(fileJson as Any)", logType: "EntraGraphRequests")
+//            Logger.log("File registration response: \(fileJson as Any)", logType: "EntraGraphRequests")
             
             // After file registration
             guard let fileId = fileJson?["id"] as? String else {
@@ -1008,7 +1156,7 @@ class EntraGraphRequests {
                 let (statusData, _) = try await URLSession.shared.data(for: statusRequest)
                 let statusJson = try JSONSerialization.jsonObject(with: statusData) as? [String: Any]
                 
-                Logger.log("File status response: \(statusJson as Any)", logType: "EntraGraphRequests")
+//                Logger.log("File status response: \(statusJson as Any)", logType: "EntraGraphRequests")
                 
                 // Check if azureStorageUri is available
                 if let uri = statusJson?["azureStorageUri"] as? String, !uri.isEmpty {
@@ -1025,7 +1173,6 @@ class EntraGraphRequests {
             
             
             // Upload file in chunks
-            
             // Upload the encrypted file
             try await uploadFileInChunks(fileURL: encryptedFileURL, to: uploadUrl)
             
@@ -1123,7 +1270,7 @@ class EntraGraphRequests {
             ])
         }
         
-        print("LOB app uploaded and committed successfully ✅")
+//        print("LOB app uploaded and committed successfully ✅")
         
     }
     
@@ -1139,13 +1286,15 @@ class EntraGraphRequests {
         request.addValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        var fullNotes: String = ""
-        if app.appNotes != "" {
-            fullNotes = "\(app.appNotes)\n\nIntuneomator ID: \(app.appTrackingID)"
-        } else {
+        // Build the notes field
+        let fullNotes: String
+        if app.appNotes.isEmpty {
             fullNotes = "Intuneomator ID: \(app.appTrackingID)"
+        } else {
+            fullNotes = "\(app.appNotes)\n\nIntuneomator ID: \(app.appTrackingID)"
         }
 
+        // Determine architecture suffix for displayName
         let fileName = URL(fileURLWithPath: app.appLocalURL).lastPathComponent
         let arch = ["arm64", "x86_64"].first { fileName.contains($0) }
         let displayName = "\(app.appDisplayName) \(app.appVersionActual)\(arch.map { " \($0)" } ?? "")"
@@ -1243,7 +1392,10 @@ class EntraGraphRequests {
             ])
         }
         
-        // These steps are identical to the LOB implementation
+        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: "EntraGraphRequests")
+        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: "Automation")
+
+        // Start upload session
         do {
             // Create content version
             let contentURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appId)/microsoft.graph.macOSPkgApp/contentVersions")!
@@ -1264,7 +1416,7 @@ class EntraGraphRequests {
             }
             
             let versionJson = try JSONSerialization.jsonObject(with: versionData) as? [String: Any]
-            Logger.log("Version JSON: \(versionJson as Any)", logType: "EntraGraphRequests")
+//            Logger.log("Version JSON: \(versionJson as Any)", logType: "EntraGraphRequests")
             guard let versionId = versionJson?["id"] as? String else {
                 throw NSError(domain: "UploadPKGWithScripts", code: 10, userInfo: [NSLocalizedDescriptionKey: "Failed to get version ID"])
             }
@@ -1303,7 +1455,7 @@ class EntraGraphRequests {
             }
             
             let fileJson = try JSONSerialization.jsonObject(with: fileData) as? [String: Any]
-            Logger.log("File registration response: \(fileJson as Any)", logType: "EntraGraphRequests")
+//            Logger.log("File registration response: \(fileJson as Any)", logType: "EntraGraphRequests")
             
             guard let fileId = fileJson?["id"] as? String else {
                 throw NSError(domain: "UploadPKGWithScripts", code: 11, userInfo: [NSLocalizedDescriptionKey: "Failed to get file ID from registration"])
@@ -1325,7 +1477,7 @@ class EntraGraphRequests {
                 let (statusData, _) = try await URLSession.shared.data(for: statusRequest)
                 let statusJson = try JSONSerialization.jsonObject(with: statusData) as? [String: Any]
                 
-                Logger.log("File status response: \(statusJson as Any)", logType: "EntraGraphRequests")
+//                Logger.log("File status response: \(statusJson as Any)", logType: "EntraGraphRequests")
                 
                 if let uri = statusJson?["azureStorageUri"] as? String, !uri.isEmpty {
                     azureStorageUri = uri
@@ -1427,7 +1579,7 @@ class EntraGraphRequests {
             }
             
             
-            print("PKG with scripts uploaded and committed successfully ✅")
+//            print("PKG with scripts uploaded and committed successfully ✅")
         }
     }
     
@@ -1442,13 +1594,15 @@ class EntraGraphRequests {
         request.addValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        var fullNotes: String = ""
-        if app.appNotes != "" {
-            fullNotes = "\(app.appNotes)\n\nIntuneomator ID: \(app.appTrackingID)"
-        } else {
+        // Build the notes field
+        let fullNotes: String
+        if app.appNotes.isEmpty {
             fullNotes = "Intuneomator ID: \(app.appTrackingID)"
+        } else {
+            fullNotes = "\(app.appNotes)\n\nIntuneomator ID: \(app.appTrackingID)"
         }
 
+        // Determine architecture suffix for displayName
         let fileName = URL(fileURLWithPath: app.appLocalURL).lastPathComponent
         let arch = ["arm64", "x86_64"].first { fileName.contains($0) }
         let displayName = "\(app.appDisplayName) \(app.appVersionActual)\(arch.map { " \($0)" } ?? "")"
@@ -1525,7 +1679,10 @@ class EntraGraphRequests {
             ])
         }
         
-        // These steps are identical to the LOB implementation but with the correct type path
+        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: "EntraGraphRequests")
+        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: "Automation")
+
+        // Start upload session
         do {
             // Create content version
             let contentURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appId)/microsoft.graph.macOSDmgApp/contentVersions")!
@@ -1546,7 +1703,7 @@ class EntraGraphRequests {
             }
             
             let versionJson = try JSONSerialization.jsonObject(with: versionData) as? [String: Any]
-            Logger.log("Version JSON: \(versionJson as Any)", logType: "EntraGraphRequests")
+//            Logger.log("Version JSON: \(versionJson as Any)", logType: "EntraGraphRequests")
             guard let versionId = versionJson?["id"] as? String else {
                 throw NSError(domain: "UploadDMGApp", code: 10, userInfo: [NSLocalizedDescriptionKey: "Failed to get version ID"])
             }
@@ -1585,7 +1742,7 @@ class EntraGraphRequests {
             }
             
             let fileJson = try JSONSerialization.jsonObject(with: fileData) as? [String: Any]
-            Logger.log("File registration response: \(fileJson as Any)", logType: "EntraGraphRequests")
+//            Logger.log("File registration response: \(fileJson as Any)", logType: "EntraGraphRequests")
             
             guard let fileId = fileJson?["id"] as? String else {
                 throw NSError(domain: "UploadDMGApp", code: 11, userInfo: [NSLocalizedDescriptionKey: "Failed to get file ID from registration"])
@@ -1607,7 +1764,7 @@ class EntraGraphRequests {
                 let (statusData, _) = try await URLSession.shared.data(for: statusRequest)
                 let statusJson = try JSONSerialization.jsonObject(with: statusData) as? [String: Any]
                 
-                Logger.log("File status response: \(statusJson as Any)", logType: "EntraGraphRequests")
+//                Logger.log("File status response: \(statusJson as Any)", logType: "EntraGraphRequests")
                 
                 if let uri = statusJson?["azureStorageUri"] as? String, !uri.isEmpty {
                     azureStorageUri = uri
@@ -1708,13 +1865,13 @@ class EntraGraphRequests {
                 ])
             }
             
-            print("DMG app uploaded and committed successfully ✅")
+//            print("DMG app uploaded and committed successfully ✅")
         }
     }
     
     
     // MARK: - File Chunk Upload
-    // File Chunk Upload
+    // File Chunk Upload - used by LOB, PKG, DMG
     private static func uploadFileInChunks(fileURL: URL, to uploadURL: String, chunkSize: Int = 6 * 1024 * 1024) async throws {
         // Get file size using FileManager
         let fileSize = try FileManager.default.attributesOfItem(atPath: fileURL.path)[.size] as? Int ?? 0
@@ -1735,35 +1892,49 @@ class EntraGraphRequests {
             // Read the next chunk
             try fileHandle.seek(toOffset: UInt64(offset))
             let chunkData = fileHandle.readData(ofLength: min(chunkSize, fileSize - offset))
-            
+
             if chunkData.isEmpty {
                 break
             }
-            
-            // Generate block ID (match Python format)
+
+            // Generate block ID
             let blockIdString = String(format: "block-%04d", blockIndex)
             let blockId = Data(blockIdString.utf8).base64EncodedString()
             blockIds.append(blockId)
-            
+
             // Create URL for this block
             let blockURL = URL(string: "\(baseUploadURLString)&comp=block&blockid=\(blockId)")!
-            
+
             // Create request
             var blockRequest = URLRequest(url: blockURL)
             blockRequest.httpMethod = "PUT"
             blockRequest.addValue("BlockBlob", forHTTPHeaderField: "x-ms-blob-type")
             blockRequest.httpBody = chunkData
-            
-            // Upload block
-            let (responseData, response) = try await URLSession.shared.data(for: blockRequest)
-            
-            guard let httpResponse = response as? HTTPURLResponse, (200..<300).contains(httpResponse.statusCode) else {
-                let responseString = String(data: responseData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("Block upload failed: \(responseString)", logType: "EntraGraphRequests")
-                throw NSError(domain: "UploadLOBPkg", code: 3, userInfo: [
-                    NSLocalizedDescriptionKey: "Failed to upload block \(blockIndex)"
-                ])
+
+            // Upload block with retry
+            var lastError: Error?
+            for attempt in 1...3 {
+                do {
+                    let (_, response) = try await URLSession.shared.data(for: blockRequest)
+                    guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                        throw NSError(domain: "UploadError", code: (response as? HTTPURLResponse)?.statusCode ?? -1, userInfo: nil)
+                    }
+                    lastError = nil
+                    break
+                } catch {
+                    lastError = error
+                    if attempt < 3 {
+                        // Exponential backoff before retrying
+                        Logger.log("Throughput throttled, retrying block upload in \(0.5 * Double(attempt)) seconds...", logType: "EntraGraphRequests")
+                        try await Task.sleep(nanoseconds: UInt64(0.5 * Double(attempt) * 1_000_000_000))
+                        continue
+                    }
+                }
             }
+            if let error = lastError {
+                throw error
+            }
+            
             
             Logger.log("Uploaded block \(blockIndex): \(chunkData.count / 1024) KB", logType: "EntraGraphRequests")
             
@@ -1789,8 +1960,11 @@ class EntraGraphRequests {
         blockListRequest.addValue("application/xml", forHTTPHeaderField: "Content-Type")
         blockListRequest.httpBody = blockListData
         
+        Logger.log("Block list upload started...", logType: "EntraGraphRequests")
+
         // Upload block list
         let (blockListResponseData, blockListResponse) = try await URLSession.shared.data(for: blockListRequest)
+        
         
         guard let blockListHTTPResponse = blockListResponse as? HTTPURLResponse, blockListHTTPResponse.statusCode == 201 else {
             let responseString = String(data: blockListResponseData, encoding: .utf8) ?? "<non-UTF8 data>"
@@ -1799,6 +1973,7 @@ class EntraGraphRequests {
                 NSLocalizedDescriptionKey: "Failed to upload block list XML"
             ])
         }
+        Logger.log("Block list upload complete ✅", logType: "EntraGraphRequests")
         
         Logger.log("File upload complete ✅", logType: "EntraGraphRequests")
     }
@@ -1807,7 +1982,7 @@ class EntraGraphRequests {
     // MARK: - Wait for Upload
     // After committing the file, poll for status until completed or failed
     private static func waitForFileUpload(appId: String, versionId: String, fileId: String, appType: String, authToken: String) async throws {
-        let maxAttempts = 20  // Match the Python implementation
+        let maxAttempts = 20
         var attempt = 1
         
         while attempt <= maxAttempts {
@@ -1825,7 +2000,7 @@ class EntraGraphRequests {
                 if let uploadState = statusJson["uploadState"] as? String {
                     Logger.log("File upload state: \(uploadState)", logType: "EntraGraphRequests")
                     
-                    // Check for success state - match exactly what Python is checking for
+                    // Check for success state
                     if uploadState == "commitFileSuccess" {
                         Logger.log("File upload successfully committed ✅", logType: "EntraGraphRequests")
                         return
@@ -1848,7 +2023,7 @@ class EntraGraphRequests {
                 }
             }
             
-            // Wait 5 seconds between attempts (same as Python)
+            // Wait 5 seconds between attempts
             try await Task.sleep(nanoseconds: 5_000_000_000)
             attempt += 1
         }
@@ -1860,28 +2035,7 @@ class EntraGraphRequests {
     }
     
     
-    // MARK: - Encode App Icon (Base64)
-    static func encodeIcon(iconPath: String) -> String? {
-        guard let imageData = try? Data(contentsOf: URL(fileURLWithPath: iconPath)) else {
-            Logger.log("Failed to read icon file.", logType: "EntraGraphRequests")
-            return nil
-        }
-        return imageData.base64EncodedString()
-    }
-    
-    
-    
-    // MARK: - Random base64 Strings
-    // Helper function to generate random base64 strings of specified length
-    private static func randomBase64String(length: Int) -> String {
-        var bytes = [UInt8](repeating: 0, count: length)
-        _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
-        return Data(bytes).base64EncodedString()
-    }
-    
-    
-    
-    // MARK: - Encrypt File
+    // MARK: - Encryption Functions
     // Helper function to encrypt the app file
     private static func encryptApp(fileURL: URL) throws -> (encryptedData: Data, encryptionInfo: [String: Any], plaintextSize: Int) {
         
@@ -1966,73 +2120,6 @@ class EntraGraphRequests {
         // Return only the bytes that were actually encrypted
         return Data(encryptedBytes.prefix(numBytesEncrypted))
     }
-    
-    
-    private static func encryptAES256Original(data: Data, key: Data, iv: Data) throws -> Data {
-        // Create a mutable data object to hold the encrypted data
-        let encryptedData = NSMutableData()
-        
-        // Create encryption context
-        var cryptorRef: CCCryptorRef? = nil
-        let status = CCCryptorCreate(
-            CCOperation(kCCEncrypt),
-            CCAlgorithm(kCCAlgorithmAES),
-            CCOptions(kCCOptionPKCS7Padding),
-            [UInt8](key), key.count,
-            [UInt8](iv),
-            &cryptorRef
-        )
-        
-        guard status == kCCSuccess else {
-            throw NSError(domain: "EncryptionError", code: Int(status), userInfo: [NSLocalizedDescriptionKey: "Failed to create encryption context"])
-        }
-        
-        defer {
-            CCCryptorRelease(cryptorRef)
-        }
-        
-        // Determine buffer sizes
-        let inputLength = data.count
-        let outputLength = CCCryptorGetOutputLength(cryptorRef, inputLength, true)
-        let outputBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: outputLength)
-        defer {
-            outputBuffer.deallocate()
-        }
-        
-        // Process the input data
-        var dataOutMoved: size_t = 0
-        let inputBytes = [UInt8](data)
-        let updateStatus = CCCryptorUpdate(
-            cryptorRef,
-            inputBytes, inputLength,
-            outputBuffer, outputLength,
-            &dataOutMoved
-        )
-        
-        guard updateStatus == kCCSuccess else {
-            throw NSError(domain: "EncryptionError", code: Int(updateStatus), userInfo: [NSLocalizedDescriptionKey: "Failed to process data"])
-        }
-        
-        encryptedData.append(outputBuffer, length: dataOutMoved)
-        
-        // Finalize the encryption
-        var finalDataOutMoved: size_t = 0
-        let finalStatus = CCCryptorFinal(
-            cryptorRef,
-            outputBuffer + dataOutMoved, outputLength - dataOutMoved,
-            &finalDataOutMoved
-        )
-        
-        guard finalStatus == kCCSuccess else {
-            throw NSError(domain: "EncryptionError", code: Int(finalStatus), userInfo: [NSLocalizedDescriptionKey: "Failed to finalize encryption"])
-        }
-        
-        encryptedData.append(outputBuffer + dataOutMoved, length: finalDataOutMoved)
-        
-        return encryptedData as Data
-    }
-    
-    
     
     
     // Helper function for HMAC-SHA256
