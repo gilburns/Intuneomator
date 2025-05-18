@@ -130,9 +130,6 @@ class PkgInspector {
                 print("Error reading resource values: \(error)")
             }
         }
-        
-        print("Bundle URLs: \(bundleURLs)")
-        
         return bundleURLs
     }
     
