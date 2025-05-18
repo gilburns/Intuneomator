@@ -302,13 +302,14 @@ class MainViewController: NSViewController {
         updateMetadataAutomationMenuItem .indentationLevel = 1
         menu.addItem(updateMetadataAutomationMenuItem)
 
-        let updateAssignmentsAutomationMenuItem = NSMenuItem(title: "Update Intune Assignments for Item…", action: #selector(updateIntuneAssigments(_:)), keyEquivalent: "")
+        let updateScriptsAutomationMenuItem = NSMenuItem(title: "Update Intune Pre/Post Scripts for Item…", action: #selector(updateIntuneScripts(_:)), keyEquivalent: "")
+        updateScriptsAutomationMenuItem .indentationLevel = 1
+        menu.addItem(updateScriptsAutomationMenuItem)
+
+        let updateAssignmentsAutomationMenuItem = NSMenuItem(title: "Update Intune Group Assignments for Item…", action: #selector(updateIntuneAssigments(_:)), keyEquivalent: "")
         updateAssignmentsAutomationMenuItem .indentationLevel = 1
         menu.addItem(updateAssignmentsAutomationMenuItem)
 
-        let updateScriptsAutomationMenuItem = NSMenuItem(title: "Update Intune Pre-Post Scripts for Item…", action: #selector(updateIntuneScripts(_:)), keyEquivalent: "")
-        updateScriptsAutomationMenuItem .indentationLevel = 1
-        menu.addItem(updateScriptsAutomationMenuItem)
 
         tableView.menu = menu
 
