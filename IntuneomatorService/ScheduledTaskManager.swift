@@ -23,7 +23,7 @@ class ScheduledTaskManager {
         var plistDict: [String: Any] = [
             "Label": label,
             "ProgramArguments": [binaryPath, argument],
-            "RunAtLoad": true,
+            "RunAtLoad": false,
             "StandardOutPath": "/var/log/\(label).out.log",
             "StandardErrorPath": "/var/log/\(label).err.log",
             "AssociatedBundleIdentifiers": associatedBundleID
@@ -38,6 +38,10 @@ class ScheduledTaskManager {
             return dict
         }
         plistDict["StartCalendarInterval"] = scheduleArray
+
+        let labelLastPart = label.components(separatedBy: ".").last ?? label
+        let triggerFilePath = "/Library/Application Support/Intuneomator/.\(labelLastPart).trigger"
+        plistDict["WatchPaths"] = [triggerFilePath]
 
         // Serialize the plist
         do {
