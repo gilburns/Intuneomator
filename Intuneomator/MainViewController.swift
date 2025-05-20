@@ -60,11 +60,13 @@ class MainViewController: NSViewController {
 
         registerNotifications()
         
-        setupTableView()
+        setupTableViewRightClickMenu()
 
         refreshUI()
         
         labelVersionInfo.stringValue = formattedAppVersion()
+
+        checkForIntuneAutomation()
 
     }
     
@@ -81,6 +83,7 @@ class MainViewController: NSViewController {
         }
         
         XPCManager.shared.endXPCServiceTransaction { _ in }
+        
     }
     
     
@@ -282,58 +285,30 @@ class MainViewController: NSViewController {
 
     
     // MARK: - Helpers
-    private func setupTableView() {
+    
+    private func checkForIntuneAutomation() {
+        
+        
+        XPCManager.shared.checkIntuneForAutomation() { success in
+            if let success = success {
+                if success {
+                            Logger.logUser("Scan completed successfully.", logType: "MainViewController")
+                    DispatchQueue.main.async {
+                    }
+                }
+            }
+        }
+
+        
+    }
+    
+    private func setupTableViewRightClickMenu() {
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "New Label Item…", action: #selector(addRow(_:)), keyEquivalent: ""))
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Table Row Actions:", action: nil, keyEquivalent: ""))
-
-        let editAutomationMenuItem = NSMenuItem(title: "Edit Automation Details…", action: #selector(editAppItem(_:)), keyEquivalent: "")
-        editAutomationMenuItem .indentationLevel = 1
-        menu.addItem(editAutomationMenuItem)
-
-        let deleteAutomationMenuItem = NSMenuItem(title: "Delete Label Item…", action: #selector(removeRow(_:)), keyEquivalent: "")
-        deleteAutomationMenuItem .indentationLevel = 1
-        menu.addItem(deleteAutomationMenuItem)
-
-        menu.addItem(NSMenuItem.separator())
-
-        let updateMetadataAutomationMenuItem = NSMenuItem(title: "Update Intune Metadata for Item…", action: #selector(updateIntuneMetadata(_:)), keyEquivalent: "")
-        updateMetadataAutomationMenuItem .indentationLevel = 1
-        menu.addItem(updateMetadataAutomationMenuItem)
-
-        let updateScriptsAutomationMenuItem = NSMenuItem(title: "Update Intune Pre/Post Scripts for Item…", action: #selector(updateIntuneScripts(_:)), keyEquivalent: "")
-        updateScriptsAutomationMenuItem .indentationLevel = 1
-        menu.addItem(updateScriptsAutomationMenuItem)
-
-        let updateAssignmentsAutomationMenuItem = NSMenuItem(title: "Update Intune Group Assignments for Item…", action: #selector(updateIntuneAssigments(_:)), keyEquivalent: "")
-        updateAssignmentsAutomationMenuItem .indentationLevel = 1
-        menu.addItem(updateAssignmentsAutomationMenuItem)
-
-
+        menu.delegate = self
         tableView.menu = menu
-
         tableView.target = self
         tableView.doubleAction = #selector(handleTableViewDoubleClick(_:))
     }
-
-    @objc private func handleTableViewDoubleClick(_ sender: Any?) {
-        guard tableView.selectedRow >= 0 else { return }
-        
-        // Get the current event to check for modifier keys
-//        if let event = NSApp.currentEvent {
-//            if event.modifierFlags.contains(.shift) {
-//                editPrePostScripts(self)
-//            } else if event.modifierFlags.contains(.option) {
-//                editGroupAssignments(self)
-//            } else {
-//                editAppItem(self)
-//            }
-//        }
-        
-        editAppItem(self)
-    }
-
     
     private func registerNotifications() {
         NotificationCenter.default.addObserver(self, selector: #selector(mainWindowDidLoad(_:)), name: .mainWindowDidLoad, object: nil)
@@ -430,159 +405,52 @@ class MainViewController: NSViewController {
         let buildNumber  = info?["CFBundleVersion"]            as? String ?? "?"
         return "v\(shortVersion) (build \(buildNumber))"
     }
-
     
-    @objc func updateIntuneMetadata(_ sender: Any) {
-        let selectedRow = tableView.selectedRow
-        guard selectedRow >= 0 else { return }
-
-        // Get the name of the selected item for the confirmation dialog
-        let itemToRemove = filteredAppData[selectedRow]
-        let itemName = itemToRemove.name
-        let itemLabel = itemToRemove.label
-        let displayName = itemToRemove.name
-
-        // Create a confirmation dialog
-        let alert = NSAlert()
-        alert.messageText = "Confirm Update"
-        alert.informativeText = "Are you sure you want to update the Intune metadata for '\(itemName) - \(itemLabel)'?"
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "Update")
-        alert.addButton(withTitle: "Cancel")
-
-        // Show the dialog and handle the response
-        let response = alert.runModal()
-        if response == .alertFirstButtonReturn {
-
-            // Remove the directory associated with the item
-            let folderName = "\(itemToRemove.label)_\(itemToRemove.guid)"
-
-            XPCManager.shared.updateAppMetaData(folderName, displayName) { updateResult in
-                DispatchQueue.main.async {
-                    if updateResult != nil {
-                        self.animateStatusUpdate(updateResult ?? "No result provided.")
-                    } else {
-                        print("Failed to update label content")
-                    }
-                }
-            }
-
-        } else {
-            // User canceled update
-            Logger.logUser("User canceled update")
-        }
-    }
-
     
-    @objc func updateIntuneAssigments(_ sender: Any) {
-        let selectedRow = tableView.selectedRow
-        guard selectedRow >= 0 else { return }
-
-        // Get the name of the selected item for the confirmation dialog
-        let itemToRemove = filteredAppData[selectedRow]
-        let itemName = itemToRemove.name
-        let itemLabel = itemToRemove.label
-        let displayName = itemToRemove.name
-
-        // Create a confirmation dialog
-        let alert = NSAlert()
-        alert.messageText = "Confirm Update"
-        alert.informativeText = "Are you sure you want to update the Intune group assignemnts for '\(itemName) - \(itemLabel)'?"
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "Update")
-        alert.addButton(withTitle: "Cancel")
-
-        // Show the dialog and handle the response
-        let response = alert.runModal()
-        if response == .alertFirstButtonReturn {
-
-            // Remove the directory associated with the item
-            let folderName = "\(itemToRemove.label)_\(itemToRemove.guid)"
-
-            XPCManager.shared.updateAppAssigments(folderName, displayName) { updateResult in
-                DispatchQueue.main.async {
-                    if updateResult != nil {
-                        self.animateStatusUpdate(updateResult ?? "No result provided.")
-                    } else {
-                        print("Failed to update label content")
-                    }
-                }
-            }
-
-        } else {
-            // User canceled update
-            Logger.logUser("User canceled update")
-        }
-    }
-
-
-    @objc func updateIntuneScripts(_ sender: Any) {
-        let selectedRow = tableView.selectedRow
-        guard selectedRow >= 0 else { return }
-
-        // Get the name of the selected item for the confirmation dialog
-        let itemToRemove = filteredAppData[selectedRow]
-        let itemName = itemToRemove.name
-        let itemLabel = itemToRemove.label
-        let displayName = itemToRemove.name
-
-        // Create a confirmation dialog
-        let alert = NSAlert()
-        alert.messageText = "Confirm Update"
-        alert.informativeText = "Are you sure you want to update the Intune Pre/Post scripts for '\(itemName) - \(itemLabel)'?"
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "Update")
-        alert.addButton(withTitle: "Cancel")
-
-        // Show the dialog and handle the response
-        let response = alert.runModal()
-        if response == .alertFirstButtonReturn {
-
-            // Remove the directory associated with the item
-            let folderName = "\(itemToRemove.label)_\(itemToRemove.guid)"
-
-            XPCManager.shared.updateAppScripts(folderName, displayName) { updateResult in
-                DispatchQueue.main.async {
-                    if updateResult != nil {
-                        self.animateStatusUpdate(updateResult ?? "No result provided.")
-                    } else {
-                        print("Failed to update label content")
-                    }
-                }
-            }
-
-        } else {
-            // User canceled update
-            Logger.logUser("User canceled update")
-        }
-    }
-
-    
-// MARK: - Status Label Animation
-private func animateStatusUpdate(_ message: String,
-                                 fadeInDuration: TimeInterval = 0.25,
-                                 visibleDuration: TimeInterval = 5.0,
-                                 fadeOutDuration: TimeInterval = 0.25) {
-    statusUpdateLabel.alphaValue = 0
-    statusUpdateLabel.isHidden = false
-    statusUpdateLabel.stringValue = message
-
-    NSAnimationContext.runAnimationGroup({ context in
-        context.duration = fadeInDuration
-        self.statusUpdateLabel.animator().alphaValue = 1.0
-    })
-
-    DispatchQueue.main.asyncAfter(deadline: .now() + visibleDuration) {
+    // MARK: - Status Label Animation
+    private func animateStatusUpdate(_ message: String,
+                                     fadeInDuration: TimeInterval = 0.25,
+                                     visibleDuration: TimeInterval = 5.0,
+                                     fadeOutDuration: TimeInterval = 0.25) {
+        statusUpdateLabel.alphaValue = 0
+        statusUpdateLabel.isHidden = false
+        statusUpdateLabel.stringValue = message
+        
         NSAnimationContext.runAnimationGroup({ context in
-            context.duration = fadeOutDuration
-            self.statusUpdateLabel.animator().alphaValue = 0.0
-        }, completionHandler: {
-            self.statusUpdateLabel.isHidden = true
-            self.statusUpdateLabel.stringValue = ""
+            context.duration = fadeInDuration
+            self.statusUpdateLabel.animator().alphaValue = 1.0
         })
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + visibleDuration) {
+            NSAnimationContext.runAnimationGroup({ context in
+                context.duration = fadeOutDuration
+                self.statusUpdateLabel.animator().alphaValue = 0.0
+            }, completionHandler: {
+                self.statusUpdateLabel.isHidden = true
+                self.statusUpdateLabel.stringValue = ""
+            })
+        }
     }
-}
 
+    
+    // MARK: - Color Tint Symbols
+    func tintedSymbolImage(named name: String, color: NSColor, size: NSSize, config: NSImage.SymbolConfiguration) -> NSImage? {
+        guard let baseImage = NSImage(systemSymbolName: name, accessibilityDescription: nil)?.withSymbolConfiguration(config) else {
+            return nil
+        }
+
+        let tinted = NSImage(size: size)
+        tinted.lockFocus()
+        NSGraphicsContext.current?.imageInterpolation = .high
+
+        baseImage.draw(in: NSRect(origin: .zero, size: size))
+        color.set()
+        NSRect(origin: .zero, size: size).fill(using: .sourceAtop)
+
+        tinted.unlockFocus()
+        tinted.isTemplate = false
+        return tinted
+    }
 
     // MARK: - Notifications
     @objc func mainWindowDidLoad(_ notification: Notification) {
@@ -604,15 +472,11 @@ private func animateStatusUpdate(_ message: String,
 
     @IBAction func showAboutWindow(_ sender: Any) {
         // Show About
-//        print("showAboutWindow")
-        let storyboard = NSStoryboard(name: "Main", bundle: nil)
-        guard let aboutWindowVC = storyboard.instantiateController(withIdentifier: "AboutViewController") as? AboutViewController else {
-            return
-        }
-        presentAsModalWindow(aboutWindowVC)
-    }
+        let storyboard = NSStoryboard(name: "About", bundle: nil)
+        guard let controller = storyboard.instantiateController(withIdentifier: "AboutViewController") as? AboutViewController else { return }
 
-    
+        presentAsSheet(controller)
+    }
     
     
     // MARK: - Validation Cache Management
@@ -857,6 +721,64 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
         // Icon for label automation title
         let labelIconURL = folderURL.appendingPathComponent("\(item.label).png")
         
+        var labelUploadCount: Int = 0
+        var cloudImageIcon: NSImage?
+        let labelUploadStateURL = folderURL.appendingPathComponent(".uploaded")
+        if FileManager.default.fileExists(atPath: labelUploadStateURL.path) {
+            if let data = FileManager.default.contents(atPath: labelUploadStateURL.path),
+               let countString = String(data: data, encoding: .utf8),
+               let count = Int(countString) {
+                labelUploadCount = count
+            }
+        }
+
+        // Create an NSImage using SF Symbols with optional overlay
+        let symbolName: String
+        let symbolNumber: String
+        var tintColor: NSColor
+        var tintColorOverlay: NSColor
+        var tintColorNumber: NSColor
+        if labelUploadCount > 0 {
+            symbolName = "circle.fill"
+            symbolNumber = "\(labelUploadCount).circle"
+            tintColor = NSColor.systemGreen
+            tintColorNumber = NSColor.white
+            tintColorOverlay = NSColor.systemBlue
+        } else {
+            symbolName = "circle.fill"
+            symbolNumber = "\(labelUploadCount).circle"
+            tintColor = NSColor.lightGray
+            tintColorNumber = NSColor.white
+            tintColorOverlay = NSColor.darkGray
+        }
+
+        let baseSize = NSSize(width: 30, height: 26)
+        let overlaySize = NSSize(width: 16.5, height: 16.5)
+        let overlaySizeNumber = NSSize(width: 16, height: 16)
+        let overlayOrigin = NSPoint(x: 6.5, y: 3.5)
+
+        let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .light)
+
+        if let tintedBase = tintedSymbolImage(named: "cloud", color: tintColor, size: baseSize, config: config),
+           let tintedOverlay = tintedSymbolImage(named: symbolName, color: tintColorOverlay, size: overlaySize, config: config),
+            let tintedNumber = tintedSymbolImage(named: symbolNumber, color: tintColorNumber, size: overlaySizeNumber, config: config) {
+
+            let composed = NSImage(size: baseSize)
+            composed.lockFocus()
+            NSGraphicsContext.current?.imageInterpolation = .high
+
+            tintedBase.draw(in: NSRect(origin: .zero, size: baseSize))
+            tintedOverlay.draw(in: NSRect(origin: overlayOrigin, size: overlaySize))
+            tintedNumber.draw(in: NSRect(origin: overlayOrigin, size: overlaySize))
+
+            composed.unlockFocus()
+            composed.isTemplate = false
+
+            cloudImageIcon = composed
+        } else {
+            print ("Could not create cloud icon")
+        }
+        
         var metadata: Metadata!
         // Load metadata.json
         let labelMetaDataURL = folderURL
@@ -911,13 +833,6 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
         }
 
         switch columnIdentifier {
-        case "ValidationColumn":
-            if let icon = iconImage {
-                cell.imageView?.image = icon
-                cell.toolTip = readyState
-            } else {
-//                print("Failed to load icon for validation result")
-            }
         case "IconColumn":
             // Load the icon
             if let icon = NSImage(contentsOfFile: labelIconURL.path) {
@@ -929,6 +844,20 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
                 let fallbackIconPath = Bundle.main.path(forResource: "app_icon", ofType: "png") ?? ""
                 cell.imageView?.image = NSImage(contentsOfFile: fallbackIconPath)
                 cell.toolTip = "Failed to load icon"
+            }
+        case "ValidationColumn":
+            if let icon = iconImage {
+                cell.imageView?.image = icon
+                cell.toolTip = readyState
+            } else {
+//                print("Failed to load icon for validation result")
+            }
+        case "CloudStatusColumn":
+            if let icon = cloudImageIcon {
+                cell.imageView?.image = icon
+                cell.toolTip = "\(labelUploadCount)"
+            } else {
+//                print("Failed to load icon for validation result")
             }
         case "NameColumn":
             cell.textField?.stringValue = item.name
@@ -978,6 +907,25 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
         return FileManager.default.fileExists(atPath: labelX86PlistPath.path) &&
         FileManager.default.fileExists(atPath: labelPlistPath.path)
     }
+    
+    // MARK: - Handle Table DoubleClick
+    @objc private func handleTableViewDoubleClick(_ sender: Any?) {
+        guard tableView.selectedRow >= 0 else { return }
+        
+        // Get the current event to check for modifier keys
+        //        if let event = NSApp.currentEvent {
+        //            if event.modifierFlags.contains(.shift) {
+        //                editPrePostScripts(self)
+        //            } else if event.modifierFlags.contains(.option) {
+        //                editGroupAssignments(self)
+        //            } else {
+        //                editAppItem(self)
+        //            }
+        //        }
+        
+        editAppItem(self)
+    }
+
 
     // MARK: - Handle Keyboard Input
     override func keyDown(with event: NSEvent) {
@@ -1005,6 +953,319 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
         if let index = appData.firstIndex(where: { $0.name.hasPrefix(searchBuffer) }) {
             tableView.selectRowIndexes(IndexSet(integer: index), byExtendingSelection: false)
             tableView.scrollRowToVisible(index)
+        }
+    }
+}
+
+
+// MARK: - NSMenuDelegate
+extension MainViewController: NSMenuDelegate {
+    
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        // Remove all items to rebuild dynamically
+        menu.removeAllItems()
+        
+        let clickedRow = tableView.clickedRow
+        guard clickedRow >= 0, clickedRow < filteredAppData.count else { return }
+        
+        // Get display name for menu
+        let appItem = filteredAppData[clickedRow]
+        let displayName = appItem.name
+        
+        // Check automation readiness
+        let folderURL = AppConstants.intuneomatorManagedTitlesFolderURL
+            .appendingPathComponent("\(appItem.label)_\(appItem.guid)")
+        let isReady = AutomationCheck.validateFolder(at: folderURL.path)
+
+        // Get metadata for deploymentType
+        var metadata: Metadata!
+        // Load metadata.json
+        let labelMetaDataURL = folderURL
+            .appendingPathComponent("metadata.json")
+        do {
+            let data = try Data(contentsOf: labelMetaDataURL)
+            metadata = try JSONDecoder().decode(Metadata.self, from: data)
+        } catch {
+//            print("Could not load metadata")
+        }
+        
+        let deploymentType = metadata.deploymentTypeTag
+        var scriptsMenuIsVisible: Bool = false
+        if deploymentType == 1 {
+            scriptsMenuIsVisible = true
+        }
+        
+        // Get Intune upload status
+        let uploadStatusURL = folderURL.appendingPathComponent(".uploaded")
+        let isUploaded: Bool = FileManager.default.fileExists(atPath: uploadStatusURL.path)
+        
+        menu.addItem(NSMenuItem(title: "New Label Item…", action: #selector(addRow(_:)), keyEquivalent: ""))
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "Table Row Actions:", action: nil, keyEquivalent: ""))
+        
+        let editAutomationMenuItem = NSMenuItem(title: "Edit \(displayName) Automation Details…", action: #selector(editAppItem(_:)), keyEquivalent: "")
+        editAutomationMenuItem.indentationLevel = 1
+        menu.addItem(editAutomationMenuItem)
+        
+        let deleteAutomationMenuItem = NSMenuItem(title: "Delete \(displayName) Automation…", action: #selector(removeRow(_:)), keyEquivalent: "")
+        deleteAutomationMenuItem.indentationLevel = 1
+        menu.addItem(deleteAutomationMenuItem)
+        
+        menu.addItem(NSMenuItem.separator())
+        let intuneActionsMenuItem = NSMenuItem(title: "Intune Actions:", action: nil, keyEquivalent: "")
+        intuneActionsMenuItem.isHidden = !isReady
+        menu.addItem(intuneActionsMenuItem)
+
+        
+        let updateMetadataAutomationMenuItem = NSMenuItem(title: "Update Intune Metadata for \(displayName)…", action: #selector(updateIntuneMetadata(_:)), keyEquivalent: "")
+        updateMetadataAutomationMenuItem.indentationLevel = 1
+        updateMetadataAutomationMenuItem.isHidden = !isReady && !isUploaded
+        menu.addItem(updateMetadataAutomationMenuItem)
+        
+        let updateScriptsAutomationMenuItem = NSMenuItem(title: "Update Intune Pre/Post Scripts for \(displayName)…", action: #selector(updateIntuneScripts(_:)), keyEquivalent: "")
+        updateScriptsAutomationMenuItem.indentationLevel = 1
+        updateScriptsAutomationMenuItem.isHidden = (!scriptsMenuIsVisible || !isReady) && (!scriptsMenuIsVisible || !isUploaded)
+        menu.addItem(updateScriptsAutomationMenuItem)
+        
+        let updateAssignmentsAutomationMenuItem = NSMenuItem(title: "Update Intune Group Assignments for \(displayName)…", action: #selector(updateIntuneAssigments(_:)), keyEquivalent: "")
+        updateAssignmentsAutomationMenuItem.indentationLevel = 1
+        updateAssignmentsAutomationMenuItem.isHidden = !isReady && !isUploaded
+        menu.addItem(updateAssignmentsAutomationMenuItem)
+        
+        menu.addItem(NSMenuItem.separator())
+        let runNowTitle = "Start an on-demand automation run for \(displayName)…"
+        let runNowItem = NSMenuItem(title: runNowTitle, action: #selector(onDemandScriptAutomation(_:)), keyEquivalent: "")
+        runNowItem.indentationLevel = 1
+        runNowItem.isHidden = !isReady && !isUploaded
+        menu.addItem(runNowItem)
+        
+        menu.addItem(NSMenuItem.separator())
+        let deleteAutomationTitle = "Delete \(displayName) automation items from Intune…"
+        let deleteAutomationItem = NSMenuItem(title: deleteAutomationTitle, action: #selector(deleteAutomationsFromIntune(_:)), keyEquivalent: "")
+        deleteAutomationItem.indentationLevel = 1
+        deleteAutomationItem.isHidden = !isReady && !isUploaded
+        menu.addItem(deleteAutomationItem)
+    }
+        
+    // MARK: - Right click menu actions
+    @objc func updateIntuneMetadata(_ sender: Any) {
+        let selectedRow = tableView.selectedRow
+        guard selectedRow >= 0 else { return }
+
+        // Get the name of the selected item for the confirmation dialog
+        let itemToRemove = filteredAppData[selectedRow]
+        let itemName = itemToRemove.name
+        let itemLabel = itemToRemove.label
+        let displayName = itemToRemove.name
+
+        // Create a confirmation dialog
+        let alert = NSAlert()
+        alert.messageText = "Confirm Update"
+        alert.informativeText = "Are you sure you want to update the Intune metadata for '\(itemName) - \(itemLabel)'?"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Update")
+        alert.addButton(withTitle: "Cancel")
+
+        // Show the dialog and handle the response
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+
+            // Update metadata associated with the item
+            let folderName = "\(itemToRemove.label)_\(itemToRemove.guid)"
+
+            XPCManager.shared.updateAppMetaData(folderName, displayName) { updateResult in
+                DispatchQueue.main.async {
+                    if updateResult != nil {
+                        self.animateStatusUpdate(updateResult ?? "No result provided.")
+                    } else {
+                        print("Failed to update label content")
+                    }
+                }
+            }
+
+        } else {
+            // User canceled update
+            Logger.logUser("User canceled")
+        }
+    }
+
+    
+    @objc func updateIntuneScripts(_ sender: Any) {
+        let selectedRow = tableView.selectedRow
+        guard selectedRow >= 0 else { return }
+
+        // Get the name of the selected item for the confirmation dialog
+        let itemToRemove = filteredAppData[selectedRow]
+        let itemName = itemToRemove.name
+        let itemLabel = itemToRemove.label
+        let displayName = itemToRemove.name
+
+        // Create a confirmation dialog
+        let alert = NSAlert()
+        alert.messageText = "Confirm Update"
+        alert.informativeText = "Are you sure you want to update the Intune Pre/Post scripts for '\(itemName) - \(itemLabel)'?"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Update")
+        alert.addButton(withTitle: "Cancel")
+
+        // Show the dialog and handle the response
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+
+            // Update scripts associated with the item
+            let folderName = "\(itemToRemove.label)_\(itemToRemove.guid)"
+
+            XPCManager.shared.updateAppScripts(folderName, displayName) { updateResult in
+                DispatchQueue.main.async {
+                    if updateResult != nil {
+                        self.animateStatusUpdate(updateResult ?? "No result provided.")
+                    } else {
+                        print("Failed to update label content")
+                    }
+                }
+            }
+
+        } else {
+            // User canceled update
+            Logger.logUser("User canceled")
+        }
+    }
+
+    
+    @objc func updateIntuneAssigments(_ sender: Any) {
+        let selectedRow = tableView.selectedRow
+        guard selectedRow >= 0 else { return }
+
+        // Get the name of the selected item for the confirmation dialog
+        let itemToRemove = filteredAppData[selectedRow]
+        let itemName = itemToRemove.name
+        let itemLabel = itemToRemove.label
+        let displayName = itemToRemove.name
+
+        // Create a confirmation dialog
+        let alert = NSAlert()
+        alert.messageText = "Confirm Update"
+        alert.informativeText = "Are you sure you want to update the Intune group assignemnts for '\(itemName) - \(itemLabel)'?"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Update")
+        alert.addButton(withTitle: "Cancel")
+
+        // Show the dialog and handle the response
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+
+            // Update group assignments associated with the item
+            let folderName = "\(itemToRemove.label)_\(itemToRemove.guid)"
+
+            XPCManager.shared.updateAppAssigments(folderName, displayName) { updateResult in
+                DispatchQueue.main.async {
+                    if updateResult != nil {
+                        self.animateStatusUpdate(updateResult ?? "No result provided.")
+                    } else {
+                        print("Failed to update label content")
+                    }
+                }
+            }
+
+        } else {
+            // User canceled update
+            Logger.logUser("User canceled")
+        }
+    }
+
+    
+    @objc func deleteAutomationsFromIntune(_ sender: Any) {
+        let selectedRow = tableView.selectedRow
+        guard selectedRow >= 0 else { return }
+
+        // Get the name of the selected item for the confirmation dialog
+        let itemToRemove = filteredAppData[selectedRow]
+        let itemName = itemToRemove.name
+        let itemLabel = itemToRemove.label
+        let displayName = itemToRemove.name
+
+        // Create a confirmation dialog
+        let alert = NSAlert()
+        alert.messageText = "Confirm Full Delete"
+        alert.informativeText = "Are you sure you want to delete all of the automation items associated with:\n'\(itemName) - \(itemLabel)'?"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Delete")
+        alert.addButton(withTitle: "Cancel")
+
+        // Show the dialog and handle the response
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+
+            // Second confirmation before destructive delete
+            let confirmAlert = NSAlert()
+            confirmAlert.messageText = "Are you absolutely sure?"
+            confirmAlert.informativeText = "This action cannot be undone. Do you really want to delete all Intune automations for '\(itemName) - \(itemLabel)'?"
+            confirmAlert.alertStyle = .critical
+            confirmAlert.addButton(withTitle: "Really Delete")
+            confirmAlert.addButton(withTitle: "Cancel")
+            let confirmResponse = confirmAlert.runModal()
+            guard confirmResponse == .alertFirstButtonReturn else {
+                Logger.logUser("User canceled full delete")
+                return
+            }
+
+            // Remove the automation items associated with the item
+            let folderName = "\(itemToRemove.label)_\(itemToRemove.guid)"
+
+            XPCManager.shared.deleteAutomationsFromIntune(folderName, displayName) { updateResult in
+                DispatchQueue.main.async {
+                    if updateResult != nil {
+                        self.animateStatusUpdate(updateResult ?? "No result provided.")
+                    } else {
+                        print("Failed to update label content")
+                    }
+                }
+            }
+
+        } else {
+            // User canceled update
+            Logger.logUser("User canceled")
+        }
+    }
+
+    
+    @objc func onDemandScriptAutomation(_ sender: Any) {
+        let selectedRow = tableView.selectedRow
+        guard selectedRow >= 0 else { return }
+
+        // Get the name of the selected item for the confirmation dialog
+        let itemToRemove = filteredAppData[selectedRow]
+        let itemName = itemToRemove.name
+        let itemLabel = itemToRemove.label
+        let displayName = itemToRemove.name
+
+        // Create a confirmation dialog
+        let alert = NSAlert()
+        alert.messageText = "Confirm Run Automation"
+        alert.informativeText = "Are you sure you want to run the Intune automation for '\(itemName) - \(itemLabel)'?"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Run Automation")
+        alert.addButton(withTitle: "Cancel")
+
+        // Show the dialog and handle the response
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+
+            // Update scripts associated with the item
+            let folderName = "\(itemToRemove.label)_\(itemToRemove.guid)"
+
+            XPCManager.shared.onDemandLabelAutomation(folderName, displayName) { updateResult in
+                DispatchQueue.main.async {
+                    if updateResult != nil {
+                        self.animateStatusUpdate(updateResult ?? "No result provided.")
+                    } else {
+                        print("Failed to start automation")
+                    }
+                }
+            }
+        } else {
+            // User canceled update
+            Logger.logUser("User canceled automation run")
         }
     }
 
