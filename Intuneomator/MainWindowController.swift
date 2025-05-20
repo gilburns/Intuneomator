@@ -90,6 +90,7 @@ class MainWindowController: NSWindowController, NSWindowDelegate {
         return "v\(shortVersion) (build \(buildNumber))"
     }
 
+    
 
 }
 
