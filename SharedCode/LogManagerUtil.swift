@@ -40,17 +40,3 @@ class LogManagerUtil {
     }
 
 }
-
-
-
-// Usage example:
-
-/*
- 
- Call:
- 
- CacheCleaner.runCleanup()
- 
- to perform both orphan cleanup and version trimming in sequence.
-
- */
