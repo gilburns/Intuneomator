@@ -59,15 +59,6 @@ extension XPCService {
         }
     }
 
-    func updateAppAssignments(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void) {
-        Task {
-            do {
-                await LabelAutomation.processFolderAssignments(named: labelFolderName)
-                reply("Updated \(displayName) assignments")
-            }
-        }
-    }
-
     func updateAppScripts(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void) {
         Task {
             do {
@@ -77,6 +68,95 @@ extension XPCService {
         }
     }
 
+    func updateAppAssignments(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void) {
+        Task {
+            do {
+                await LabelAutomation.processFolderAssignments(named: labelFolderName)
+                reply("Updated \(displayName) assignments")
+            }
+        }
+    }
+
+    func deleteAutomationsFromIntune(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void) {
+        Task {
+            do {
+                await LabelAutomation.deleteAutomationsFromIntune(named: labelFolderName)
+                reply("Deleted all \(displayName) automations.")
+            }
+        }
+    }
+
+    
+    func onDemandLabelAutomation(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void) {
+        let touchFileURL = AppConstants.intuneomatorOndemandTriggerURL
+            .appendingPathComponent("\(labelFolderName).trigger")
+
+        if FileManager.default.fileExists(atPath: touchFileURL.path) {
+            reply("⚠️ Automation for \(displayName) is already queued or running.")
+            return
+        }
+
+        let success = FileManager.default.createFile(atPath: touchFileURL.path, contents: nil)
+
+        if success {
+            reply("✅ Started \(displayName) automation run.")
+        } else {
+            reply("❌ Failed to start automation for \(displayName).")
+        }
+    }
+    
+    
+    func checkIntuneForAutomation(reply: @escaping (Bool) -> Void) {
+        Task {
+            let validFolders = scanAndValidateFolders()
+
+            let success = await withTaskGroup(of: Bool.self) { group in
+                for folderName in validFolders {
+                    group.addTask {
+                        let labelName = folderName.components(separatedBy: "_")[0]
+                        let trackingID = folderName.components(separatedBy: "_")[1]
+
+                        Logger.log("Checking for Intune automation in folder \(labelName) (GUID: \(trackingID))")
+
+                        do {
+                            let entraAuthenticator = EntraAuthenticator()
+                            let authToken = try await entraAuthenticator.getEntraIDToken()
+
+                            let apps = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: trackingID)
+
+                            let uploadedFileURL = AppConstants.intuneomatorManagedTitlesFolderURL
+                                .appendingPathComponent(folderName)
+                                .appendingPathComponent(".uploaded")
+
+                            if apps.count > 0 {
+                                Logger.log("Automation found for \(labelName) (GUID: \(trackingID))")
+
+                                // Write app count to the file
+                                let appCountString = "\(apps.count)"
+                                try appCountString.write(to: uploadedFileURL, atomically: true, encoding: .utf8)
+                            } else {
+                                Logger.log("No automation found for \(labelName) (GUID: \(trackingID))")
+
+                                if FileManager.default.fileExists(atPath: uploadedFileURL.path) {
+                                    try FileManager.default.removeItem(atPath: uploadedFileURL.path)
+                                    Logger.log("Removed stale .uploaded file for \(labelName)", logType: "XPCService")
+                                }
+                            }
+
+                            return true
+                        } catch {
+                            Logger.log("❌ Error checking automation for \(labelName): \(error)", logType: "XPCService")
+                            return false
+                        }
+                    }
+                }
+
+                return await group.reduce(true) { $0 && $1 }
+            }
+
+            reply(success)
+        }
+    }
     
     // MARK: - New Mangeged Software Label
 
