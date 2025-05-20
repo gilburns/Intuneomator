@@ -12,17 +12,19 @@
 		<string>cache-cleanup</string>
 	</array>
 	<key>RunAtLoad</key>
-	<true/>
+	<false/>
 	<key>StandardErrorPath</key>
-	<string>/var/log/intuneomator.cachecleaner.err.log</string>
+	<string>/var/log/com.gilburns.intuneomator.cachecleaner.err.log</string>
 	<key>StandardOutPath</key>
-	<string>/var/log/intuneomator.cachecleaner.out.log</string>
+	<string>/var/log/com.gilburns.intuneomator.cachecleaner.out.log</string>
 	<key>StartCalendarInterval</key>
-	<dict>
-		<key>Hour</key>
-		<integer>6</integer>
-		<key>Minute</key>
-		<integer>0</integer>
-	</dict>
+	<array>
+		<dict>
+			<key>Hour</key>
+			<integer>6</integer>
+			<key>Minute</key>
+			<integer>0</integer>
+		</dict>
+	</array>
 </dict>
 </plist>
