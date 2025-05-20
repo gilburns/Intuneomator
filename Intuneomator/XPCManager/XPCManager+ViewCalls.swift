@@ -18,12 +18,26 @@ extension XPCManager {
         sendRequest({ $0.updateAppMetadata(labelFolder, displayName, reply: $1) }, completion: completion)
     }
 
+    func updateAppScripts(_ labelFolder: String, _ displayName: String, completion: @escaping (String?) -> Void) {
+        sendRequest({ $0.updateAppScripts(labelFolder, displayName, reply: $1) }, completion: completion)
+    }
+
     func updateAppAssigments(_ labelFolder: String, _ displayName: String, completion: @escaping (String?) -> Void) {
         sendRequest({ $0.updateAppAssignments(labelFolder, displayName, reply: $1) }, completion: completion)
     }
 
-    func updateAppScripts(_ labelFolder: String, _ displayName: String, completion: @escaping (String?) -> Void) {
-        sendRequest({ $0.updateAppScripts(labelFolder, displayName, reply: $1) }, completion: completion)
+    func deleteAutomationsFromIntune(_ labelFolder: String, _ displayName: String, completion: @escaping (String?) -> Void) {
+        sendRequest({ $0.deleteAutomationsFromIntune(labelFolder, displayName, reply: $1) }, completion: completion)
+    }
+
+
+    func onDemandLabelAutomation(_ labelFolder: String, _ displayName: String, completion: @escaping (String?) -> Void) {
+        sendRequest({ $0.onDemandLabelAutomation(labelFolder, displayName, reply: $1) }, completion: completion)
+    }
+
+    
+    func checkIntuneForAutomation(completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.checkIntuneForAutomation(reply: $1) }, completion: completion)
     }
 
     
