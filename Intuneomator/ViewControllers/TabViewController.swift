@@ -11,6 +11,8 @@ import Cocoa
 class TabViewController: NSViewController {
 
     @IBOutlet weak var labelAppName: NSTextField!
+    
+    @IBOutlet weak var imageCloudStatus: NSImageView!
 
     @IBOutlet var tabView: NSTabView!
     
@@ -73,6 +75,7 @@ class TabViewController: NSViewController {
 //            print("Applied window size: \(savedSize)")
         }
 
+        setCloudStatusIcon()
     }
 
     
@@ -348,6 +351,95 @@ class TabViewController: NSViewController {
         }
 //        print("No saved size found, using default.")
         return nil
+    }
+
+    
+    // MARK: - Cloud Status Image
+    private func setCloudStatusIcon() {
+        
+        let baseURL = AppConstants.intuneomatorManagedTitlesFolderURL
+        let folderURL = baseURL
+            .appendingPathComponent("\(appData!.label)_\(appData!.guid)")
+
+        var labelUploadCount: Int = 0
+        var cloudImageIcon: NSImage?
+        let labelUploadStateURL = folderURL.appendingPathComponent(".uploaded")
+        if FileManager.default.fileExists(atPath: labelUploadStateURL.path) {
+            if let data = FileManager.default.contents(atPath: labelUploadStateURL.path),
+               let countString = String(data: data, encoding: .utf8),
+               let count = Int(countString) {
+                labelUploadCount = count
+            }
+        }
+
+        // Create an NSImage using SF Symbols with optional overlay
+        let symbolName: String
+        let symbolNumber: String
+        var tintColor: NSColor
+        var tintColorOverlay: NSColor
+        var tintColorNumber: NSColor
+        if labelUploadCount > 0 {
+            symbolName = "circle.fill"
+            symbolNumber = "\(labelUploadCount).circle"
+            tintColor = NSColor.systemGreen
+            tintColorNumber = NSColor.white
+            tintColorOverlay = NSColor.systemBlue
+        } else {
+            symbolName = "circle.fill"
+            symbolNumber = "\(labelUploadCount).circle"
+            tintColor = NSColor.lightGray
+            tintColorNumber = NSColor.white
+            tintColorOverlay = NSColor.darkGray
+        }
+
+        let baseSize = NSSize(width: 30, height: 26)
+        let overlaySize = NSSize(width: 16, height: 16)
+        let overlayOrigin = NSPoint(x: 6.5, y: 3.5)
+
+        let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .light)
+
+        if let tintedBase = tintedSymbolImage(named: "cloud", color: tintColor, size: baseSize, config: config),
+           let tintedOverlay = tintedSymbolImage(named: symbolName, color: tintColorOverlay, size: overlaySize, config: config),
+            let tintedNumber = tintedSymbolImage(named: symbolNumber, color: tintColorNumber, size: overlaySize, config: config) {
+
+            let composed = NSImage(size: baseSize)
+            composed.lockFocus()
+            NSGraphicsContext.current?.imageInterpolation = .high
+
+            tintedBase.draw(in: NSRect(origin: .zero, size: baseSize))
+            tintedOverlay.draw(in: NSRect(origin: overlayOrigin, size: overlaySize))
+            tintedNumber.draw(in: NSRect(origin: overlayOrigin, size: overlaySize))
+
+            composed.unlockFocus()
+            composed.isTemplate = false
+
+            cloudImageIcon = composed
+        } else {
+            print ("Could not create cloud icon")
+        }
+
+        imageCloudStatus.image = cloudImageIcon
+        
+    }
+    
+    
+    // MARK: - Color Tint Symbols
+    func tintedSymbolImage(named name: String, color: NSColor, size: NSSize, config: NSImage.SymbolConfiguration) -> NSImage? {
+        guard let baseImage = NSImage(systemSymbolName: name, accessibilityDescription: nil)?.withSymbolConfiguration(config) else {
+            return nil
+        }
+
+        let tinted = NSImage(size: size)
+        tinted.lockFocus()
+        NSGraphicsContext.current?.imageInterpolation = .high
+
+        baseImage.draw(in: NSRect(origin: .zero, size: size))
+        color.set()
+        NSRect(origin: .zero, size: size).fill(using: .sourceAtop)
+
+        tinted.unlockFocus()
+        tinted.isTemplate = false
+        return tinted
     }
 
     
