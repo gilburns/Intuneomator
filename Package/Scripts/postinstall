@@ -1,0 +1,45 @@
+#!/bin/zsh
+
+#  postinstall
+#  Intuneomator
+#
+#  Created by Gil Burns on 5/20/25.
+#  
+
+# Ondemand daemon queue directory
+/bin/mkdir -m 755 -p "/Library/Application Support/Intuneomator/ondemandQueue"
+/usr/sbin/chown -R root:wheel "/Library/Application Support/Intuneomator/ondemandQueue"
+
+# Service directory
+/usr/sbin/chown -R root:wheel "/Library/Application Support/Intuneomator"
+/bin/chmod +r "/Library/Application Support/Intuneomator"
+
+# Base path for LaunchDaemons
+DAEMON_DIR="/Library/LaunchDaemons"
+
+# List of daemon plist filenames
+daemons=(
+  "com.gilburns.intuneomator.automation.plist"
+  "com.gilburns.intuneomator.cachecleaner.plist"
+  "com.gilburns.intuneomator.labelupdater.plist"
+  "com.gilburns.intuneomator.ondemand.plist"
+  "com.gilburns.intuneomator.service.plist"
+)
+
+for daemon in $daemons; do
+  plistPath="$DAEMON_DIR/$daemon"
+
+  echo "Setting permissions for $plistPath"
+  chown root:wheel "$plistPath"
+  chmod 644 "$plistPath"
+
+  echo "Bootstrapping $daemon"
+  launchctl bootstrap system "$plistPath"
+  
+done
+
+
+#  echo "Kickstarting $daemon"
+#  launchctl kickstart -k "system/${daemon%.plist}"
+
+echo "All LaunchDaemons processed."
