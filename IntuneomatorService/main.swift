@@ -61,12 +61,14 @@ func printUsage() {
     Usage:
       <no arguments>          Start the XPC Service daemon
     
-      scan-validate-folders   Scan all folder for automation ready labels
-      process-label-script    Process .sh file generate plist for folder
-      collect-plist-data      Collect data from plist for given label folder
-      process-label           Fully process a given label folder
-      intune-automation       Run standard automation
+      cache-cleanup           Run this to clean the cache
       label-update            Run installomator label update
+      intune-automation       Triggered by daemon for full automation on all ready labels
+      intune-upload           Run the full automation on all ready labels
+      ondemand                Triggered by the daemon for processing individual items
+      process-label           Fully process a given label folder
+      scan-validate-folders   Scan all folder to check with are automation ready
+      process-label-script    Process .sh file generate plist for folder
     
       help                    Display this help message
     """)
@@ -75,21 +77,17 @@ func printUsage() {
 // MARK: - Command Line Functions
 // Functions that can be called via command line parameters
 func scanAndValidateFolders() -> [String] {
-    print("Scanning Intuneomator folders...")
     let validFolders = LabelAutomation.scanAndValidateFolders()
-//    print("Valid Folders: \(validFolders)")
     return validFolders
 }
 
 
 func processLabelScript(withParam folderName: String) {
-    let processFolder = LabelAutomation.runProcessLabelScript(for: folderName)
+    _ = LabelAutomation.runProcessLabelScript(for: folderName)
 }
 
 func collectPlistData(withParam folderName: String) {
-    print("Collecting plist data...")
-    let labelPlistData = LabelAutomation.extractDataForProcessedAppResults(from: folderName)
-    print("labelPlistData: \(String(describing: labelPlistData))")
+    _ = LabelAutomation.extractDataForProcessedAppResults(from: folderName)
 }
 
 func processLabel(withParam folderName: String) {
@@ -110,6 +108,7 @@ func processLabel(withParam folderName: String) {
     stopSpinner()
 }
 
+
 func processLabelQuiet(withParam folderName: String) {
     let group = DispatchGroup()
 
@@ -122,7 +121,56 @@ func processLabelQuiet(withParam folderName: String) {
     group.wait()
 }
 
+func labelUpdates() {
+    Task {
+        let (isUpToDate, versionMessage) = await InstallomatorLabels.compareInstallomatorVersionAsync()
+        Logger.log("🔍 Version Check: \(versionMessage)", logType: "LabelUpdate")
+
+        if isUpToDate {
+            Logger.log("✅ No update needed.", logType: "LabelUpdate")
+            exit(EXIT_SUCCESS)
+        }
+
+        Logger.log("⬇️ Updating Installomator labels...", logType: "LabelUpdate")
+
+        let (success, updateMessage) = await InstallomatorLabels.installInstallomatorLabelsAsync()
+        if success {
+            Logger.log("✅ \(updateMessage)", logType: "LabelUpdate")
+            exit(EXIT_SUCCESS)
+        } else {
+            Logger.log("❌ \(updateMessage)", logType: "LabelUpdate")
+            exit(EXIT_FAILURE)
+        }
+    }
+
+    RunLoop.main.run()
+}
+
+// full automation for live runs
 func runIntuneAutomation() {
+    print("Running Intune Automation...")
+    let validFolders = LabelAutomation.scanAndValidateFolders()
+    
+    print("Found -\(validFolders.count)- Intuneomator folders to process.")
+    
+    for (index, folder) in validFolders.enumerated() {
+        print("Processing folder \(index+1)/\(validFolders.count): \(folder)")
+        let folderName = folder.components(separatedBy: "_")[0]
+        
+        print("  Updating Installomator label data: \(folderName)")
+
+        // Update label plist (process_label.sh)
+        processLabelScript(withParam: folder)
+
+        print("  Connecting to Intune.")
+        // Run the automation for folder
+        processLabel(withParam: folder)
+        
+    }
+}
+
+// full automation daemon
+func runIntuneAutomationQuiet() {
     print("Running Intune Automation...")
     let validFolders = LabelAutomation.scanAndValidateFolders()
     
@@ -144,16 +192,17 @@ func runIntuneAutomation() {
     }
 }
 
+// individual ondemaindQueue processing for daemon
+func onDemandProcessLabels() {
+    let group = DispatchGroup()
+    
+    group.enter()
+    Task {
+        await OnDemandTaskRunner.start()
+        group.leave()
+    }
 
-func intuneAutomation() {
-    print("Full Automation Run...")
-
-}
-
-
-func labelUpdate(withParam param: String) {
-    print("Running scheduled task 2 with parameter: \(param)")
-    // Your scheduled task 2 code here
+    group.wait()
 }
 
 
@@ -189,17 +238,6 @@ func handleCommandLineArguments() {
             exit(1)
         }
 
-        
-    // collect the plist data for a given label folder
-    case "collect-plist-data":
-        if arguments.count > 2 {
-            collectPlistData(withParam: arguments[2])
-        } else {
-            print("Error: task2 requires a parameter")
-            exit(1)
-        }
-
-        
     // full run on a given label folder
     case "process-label":
         if arguments.count > 2 {
@@ -209,54 +247,28 @@ func handleCommandLineArguments() {
             exit(1)
         }
 
+    // clean up cache
     case "cache-cleanup":
         CacheManagerUtil.runCleanup()
-        
-    case "schedule-task":
-        ScheduledTaskManager.configureScheduledTask(
-            label: "com.gilburns.intuneomator.cachecleaner",
-            argument: "cache-cleanup",
-            schedules: [
-                (weekday: 2, hour: 6, minute: 0), // Monday at 6:00 AM
-                (weekday: 5, hour: 6, minute: 0)  // Thursday at 6:00 AM
-            ],
-            completion: { success, message in
-                if success {
-                    print("✅ Cache cleaner scheduled successfully.")
-                } else {
-                    print("❌ Failed to schedule: \(message ?? "Unknown error")")
-                }
-            }
-        )
-    case "intune-automation":
-        runIntuneAutomation()
-        
+
     case "label-update":
-        Task {
-            let (isUpToDate, versionMessage) = await InstallomatorLabels.compareInstallomatorVersionAsync()
-            Logger.log("🔍 Version Check: \(versionMessage)", logType: "LabelUpdate")
+        labelUpdates()
 
-            if isUpToDate {
-                Logger.log("✅ No update needed.", logType: "LabelUpdate")
-                exit(EXIT_SUCCESS)
-            }
+    // full run for all ready labels
+    case "intune-automation":
+        runIntuneAutomationQuiet()
 
-            Logger.log("⬇️ Updating Installomator labels...", logType: "LabelUpdate")
+    // full run for all ready labels
+    case "intune-upload":
+        runIntuneAutomation()
 
-            let (success, updateMessage) = await InstallomatorLabels.installInstallomatorLabelsAsync()
-            if success {
-                Logger.log("✅ \(updateMessage)", logType: "LabelUpdate")
-                exit(EXIT_SUCCESS)
-            } else {
-                Logger.log("❌ \(updateMessage)", logType: "LabelUpdate")
-                exit(EXIT_FAILURE)
-            }
-        }
-
-        RunLoop.main.run()
-
+    // process a single automation run ondemand
+    case "ondemand":
+        onDemandProcessLabels()
+                
     case "help":
         printUsage()
+        
     default:
         print("Unknown command: \(arguments[1])")
         printUsage()
