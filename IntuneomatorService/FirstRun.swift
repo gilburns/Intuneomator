@@ -36,21 +36,18 @@ class FirstRun {
         let folders = [
             AppConstants.intuneomatorFolderURL.path,
             AppConstants.intuneomatorCacheFolderURL.path,
-            AppConstants.intuneomatorConfigFolderURL.path,
             AppConstants.installomatorFolderURL.path,
             AppConstants.installomatorLabelsFolderURL.path,
+            AppConstants.installomatorCustomLabelsFolderURL.path,
             AppConstants.intuneomatorManagedTitlesFolderURL.path,
+            AppConstants.intuneomatorOndemandTriggerURL.path,
         ]
         
         // Create required folders if they don't exist
         for folder in folders {
             if !FileManager.default.fileExists(atPath: folder) {
-                do {
-                    try FileManager.default.createDirectory(atPath: folder, withIntermediateDirectories: true, attributes: nil)
-                    Logger.log("Created folder: \(folder)", logType: "FirstRun")
-                } catch {
-                    Logger.log("Failed to create folder: \(folder), error: \(error)", logType: "FirstRun")
-                }
+                _ = FileFolderManagerUtil.createFolder(at: folder)
+                Logger.log("Created folder: \(folder)", logType: "FirstRun")
             }
         }
         
