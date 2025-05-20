@@ -10,7 +10,6 @@ import Cocoa
 
 class AboutViewController: NSViewController, NSTextViewDelegate {
  
-    @IBOutlet weak var aboutInstallomatorButton: NSButton!
     @IBOutlet weak var aboutIntuneomatorButton: NSButton!
     @IBOutlet weak var okButton: NSButton!
 
@@ -22,6 +21,7 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
     // Create a reusable HelpPopover instance
     private let helpPopover = HelpPopover()
 
+    
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -65,6 +65,7 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
         intuneomatorLinkTextView.delegate = self // Set the delegate
     }
 
+    
     private func createInstallomatorHyperlink() {
         let url = "https://github.com/Installomator/Installomator"
         let linkText = "Visit Installomator on GitHub"
@@ -99,14 +100,10 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
     }
 
     
-    
     // MARK: - Actions
-    @IBAction func aboutInstallomatorButtonAction(_ sender: Any?) {
-        NSWorkspace.shared.open(URL(string: "https://www.installomator.com")!)
-    }
     
     @IBAction func aboutIntuneomatorButtonAction(_ sender: Any?) {
-        NSWorkspace.shared.open(URL(string: "https://www.intuneomator.com")!)
+        NSWorkspace.shared.open(URL(string: "https://github.com/Installomator/Installomator")!)
     }
     
     @IBAction func installomatorHelpButtonClicked(_ sender: NSButton) {
@@ -131,4 +128,6 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
         helpPopover.showHelp(anchorView: sender, helpText: helpText)
 
     }
+        
+    
 }
