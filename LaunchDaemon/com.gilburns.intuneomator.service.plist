@@ -2,14 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>Disabled</key>
-	<false/>
-	<key>KeepAlive</key>
-	<false/>
+	<key>AssociatedBundleIdentifiers</key>
+	<string>com.gilburns.Intuneomator</string>
+	<key>EnablePressuredExit</key>
+	<true/>
+	<key>EnableTransactions</key>
+	<true/>
 	<key>Label</key>
 	<string>com.gilburns.intuneomator.service</string>
-	<key>LaunchOnDemand</key>
-	<true/>
 	<key>MachServices</key>
 	<dict>
 		<key>com.gilburns.intuneomator.service</key>
@@ -19,12 +19,6 @@
 	<array>
 		<string>/Library/Application Support/Intuneomator/IntuneomatorService</string>
 	</array>
-	<key>RunAtLoad</key>
-	<true/>
-	<key>StandardErrorPath</key>
-	<string>/Library/Application Support/Intuneomator/Logs/Service/errors.log</string>
-	<key>StandardOutPath</key>
-	<string>/Library/Application Support/Intuneomator/Logs/Service/out.log</string>
 	<key>UserName</key>
 	<string>root</string>
 </dict>
