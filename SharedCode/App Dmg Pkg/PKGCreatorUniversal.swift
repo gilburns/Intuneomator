@@ -14,8 +14,10 @@ class PKGCreatorUniversal {
         Logger.log("createUniversalPackage", logType: "PKGCreatorUniversal")
         let fileManager = FileManager.default
         let tempDir = "\(NSTemporaryDirectory())/universal-temp-\(UUID().uuidString)"
-        let rootArm = "\(tempDir)/root_arm/Applications"
-        let rootX86 = "\(tempDir)/root_x86/Applications"
+        let rootArm = "\(tempDir)/root_arm"
+        let appsArm = "\(rootArm)/Applications"
+        let rootX86 = "\(tempDir)/root_x86"
+        let appsX86 = "\(rootX86)/Applications"
         let componentPlistArm = "\(tempDir)/component_arm.plist"
         let componentPlistX86 = "\(tempDir)/component_x86.plist"
         let outputComponentArm = "\(tempDir)/component-arm.pkg"
@@ -29,8 +31,8 @@ class PKGCreatorUniversal {
         Logger.log("Input x86_64: \(inputPathx86_64)", logType: "PKGCreatorUniversal")
 
         do {
-            try fileManager.createDirectory(atPath: rootArm, withIntermediateDirectories: true)
-            try fileManager.createDirectory(atPath: rootX86, withIntermediateDirectories: true)
+            try fileManager.createDirectory(atPath: appsArm, withIntermediateDirectories: true)
+            try fileManager.createDirectory(atPath: appsX86, withIntermediateDirectories: true)
         } catch {
             Logger.log("Error: Failed to create temp root directories - \(error)", logType: "PKGCreatorUniversal")
             return nil
@@ -38,8 +40,8 @@ class PKGCreatorUniversal {
 
         let armAppName = (inputPathArm64 as NSString).lastPathComponent
         let x86AppName = (inputPathx86_64 as NSString).lastPathComponent
-        let destArm = "\(rootArm)/\(armAppName)"
-        let destX86 = "\(rootX86)/\(x86AppName)"
+        let destArm = "\(appsArm)/\(armAppName)"
+        let destX86 = "\(appsX86)/\(x86AppName)"
 
         do {
             try fileManager.copyItem(atPath: inputPathArm64, toPath: destArm)
