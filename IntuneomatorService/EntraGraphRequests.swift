@@ -889,7 +889,10 @@ class EntraGraphRequests {
                 "scriptContent": Data(preInstall.utf8).base64EncodedString()
             ]
         } else {
-            payload["preInstallScript"] = nil
+            payload["preInstallScript"] = [
+                "@odata.type": "#microsoft.graph.macOSAppScript",
+                "scriptContent": ""
+            ]
         }
         
         // Add post-install script if present
@@ -900,7 +903,10 @@ class EntraGraphRequests {
                 "scriptContent": Data(postInstall.utf8).base64EncodedString()
             ]
         } else {
-            payload["postInstallScript"] = nil
+            payload["postInstallScript"] = [
+                "@odata.type": "#microsoft.graph.macOSAppScript",
+                "scriptContent": ""
+            ]
         }
         
         // Attach the JSON body
