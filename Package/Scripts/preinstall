@@ -1,0 +1,33 @@
+#!/bin/zsh
+
+#  preinstall.sh
+#  Intuneomator
+#
+#  Created by Gil Burns on 5/20/25.
+#
+
+# Base path for LaunchDaemons
+DAEMON_DIR="/Library/LaunchDaemons"
+
+# List of daemon plist filenames
+daemons=(
+  "com.gilburns.intuneomator.automation.plist"
+  "com.gilburns.intuneomator.cachecleaner.plist"
+  "com.gilburns.intuneomator.labelupdater.plist"
+  "com.gilburns.intuneomator.ondemand.plist"
+  "com.gilburns.intuneomator.service.plist"
+)
+
+for daemon in $daemons; do
+  plistPath="$DAEMON_DIR/$daemon"
+  label="${daemon%.plist}"
+
+  if [[ -f "$plistPath" ]]; then
+    echo "Booting out $label"
+    launchctl bootout system "$plistPath" 2>/dev/null || echo "$label not loaded or already stopped"
+  else
+    echo "$plistPath does not exist, skipping"
+  fi
+done
+
+echo "Preinstall daemon unload complete."
