@@ -359,9 +359,6 @@ struct AppConstants {
     static let intuneomatorCacheFolderURL = intuneomatorFolderURL
         .appendingPathComponent("Cache")
 
-    static let intuneomatorConfigFolderURL = intuneomatorFolderURL
-        .appendingPathComponent("Config")
-
     static let installomatorFolderURL = intuneomatorFolderURL
         .appendingPathComponent("Installomator")
 
@@ -376,9 +373,8 @@ struct AppConstants {
     static let intuneomatorManagedTitlesFolderURL = intuneomatorFolderURL
         .appendingPathComponent("ManagedTitles")
 
-    static let intuneomatorConfigFileURL = intuneomatorFolderURL
-        .appendingPathComponent("Config")
-        .appendingPathComponent("config.json")
+    static let intuneomatorOndemandTriggerURL = intuneomatorFolderURL
+        .appendingPathComponent("ondemandQueue")
 
     static let intuneomatorServiceFileURL = intuneomatorFolderURL
         .appendingPathComponent("IntuneomatorService.plist")
@@ -400,4 +396,3 @@ struct AppConstants {
         .appendingPathComponent("Intuneomator")
 
 }
-
