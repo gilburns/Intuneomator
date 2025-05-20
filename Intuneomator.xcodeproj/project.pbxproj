@@ -43,6 +43,23 @@
 			);
 			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
 		};
+		1B9DD84E2DDC1B2C005ECE05 /* Exceptions for "SharedCode" folder in "Intuneomator" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"App Dmg Pkg/DMGCreator.swift",
+				"App Dmg Pkg/PKGCreator.swift",
+				"App Dmg Pkg/PKGCreatorUniversal.swift",
+			);
+			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
+		};
+		1B9DD8562DDCE14B005ECE05 /* Exceptions for "Package" folder in "Intuneomator" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Package_Build.sh,
+				Scripts/postinstall,
+			);
+			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
+		};
 		1BB046722D822B48004B6F3E /* Exceptions for "SharedCode" folder in "IntuneomatorService" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -56,9 +73,6 @@
 				Constants.swift,
 				Extensions.swift,
 				FileFolderManagerUtil.swift,
-				HelperToolProtocol.swift,
-				IconExporter.swift,
-				InstallomatorLabelProcessor.swift,
 				InstallomatorLabels.swift,
 				Logging.swift,
 				LogManagerUtil.swift,
@@ -69,6 +83,14 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		1B9DD84F2DDCE006005ECE05 /* Package */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1B9DD8562DDCE14B005ECE05 /* Exceptions for "Package" folder in "Intuneomator" target */,
+			);
+			path = Package;
+			sourceTree = "<group>";
+		};
 		1BB046522D81321F004B6F3E /* Intuneomator */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Intuneomator;
@@ -82,6 +104,7 @@
 		1BB0466D2D822AFF004B6F3E /* SharedCode */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				1B9DD84E2DDC1B2C005ECE05 /* Exceptions for "SharedCode" folder in "Intuneomator" target */,
 				1BB046722D822B48004B6F3E /* Exceptions for "SharedCode" folder in "IntuneomatorService" target */,
 			);
 			path = SharedCode;
@@ -119,6 +142,7 @@
 		1BB046472D81321F004B6F3E = {
 			isa = PBXGroup;
 			children = (
+				1B9DD84F2DDCE006005ECE05 /* Package */,
 				1B2A4B9D2DD52F1800F85707 /* Config.xcconfig */,
 				1BB046522D81321F004B6F3E /* Intuneomator */,
 				1BB046672D81324E004B6F3E /* IntuneomatorService */,
@@ -157,6 +181,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				1B9DD84F2DDCE006005ECE05 /* Package */,
 				1BB046522D81321F004B6F3E /* Intuneomator */,
 				1BB0466D2D822AFF004B6F3E /* SharedCode */,
 				1BB046AC2D872F90004B6F3E /* LaunchDaemon */,
