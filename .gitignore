@@ -65,5 +65,7 @@ fastlane/test_output
 .DS_Store
 Package/component.plist
 Package/Distribution.xml
-Package/Intuneomator-1.0.pkg
+Package/Intuneomator-*.pkg
 Package/Intuneomator.pkg
+/Package/Root/Applications/Intuneomator.app
+/Package/Root/Library/Application Support/Intuneomator
