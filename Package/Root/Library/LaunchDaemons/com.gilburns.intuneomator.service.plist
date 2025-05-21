@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AssociatedBundleIdentifiers</key>
+	<string>com.gilburns.Intuneomator</string>
+	<key>EnablePressuredExit</key>
+	<true/>
+	<key>EnableTransactions</key>
+	<true/>
+	<key>Label</key>
+	<string>com.gilburns.intuneomator.service</string>
+	<key>MachServices</key>
+	<dict>
+		<key>com.gilburns.intuneomator.service</key>
+		<true/>
+	</dict>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Library/Application Support/Intuneomator/IntuneomatorService</string>
+	</array>
+	<key>UserName</key>
+	<string>root</string>
+</dict>
+</plist>
