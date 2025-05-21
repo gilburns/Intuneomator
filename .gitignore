@@ -63,3 +63,7 @@ fastlane/test_output
 /Intuneomator.xcodeproj/xcuserdata
 /Intuneomator.xcodeproj/xcuserdata
 .DS_Store
+Package/component.plist
+Package/Distribution.xml
+Package/Intuneomator-1.0.pkg
+Package/Intuneomator.pkg
