@@ -10,6 +10,7 @@ import Foundation
 class FirstRun {
 
     static func checkFirstRun() -> Void {
+        
         if ConfigManager.readPlistValue(key: "FirstRunServiceCompleted") ?? false {
 //            Logger.log("Intuneomator first run has already run. Exiting...", logType: "FirstRun")
             return
@@ -22,7 +23,11 @@ class FirstRun {
         // Installs labels at first launch
         downloadInstallomatorLabels()
         
+        // Create additional LaunchDaemon's if not present
+        setupOtherLaunchDaemons()
+        
         let setFirstRun = ConfigManager.writePlistValue(key: "FirstRunServiceCompleted", value: true)
+        
         if !setFirstRun {
             Logger.log("Failed to set FirstRun to true in config.plist", logType: "FirstRun")
         } else {
@@ -90,4 +95,34 @@ class FirstRun {
             Logger.log("Permissions changed for directories recursively!", logType: "FirstRun")
         }
     }
+    
+    
+    static func setupOtherLaunchDaemons() {
+        
+        let scheduledDaemons: [(label: String, argument: String, weekday: Int)] = [
+            ("com.gilburns.intuneomator.automation", "intune-automation", 0),      // Everyday
+            ("com.gilburns.intuneomator.cachecleaner", "cache-cleanup", 2),     // Monday
+            ("com.gilburns.intuneomator.labelupdater", "label-update", 6)       // Friday
+        ]
+
+        for daemon in scheduledDaemons {
+            let plistPath = "/Library/LaunchDaemons/\(daemon.label).plist"
+            
+            if !FileManager.default.fileExists(atPath: plistPath) {
+                ScheduledTaskManager.configureScheduledTask(
+                    label: daemon.label,
+                    argument: daemon.argument,
+                    schedules: [
+                        (weekday: daemon.weekday, hour: 6, minute: 0)
+                    ],
+                    completion: { success, message in
+                        Logger.log(success ? "✅ Created \(daemon.label)" : "❌ Failed to create \(daemon.label): \(message ?? "unknown error")", logType: "FirstRun")
+                    }
+                )
+            } else {
+                Logger.log("ℹ️ \(daemon.label) already exists, skipping creation.", logType: "FirstRun")
+            }
+        }
+    }
+    
 }
