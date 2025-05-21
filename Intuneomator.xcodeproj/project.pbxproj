@@ -39,7 +39,11 @@
 		1B55F3B92DC7AE29003A06BD /* Exceptions for "LaunchDaemon" folder in "Intuneomator" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				com.gilburns.intuneomator.automation.plist,
 				com.gilburns.intuneomator.cachecleaner.plist,
+				com.gilburns.intuneomator.labelupdater.plist,
+				com.gilburns.intuneomator.ondemand.plist,
+				com.gilburns.intuneomator.service.plist,
 			);
 			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
 		};
@@ -56,6 +60,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Package_Build.sh,
+				Root/Library/LaunchDaemons/com.gilburns.intuneomator.ondemand.plist,
+				Root/Library/LaunchDaemons/com.gilburns.intuneomator.service.plist,
 				Scripts/postinstall,
 			);
 			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
