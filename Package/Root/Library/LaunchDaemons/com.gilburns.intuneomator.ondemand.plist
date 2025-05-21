@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AssociatedBundleIdentifiers</key>
+	<string>com.gilburns.Intuneomator</string>
+	<key>Label</key>
+	<string>com.gilburns.intuneomator.ondemand</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Library/Application Support/Intuneomator/IntuneomatorService</string>
+		<string>ondemand</string>
+	</array>
+	<key>QueueDirectories</key>
+	<array>
+		<string>/Library/Application Support/Intuneomator/ondemandQueue</string>
+	</array>
+	<key>RunAtLoad</key>
+	<false/>
+	<key>StandardErrorPath</key>
+	<string>/var/log/com.gilburns.intuneomator.ondemand.err.log</string>
+	<key>StandardOutPath</key>
+	<string>/var/log/com.gilburns.intuneomator.ondemand.out.log</string>
+</dict>
+</plist>
