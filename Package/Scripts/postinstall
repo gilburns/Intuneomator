@@ -29,13 +29,17 @@ daemons=(
 for daemon in $daemons; do
   plistPath="$DAEMON_DIR/$daemon"
 
-  echo "Setting permissions for $plistPath"
-  chown root:wheel "$plistPath"
-  chmod 644 "$plistPath"
+  if [[ -f "$plistPath" ]]; then
+    echo "Setting permissions for $plistPath"
+    chown root:wheel "$plistPath"
+    chmod 644 "$plistPath"
 
-  echo "Bootstrapping $daemon"
-  launchctl bootstrap system "$plistPath"
-  
+    echo "Bootstrapping $daemon"
+    launchctl bootstrap system "$plistPath"
+  else
+    echo "$plistPath does not exist, skipping"
+  fi
+
 done
 
 
