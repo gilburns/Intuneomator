@@ -165,6 +165,7 @@ extension XPCService {
             let newGUID = UUID().uuidString
             var copyShFilePath: String
             
+            var appIDFromPlist: String? = ""
             var descriptionFromPlist: String? = ""
             var documentationURLFromPlist: String? = ""
             var publisherURLFromPlist: String? = ""
@@ -177,12 +178,14 @@ extension XPCService {
             // Fetch description and documentation before proceeding
             do {
                 let info = try await fetchLabelInfo(labelName: labelName)
+                appIDFromPlist = info.appID
                 descriptionFromPlist = info.description
                 documentationURLFromPlist = info.documentation
                 publisherURLFromPlist = info.publisher
                 privacyURLFromPlist = info.privacy
             } catch {
                 Logger.log("Error fetching plist: \(error)", logType: "XPCService")
+                appIDFromPlist = ""
                 descriptionFromPlist = ""
                 documentationURLFromPlist = ""
                 publisherURLFromPlist = ""
@@ -324,7 +327,7 @@ extension XPCService {
                     owner: "",
                     privacyInformationUrl: privacyURLFromPlist,
                     publisher: publisherURLFromPlist ?? "",
-                    CFBundleIdentifier: ""
+                    CFBundleIdentifier: appIDFromPlist ?? ""
                 )
                 
                 // write metadata
