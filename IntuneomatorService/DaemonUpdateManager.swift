@@ -140,8 +140,7 @@ class DaemonUpdateManager {
             try process.run()
             Logger.log("🚀 Updater launched successfully.", logType: "UpdateManager")
 
-            // Optional: exit daemon cleanly if needed
-            sleep(4) // Give the updater time to verify before the daemon exits
+            sleep(4)
             exit(EXIT_SUCCESS)
         } catch {
             Logger.log("❌ Failed to run updater: \(error)", logType: "UpdateManager")
