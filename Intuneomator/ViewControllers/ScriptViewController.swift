@@ -7,6 +7,7 @@
 
 import Foundation
 import Cocoa
+import UniformTypeIdentifiers
 
 class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, UnsavedChangesHandling {
     
@@ -145,7 +146,12 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
         dialog.showsHiddenFiles = false
         dialog.message = "Select a \(selectedTab.label) Script File"
         dialog.prompt = "Import \(selectedTab.label) Script File"
-        dialog.allowedFileTypes = ["sh", "bash", "zsh", "ksh", "ps1", "python", "txt"]
+        dialog.allowedContentTypes = [
+            .shellScript,           // sh, bash, zsh, ksh
+            .text,                  // txt
+            .pythonScript,          // python
+            UTType(filenameExtension: "ps1")! // PowerShell
+        ]
         dialog.allowsMultipleSelection = false
         
         if dialog.runModal() == .OK, let fileURL = dialog.url {
