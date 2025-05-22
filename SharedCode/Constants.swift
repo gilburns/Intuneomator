@@ -157,12 +157,14 @@ struct LabelInfo: Codable {
 
 
 struct LabelPlistInfo: Decodable {
+    let appID: String
     let description: String
     let documentation: String
     let publisher: String
     let privacy: String
     
     enum CodingKeys: String, CodingKey {
+        case appID = "AppID"
         case description = "Description"
         case documentation = "Documentation"
         case publisher = "Publisher"
