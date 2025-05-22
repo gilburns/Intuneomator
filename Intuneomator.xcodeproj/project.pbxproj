@@ -15,6 +15,15 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		1B9DD88B2DDD759C005ECE05 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		1BB046642D81324E004B6F3E /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -29,6 +38,9 @@
 /* Begin PBXFileReference section */
 		1B2A4B9D2DD52F1800F85707 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		1B7D2A412D8F94EE0062D053 /* process_label.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = process_label.sh; sourceTree = "<group>"; };
+		1B9DD88D2DDD759C005ECE05 /* IntuneomatorUpdater */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = IntuneomatorUpdater; sourceTree = BUILT_PRODUCTS_DIR; };
+		1B9DD8952DDD798E005ECE05 /* libproc.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libproc.tbd; path = usr/lib/libproc.tbd; sourceTree = SDKROOT; };
+		1B9DD8962DDD79AC005ECE05 /* libswiftDarwin.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftDarwin.tbd; path = usr/lib/swift/libswiftDarwin.tbd; sourceTree = SDKROOT; };
 		1BB046502D81321F004B6F3E /* Intuneomator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Intuneomator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1BB046662D81324E004B6F3E /* IntuneomatorService */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = IntuneomatorService; sourceTree = BUILT_PRODUCTS_DIR; };
 		1BB047292D8A37F1004B6F3E /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
@@ -66,6 +78,22 @@
 			);
 			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
 		};
+		1B9DD8A12DDE176F005ECE05 /* Exceptions for "IntuneomatorService" folder in "IntuneomatorUpdater" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ConfigManager.swift,
+				TeamsNotifier.swift,
+			);
+			target = 1B9DD88C2DDD759C005ECE05 /* IntuneomatorUpdater */;
+		};
+		1B9DD8A42DDE1907005ECE05 /* Exceptions for "SharedCode" folder in "IntuneomatorUpdater" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Constants.swift,
+				Logging.swift,
+			);
+			target = 1B9DD88C2DDD759C005ECE05 /* IntuneomatorUpdater */;
+		};
 		1BB046722D822B48004B6F3E /* Exceptions for "SharedCode" folder in "IntuneomatorService" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -97,6 +125,11 @@
 			path = Package;
 			sourceTree = "<group>";
 		};
+		1B9DD88E2DDD759C005ECE05 /* IntuneomatorUpdater */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = IntuneomatorUpdater;
+			sourceTree = "<group>";
+		};
 		1BB046522D81321F004B6F3E /* Intuneomator */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Intuneomator;
@@ -104,6 +137,9 @@
 		};
 		1BB046672D81324E004B6F3E /* IntuneomatorService */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1B9DD8A12DDE176F005ECE05 /* Exceptions for "IntuneomatorService" folder in "IntuneomatorUpdater" target */,
+			);
 			path = IntuneomatorService;
 			sourceTree = "<group>";
 		};
@@ -112,6 +148,7 @@
 			exceptions = (
 				1B9DD84E2DDC1B2C005ECE05 /* Exceptions for "SharedCode" folder in "Intuneomator" target */,
 				1BB046722D822B48004B6F3E /* Exceptions for "SharedCode" folder in "IntuneomatorService" target */,
+				1B9DD8A42DDE1907005ECE05 /* Exceptions for "SharedCode" folder in "IntuneomatorUpdater" target */,
 			);
 			path = SharedCode;
 			sourceTree = "<group>";
@@ -127,6 +164,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		1B9DD88A2DDD759C005ECE05 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1BB0464D2D81321F004B6F3E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -145,6 +189,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1B9DD8942DDD798E005ECE05 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1B9DD8962DDD79AC005ECE05 /* libswiftDarwin.tbd */,
+				1B9DD8952DDD798E005ECE05 /* libproc.tbd */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		1BB046472D81321F004B6F3E = {
 			isa = PBXGroup;
 			children = (
@@ -154,10 +207,12 @@
 				1BB046672D81324E004B6F3E /* IntuneomatorService */,
 				1BB0466D2D822AFF004B6F3E /* SharedCode */,
 				1BB046AC2D872F90004B6F3E /* LaunchDaemon */,
+				1B9DD88E2DDD759C005ECE05 /* IntuneomatorUpdater */,
 				1BB046512D81321F004B6F3E /* Products */,
 				1BB047292D8A37F1004B6F3E /* LICENSE.md */,
 				1BB0472B2D8A406A004B6F3E /* entra-app-setup.md */,
 				1B7D2A412D8F94EE0062D053 /* process_label.sh */,
+				1B9DD8942DDD798E005ECE05 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -166,6 +221,7 @@
 			children = (
 				1BB046502D81321F004B6F3E /* Intuneomator.app */,
 				1BB046662D81324E004B6F3E /* IntuneomatorService */,
+				1B9DD88D2DDD759C005ECE05 /* IntuneomatorUpdater */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -173,6 +229,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		1B9DD88C2DDD759C005ECE05 /* IntuneomatorUpdater */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1B9DD8912DDD759C005ECE05 /* Build configuration list for PBXNativeTarget "IntuneomatorUpdater" */;
+			buildPhases = (
+				1B9DD8892DDD759C005ECE05 /* Sources */,
+				1B9DD88A2DDD759C005ECE05 /* Frameworks */,
+				1B9DD88B2DDD759C005ECE05 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1B9DD88E2DDD759C005ECE05 /* IntuneomatorUpdater */,
+			);
+			name = IntuneomatorUpdater;
+			packageProductDependencies = (
+			);
+			productName = IntuneomatorUpdater;
+			productReference = 1B9DD88D2DDD759C005ECE05 /* IntuneomatorUpdater */;
+			productType = "com.apple.product-type.tool";
+		};
 		1BB0464F2D81321F004B6F3E /* Intuneomator */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1BB0465F2D813221004B6F3E /* Build configuration list for PBXNativeTarget "Intuneomator" */;
@@ -232,6 +310,9 @@
 				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
+					1B9DD88C2DDD759C005ECE05 = {
+						CreatedOnToolsVersion = 16.2;
+					};
 					1BB0464F2D81321F004B6F3E = {
 						CreatedOnToolsVersion = 16.2;
 					};
@@ -259,6 +340,7 @@
 			targets = (
 				1BB0464F2D81321F004B6F3E /* Intuneomator */,
 				1BB046652D81324E004B6F3E /* IntuneomatorService */,
+				1B9DD88C2DDD759C005ECE05 /* IntuneomatorUpdater */,
 			);
 		};
 /* End PBXProject section */
@@ -298,6 +380,13 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		1B9DD8892DDD759C005ECE05 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1BB0464C2D81321F004B6F3E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -315,6 +404,32 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		1B9DD8922DDD759C005ECE05 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = G4MQ57TVLE;
+				ENABLE_HARDENED_RUNTIME = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomator.updater;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1B9DD8932DDD759C005ECE05 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = G4MQ57TVLE;
+				ENABLE_HARDENED_RUNTIME = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomator.updater;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		1BB0465D2D813221004B6F3E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -458,7 +573,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomator;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -491,7 +606,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomator;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -507,7 +622,7 @@
 				DEVELOPMENT_TEAM = G4MQ57TVLE;
 				ENABLE_HARDENED_RUNTIME = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomatorcli;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomator.service;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 			};
@@ -521,7 +636,7 @@
 				DEVELOPMENT_TEAM = G4MQ57TVLE;
 				ENABLE_HARDENED_RUNTIME = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomatorcli;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomator.service;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 			};
@@ -530,6 +645,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		1B9DD8912DDD759C005ECE05 /* Build configuration list for PBXNativeTarget "IntuneomatorUpdater" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1B9DD8922DDD759C005ECE05 /* Debug */,
+				1B9DD8932DDD759C005ECE05 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		1BB0464B2D81321F004B6F3E /* Build configuration list for PBXProject "Intuneomator" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
