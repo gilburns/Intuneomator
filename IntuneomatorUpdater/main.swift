@@ -140,7 +140,7 @@ func checkDaemonLoaded(_ launchDaemonLabel: String) -> DaemonLoadStatus {
     }
 }
 
-// check both daemons
+// check both main daemons
 func checkIntuneomatorDaemons() -> (ondemand: DaemonLoadStatus, service: DaemonLoadStatus) {
     let ondemandStatus = checkDaemonLoaded("com.gilburns.intuneomator.ondemand")
     let serviceStatus = checkDaemonLoaded("com.gilburns.intuneomator.service")
@@ -222,15 +222,15 @@ if let plist = NSDictionary(contentsOfFile: "/Applications/Intuneomator.app/Cont
 // Install the already downloaded pkg file
 let success = installPackage(at: pkgPath, target: targetVolume)
 
-if success {
-    // 🧹 Cleanup
-    do {
-        try FileManager.default.removeItem(atPath: pkgPath)
-        log("🧹 Removed installer package at: \(pkgPath)")
-    } catch {
-        log("⚠️ Failed to delete installer package: \(error.localizedDescription)")
-    }
+// 🧹 Cleanup
+do {
+    try FileManager.default.removeItem(atPath: pkgPath)
+    log("🧹 Removed installer package at: \(pkgPath)")
+} catch {
+    log("⚠️ Failed to delete installer package: \(error.localizedDescription)")
+}
 
+if success {
     // 🔍 Check daemon status
     let allDaemons = checkAllDaemons()
 
