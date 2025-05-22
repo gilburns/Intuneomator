@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-#  preinstall.sh
+#  preinstall
 #  Intuneomator
 #
 #  Created by Gil Burns on 5/20/25.
@@ -16,6 +16,7 @@ daemons=(
   "com.gilburns.intuneomator.labelupdater.plist"
   "com.gilburns.intuneomator.ondemand.plist"
   "com.gilburns.intuneomator.service.plist"
+  "com.gilburns.intuneomator.updatecheck.plist"
 )
 
 for daemon in $daemons; do
