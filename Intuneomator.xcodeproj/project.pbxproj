@@ -68,16 +68,6 @@
 			);
 			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
 		};
-		1B9DD8562DDCE14B005ECE05 /* Exceptions for "Package" folder in "Intuneomator" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Package_Build.sh,
-				Root/Library/LaunchDaemons/com.gilburns.intuneomator.ondemand.plist,
-				Root/Library/LaunchDaemons/com.gilburns.intuneomator.service.plist,
-				Scripts/postinstall,
-			);
-			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
-		};
 		1B9DD8A12DDE176F005ECE05 /* Exceptions for "IntuneomatorService" folder in "IntuneomatorUpdater" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -93,6 +83,13 @@
 				Logging.swift,
 			);
 			target = 1B9DD88C2DDD759C005ECE05 /* IntuneomatorUpdater */;
+		};
+		1B9DD8A82DDEC5E6005ECE05 /* Exceptions for "Intuneomator" folder in "Intuneomator" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
 		};
 		1BB046722D822B48004B6F3E /* Exceptions for "SharedCode" folder in "IntuneomatorService" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -119,9 +116,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1B9DD84F2DDCE006005ECE05 /* Package */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				1B9DD8562DDCE14B005ECE05 /* Exceptions for "Package" folder in "Intuneomator" target */,
-			);
 			path = Package;
 			sourceTree = "<group>";
 		};
@@ -132,6 +126,9 @@
 		};
 		1BB046522D81321F004B6F3E /* Intuneomator */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1B9DD8A82DDEC5E6005ECE05 /* Exceptions for "Intuneomator" folder in "Intuneomator" target */,
+			);
 			path = Intuneomator;
 			sourceTree = "<group>";
 		};
@@ -265,7 +262,6 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				1B9DD84F2DDCE006005ECE05 /* Package */,
 				1BB046522D81321F004B6F3E /* Intuneomator */,
 				1BB0466D2D822AFF004B6F3E /* SharedCode */,
 				1BB046AC2D872F90004B6F3E /* LaunchDaemon */,
