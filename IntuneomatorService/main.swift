@@ -206,6 +206,20 @@ func onDemandProcessLabels() {
 }
 
 
+// Check for updates and update self
+func checkForUpdates() {
+    let group = DispatchGroup()
+    
+    group.enter()
+    Task {
+        DaemonUpdateManager.checkAndPerformUpdateIfNeeded()
+    }
+
+    group.wait()
+
+}
+
+
 // MARK: - Command Line Argument Handling
 func handleCommandLineArguments() {
     let arguments = CommandLine.arguments
@@ -265,6 +279,10 @@ func handleCommandLineArguments() {
     // process a single automation run ondemand
     case "ondemand":
         onDemandProcessLabels()
+        
+    // Check for self updates
+    case "update-check":
+        checkForUpdates()
                 
     case "help":
         printUsage()
