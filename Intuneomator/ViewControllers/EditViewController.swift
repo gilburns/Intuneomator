@@ -570,9 +570,9 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
             }
             
             // Debug raw response
-            if let rawResponse = String(data: data, encoding: .utf8) {
+//            if let rawResponse = String(data: data, encoding: .utf8) {
 //                print("Raw response: \(rawResponse)")
-            }
+//            }
 
             do {
                 if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
@@ -949,8 +949,8 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         }
 
         // Case 2: Compare current metadata with last loaded metadata
-        let currentCategoryIDs = Set(currentMetadata!.categories.map { $0.id })
-        let lastCategoryIDs = Set(lastMetadata.categories.map { $0.id })
+        _ = Set(currentMetadata!.categories.map { $0.id })
+        _ = Set(lastMetadata.categories.map { $0.id })
 
         if currentMetadata != lastMetadata {
             hasUnsavedChanges = true
@@ -1283,7 +1283,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         hasUnsavedChanges = true
         if let parentVC = parent as? TabViewController {
 //            print("Parent is TabViewController.")
-//            parentVC.updateSaveButtonState()
+            parentVC.updateSaveButtonState()
         } else {
 //            print("Parent is not TabViewController. Actual parent: \(String(describing: parent))")
         }
@@ -1306,7 +1306,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     // MARK: - Help Buttons
     @IBAction func showHelpForAppDescription(_ sender: NSButton) {
         // Create the full string
-        let helpText = NSMutableAttributedString(string: "Enter the description of the app. The description appears in the company portal.")
+        let helpText = NSMutableAttributedString(string: "Enter the description of the app. The description appears in the Company Portal.")
 
         // Add custom styling for the rest of the text
         helpText.addAttributes([
@@ -1334,7 +1334,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
 
     @IBAction func showHelpForAppCategory(_ sender: NSButton) {
         // Create the full string
-        let helpText = NSMutableAttributedString(string: "Select one or more of the built-in app categories, or select a category that you created. Categories make it easier for users to find the app when they browse through the company portal.")
+        let helpText = NSMutableAttributedString(string: "Select one or more of the built-in app categories, or select a category that you created. Categories make it easier for users to find the app when they browse through the Company Portal.")
 
         // Add custom styling for the rest of the text
         helpText.addAttributes([
@@ -1387,7 +1387,7 @@ Managed line-of-business apps are able to be removed using the uninstall assignm
         let helpText = NSMutableAttributedString(string: """
 Featured App in Company Portal: 
 
-Display the app prominently on the main page of the company portal when users browse for apps.
+Display the app prominently on the main page of the Company Portal when users browse for apps.
 """)
 
         // Add custom styling for the rest of the text
@@ -1401,10 +1401,24 @@ Display the app prominently on the main page of the company portal when users br
     }
 
     
-    
     @IBAction func showHelpForDeployAsArch(_ sender: NSButton) {
         // Create the full string
         let helpText = NSMutableAttributedString(string: "If enabled for selection, this label has separate binary deployments for Apple Silicon Macs, and Intel Macs.\n\nSelecting \"Apple Silicon\" to deploy for only Apple Silicon Macs.\n\nSelecting \"Intel\" to deploy for only Intel Macs.\n\nSelecting \"Universal\" to deploy for both Apple Silicon and Intel Macs. (Intuneomator will create a pkg file that contains both Intel and Apple Silicon versions.) This effectively doubles the size of the deployment, but it should support deployment of the app for both platforms.\n\n")
+
+        // Add custom styling for the rest of the text
+        helpText.addAttributes([
+            .foregroundColor: NSColor.textColor,
+            .font: NSFont.systemFont(ofSize: 13)
+        ], range: NSRange(location: 0, length: helpText.length))
+
+        // Show the popover
+        helpPopover.showHelp(anchorView: sender, helpText: helpText)
+    }
+
+    
+    @IBAction func showHelpForOptionalFields(_ sender: NSButton) {
+        // Create the full string
+        let helpText = NSMutableAttributedString(string: "These extra fields can be set to values that meet your needs some of these optional fields only appear in the Intune console, not in Company Portal.\n")
 
         // Add custom styling for the rest of the text
         helpText.addAttributes([
@@ -1522,7 +1536,7 @@ Display the app prominently on the main page of the company portal when users br
 
     @IBAction func showHelpForBundleID(_ sender: NSButton) {
         // Create the full string
-        let helpText = NSMutableAttributedString(string: "If this is a pkg or lob type install, the Bundle ID should match the one in the .pkg file. If this is an app install, the Bundle ID should match the one in the Info.plist file of the app.")
+        let helpText = NSMutableAttributedString(string: "The Bundle ID should match the one in the Info.plist file of the primary app for the key CFBundleIdentifier.\n\nFor example, to look up the bundle ID of a Company Portal, run the following:\n\ndefaults read \"/Applications/Company Portal.app/Contents/Info\" CFBundleIdentifier")
 
         // Add custom styling for the rest of the text
         helpText.addAttributes([
@@ -1816,7 +1830,7 @@ Display the app prominently on the main page of the company portal when users br
                 pkgURL: fileURL
                 )
         case .failure(let error):
-//            print("Inspection failed: \(error)")
+            print("Inspection failed: \(error)")
             cleanupAfterProcessing()
         }
     }
