@@ -37,8 +37,10 @@ mkdir -p "$TMP_DIR/Library/Application Support/Intuneomator"
 
 cp -R "${BUILD_PATH}/${APP_NAME}.app" "$TMP_DIR${INSTALL_LOCATION}"
 cp "${BUILD_PATH}/IntuneomatorService" "$TMP_DIR/Library/Application Support/Intuneomator/"
+cp "${BUILD_PATH}/IntuneomatorUpdater" "$TMP_DIR/Library/Application Support/Intuneomator/"
 
 chmod 755 "$TMP_DIR/Library/Application Support/Intuneomator/IntuneomatorService"
+chmod 755 "$TMP_DIR/Library/Application Support/Intuneomator/IntuneomatorUpdater"
 
 # === Remove any .DS_Store files ===
 echo "Cleaning up .DS_Store files..."
