@@ -99,10 +99,11 @@ class FirstRun {
     
     static func setupOtherLaunchDaemons() {
         
-        let scheduledDaemons: [(label: String, argument: String, weekday: Int)] = [
-            ("com.gilburns.intuneomator.automation", "intune-automation", 0),      // Everyday
-            ("com.gilburns.intuneomator.cachecleaner", "cache-cleanup", 2),     // Monday
-            ("com.gilburns.intuneomator.labelupdater", "label-update", 6)       // Friday
+        let scheduledDaemons: [(label: String, argument: String, weekday: Int, hour: Int)] = [
+            ("com.gilburns.intuneomator.automation", "intune-automation", 0, 5),      // Everyday
+            ("com.gilburns.intuneomator.cachecleaner", "cache-cleanup", 2, 6),     // Monday
+            ("com.gilburns.intuneomator.labelupdater", "label-update", 6, 6),       // Friday
+            ("com.gilburns.intuneomator.updatecheck", "update-check", 7, 6)       // Saturday
         ]
 
         for daemon in scheduledDaemons {
@@ -113,7 +114,7 @@ class FirstRun {
                     label: daemon.label,
                     argument: daemon.argument,
                     schedules: [
-                        (weekday: daemon.weekday, hour: 6, minute: 0)
+                        (weekday: daemon.weekday, hour: daemon.hour, minute: 0)
                     ],
                     completion: { success, message in
                         Logger.log(success ? "✅ Created \(daemon.label)" : "❌ Failed to create \(daemon.label): \(message ?? "unknown error")", logType: "FirstRun")
