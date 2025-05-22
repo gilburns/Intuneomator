@@ -54,7 +54,7 @@ class TeamsNotifier {
                     [
                         "type": "Column",
                         "items": [
-                            ["type": "Image", "url": imageURL, "size": "Medium", "style": "Person"]
+                            ["type": "Image", "url": imageURL, "size": "Medium"]
                         ],
                         "width": "auto"
                     ],
@@ -260,6 +260,211 @@ class TeamsNotifier {
             semaphore.wait()
         } catch {
             Logger.log("❌ Error serializing JSON: \(error)", logType: "TeamsNotifier")
+        }
+    }
+    
+    func sendUpdateNotification(
+        initialVersion: String,
+        updatedVersion: String,
+        daemonStatus: [String: String],
+        isSuccess: Bool,
+        errorMessage: String? = nil
+    ) {
+        let title = "Intuneomator Service"
+        let intuneomatorIconUrl: String = "https://icons.intuneomator.org/intuneomator.png"        
+        
+        let versionFacts: [[String: String]] = [
+            ["title": "Initial Version:", "value": initialVersion],
+            ["title": "Updated Version:", "value": updatedVersion]
+        ]
+        
+        let sortedDaemonStatus = daemonStatus.sorted { $0.key.localizedCaseInsensitiveCompare($1.key) == .orderedAscending }
+
+        let daemonRows: [[String: Any]] = sortedDaemonStatus.map { key, value in
+            return [
+                "type": "ColumnSet",
+                "columns": [
+                    [
+                        "type": "Column",
+                        "width": "stretch",
+                        "items": [
+                            ["type": "TextBlock", "text": "**\(key)**", "wrap": true]
+                        ]
+                    ],
+                    [
+                        "type": "Column",
+                        "width": "auto",
+                        "items": [
+                            ["type": "TextBlock", "text": value, "wrap": true]
+                        ]
+                    ]
+                ],
+                "separator": true
+            ]
+        }
+        
+        var bodyContent: [[String: Any]] = [
+            [
+                "type": "ColumnSet",
+                "columns": [
+                    [
+                        "type": "Column",
+                        "items": [
+                            ["type": "Image", "url": intuneomatorIconUrl, "size": "Medium"]
+                        ],
+                        "width": "auto"
+                    ],
+                    [
+                        "type": "Column",
+                        "items": [
+                            ["type": "TextBlock", "text": " ", "weight": "Bolder", "size": "Medium"]
+                        ],
+                        "width": "stretch"
+                    ],
+                    [
+                        "type": "Column",
+                        "items": [
+                            [
+                                "type": "FactSet",
+                                "facts": [
+                                    [
+                                        "title": " ",
+                                        "value": isSuccess ? "🟢 **SUCCESS**" : "🔴 **FAILED**",
+                                        "color": isSuccess ? "Good" : "Attention",
+                                    ]
+                                ]
+                            ]
+                        ],
+                        "width": "auto",
+                        "style": isSuccess ? "good" : "attention",
+                    ]
+                ]
+            ],
+            [
+                "type": "TextBlock",
+                "text": "**\(title)**",
+                "weight": "Bolder",
+                "spacing": "None",
+                "size": "Large"
+            ],
+            [
+                "type": "TextBlock",
+                "text": isSuccess ? "Intuneomator service was updated" : "Intuneomator service update failed",
+                "weight": "Lighter",
+                "spacing": "Small",
+                "size": "Small"
+            ],
+            [
+                "type": "TextBlock",
+                "text": "---",
+                "weight": "Lighter",
+                "spacing": "Medium",
+                "separator": true
+            ],
+            [
+                "type": "TextBlock",
+                "text": "**Version Information:**",
+                "weight": "Bolder",
+                "size": "Medium",
+                "spacing": "Medium"
+            ],
+            [
+                "type": "FactSet",
+                "facts": versionFacts
+            ],
+            [
+                "type": "TextBlock",
+                "text": "---",
+                "weight": "Lighter",
+                "spacing": "Medium",
+                "separator": true
+            ]
+        ]
+        
+        // Add Daemon info
+        bodyContent.append([
+            "type": "TextBlock",
+            "text": "**Post Update Daemon Status:**",
+            "weight": "Bolder",
+            "size": "Medium",
+            "spacing": "Medium"
+        ])
+        bodyContent.append(contentsOf: daemonRows)
+
+        // Add possible error info
+        if !isSuccess, let errorMessage = errorMessage, !errorMessage.trimmingCharacters(in: .whitespaces).isEmpty {
+            bodyContent.append([
+                "type": "TextBlock",
+                "text": "**Error Details**",
+                "weight": "Bolder",
+                "size": "Medium",
+                "color": "Attention",
+                "spacing": "Medium"
+            ])
+            
+            bodyContent.append([
+                "type": "Container",
+                "items": [
+                    [
+                        "type": "TextBlock",
+                        "text": errorMessage,
+                        "wrap": true,
+                        "color": "Attention",
+                        "spacing": "Small"
+                    ]
+                ],
+                "style": "attention",
+                "bleed": true
+            ])
+        }
+
+        let payload: [String: Any] = [
+            "type": "message",
+            "attachments": [
+                [
+                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "content": [
+                        "type": "AdaptiveCard",
+                        "version": "1.4",
+                        "msteams": ["width": "full"],
+                        "body": bodyContent
+                    ]
+                ]
+            ]
+        ]
+
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted])
+            var request = URLRequest(url: URL(string: webhookURL)!)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = jsonData
+
+            Logger.log("🔹 Sending update notification to Teams Webhook...", logType: "TeamsNotifier")
+            Logger.log("🔹 Update Payload JSON: \(String(data: jsonData, encoding: .utf8) ?? "Invalid JSON")", logType: "TeamsNotifier")
+
+            let semaphore = DispatchSemaphore(value: 0)
+
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    Logger.log("❌ Error sending update notification: \(error.localizedDescription)", logType: "TeamsNotifier")
+                } else if let httpResponse = response as? HTTPURLResponse {
+                    if (200...299).contains(httpResponse.statusCode) {
+                        Logger.log("✅ Update notification sent successfully!", logType: "TeamsNotifier")
+                    } else {
+                        Logger.log("❌ Failed to send update notification. HTTP Status: \(httpResponse.statusCode)", logType: "TeamsNotifier")
+                        if let data = data, let responseBody = String(data: data, encoding: .utf8) {
+                            Logger.log("🔹 Update Response Body: \(responseBody)", logType: "TeamsNotifier")
+                        }
+                    }
+                }
+                semaphore.signal()
+            }
+            
+            task.resume()
+            semaphore.wait()
+        } catch {
+            Logger.log("❌ Error serializing update JSON: \(error)", logType: "TeamsNotifier")
         }
     }
 }
