@@ -431,7 +431,7 @@ extension XPCService {
 
                 try FileManager.default.copyItem(at: sourceLabelURL, to: existingLabelURL)
                 
-                LabelAutomation.runProcessLabelScript(for: labelFolder)
+                _ = LabelAutomation.runProcessLabelScript(for: labelFolder)
 
                 reply(true)
             } catch {
@@ -451,7 +451,7 @@ extension XPCService {
 
                 try FileManager.default.copyItem(at: sourceLabelURL, to: existingLabelURL)
 
-                LabelAutomation.runProcessLabelScript(for: labelFolder)
+                _ = LabelAutomation.runProcessLabelScript(for: labelFolder)
                 
                 reply(true)
             } catch {
