@@ -523,7 +523,7 @@ class LabelAutomation {
         var outputAppBundleID: String? = nil
         var outputAppVersion: String? = nil
         
-        let version = processedAppResults.appVersionExpected
+        _ = processedAppResults.appVersionExpected
         
         Logger.log("  Processing downloaded file: \(downloadURL.lastPathComponent)", logType: "LabelAutomation")
         Logger.log("  File type: \(downloadType)", logType: "LabelAutomation")
