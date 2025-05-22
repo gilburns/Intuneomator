@@ -119,7 +119,7 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
 
     @IBAction func saveInstructionsClicked(_ sender: NSButton) {
         let savePanel = NSSavePanel()
-        savePanel.allowedFileTypes = ["pdf"]
+        savePanel.allowedContentTypes = [.pdf]
         savePanel.nameFieldStringValue = "Entra_App_Setup.pdf"
 
         savePanel.begin { response in
