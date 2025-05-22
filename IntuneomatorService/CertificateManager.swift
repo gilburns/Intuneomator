@@ -374,7 +374,7 @@ class CertificateManager {
     // Enhanced function to extract key usage
     static func extractKeyUsage(from properties: [CFString: Any]) -> Int? {
         // Standard OID for key usage
-        let keyUsageOID = "2.5.29.15" as CFString
+//        let keyUsageOID = "2.5.29.15" as CFString
         
         // Look for key usage by OID
         for (key, value) in properties {
