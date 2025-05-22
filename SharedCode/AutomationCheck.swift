@@ -19,13 +19,13 @@ class AutomationCheck {
 //        print("Folder Name: \(folderName)")
 
         var name: String?
-        var guid: String?
+//        var guid: String?
 
         let parts = folderName.split(separator: "_")
 
         if parts.count == 2 {
             name = String(parts[0]) // Assign the name
-            guid = String(parts[1]) // Assign the GUID
+//            guid = String(parts[1]) // Assign the GUID
 //            Logger.log("Name: \(name!), GUID: \(guid!)", logType: "Validation_\(name!)")
         } else {
             Logger.log("Invalid directory format.")
