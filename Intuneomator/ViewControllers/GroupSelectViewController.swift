@@ -338,19 +338,19 @@ class GroupSelectViewController: NSViewController, NSTableViewDelegate, NSTableV
         // If this is the initial state and we haven't toggled yet
         if !userHasToggledVirtualCheckbox {
             // Set initial states based on existing assignments
-            if let virtualAssignment = existingAssignments.first(where: {
+            if existingAssignments.first(where: {
                 ($0["isVirtual"] as? Bool) == true &&
                 ($0["displayName"] as? String) == "All Devices"
-            }) {
+            }) != nil {
                 allDevicesButton.state = .on
             } else {
                 allDevicesButton.state = .off
             }
             
-            if let virtualAssignment = existingAssignments.first(where: {
+            if existingAssignments.first(where: {
                 ($0["isVirtual"] as? Bool) == true &&
                 ($0["displayName"] as? String) == "All Users"
-            }) {
+            }) != nil {
                 allUsersButton.state = .on
             } else {
                 allUsersButton.state = .off
