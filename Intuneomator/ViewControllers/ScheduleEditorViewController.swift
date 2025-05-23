@@ -39,7 +39,7 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
     
     let taskMappings: [String: (label: String, argument: String, image: String, description: String)] = [
         "Automation": ("com.gilburns.intuneomator.automation", "intune-automation", "gearshape.arrow.trianglehead.2.clockwise.rotate.90", "This schedule controls the execution of automation tasks. It is recommended that you schedule this task to run once at least once a day."),
-        "Cache Cleanup": ("com.gilburns.intuneomator.cachecleaner", "cache-cleanup", "arrow.down.app.fill", "This schedule controls the execution of the cache cleanup task. It is recommended that you schedule this task to run at least once a week."),
+        "Cleanup": ("com.gilburns.intuneomator.cachecleaner", "cache-cleanup", "arrow.down.app.fill", "This schedule controls the execution of the cache and log cleanup task. It is recommended that you schedule this task to run at least once a week."),
         "Label Updater": ("com.gilburns.intuneomator.labelupdater", "label-update", "tag.square", "This schedule controls the execution of the Installomator label updater task. It is recommended that you schedule this task to run at least once a week."),
         "Updater": ("com.gilburns.intuneomator.updatecheck", "update-check", "bolt.badge.checkmark", "This schedule controls the execution of the Installomator self updater task. It is recommended that you schedule this task to run only once a week.")
     ]
