@@ -25,7 +25,9 @@ class SettingsViewController: NSViewController {
     @IBOutlet weak var buttonSendTeamsNotifications: NSButton!
     @IBOutlet weak var fieldTeamsWebhookURL: NSTextField!
     
-    
+    @IBOutlet weak var fieldLogsMaxAge: NSTextField!
+    @IBOutlet weak var fieldLogsMaxSize: NSTextField!
+
     @IBOutlet weak var buttonTestConnection: NSButton!
     @IBOutlet weak var progressIndicatorTestConnection: NSProgressIndicator!
     
@@ -246,6 +248,9 @@ class SettingsViewController: NSViewController {
         checkFieldChange(buttonSendTeamsNotifications.state == .on, originalValue: settings.sendTeamsNotifications, control: buttonSendTeamsNotifications)
         checkFieldChange(fieldAppsToKeep.stringValue, originalValue: settings.appsToKeep, control: fieldAppsToKeep)
 
+        checkFieldChange(fieldLogsMaxAge.stringValue, originalValue: settings.logAgeMax, control: fieldLogsMaxAge)
+        checkFieldChange(fieldLogsMaxSize.stringValue, originalValue: settings.logSizeMax, control: fieldLogsMaxSize)
+
 //        checkFieldChange(fieldClientSecret.stringValue, originalValue: settings.secret, control: fieldClientSecret)
 //        checkFieldChange(fieldCertificateThumbprint.stringValue, originalValue: settings.certThumbprint, control: fieldCertificateThumbprint)
 
@@ -325,7 +330,15 @@ class SettingsViewController: NSViewController {
     @IBAction func fieldAppsToKeepDidChange(_ sender: NSTextField) {
         trackChanges()
     }
-    
+
+    @IBAction func fieldLogAgeMaxDidChange(_ sender: NSTextField) {
+        trackChanges()
+    }
+
+    @IBAction func fieldLogSizeMaxDidChange(_ sender: NSTextField) {
+        trackChanges()
+    }
+
     
     
     // MARK: - Helpers
@@ -486,6 +499,26 @@ class SettingsViewController: NSViewController {
         }
     }
     
+    func getLogAgeMax() {
+        XPCManager.shared.getLogAgeMax { logAgeMax in
+            DispatchQueue.main.async {
+                let logAgeMax = logAgeMax ?? 0
+                self.fieldLogsMaxAge.stringValue = String(logAgeMax)
+                self.settings.logAgeMax = String(logAgeMax)
+            }
+        }
+    }
+
+    func getLogSizeMax() {
+        XPCManager.shared.getLogSizeMax { logSizeMax in
+            DispatchQueue.main.async {
+                let logSizeMax = logSizeMax ?? 0
+                self.fieldLogsMaxSize.stringValue = String(logSizeMax)
+                self.settings.logSizeMax = String(logSizeMax)
+            }
+        }
+    }
+
     
     // MARK: - Set Helpers
     
@@ -552,6 +585,20 @@ class SettingsViewController: NSViewController {
         }
     }
     
+    private func setLogAgeMax() {
+        let logAgeMaxString = Int(fieldLogsMaxAge.stringValue.trimmingCharacters(in: .whitespacesAndNewlines))
+        XPCManager.shared.setLogAgeMax(logAgeMaxString ?? 0) { success in
+            Logger.logUser("Log max age updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+        }
+    }
+
+    private func setLogSizeMax() {
+        let logSizeMaxString = Int(fieldLogsMaxSize.stringValue.trimmingCharacters(in: .whitespacesAndNewlines))
+        XPCManager.shared.setLogSizeMax(logSizeMaxString ?? 0) { success in
+            Logger.logUser("Log max size updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+        }
+    }
+
     // MARK: - Settings File Read and Write Functions
     private func populateFields() {
         getTenantID()
@@ -563,6 +610,8 @@ class SettingsViewController: NSViewController {
         getCertExpiration()
         getClientSecret()
         getCertThumbprint()
+        getLogAgeMax()
+        getLogSizeMax()
     }
     
     private func saveSettingsFromFields() {
@@ -616,6 +665,17 @@ class SettingsViewController: NSViewController {
             setClientSecret()
         }
         
+        
+        if settings.logAgeMax != fieldLogsMaxAge.stringValue.trimmingCharacters(in: .whitespacesAndNewlines) {
+            
+            setLogAgeMax()
+        }
+
+        if settings.logSizeMax != fieldLogsMaxSize.stringValue.trimmingCharacters(in: .whitespacesAndNewlines) {
+            
+            setLogSizeMax()
+        }
+
     }
     
     
