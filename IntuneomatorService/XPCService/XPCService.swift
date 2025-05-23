@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - XPCService
-class XPCService: NSObject, XPCServiceProtocol {    
+class XPCService: NSObject, XPCServiceProtocol {
     
     private var transactionObjects: [String: NSObject] = [:]
     
