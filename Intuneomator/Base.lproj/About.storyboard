@@ -72,7 +72,7 @@
                             </scrollView>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="veC-JJ-bku">
                                 <rect key="frame" x="18" y="44" width="211" height="16"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" title="Built on Installomator open source" id="emO-OO-Uuf">
+                                <textFieldCell key="cell" title="Built on Installomator open source" id="emO-OO-Uuf">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -103,7 +103,7 @@
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="96" id="fUP-Xs-XbL"/>
+                                    <constraint firstAttribute="height" constant="96" id="nsq-bs-LGi"/>
                                 </constraints>
                                 <connections>
                                     <action selector="aboutIntuneomatorButtonAction:" target="bU7-R8-ocO" id="6s0-1w-cbC"/>
@@ -119,7 +119,7 @@ DQ
 </string>
                                 </buttonCell>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="80" id="BxW-us-d6L"/>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="80" id="q4B-iv-2SX"/>
                                 </constraints>
                                 <connections>
                                     <action selector="dismissController:" target="bU7-R8-ocO" id="fcz-ly-ari"/>
@@ -127,28 +127,28 @@ DQ
                             </button>
                         </subviews>
                         <constraints>
-                            <constraint firstItem="UJN-BB-W8c" firstAttribute="leading" secondItem="L8c-qf-Hmc" secondAttribute="leading" constant="20" symbolic="YES" id="0jv-nD-2Yv"/>
-                            <constraint firstAttribute="bottom" secondItem="1qs-T2-Bet" secondAttribute="bottom" constant="185" id="2GA-N6-AWB"/>
-                            <constraint firstAttribute="bottom" secondItem="jTd-VS-wCw" secondAttribute="bottom" constant="20" symbolic="YES" id="2J6-O8-4fQ"/>
-                            <constraint firstItem="pEa-hU-75t" firstAttribute="top" secondItem="jPW-Xl-8yX" secondAttribute="top" id="5ub-cP-SoF"/>
-                            <constraint firstItem="jTd-VS-wCw" firstAttribute="top" secondItem="veC-JJ-bku" secondAttribute="bottom" constant="4" id="CDk-NY-qQZ"/>
-                            <constraint firstAttribute="trailing" secondItem="OsF-fk-eua" secondAttribute="trailing" constant="20" symbolic="YES" id="CPg-eH-qcd"/>
-                            <constraint firstItem="UJN-BB-W8c" firstAttribute="top" secondItem="L8c-qf-Hmc" secondAttribute="top" constant="20" symbolic="YES" id="Cdf-nk-VuJ"/>
-                            <constraint firstItem="veC-JJ-bku" firstAttribute="leading" secondItem="jTd-VS-wCw" secondAttribute="leading" id="HIp-g0-4oQ"/>
-                            <constraint firstItem="UJN-BB-W8c" firstAttribute="leading" secondItem="veC-JJ-bku" secondAttribute="leading" id="HXO-bo-wEy"/>
-                            <constraint firstItem="jTd-VS-wCw" firstAttribute="top" secondItem="pEa-hU-75t" secondAttribute="top" id="LSb-zf-Y1t"/>
-                            <constraint firstItem="OsF-fk-eua" firstAttribute="leading" secondItem="UJN-BB-W8c" secondAttribute="trailing" constant="8" symbolic="YES" id="QN7-Yh-Vo8"/>
-                            <constraint firstItem="OsF-fk-eua" firstAttribute="trailing" secondItem="1qs-T2-Bet" secondAttribute="trailing" id="QSC-G8-SI5"/>
-                            <constraint firstItem="jPW-Xl-8yX" firstAttribute="leading" secondItem="pEa-hU-75t" secondAttribute="trailing" constant="8" symbolic="YES" id="TmR-Y3-zNH"/>
-                            <constraint firstItem="1qs-T2-Bet" firstAttribute="top" secondItem="4WD-c8-3Ck" secondAttribute="bottom" constant="8" symbolic="YES" id="bD6-oZ-hev"/>
-                            <constraint firstItem="1qs-T2-Bet" firstAttribute="trailing" secondItem="jPW-Xl-8yX" secondAttribute="trailing" id="cIo-5B-Lzw"/>
-                            <constraint firstItem="jTd-VS-wCw" firstAttribute="bottom" secondItem="pEa-hU-75t" secondAttribute="bottom" id="ft7-GU-Hbd"/>
-                            <constraint firstItem="4WD-c8-3Ck" firstAttribute="top" secondItem="OsF-fk-eua" secondAttribute="bottom" constant="8" symbolic="YES" id="hse-4N-xT5"/>
-                            <constraint firstItem="pEa-hU-75t" firstAttribute="leading" secondItem="jTd-VS-wCw" secondAttribute="trailing" constant="12" symbolic="YES" id="jF4-w2-lJw"/>
-                            <constraint firstAttribute="trailing" secondItem="4WD-c8-3Ck" secondAttribute="trailing" constant="45" id="jW2-0I-RBY"/>
-                            <constraint firstItem="4WD-c8-3Ck" firstAttribute="leading" secondItem="UJN-BB-W8c" secondAttribute="trailing" constant="20" id="nfi-kU-6DU"/>
-                            <constraint firstItem="OsF-fk-eua" firstAttribute="top" secondItem="L8c-qf-Hmc" secondAttribute="top" constant="49" id="t16-Eo-qgf"/>
-                            <constraint firstItem="4WD-c8-3Ck" firstAttribute="leading" secondItem="1qs-T2-Bet" secondAttribute="leading" id="z3i-gi-vXr"/>
+                            <constraint firstItem="jPW-Xl-8yX" firstAttribute="leading" secondItem="pEa-hU-75t" secondAttribute="trailing" constant="8" symbolic="YES" id="FbV-RM-UgA"/>
+                            <constraint firstItem="4WD-c8-3Ck" firstAttribute="leading" secondItem="UJN-BB-W8c" secondAttribute="trailing" constant="20" id="INz-Se-lpV"/>
+                            <constraint firstItem="pEa-hU-75t" firstAttribute="top" secondItem="jPW-Xl-8yX" secondAttribute="top" id="MKV-iq-xBp"/>
+                            <constraint firstItem="UJN-BB-W8c" firstAttribute="top" secondItem="L8c-qf-Hmc" secondAttribute="top" constant="20" symbolic="YES" id="NZR-lK-afK"/>
+                            <constraint firstItem="1qs-T2-Bet" firstAttribute="top" secondItem="4WD-c8-3Ck" secondAttribute="bottom" constant="8" symbolic="YES" id="PUd-kj-WMJ"/>
+                            <constraint firstItem="OsF-fk-eua" firstAttribute="top" secondItem="L8c-qf-Hmc" secondAttribute="top" constant="49" id="Po8-Cl-dnQ"/>
+                            <constraint firstItem="4WD-c8-3Ck" firstAttribute="top" secondItem="OsF-fk-eua" secondAttribute="bottom" constant="8" symbolic="YES" id="QKS-cp-1Bq"/>
+                            <constraint firstItem="UJN-BB-W8c" firstAttribute="leading" secondItem="L8c-qf-Hmc" secondAttribute="leading" constant="20" symbolic="YES" id="RLG-F9-FGm"/>
+                            <constraint firstItem="1qs-T2-Bet" firstAttribute="trailing" secondItem="jPW-Xl-8yX" secondAttribute="trailing" id="Vc6-tS-dpw"/>
+                            <constraint firstAttribute="trailing" secondItem="OsF-fk-eua" secondAttribute="trailing" constant="20" symbolic="YES" id="Xrg-nJ-jgX"/>
+                            <constraint firstAttribute="bottom" secondItem="jTd-VS-wCw" secondAttribute="bottom" constant="20" symbolic="YES" id="a3W-wv-w82"/>
+                            <constraint firstItem="jTd-VS-wCw" firstAttribute="bottom" secondItem="pEa-hU-75t" secondAttribute="bottom" id="dSC-xq-MKD"/>
+                            <constraint firstItem="OsF-fk-eua" firstAttribute="trailing" secondItem="1qs-T2-Bet" secondAttribute="trailing" id="eHA-FJ-cGp"/>
+                            <constraint firstItem="jTd-VS-wCw" firstAttribute="top" secondItem="pEa-hU-75t" secondAttribute="top" id="ehE-wL-YXK"/>
+                            <constraint firstItem="pEa-hU-75t" firstAttribute="leading" secondItem="jTd-VS-wCw" secondAttribute="trailing" constant="12" symbolic="YES" id="jvn-Iz-4Y9"/>
+                            <constraint firstItem="OsF-fk-eua" firstAttribute="leading" secondItem="UJN-BB-W8c" secondAttribute="trailing" constant="8" symbolic="YES" id="l7Q-0q-g31"/>
+                            <constraint firstItem="veC-JJ-bku" firstAttribute="leading" secondItem="UJN-BB-W8c" secondAttribute="leading" id="oio-Yk-xx4"/>
+                            <constraint firstItem="pEa-hU-75t" firstAttribute="top" secondItem="veC-JJ-bku" secondAttribute="bottom" constant="4" id="sZX-4a-hbP"/>
+                            <constraint firstItem="4WD-c8-3Ck" firstAttribute="leading" secondItem="1qs-T2-Bet" secondAttribute="leading" id="uRl-Gx-vMU"/>
+                            <constraint firstAttribute="trailing" secondItem="4WD-c8-3Ck" secondAttribute="trailing" constant="45" id="v3f-zU-GkR"/>
+                            <constraint firstItem="veC-JJ-bku" firstAttribute="leading" secondItem="jTd-VS-wCw" secondAttribute="leading" id="veb-lZ-JTI"/>
+                            <constraint firstAttribute="bottom" secondItem="1qs-T2-Bet" secondAttribute="bottom" constant="185" id="wze-L7-L8F"/>
                         </constraints>
                     </view>
                     <connections>
