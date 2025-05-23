@@ -753,7 +753,7 @@
                 </viewController>
                 <customObject id="K1V-9j-IIh" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-738" y="-402"/>
+            <point key="canvasLocation" x="-1355" y="-1690"/>
         </scene>
         <!--Settings View Controller-->
         <scene sceneID="dOw-Bg-oH2">
@@ -2520,19 +2520,8 @@ Gw
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
                                         </textField>
-                                        <button toolTip="Use Installomator Package ID for Intune detection Bundle ID" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="GUp-an-c56">
-                                            <rect key="frame" x="657" y="108" width="21" height="21"/>
-                                            <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
-                                            <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="arrowshape.up" catalog="system" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="htd-wk-DEd">
-                                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                                <font key="font" metaFont="system"/>
-                                            </buttonCell>
-                                            <connections>
-                                                <action selector="buttonUsePackageIDForDetectionWasClicked:" target="ReB-I2-ePG" id="fYS-QS-XsJ"/>
-                                            </connections>
-                                        </button>
                                         <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="crw-Z0-UMH">
-                                            <rect key="frame" x="481" y="107" width="168" height="21"/>
+                                            <rect key="frame" x="481" y="107" width="194" height="21"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                                             <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="8Vr-M3-UlI">
                                                 <font key="font" metaFont="system"/>
@@ -2760,7 +2749,6 @@ Gw
                         <outlet property="buttonManagedApp" destination="eqm-Z4-7Jy" id="WZ0-5w-WxF"/>
                         <outlet property="buttonPopUpMinimumOs" destination="35w-Np-gFu" id="CVo-1i-djO"/>
                         <outlet property="buttonSelectCategories" destination="chl-RN-iYc" id="wg0-RQ-73m"/>
-                        <outlet property="buttonUseInstallomatorPkgID" destination="GUp-an-c56" id="Z58-iI-euv"/>
                         <outlet property="fieldAppNewVersion" destination="bbR-An-aq9" id="rC6-4y-r6f"/>
                         <outlet property="fieldDeloyAsArchUniversal" destination="tPI-cn-AxM" id="iCw-Ns-gvj"/>
                         <outlet property="fieldDeployAsArchLabel" destination="YxA-fv-CxH" id="4UN-Gz-chk"/>
@@ -4868,7 +4856,7 @@ Gw
         <scene sceneID="DSL-Ha-MpT">
             <objects>
                 <viewController storyboardIdentifier="DevicesSheetViewController" id="49m-Uz-kjb" customClass="DevicesSheetViewController" customModule="Intuneomator" customModuleProvider="target" sceneMemberID="viewController">
-                    <visualEffectView key="view" blendingMode="behindWindow" material="appearanceBased" state="followsWindowActiveState" id="Acc-Rc-AV5">
+                    <visualEffectView key="view" blendingMode="behindWindow" material="popover" state="followsWindowActiveState" id="Acc-Rc-AV5">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="400"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
@@ -5564,7 +5552,6 @@ DQ
         <image name="NSRemoveTemplate" width="18" height="5"/>
         <image name="NSTouchBarDownloadTemplate" width="20" height="20"/>
         <image name="NSTouchBarGetInfoTemplate" width="20" height="20"/>
-        <image name="arrowshape.up" catalog="system" width="15" height="16"/>
         <image name="clock.arrow.trianglehead.2.counterclockwise.rotate.90" catalog="system" width="16" height="15"/>
         <image name="clock.badge.questionmark" catalog="system" width="18" height="16"/>
         <image name="desktopcomputer.and.macbook" catalog="system" width="25" height="16"/>
