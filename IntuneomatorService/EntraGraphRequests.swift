@@ -20,116 +20,6 @@ class EntraGraphRequests {
         case resourceNotFound(String)
     }
     
-    
-    // MARK: - Detected Applications
-    // https://learn.microsoft.com/en-us/graph/api/intune-devices-detectedapp-list?view=graph-rest-1.0&tabs=http
-    
-    
-    /// Fetches all detected apps from Microsoft Graph, handling pagination.
-    static func fetchAllDetectedApps(authToken: String) async throws -> [DetectedApp] {
-        
-        let graphEndpoint = "https://graph.microsoft.com/beta/deviceManagement/detectedApps"
-
-        var allApps: [DetectedApp] = []
-        var nextLink: String? = graphEndpoint
-
-
-        while let url = nextLink {
-            guard let requestURL = URL(string: url) else {
-                throw NSError(domain: "Invalid URL", code: 0, userInfo: nil)
-            }
-
-            var request = URLRequest(url: requestURL)
-            request.httpMethod = "GET"
-            request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
-            request.setValue("application/json", forHTTPHeaderField: "Accept")
-
-            let (data, response) = try await URLSession.shared.data(for: request)
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw NSError(domain: "No HTTP response", code: 0, userInfo: nil)
-            }
-
-            print("ℹ️ HTTP Status Code: \(httpResponse.statusCode)")
-
-            if httpResponse.statusCode == 403 {
-                Logger.log("Missing permissions. Please grant permissions in Enterprise App settings.")
-                throw NSError(domain: "Graph API Forbidden", code: 403, userInfo: nil)
-            }
-
-            if httpResponse.statusCode != 200 {
-                if let responseBody = String(data: data, encoding: .utf8) {
-                    print("❌ Response Body: \(responseBody)")
-                }
-                throw NSError(domain: "Invalid server response", code: httpResponse.statusCode, userInfo: nil)
-            }
-
-            do {
-                let decodedResponse = try JSONDecoder().decode(GraphResponseDetectedApp.self, from: data)
-                allApps.append(contentsOf: decodedResponse.value)
-                nextLink = decodedResponse.nextLink
-            } catch {
-                print("❌ JSON Decoding Error: \(error)")
-                throw error
-            }
-        }
-
-        print(allApps.count)
-        return allApps
-    }
-
-    
-    /// Fetches and filters detected apps to return only macOS applications.
-    static func fetchMacOSDetectedApps(authToken: String) async throws -> [DetectedApp] {
-        let allApps = try await fetchAllDetectedApps(authToken: authToken)
-        
-//        print("🔍 Checking platforms in detected apps:")
-//        for app in allApps {
-//            print(" - \(app.displayName ?? "Unknown App"): \(app.platform ?? "Unknown Platform")")
-//        }
-
-        let macApps = allApps.filter { ($0.platform?.lowercased() ?? "") == "macos" }
-        
-        print("✅ Found \(macApps.count) macOS apps")
-        return macApps
-    }
-
-    
-    // Function to fetch devices for a given detected app ID
-    static func fetchDevices(authToken: String, forAppID appID: String) async throws -> [(deviceName: String, id: String, emailAddress: String)] {
-        
-        let graphEndpoint = "https://graph.microsoft.com/beta/deviceManagement/detectedApps"
-
-        let urlString = "\(graphEndpoint)/\(appID)/managedDevices?$select=deviceName,id,emailAddress"
-        guard let url = URL(string: urlString) else { throw NSError(domain: "Invalid URL", code: 400, userInfo: nil) }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            throw NSError(domain: "Invalid server response", code: (response as? HTTPURLResponse)?.statusCode ?? 500, userInfo: nil)
-        }
-
-        // Parse JSON response
-        struct APIResponse: Decodable {
-            let value: [Device]
-        }
-
-        struct Device: Decodable {
-            let deviceName: String?
-            let id: String?
-            let emailAddress: String?
-        }
-
-        let decodedResponse = try JSONDecoder().decode(APIResponse.self, from: data)
-
-        return decodedResponse.value.map { ($0.deviceName ?? "Unknown Device", $0.id ?? "Missing ID", $0.emailAddress ?? "No Email") }
-    }
-
-
     // MARK: - Fetch Mobile App Categories
     // https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappcategory-list?view=graph-rest-1.0&tabs=http
     
@@ -156,30 +46,6 @@ class EntraGraphRequests {
         throw NSError(domain: "AppDataManager", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid response format for mobile app categories"])
     }
     
-    // MARK: - Fetch Security Enabled Entra Groups
-    
-    /// Fetches all security enabled groups from Microsoft Graph.
-    static func fetchEntraGroups(authToken: String) async throws -> [[String: Any]] {
-        let url = URL(string: "https://graph.microsoft.com/v1.0/groups?$filter=securityEnabled eq true&$select=id,description,displayName,securityEnabled")!
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            throw NSError(domain: "AppDataManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch Entra groups"])
-        }
-        
-        if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-           let values = json["value"] as? [[String: Any]] {
-            return values.sorted {
-                guard let name1 = $0["displayName"] as? String, let name2 = $1["displayName"] as? String else { return false }
-                return name1.localizedCaseInsensitiveCompare(name2) == .orderedAscending
-            }
-        }
-        throw NSError(domain: "AppDataManager", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid response format for Entra groups"])
-    }
     
     
     // MARK: - Fetch device filters from Graph
@@ -238,51 +104,6 @@ class EntraGraphRequests {
      }
      */
     
-    // MARK: - Find groups ID By Display Name
-    
-    // Helper function to get group ID from display name
-    static func getGroupIdByDisplayName(authToken: String, displayName: String) async throws -> String {
-        let encodedName = displayName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        let urlString = "https://graph.microsoft.com/beta/groups?$filter=displayName eq '\(encodedName)'"
-        
-        guard let url = URL(string: urlString) else {
-            throw GraphAPIError.invalidURL
-        }
-        
-        // Prepare the request
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        
-        // Make the API call
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        // Check for valid response
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw GraphAPIError.invalidResponse
-        }
-        
-        // Process the response
-        struct GroupResponse: Codable {
-            let value: [Group]
-        }
-        
-        struct Group: Codable {
-            let id: String
-            let displayName: String
-        }
-        
-        let groupResponse = try JSONDecoder().decode(GroupResponse.self, from: data)
-        
-        // Return the first matching group's ID
-        guard let group = groupResponse.value.first else {
-            throw GraphAPIError.resourceNotFound("Group not found: \(displayName)")
-        }
-        
-        return group.id
-    }
     
     // MARK: - Find Apps By Tracking ID
     static func findAppsByTrackingID(authToken: String, trackingID: String) async throws -> [FilteredIntuneAppInfo] {
