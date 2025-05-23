@@ -12,37 +12,7 @@ class LabelAutomation {
 
     // MARK: - Scan Folders to start the automation run
     static func scanAndValidateFolders() -> [String] {
-        Logger.log("🔄 Starting Intune automation run...", logType: logType)
-        Logger.log("--------------------------------------------------------", logType: logType)
-        
-        var validFolders: [String] = []
-        let basePath = AppConstants.intuneomatorManagedTitlesFolderURL.path
-        
-        do {
-            var folderContents = try FileManager.default.contentsOfDirectory(atPath: basePath)
-            
-            // Sort folder names alphabetically
-            folderContents.sort()
-            
-            for folderName in folderContents {
-                let folderPath = (basePath as NSString).appendingPathComponent(folderName)
-                
-                if AutomationCheck.validateFolder(at: folderPath) {
-                    Logger.log("✅ Ready for automation: \(folderName)", logType: logType)
-                    validFolders.append(folderName)
-                } else {
-                    Logger.log("⚠️ Not ready for automation: \(folderName)", logType: logType)
-                }
-            }
-        } catch {
-            Logger.log("❌ Error reading managed titles folder: \(error.localizedDescription)", logType: logType)
-        }
-        Logger.log("--------------------------------------------------------", logType: logType)
-
-        Logger.log("📋 Valid software titles for automation: \(validFolders.joined(separator: ", "))", logType: logType)
-        Logger.log("🏁 Scan complete. \(validFolders.count) folders ready for automation.", logType: logType)
-
-        return validFolders
+        FolderScanner.scanAndValidateFolders()
     }
     
     
