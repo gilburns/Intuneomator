@@ -26,7 +26,7 @@ extension XPCService {
             
             let converted = decoded.map { schedule in
                 return (
-                    weekday: schedule.weekday?.intValue,
+                    weekday: schedule.weekday.flatMap { Weekday(rawValue: $0.intValue) },
                     hour: schedule.hour,
                     minute: schedule.minute
                 )
