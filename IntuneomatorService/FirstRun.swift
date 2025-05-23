@@ -71,28 +71,27 @@ class FirstRun {
             DispatchQueue.main.async {
                 if success {
                     Logger.log("Installomator labels downloaded successfully.", logType: "FirstRun")
+
+                    if FileFolderManagerUtil.changePermissionsRecursively(
+                        at: AppConstants.installomatorLabelsFolderURL.path,
+                        to: 0o644,
+                        excludeHiddenFiles: true,
+                        skipDirectories: true
+                    ) {
+                        Logger.log("Permissions changed for files recursively!", logType: "FirstRun")
+                    }
+                    if FileFolderManagerUtil.changePermissionsRecursively(
+                        at: AppConstants.installomatorLabelsFolderURL.path,
+                        to: 0o755,
+                        excludeHiddenFiles: true,
+                        skipDirectories: false
+                    ) {
+                        Logger.log("Permissions changed for directories recursively!", logType: "FirstRun")
+                    }
                 } else {
                     Logger.log("Failed to download Installomator labels: \(message)", logType: "FirstRun")
                 }
             }
-        }
-        
-        if FileFolderManagerUtil.changePermissionsRecursively(
-            at: AppConstants.installomatorLabelsFolderURL.path,
-            to: 0o644,
-            excludeHiddenFiles: true,
-            skipDirectories: true
-        ) {
-            Logger.log("Permissions changed for files recursively!", logType: "FirstRun")
-        }
-
-        if FileFolderManagerUtil.changePermissionsRecursively(
-            at: AppConstants.installomatorLabelsFolderURL.path,
-            to: 0o755,
-            excludeHiddenFiles: true,
-            skipDirectories: false
-        ) {
-            Logger.log("Permissions changed for directories recursively!", logType: "FirstRun")
         }
     }
     
