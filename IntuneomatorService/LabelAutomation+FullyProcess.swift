@@ -17,7 +17,6 @@ extension LabelAutomation {
         // Variables to track label processing
         var processedAppResults: ProcessedAppResults?
         var checkedIntune: Bool = false
-        var versionsExpectedAndActualMatched: Bool = false
         
         // For check version in Intune
         var appInfo: [FilteredIntuneAppInfo]
@@ -255,14 +254,8 @@ extension LabelAutomation {
                         Logger.log("Failed to fetch app info from Intune: \(error.localizedDescription)", logType: logType)
                         return
                     }
-                    
-                    
-                } else {
-                    versionsExpectedAndActualMatched = true
                 }
-                // Here you would continue with additional processing,
-                // such as uploading to Intune or other operations
-                
+
             } catch {
                 Logger.log("❌ Processing failed: \(error.localizedDescription)", logType: logType)
             }
