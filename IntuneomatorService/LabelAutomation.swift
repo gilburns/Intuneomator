@@ -93,14 +93,13 @@ class LabelAutomation {
         
         // Extract the label name (before the UUID part)
         let parts = folderName.split(separator: "_")
-        let labelName = String(parts[0])
-        let labelGUID = String(parts[1])
-        
         // Verify we have a valid folder name
         guard parts.count == 2 else {
             Logger.log("❌ Invalid folder format: \(folderName)", logType: "LabelAutomation")
             return nil
         }
+        let labelName = String(parts[0])
+        let labelGUID = String(parts[1])
         
         // Full Path to the folder
         let folderPath = (AppConstants.intuneomatorManagedTitlesFolderURL.path as NSString).appendingPathComponent(folderName)
@@ -386,8 +385,7 @@ class LabelAutomation {
         }
         
         
-        let fullPath: URL = URL(fileURLWithPath: String(describing: versionCheckPath
-            .appendingPathComponent(fileName).path.removingPercentEncoding!))
+        let fullPath = versionCheckPath.appendingPathComponent(fileName)
         
         if FileManager.default.fileExists(atPath: fullPath.path) {
             Logger.log("LabelAutomation: File exists: \(fullPath.path))", logType: "LabelAutomation")
