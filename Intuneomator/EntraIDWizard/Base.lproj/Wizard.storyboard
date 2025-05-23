@@ -645,7 +645,7 @@ DQ
         <scene sceneID="iqN-Fh-3FB">
             <objects>
                 <viewController storyboardIdentifier="CertificateGenerationVC" id="ocu-qe-hk8" customClass="CertificateGenerationViewController" customModule="Intuneomator" customModuleProvider="target" sceneMemberID="viewController">
-                    <visualEffectView key="view" blendingMode="behindWindow" material="appearanceBased" state="followsWindowActiveState" id="Ll4-n1-xL6">
+                    <visualEffectView key="view" blendingMode="behindWindow" material="popover" state="followsWindowActiveState" id="Ll4-n1-xL6">
                         <rect key="frame" x="0.0" y="0.0" width="450" height="500"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
