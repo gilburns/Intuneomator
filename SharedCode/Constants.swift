@@ -235,6 +235,8 @@ struct Settings: Codable {
     var privateKeyFile: String = ""
     var sendTeamsNotifications: Bool = false
     var teamsWebhookURL: String = ""
+    var logAgeMax: String = ""
+    var logSizeMax: String = ""
 
     init() {}
 
@@ -250,6 +252,9 @@ struct Settings: Codable {
         privateKeyFile = try container.decodeIfPresent(String.self, forKey: .privateKeyFile) ?? ""
         sendTeamsNotifications = try container.decodeIfPresent(Bool.self, forKey: .sendTeamsNotifications) ?? false
         teamsWebhookURL = try container.decodeIfPresent(String.self, forKey: .teamsWebhookURL) ?? ""
+        logAgeMax = try container.decodeIfPresent(String.self, forKey: .logAgeMax) ?? ""
+        logSizeMax = try container.decodeIfPresent(String.self, forKey: .logSizeMax) ?? ""
+
     }
 }
 
