@@ -1,5 +1,5 @@
 //
-//  LabelAutomation+FullyProcess.swift
+//  LabelAutomation+ProcessFolder.swift
 //  Intuneomator
 //
 //  Created by Gil Burns on 5/22/25.
@@ -145,7 +145,7 @@ extension LabelAutomation {
                 )
                 
                 // check for universal pkg
-                if processedAppResults?.appDeploymentArch == 2 && titleIsDualArch(forFolder: folderName){
+                if processedAppResults?.appDeploymentArch == 2 && MetadataLoader.titleIsDualArch(forFolder: folderName) {
                     Logger.log("Downloading x86 version of the app", logType: logType)
                     Logger.log("Deployment arch is \(processedAppResults?.appDeploymentArch ?? 5), and \(folderName) is dual arch", logType: logType)
                     let downloadedFileURL = try await downloadFile(
