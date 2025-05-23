@@ -236,12 +236,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         fieldName.stringValue = plistDictionary["name"] as? String ?? ""
         fieldPackageID.stringValue = plistDictionary["packageID"] as? String ?? ""
         fieldPackageID.toolTip = plistDictionary["packageID"] as? String ?? ""
-        fieldType.stringValue = plistDictionary["type"] as? String ?? ""
-
-        if plistDictionary["packageID"] as? String == "" {
-            buttonUseInstallomatorPkgID.isEnabled = false
-        }
-        
+        fieldType.stringValue = plistDictionary["type"] as? String ?? ""        
         
     }
     
