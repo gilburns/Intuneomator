@@ -9,8 +9,6 @@ import Foundation
 
 extension LabelAutomation {
     
-    private static let logType = "LabelAutomation"
-
     // MARK: - Downloaded file cached
     // Check if the version already exists in cache
     static func isVersionCached(forLabel labelName: String, displayName: String, version: String, deploymentType: Int, deploymentArch: Int) throws -> URL {
