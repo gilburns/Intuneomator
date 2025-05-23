@@ -98,11 +98,11 @@ class FirstRun {
     
     static func setupOtherLaunchDaemons() {
         
-        let scheduledDaemons: [(label: String, argument: String, weekday: Int, hour: Int)] = [
-            ("com.gilburns.intuneomator.automation", "intune-automation", 0, 5),      // Everyday
-            ("com.gilburns.intuneomator.cachecleaner", "cache-cleanup", 2, 6),     // Monday
-            ("com.gilburns.intuneomator.labelupdater", "label-update", 6, 6),       // Friday
-            ("com.gilburns.intuneomator.updatecheck", "update-check", 7, 6)       // Saturday
+        let scheduledDaemons: [(label: String, argument: String, weekday: Weekday?, hour: Int)] = [
+            ("com.gilburns.intuneomator.automation", "intune-automation", nil, 5),      // Daily
+            ("com.gilburns.intuneomator.cachecleaner", "cache-cleanup", .monday, 6),   // Monday
+            ("com.gilburns.intuneomator.labelupdater", "label-update", .friday, 6),    // Friday
+            ("com.gilburns.intuneomator.updatecheck", "update-check", .saturday, 6)    // Saturday
         ]
 
         for daemon in scheduledDaemons {
