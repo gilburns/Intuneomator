@@ -12,7 +12,7 @@ class ScheduledTaskManager {
     static func configureScheduledTask(
         label: String,
         argument: String,
-        schedules: [(weekday: Int?, hour: Int, minute: Int)],
+        schedules: [(weekday: Weekday?, hour: Int, minute: Int)],
         associatedBundleID: String = "com.gilburns.Intuneomator",
         completion: @escaping (Bool, String?) -> Void
     ) {
@@ -33,7 +33,7 @@ class ScheduledTaskManager {
         let scheduleArray: [[String: Int]] = schedules.map { entry in
             var dict: [String: Int] = ["Hour": entry.hour, "Minute": entry.minute]
             if let weekday = entry.weekday {
-                dict["Weekday"] = weekday
+                dict["Weekday"] = weekday.rawValue
             }
             return dict
         }
