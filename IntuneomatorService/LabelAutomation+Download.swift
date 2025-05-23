@@ -288,7 +288,7 @@ extension LabelAutomation {
             }
         
             // Check Signature
-            let signatureResult = inspectSignatureOfDownloadedSoftware(for: processedAppResults, downloadURL: pkgToProcessURL, inpectionType: "pkg")
+            let signatureResult = inspectSignatureOfDownloadedSoftware(for: processedAppResults, downloadURL: pkgToProcessURL, inspectionType: "pkg")
             
             Logger.log("  Inspect result: \(signatureResult)", logType: logType)
             
@@ -484,7 +484,7 @@ extension LabelAutomation {
                     Logger.log("Checking app \(index): \(appFile)", logType: logType)
 
                     // Check Signature
-                    let signatureResult = inspectSignatureOfDownloadedSoftware(for: processedAppResults, downloadURL: appFile, inpectionType: "app")
+                    let signatureResult = inspectSignatureOfDownloadedSoftware(for: processedAppResults, downloadURL: appFile, inspectionType: "app")
                     
                     Logger.log("  Inspect result: \(signatureResult)", logType: logType)
                     
@@ -661,7 +661,7 @@ extension LabelAutomation {
                 let appFile = appFileFound!
                                 
                 // Check Signature
-                let signatureResult = inspectSignatureOfDownloadedSoftware(for: processedAppResults, downloadURL: appFile, inpectionType: "app")
+                let signatureResult = inspectSignatureOfDownloadedSoftware(for: processedAppResults, downloadURL: appFile, inspectionType: "app")
                 
                 Logger.log("  Inspect result: \(signatureResult)", logType: logType)
                 
