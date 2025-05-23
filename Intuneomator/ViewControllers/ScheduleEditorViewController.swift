@@ -83,7 +83,7 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         // Populate weekday popup
         popupWeekday.removeAllItems()
         popupWeekday.addItem(withTitle: "Daily")
-        popupWeekday.addItems(withTitles: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
+        popupWeekday.addItems(withTitles: Weekday.allCases.map { $0.name })
         
         // Load existing plist if it exists
         loadScheduleFromPlist()
@@ -246,13 +246,13 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         buttonSave.isEnabled = changed
     }
     
-    private func getPickerValues() -> (hour: Int, minute: Int, weekday: Int?) {
+    private func getPickerValues() -> (hour: Int, minute: Int, weekday: Weekday?) {
         let calendar = Calendar.current
         let selectedDate = timePicker.dateValue
         let hour = calendar.component(.hour, from: selectedDate)
         let minute = calendar.component(.minute, from: selectedDate)
         let weekdayIndex = popupWeekday.indexOfSelectedItem
-        let weekday = (weekdayIndex == 0) ? nil : weekdayIndex
+        let weekday = Weekday(rawValue: weekdayIndex)
         return (hour, minute, weekday)
     }
     
@@ -293,7 +293,7 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
                 second: 0,
                 of: Date()
             ) ?? Date()
-            popupWeekday.selectItem(at: selected.weekday ?? 0)
+            popupWeekday.selectItem(at: selected.weekday?.rawValue ?? 0)
         }
     }
     
@@ -313,7 +313,7 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
             let plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any]
             if let scheduleArray = plist?["StartCalendarInterval"] as? [[String: Int]] {
                 entries = scheduleArray.map { dict in
-                    let weekday = dict["Weekday"]
+                    let weekday = dict["Weekday"].flatMap(Weekday.init(rawValue:))
                     let hour = dict["Hour"] ?? 0
                     let minute = dict["Minute"] ?? 0
                     return ScheduleEntry(weekday: weekday, hour: hour, minute: minute)
