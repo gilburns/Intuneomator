@@ -5220,7 +5220,7 @@ DQ
                                     <menu key="menu" id="P8c-ke-Q9M">
                                         <items>
                                             <menuItem title="Automation" state="on" id="PhC-Tm-9IB"/>
-                                            <menuItem title="Cache Cleanup" id="pay-G3-SYP"/>
+                                            <menuItem title="Cleanup" id="pay-G3-SYP"/>
                                             <menuItem title="Label Updater" id="f6D-3g-WGN"/>
                                             <menuItem title="Updater" id="wSt-iG-oE6"/>
                                         </items>
