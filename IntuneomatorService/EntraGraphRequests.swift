@@ -2001,7 +2001,7 @@ class EntraGraphRequests {
             let (statusData, _) = try await URLSession.shared.data(for: statusRequest)
             
             if let statusJson = try JSONSerialization.jsonObject(with: statusData) as? [String: Any] {
-                Logger.log("Full file status response: \(statusJson)", logType: "EntraGraphRequests")
+//                Logger.log("Full file status response: \(statusJson)", logType: "EntraGraphRequests")
                 
                 if let uploadState = statusJson["uploadState"] as? String {
                     Logger.log("File upload state: \(uploadState)", logType: "EntraGraphRequests")
