@@ -108,7 +108,9 @@ import Foundation
     func setApplicationID(_ applicationID: String, reply: @escaping (Bool) -> Void)
     func setTeamsNotificationsEnabled(_ enabled: Bool, reply: @escaping (Bool) -> Void)
     func setTeamsWebhookURL(_ url: String, reply: @escaping (Bool) -> Void)
-    
+    func setLogAgeMax(_ logAgeMax: Int, reply: @escaping (Bool) -> Void)
+    func setLogSizeMax(_ logSizeMax: Int, reply: @escaping (Bool) -> Void)
+
     
     // Get info from daemon
     func getAppsToKeep(reply: @escaping (Int) -> Void)
@@ -121,8 +123,9 @@ import Foundation
     func getCertThumbprint(reply: @escaping (String?) -> Void)
     func getCertExpiration(reply: @escaping (Date?) -> Void)
     func getClientSecret(reply: @escaping (String?) -> Void)
+    func getLogAgeMax(reply: @escaping (Int) -> Void)
+    func getLogSizeMax(reply: @escaping (Int) -> Void)
 
-    
     
     func getCacheFolderSize(completion: @escaping (Int64) -> Void)
     func getLogFolderSize(completion: @escaping (Int64) -> Void)
