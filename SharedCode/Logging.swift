@@ -12,8 +12,6 @@ class Logger {
         
         let systemLogPath = AppConstants.intuneomatorLogSystemURL
         
-//        URL(fileURLWithPath: "/Library/Logs/Intuneomator")
-
         // Ensure the directory exists
         let fileManager = FileManager.default
         if !fileManager.fileExists(atPath: systemLogPath.path) {
