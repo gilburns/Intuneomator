@@ -16,9 +16,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     @IBOutlet weak var progImageEdit: NSProgressIndicator!
 
     @IBOutlet weak var buttonIcon: NSButton!
-    
-    @IBOutlet weak var buttonUseInstallomatorPkgID: NSButton!
-    
+        
     @IBOutlet weak var buttonInspectDownload: NSButton!
     @IBOutlet weak var buttonSelectCategories: NSButton!
     @IBOutlet weak var buttonPopUpMinimumOs: NSPopUpButton!
@@ -72,19 +70,19 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
 
     private var categoriesPopover: NSPopover!
     private var selectedCategories: Set<String> = []
-    private var categories: [[String: Any]] = []
+    var categories: [[String: Any]] = []
 
     // Create a reusable HelpPopover instance
-    private let helpPopover = HelpPopover()
+    let helpPopover = HelpPopover()
 
     // track changes for the metadata.json file
     var hasUnsavedChanges = false
 
     // last load for tracking changes.
-    private var currentMetadata: Metadata?
-    private var lastLoadedMetadata: Metadata?
+    var currentMetadata: Metadata?
+    var lastLoadedMetadata: Metadata?
 
-    private let openAIAPIKey = ""
+    let openAIAPIKey = ""
 
     
 // MARK: - Lifecycle
@@ -192,7 +190,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         populateFieldsFromAppData()
     }
     
-    private func populateFieldsFromAppData() {
+    func populateFieldsFromAppData() {
         fieldItemGUID.stringValue = "Tracking ID: \(appData!.guid)"
 
         var plistURL: URL
@@ -248,7 +246,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     }
     
     
-    private func populateFieldsFromAppMetadata() {
+    func populateFieldsFromAppMetadata() {
     
         // Populate UI with loaded data
         fieldLabelDescription.string = appMetadata?.description ?? ""
@@ -435,12 +433,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
             NSWorkspace.shared.open(url)
         }
     }
-    
-    @IBAction func buttonUsePackageIDForDetectionWasClicked(_ sender: Any) {
-        fieldIntuneID.stringValue = fieldPackageID.stringValue
-        trackChanges()
-    }
-    
+        
     
     // MARK: - Other Metadata
     
@@ -509,88 +502,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
 //        trackChanges()
 //    }
 
-    
-    // MARK: - Open AI Lookup
-    @IBAction func fetchAIResponse(_ sender: Any) {
-        let softwareTitle = fieldName.stringValue
-        guard !softwareTitle.isEmpty else {
-            Logger.logUser("Software title is empty.")
-            return
-        }
         
-        let prompt = "What is \(softwareTitle) for macOS?"
-        fetchAIResponse(prompt: prompt) { [weak self] result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let response):
-                    self?.fieldLabelDescription.string = response
-                case .failure(let error):
-                    self?.fieldLabelDescription.string = "Failed to fetch response: \(error.localizedDescription)"
-                }
-            }
-        }
-    }
-    
-    private func fetchAIResponse(prompt: String, completion: @escaping (Result<String, Error>) -> Void) {
-        let endpoint = "https://api.openai.com/v1/chat/completions"
-        var request = URLRequest(url: URL(string: endpoint)!)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(openAIAPIKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // Updated payload for chat completions
-        let parameters: [String: Any] = [
-            "model": "gpt-3.5-turbo", // Use "gpt-4" if preferred
-            "messages": [
-                ["role": "system", "content": "You are a helpful assistant."],
-                ["role": "user", "content": prompt]
-            ],
-            "max_tokens": 150,
-            "temperature": 0.7
-        ]
-        
-        do {
-            let jsonData = try JSONSerialization.data(withJSONObject: parameters, options: [])
-            request.httpBody = jsonData
-//            print("Request payload: \(String(data: jsonData, encoding: .utf8) ?? "Invalid JSON")")
-        } catch {
-            completion(.failure(error))
-            return
-        }
-        
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-
-            guard let data = data else {
-                completion(.failure(NSError(domain: "No data", code: 0, userInfo: nil)))
-                return
-            }
-            
-            // Debug raw response
-//            if let rawResponse = String(data: data, encoding: .utf8) {
-//                print("Raw response: \(rawResponse)")
-//            }
-
-            do {
-                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                   let choices = json["choices"] as? [[String: Any]],
-                   let message = choices.first?["message"] as? [String: Any],
-                   let content = message["content"] as? String {
-                    completion(.success(content.trimmingCharacters(in: .whitespacesAndNewlines)))
-                } else {
-                    completion(.failure(NSError(domain: "Invalid response", code: 0, userInfo: nil)))
-                }
-            } catch {
-                completion(.failure(error))
-            }
-        }
-        task.resume()
-    }
-
-    
     // MARK: - Load Metadata File - if present
     func loadMetadata() {
         guard let labelName = appData?.label else {
@@ -743,7 +655,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         }
     }
     
-    private func loadIcon() {
+    func loadIcon() {
 //        print("Loading icon for label: \(appData!.label)")
         let iconPath = getLabelImagePath()
         if let icon = NSImage(contentsOfFile: iconPath!) {
@@ -800,10 +712,6 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         return nil
     }
     
-    // MARK: - Use Munki PKG ID for Intune ID
-    @IBAction func usePpgIdForIntuneInspection(_ sender: Any) {
-        fieldIntuneID.stringValue = fieldPackageID.stringValue
-    }
     
     // MARK: - Download Inspection
     @IBAction func inspectDownload(_ sender: Any) {
@@ -901,704 +809,6 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         trackChanges()
     }
     
-    // MARK: - Track Changes in the GUI
-    func trackChanges() {
-        // Build the current metadata state from the UI
-        
-        let developer = currentMetadataPartial?.developer ?? ""
-        let informationURL = currentMetadataPartial?.informationUrl ?? ""
-        let notes = currentMetadataPartial?.notes ?? ""
-        let owner = currentMetadataPartial?.owner ?? ""
-        let privacyInformationURL = currentMetadataPartial?.privacyInformationUrl ?? ""
-
-        
-        currentMetadata = Metadata(
-            categories: getSelectedCategories().compactMap { id in
-                if let category = categories.first(where: { $0["id"] as? String == id }),
-                   let displayName = category["displayName"] as? String {
-                    return Category(displayName: displayName, id: id)
-                }
-                return nil
-            },
-            description: fieldLabelDescription.string,
-            deployAsArchTag: getDeployAsArchTag() ?? 0,
-            deploymentTypeTag: getDeploymentTypeTag() ?? 0,
-            developer: developer,
-            informationUrl: informationURL,
-            ignoreVersionDetection: (radioYes.state == .on),
-            isFeatured: (buttonFeatureApp.state == .on),
-            isManaged: (buttonManagedApp.state == .on),
-            minimumOS: getSelectedMinimumOsID() ?? "",
-            minimumOSDisplay: buttonPopUpMinimumOs.selectedItem?.title ?? "",
-            notes: notes,
-            owner: owner,
-            privacyInformationUrl: privacyInformationURL,
-            publisher: fieldPublisher.stringValue,
-            CFBundleIdentifier: fieldIntuneID.stringValue
-        )
-        
-        // Case 1: No previously loaded metadata
-        guard let lastMetadata = lastLoadedMetadata else {
-            hasUnsavedChanges = false
-            highlightChangesAgainstDefaults(currentMetadata: currentMetadata!)
-//            print("No previously loaded metadata; comparing against default values.")
-            
-            // Notify TabViewController to update the Save button state
-            parentTabViewController?.updateSaveButtonState()
-            return
-        }
-
-        // Case 2: Compare current metadata with last loaded metadata
-        _ = Set(currentMetadata!.categories.map { $0.id })
-        _ = Set(lastMetadata.categories.map { $0.id })
-
-        if currentMetadata != lastMetadata {
-            hasUnsavedChanges = true
-            highlightChangedFields(currentMetadata: currentMetadata!, lastMetadata: lastMetadata)
-//            print("Changes detected in EditView.")
-        } else {
-            hasUnsavedChanges = false
-            clearFieldHighlights()
-//            print("No changes detected in EditView.")
-        }
-
-        // Notify TabViewController to update the Save button state
-        parentTabViewController?.updateSaveButtonState()
-    }
-
-    
-    private func highlightChangesAgainstDefaults(currentMetadata: Metadata) {
-        hasUnsavedChanges = false // Reset state before comparing fields
-
-        // Highlight if categories are non-empty
-        if !currentMetadata.categories.isEmpty {
-            highlightField(buttonSelectCategories)
-            hasUnsavedChanges = true
-        }
-
-
-        // Highlight if publisher is not empty
-        if !currentMetadata.publisher.isEmpty {
-            highlightField(fieldPublisher)
-            hasUnsavedChanges = true
-        }
-
-        // Highlight if minimumOS is not empty
-        if !currentMetadata.minimumOS.isEmpty {
-            highlightField(buttonPopUpMinimumOs)
-            hasUnsavedChanges = true
-        }
-
-        // Highlight if deployAsArchTag is not empty
-        if (currentMetadata.deployAsArchTag >= 0) {
-            highlightField(buttonDeployAsArch)
-            hasUnsavedChanges = true
-        }
-
-        // Highlight if deploymentTypeTag is not empty
-        if (currentMetadata.deploymentTypeTag >= 0) {
-            highlightField(buttonDeploymentType)
-            hasUnsavedChanges = true
-        }
-
-        
-        // Highlight if CFBundleIdentifier is not empty
-        if !currentMetadata.CFBundleIdentifier.isEmpty {
-            highlightField(fieldIntuneID)
-            hasUnsavedChanges = true
-        }
-
-        // Highlight if ignoreVersionDetection is not its default value
-        if currentMetadata.ignoreVersionDetection != true { // Assume true as default
-            highlightField(radioNo)
-            hasUnsavedChanges = true
-        }
-
-        // Highlight if isFeature is not its default value
-        if currentMetadata.isFeatured != false { // Assume false as default
-            highlightField(buttonFeatureApp)
-            hasUnsavedChanges = true
-        }
-
-        // Highlight if isManaged is not its default value
-        if currentMetadata.isManaged != false { // Assume false as default
-            highlightField(buttonManagedApp)
-            hasUnsavedChanges = true
-        }
-
-        // Highlight the description field
-        if !currentMetadata.description.isEmpty {
-            setTextViewBorder(field: fieldLabelDescription, color: NSColor.systemYellow)
-            hasUnsavedChanges = true
-        }
-        
-
-        // Notify TabViewController about unsaved changes if any
-        parentTabViewController?.updateSaveButtonState()
-    }
-
-
-    private func clearFieldHighlights() {
-//        print("clearFieldHighlights ALL")
-        clearHighlight(buttonSelectCategories)
-//        fieldInfoURL.backgroundColor = nil
-        fieldPublisher.backgroundColor = nil
-        buttonPopUpMinimumOs.layer?.backgroundColor = nil
-        buttonDeployAsArch.layer?.backgroundColor = nil
-        fieldIntuneID.backgroundColor = nil
-        radioYes.layer?.backgroundColor = nil
-        radioNo.layer?.backgroundColor = nil
-        buttonFeatureApp.layer?.backgroundColor = nil
-        buttonManagedApp.layer?.backgroundColor = nil
-        buttonDeploymentType.layer?.backgroundColor = nil
-        setTextViewBorder(field: fieldLabelDescription, color: NSColor.clear)
-        clearHighlight(buttonEditOther)
-    }
-
-    
-    func highlightChangedFields(currentMetadata: Metadata, lastMetadata: Metadata) {
-        // Highlight informationUrl field if changed
-//        if currentMetadata.informationUrl != lastMetadata.informationUrl {
-//            highlightField(fieldInfoURL)
-//        } else {
-//            clearHighlight(fieldInfoURL)
-//        }
-
-        // Highlight publisher field if changed
-        if currentMetadata.publisher != lastMetadata.publisher {
-            highlightField(fieldPublisher)
-        } else {
-            clearHighlight(fieldPublisher)
-        }
-
-        // Highlight CFBundleIdentifier field if changed
-        if currentMetadata.CFBundleIdentifier != lastMetadata.CFBundleIdentifier {
-            highlightField(fieldIntuneID)
-        } else {
-            clearHighlight(fieldIntuneID)
-        }
-
-        // Check categories
-        let currentCategoryIDs = Set(currentMetadata.categories.map { $0.id })
-        let lastCategoryIDs = Set(lastMetadata.categories.map { $0.id })
-//        print("Category IDs Check: \(currentCategoryIDs) \(lastCategoryIDs)")
-        if currentCategoryIDs != lastCategoryIDs {
-//            print("highlight")
-            highlightField(buttonSelectCategories)
-        } else {
-//            print("clear")
-            clearHighlight(buttonSelectCategories)
-        }
-
-        // Check minimumOS
-        if currentMetadata.minimumOSDisplay != lastMetadata.minimumOSDisplay {
-            highlightField(buttonPopUpMinimumOs)
-        } else {
-            clearHighlight(buttonPopUpMinimumOs)
-        }
-
-        // Check deploy as arch
-        if currentMetadata.deployAsArchTag != lastMetadata.deployAsArchTag {
-            highlightField(buttonDeployAsArch)
-        } else {
-            clearHighlight(buttonDeployAsArch)
-        }
-
-        // Check deployment type
-        if currentMetadata.deploymentTypeTag != lastMetadata.deploymentTypeTag {
-            highlightField(buttonDeploymentType)
-        } else {
-            clearHighlight(buttonDeploymentType)
-        }
-
-        
-        // Check ignoreVersionDetection
-        if currentMetadata.ignoreVersionDetection != lastMetadata.ignoreVersionDetection {
-            highlightField(radioYes)
-            highlightField(radioNo)
-        } else {
-            clearHighlight(radioYes)
-            clearHighlight(radioNo)
-        }
-
-        // Check feature in Company Portal
-        if currentMetadata.isFeatured != lastMetadata.isFeatured {
-            highlightField(buttonFeatureApp)
-        } else {
-            clearHighlight(buttonFeatureApp)
-        }
-        
-        // Check Managed App
-        if currentMetadata.isManaged != lastMetadata.isManaged {
-            highlightField(buttonManagedApp)
-        } else {
-            clearHighlight(buttonManagedApp)
-        }
-        
-
-        // Check description
-        if currentMetadata.description != lastMetadata.description {
-            setTextViewBorder(field: fieldLabelDescription, color: NSColor.systemYellow)
-        } else {
-            setTextViewBorder(field: fieldLabelDescription, color: NSColor.clear)
-        }
-
-            // Check other metadata fields
-            if currentMetadata.developer != lastMetadata.developer ||
-               currentMetadata.informationUrl != lastMetadata.informationUrl ||
-               currentMetadata.notes != lastMetadata.notes ||
-               currentMetadata.owner != lastMetadata.owner ||
-               currentMetadata.privacyInformationUrl != lastMetadata.privacyInformationUrl {
-                highlightField(buttonEditOther)
-            } else {
-                clearHighlight(buttonEditOther)
-            }
-
-    }
-
-    // Highlight a field
-    private func highlightField(_ field: NSControl) {
-        if let textField = field as? NSTextField {
-            textField.backgroundColor = NSColor.systemYellow
-        } else if let button = field as? NSButton {
-            button.layer?.backgroundColor = NSColor.systemYellow.cgColor
-        }
-    }
-
-
-    // Clear field highlight
-    func clearHighlight(_ field: NSControl) {
-        if let textField = field as? NSTextField {
-            textField.layer?.borderColor = NSColor.clear.cgColor
-            textField.layer?.borderWidth = 0.0
-        } else if let button = field as? NSButton {
-            button.layer?.backgroundColor = NSColor.clear.cgColor
-        }
-    }
-    
-    func setTextViewBorder(field: NSTextView, color: NSColor) {
-        guard let scrollView = field.enclosingScrollView else {
-            #if DEBUG
-            print("No enclosing NSScrollView found.")
-            #endif
-            return
-        }
-        scrollView.layer?.borderColor = color.cgColor
-        scrollView.layer?.borderWidth = 2.0
-        scrollView.layer?.cornerRadius = 4.0  // Optional: Rounded corners
-        scrollView.wantsLayer = true  // Ensure the layer is active
-    }
-
-
-    // MARK: - Track Changes to fields
-
-    @IBAction func fieldIntuneIdDidChange(_ sender: NSTextField) {
-        trackChanges()
-    }
-
-    @IBAction func fieldInfoURLDidChange(_ sender: NSTextField) {
-        trackChanges()
-    }
-
-    @IBAction func fieldPublisherDidChange(_ sender: NSTextField) {
-        trackChanges()
-    }
-
-    @IBAction func buttonPopUpMinimumOsDidChange(_ sender: NSPopUpButton) {
-        trackChanges()
-    }
-
-    @IBAction func buttonDeployAsArchDidChange(_ sender: NSPopUpButton) {
-        populateFieldsFromAppData()
-        trackChanges()
-        
-    }
-
-    @IBAction func buttonDeploymentTypeDidChange(_ sender: NSPopUpButton) {
-        
-        if sender.selectedItem?.tag == 0 {
-//            if buttonDeployAsArch.selectedItem?.tag == 2 {
-//                buttonDeployAsArch.selectItem(withTag: 0)
-//            }
-            menuItemUniversalPkg.isHidden = true
-        } else if sender.selectedItem?.tag == 1 {
-//            if buttonDeployAsArch.selectedItem?.tag == 0 {
-//                buttonDeployAsArch.selectItem(withTag: 2)
-//            }
-//            if buttonDeployAsArch.selectedItem?.tag == 1 {
-//                buttonDeployAsArch.selectItem(withTag: 2)
-//            }
-            menuItemUniversalPkg.isHidden = false
-        }
-        
-        if sender.selectedItem?.tag == 2 {
-            buttonManagedApp.isEnabled = true
-            labelManagedApp.textColor = .labelColor
-
-        } else {
-            buttonManagedApp.isEnabled = false
-            buttonManagedApp.state = .off
-            labelManagedApp.textColor = .lightGray
-
-        }
-        
-        switch sender.selectedItem?.tag {
-        case 0:
-            AppDataManager.shared.currentAppType = "macOSDmgApp"
-//            print("Selected macOSDmgApp")
-        case 1:
-            AppDataManager.shared.currentAppType = "macOSPkgApp"
-//            print("Selected macOSPkgApp")
-        case 2:
-            AppDataManager.shared.currentAppType = "macOSLobApp"
-//            print("Selected macOSLobApp")
-        default:
-            AppDataManager.shared.currentAppType = ""
-//            print("Selected no type")
-        }
-    
-        populateFieldsFromAppData()
-        trackChanges()
-        
-    }
-
-    @IBAction func radioButtonDidChange(_ sender: NSButton) {
-        trackChanges()
-    }
-
-    @IBAction func fieldDescriptionDidChange(_ sender: NSTextView) {
-        trackChanges()
-    }
-
-    @IBAction func buttonFeatureAppDidChange(_ sender: NSButton) {
-        trackChanges()
-    }
-
-    @IBAction func buttonManagedAppDidChange(_ sender: NSButton) {
-        trackChanges()
-    }
-
-    
-    func markUnsavedChanges() {
-        hasUnsavedChanges = true
-        if let parentVC = parent as? TabViewController {
-//            print("Parent is TabViewController.")
-            parentVC.updateSaveButtonState()
-        } else {
-//            print("Parent is not TabViewController. Actual parent: \(String(describing: parent))")
-        }
-        parentTabViewController?.updateSaveButtonState()
-    }
-
-    func markChangesSaved() {
-        hasUnsavedChanges = false
-        (parent as? TabViewController)?.updateSaveButtonState()
-    }
-
-    // NSTextStorageDelegate method
-    func textStorage(_ textStorage: AppKit.NSTextStorage, didProcessEditing editedMask: AppKit.NSTextStorageEditActions, range editedRange: NSRange, changeInLength delta: Int) {
-
-        // Trigger tracking changes
-        trackChanges()
-    }
-
-
-    // MARK: - Help Buttons
-    @IBAction func showHelpForAppDescription(_ sender: NSButton) {
-        // Create the full string
-        let helpText = NSMutableAttributedString(string: "Enter the description of the app. The description appears in the Company Portal.")
-
-        // Add custom styling for the rest of the text
-        helpText.addAttributes([
-            .foregroundColor: NSColor.textColor,
-            .font: NSFont.systemFont(ofSize: 13)
-        ], range: NSRange(location: 0, length: helpText.length))
-
-        // Show the popover
-        helpPopover.showHelp(anchorView: sender, helpText: helpText)
-    }
-
-    @IBAction func showHelpForAppMinOS(_ sender: NSButton) {
-        // Create the full string
-        let helpText = NSMutableAttributedString(string: "From the list, choose the minimum operating system version on which the app can be installed.\n\nIf you assign the app to a device with an earlier operating system, it will not be installed.")
-
-        // Add custom styling for the rest of the text
-        helpText.addAttributes([
-            .foregroundColor: NSColor.textColor,
-            .font: NSFont.systemFont(ofSize: 13)
-        ], range: NSRange(location: 0, length: helpText.length))
-
-        // Show the popover
-        helpPopover.showHelp(anchorView: sender, helpText: helpText)
-    }
-
-    @IBAction func showHelpForAppCategory(_ sender: NSButton) {
-        // Create the full string
-        let helpText = NSMutableAttributedString(string: "Select one or more of the built-in app categories, or select a category that you created. Categories make it easier for users to find the app when they browse through the Company Portal.")
-
-        // Add custom styling for the rest of the text
-        helpText.addAttributes([
-            .foregroundColor: NSColor.textColor,
-            .font: NSFont.systemFont(ofSize: 13)
-        ], range: NSRange(location: 0, length: helpText.length))
-
-        // Show the popover
-        helpPopover.showHelp(anchorView: sender, helpText: helpText)
-    }
-
-    @IBAction func showHelpForAppPublisher(_ sender: NSButton) {
-        // Create the full string
-        let helpText = NSMutableAttributedString(string: "Enter the name of the publisher of the app. This will be visible in the Company Portal.")
-
-        // Add custom styling for the rest of the text
-        helpText.addAttributes([
-            .foregroundColor: NSColor.textColor,
-            .font: NSFont.systemFont(ofSize: 13)
-        ], range: NSRange(location: 0, length: helpText.length))
-
-        // Show the popover
-        helpPopover.showHelp(anchorView: sender, helpText: helpText)
-    }
-
-    
-    @IBAction func showHelpForInstallAsManaged(_ sender: NSButton) {
-        // Create the full string
-        let helpText = NSMutableAttributedString(string: """
-Install as Managed App: Select Yes to install the Mac LOB app as a managed app on supported devices (macOS 11 and higher). 
-
-A macOS LOB app can only be installed as managed when the app distributable contains a single app without any nested packages and installs to the /Applications directory. 
-
-Managed line-of-business apps are able to be removed using the uninstall assignment type on supported devices (macOS 11 and higher). In addition, removing the MDM profile removes all managed apps from the device.
-
-""")
-
-        // Add custom styling for the rest of the text
-        helpText.addAttributes([
-            .foregroundColor: NSColor.textColor,
-            .font: NSFont.systemFont(ofSize: 13)
-        ], range: NSRange(location: 0, length: helpText.length))
-
-        // Show the popover
-        helpPopover.showHelp(anchorView: sender, helpText: helpText)
-    }
-
-    @IBAction func showHelpForFeatureInCompanyPortal(_ sender: NSButton) {
-        // Create the full string
-        let helpText = NSMutableAttributedString(string: """
-Featured App in Company Portal: 
-
-Display the app prominently on the main page of the Company Portal when users browse for apps.
-""")
-
-        // Add custom styling for the rest of the text
-        helpText.addAttributes([
-            .foregroundColor: NSColor.textColor,
-            .font: NSFont.systemFont(ofSize: 13)
-        ], range: NSRange(location: 0, length: helpText.length))
-
-        // Show the popover
-        helpPopover.showHelp(anchorView: sender, helpText: helpText)
-    }
-
-    
-    @IBAction func showHelpForDeployAsArch(_ sender: NSButton) {
-        // Create the full string
-        let helpText = NSMutableAttributedString(string: "If enabled for selection, this label has separate binary deployments for Apple Silicon Macs, and Intel Macs.\n\nSelecting \"Apple Silicon\" to deploy for only Apple Silicon Macs.\n\nSelecting \"Intel\" to deploy for only Intel Macs.\n\nSelecting \"Universal\" to deploy for both Apple Silicon and Intel Macs. (Intuneomator will create a pkg file that contains both Intel and Apple Silicon versions.) This effectively doubles the size of the deployment, but it should support deployment of the app for both platforms.\n\n")
-
-        // Add custom styling for the rest of the text
-        helpText.addAttributes([
-            .foregroundColor: NSColor.textColor,
-            .font: NSFont.systemFont(ofSize: 13)
-        ], range: NSRange(location: 0, length: helpText.length))
-
-        // Show the popover
-        helpPopover.showHelp(anchorView: sender, helpText: helpText)
-    }
-
-    
-    @IBAction func showHelpForOptionalFields(_ sender: NSButton) {
-        // Create the full string
-        let helpText = NSMutableAttributedString(string: "These extra fields can be set to values that meet your needs some of these optional fields only appear in the Intune console, not in Company Portal.\n")
-
-        // Add custom styling for the rest of the text
-        helpText.addAttributes([
-            .foregroundColor: NSColor.textColor,
-            .font: NSFont.systemFont(ofSize: 13)
-        ], range: NSRange(location: 0, length: helpText.length))
-
-        // Show the popover
-        helpPopover.showHelp(anchorView: sender, helpText: helpText)
-    }
-
-    
-    @IBAction func showHelpForDeploymentType(_ sender: NSButton) {
-        // Create the full string
-        var helpText: NSMutableAttributedString!
-        var helpTextHyperlink: String!
-        
-        let helpTextDMG =
-        NSMutableAttributedString(string: """
-                                                 DMG:
-                                                 
-                                                 A DMG app is a disk image file that contains one or more applications within it.
-                                                 
-                                                 DMG files containing other types of installer files will not be installed.
-                                                 
-                                                 DMG app is smaller than 8 GB in size.
-                                                 
-                                                 Learn more: here:\n\nhttps://learn.microsoft.com/en-us/intune/intune-service/apps/lob-apps-macos-dmg
-                                                 
-                                                 """)
-
-        let helpTextPKG =
-        NSMutableAttributedString(string: """
-                                                 PKG:
-                                                 
-                                                 The unmanaged macOS PKG app-type can install the following types of PKG apps:
-                                                 
-                                                 • Nonflat packages with a hierarchical structure
-                                                 • Component packages
-                                                 • Unsigned packages
-                                                 • Packages without a payload
-                                                 • Packages that install apps outside\n /Applications/
-                                                 • Custom packages with scripts
-                                                 
-                                                 A PKG file should be smaller than 8 GB in size.
-                                                 \n\nLearn more here:\n\nhttps://learn.microsoft.com/en-us/intune/intune-service/apps/macos-unmanaged-pkg
-                                                 
-                                                 """)
-
-        let helpTextLOB =
-        NSMutableAttributedString(string: """
-                                                 LOB:
-                                                 
-                                                 The .pkg file must satisfy the following requirements to successfully be deployed using Microsoft Intune:
-                                                 
-                                                 • The .pkg file is a component package or a package containing multiple packages.
-                                                 • The .pkg file does not contain a bundle or disk image or .app file.
-                                                 • The .pkg file is signed using a "Developer ID Installer" certificate, obtained from an Apple Developer account.
-                                                 • The .pkg file contains a payload. Packages without a payload attempt to re-install as long as the app remains assigned to the group.
-                                                 \n\nLearn more here:\n\nhttps://learn.microsoft.com/en-us/intune/intune-service/apps/lob-apps-macos
-                                                 """)
-        let helpTextHyperlinkDMG = "https://learn.microsoft.com/en-us/intune/intune-service/apps/lob-apps-macos-dmg"
-
-        let helpTextHyperlinkPKG = "https://learn.microsoft.com/en-us/intune/intune-service/apps/macos-unmanaged-pkg"
-
-        let helpTextHyperlinkLOB = "https://learn.microsoft.com/en-us/intune/intune-service/apps/lob-apps-macos"
-        
-        let deploymentTypeTag = buttonDeploymentType.selectedTag()
-        
-        switch deploymentTypeTag {
-        case 0:
-            helpText = helpTextDMG
-            helpTextHyperlink = helpTextHyperlinkDMG
-        case 1:
-            helpText = helpTextPKG
-            helpTextHyperlink = helpTextHyperlinkPKG
-        case 2:
-            helpText = helpTextLOB
-            helpTextHyperlink = helpTextHyperlinkLOB
-        default:
-            break
-        }
-        
-        // Add a hyperlink to "Mozilla's Firefox page"
-        let hyperlinkRange = (helpText.string as NSString).range(of: helpTextHyperlink)
-        helpText.addAttribute(.link, value: helpTextHyperlink ?? "", range: hyperlinkRange)
-        helpText.addAttributes([
-            .foregroundColor: NSColor.systemBlue,
-            .underlineStyle: NSUnderlineStyle.single.rawValue
-        ], range: hyperlinkRange)
-
-        // Add custom styling for the rest of the text
-        helpText.addAttributes([
-            .foregroundColor: NSColor.textColor,
-            .font: NSFont.systemFont(ofSize: 13)
-        ], range: NSRange(location: 0, length: helpText.length))
-
-        // Show the popover
-        helpPopover.showHelp(anchorView: sender, helpText: helpText)
-    }
-
-    @IBAction func showHelpForDetectionRules(_ sender: NSButton) {
-        // Create the full string
-        let helpText = NSMutableAttributedString(string: "You can use detection rules to choose how an app installation is detected on a managed macOS device.")
-
-        // Add custom styling for the rest of the text
-        helpText.addAttributes([
-            .foregroundColor: NSColor.textColor,
-            .font: NSFont.systemFont(ofSize: 13)
-        ], range: NSRange(location: 0, length: helpText.length))
-
-        // Show the popover
-        helpPopover.showHelp(anchorView: sender, helpText: helpText)
-    }
-
-    @IBAction func showHelpForBundleID(_ sender: NSButton) {
-        // Create the full string
-        let helpText = NSMutableAttributedString(string: "The Bundle ID should match the one in the Info.plist file of the primary app for the key CFBundleIdentifier.\n\nFor example, to look up the bundle ID of a Company Portal, run the following:\n\ndefaults read \"/Applications/Company Portal.app/Contents/Info\" CFBundleIdentifier")
-
-        // Add custom styling for the rest of the text
-        helpText.addAttributes([
-            .foregroundColor: NSColor.textColor,
-            .font: NSFont.systemFont(ofSize: 13)
-        ], range: NSRange(location: 0, length: helpText.length))
-
-        // Show the popover
-        helpPopover.showHelp(anchorView: sender, helpText: helpText)
-    }
-
-    @IBAction func showHelpForIgnoreVersion(_ sender: NSButton) {
-        // Create the full string
-        let helpText = NSMutableAttributedString(string: "Select \"Yes\" to install the app if the app isn't already installed on the device. This will only look for the presence of the app bundle ID. For apps that have an autoupdate mechanism, select \"Yes\".\n\nSelect \"No\" to install the app when it isn't already installed on the device, or if the deploying app's version number doesn't match the version that's already installed on the device.")
-
-        // Add custom styling for the rest of the text
-        helpText.addAttributes([
-            .foregroundColor: NSColor.textColor,
-            .font: NSFont.systemFont(ofSize: 13)
-        ], range: NSRange(location: 0, length: helpText.length))
-
-        // Show the popover
-        helpPopover.showHelp(anchorView: sender, helpText: helpText)
-    }
-
-    @IBAction func showHelpForInstallomator(_ sender: NSButton) {
-        // Create the full string
-        let helpText = NSMutableAttributedString(string: "Installomator is an open-source project designed for macOS that automates the installation and updating of various applications by downloading the latest versions directly from vendor websites.\n\nThese Installomator \"Label\" files form the basis for creating Intuneomator managed apps.\n\nLearn more here:\n\nhttps://github.com/Installomator/Installomator")
-
-        // Add a hyperlink to "Mozilla's Firefox page"
-        let hyperlinkRange = (helpText.string as NSString).range(of: "https://github.com/Installomator/Installomator")
-        helpText.addAttribute(.link, value: "https://github.com/Installomator/Installomator", range: hyperlinkRange)
-        helpText.addAttributes([
-            .foregroundColor: NSColor.systemBlue,
-            .underlineStyle: NSUnderlineStyle.single.rawValue
-        ], range: hyperlinkRange)
-
-        
-        // Add custom styling for the rest of the text
-        helpText.addAttributes([
-            .foregroundColor: NSColor.textColor,
-            .font: NSFont.systemFont(ofSize: 13)
-        ], range: NSRange(location: 0, length: helpText.length))
-
-        // Show the popover
-        helpPopover.showHelp(anchorView: sender, helpText: helpText)
-    }
-
-    @IBAction func showHelpForInstallomatorType(_ sender: NSButton) {
-        // Create the full string
-        let helpText = NSMutableAttributedString(string: "Installomator dmg, zip, tbz, and appInDmgInZip types can be delivered as either a \"macOS DMG app\" or \"macOS PKG app\" type installation with Intune.\n\nInstallomator pkg, pkgInDmg, pkgInZip, or pkgInDmgInZip types can be delivered as either a \"macOS PKG app\" or \"macOS LOB app\" type installation with Intune.")
-
-        
-        // Add custom styling for the rest of the text
-        helpText.addAttributes([
-            .foregroundColor: NSColor.textColor,
-            .font: NSFont.systemFont(ofSize: 13)
-        ], range: NSRange(location: 0, length: helpText.length))
-
-        // Show the popover
-        helpPopover.showHelp(anchorView: sender, helpText: helpText)
-    }
 
     
     // MARK: - Download Inspection Processing Methods
@@ -2134,7 +1344,7 @@ Display the app prominently on the main page of the Company Portal when users br
     
     
     // MARK: - Cleanup After Download Processing
-    private func cleanupAfterProcessing() {
+    func cleanupAfterProcessing() {
         DispatchQueue.main.async {
             self.progPkgInspect.isIndeterminate = false
             self.progPkgInspect.doubleValue = 0
@@ -2462,61 +1672,5 @@ extension EditViewController: TabSaveable {
     }
 }
 
-// MARK: PkgInspector Closed
-extension EditViewController: PkgInspectorDelegate {
-    func pkgInspectorDidSave(pkgID: String?, pkgVersion: String?, pkgPublisher: String?, pkgMinOSVersion: String?) {
-        // Update fields based on the returned data
-        if let pkgID = pkgID {
-            fieldIntuneID.stringValue = pkgID
-        }
-        if let pkgVersion = pkgVersion {
-            fieldIntuneVersion.stringValue = pkgVersion
-        }
-        if let pkgPublisher = pkgPublisher {
-            fieldPublisher.stringValue = pkgPublisher
-        }
-
-        if let pkgMinOSVersion = pkgMinOSVersion {
-            selectMinimumOSPopupItem(displayString: pkgMinOSVersion)
-        }
-
-        cleanupAfterProcessing()
-
-        DispatchQueue.main.async {
-            self.loadIcon()
-            self.trackChanges()
-        }
-    }
-}
-
-// MARK: AppInspector Closed
-extension EditViewController: AppInspectorDelegate {
-    func appInspectorDidSave(appID: String?, appVersion: String?, appPublisher: String?, appMinOSVersion: String?) {
-        
-        
-        // Update fields based on the returned data
-        if let appID = appID {
-            fieldIntuneID.stringValue = appID
-        }
-        if let appVersion = appVersion {
-            fieldIntuneVersion.stringValue = appVersion
-        }
-        if let appPublisher = appPublisher {
-            fieldPublisher.stringValue = appPublisher
-        }
-        
-        if let appMinOSVersion = appMinOSVersion {
-            selectMinimumOSPopupItem(displayString: appMinOSVersion)
-        }
-                
-        cleanupAfterProcessing()
-
-        DispatchQueue.main.async {
-            self.loadIcon()
-            self.trackChanges()
-        }
-
-    }
-}
 
 
