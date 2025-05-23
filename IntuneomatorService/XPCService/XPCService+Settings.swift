@@ -60,12 +60,12 @@ extension XPCService {
 
         
     func getLogAgeMax(reply: @escaping (Int) -> Void) {
-        let logAgeMax = ConfigManager.readPlistValue(key: "LogRetentionDays") ?? 2
+        let logAgeMax = ConfigManager.readPlistValue(key: "LogRetentionDays") ?? 0
         reply(logAgeMax)
     }
     
     func getLogSizeMax(reply: @escaping (Int) -> Void) {
-        let logSizeMax = ConfigManager.readPlistValue(key: "LogMaxSizeMB") ?? 2
+        let logSizeMax = ConfigManager.readPlistValue(key: "LogMaxSizeMB") ?? 0
         reply(logSizeMax)
     }
     
