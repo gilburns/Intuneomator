@@ -9,8 +9,6 @@ import Foundation
 
 extension LabelAutomation {
 
-    private static let logType = "LabelAutomation"
-
     // MARK: - FULLY PROCESS FOLDER
     static func processFolder(named folderName: String) async {
         
