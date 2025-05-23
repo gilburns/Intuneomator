@@ -38,6 +38,15 @@ extension XPCManager {
         sendRequest({ $0.setTeamsWebhookURL(url, reply: $1) }, completion: completion)
     }
     
+    func setLogAgeMax(_ logAgeMax: Int, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setLogAgeMax(logAgeMax, reply: $1) }, completion: completion)
+    }
+
+    func setLogSizeMax(_ logSizeMax: Int, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setLogSizeMax(logSizeMax, reply: $1) }, completion: completion)
+    }
+
+    
     // MARK: - Get Methods
     func getFirstRunCompleted(completion: @escaping (Bool?) -> Void) {
         sendRequest({ $0.getFirstRunStatus(reply: $1) }, completion: completion)
@@ -89,5 +98,13 @@ extension XPCManager {
         sendRequest({ $0.getCacheFolderSize(completion: $1) }, completion: completion)
     }
     
+    func getLogAgeMax(completion: @escaping (Int?) -> Void) {
+        sendRequest({ $0.getLogAgeMax(reply: $1) }, completion: completion)
+    }
+
+    func getLogSizeMax(completion: @escaping (Int?) -> Void) {
+        sendRequest({ $0.getLogSizeMax(reply: $1) }, completion: completion)
+    }
+
 }
 
