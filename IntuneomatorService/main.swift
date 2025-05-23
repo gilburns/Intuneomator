@@ -223,24 +223,28 @@ func checkForUpdates() {
 
 // MARK: - Login Command
 func login() {
-//    print("Validating credentials...")
-//    let stopSpinner = startSpinner(message: "Validating credentials")
-//    var isValid = false
-//    let group = DispatchGroup()
-//    group.enter()
-//    Task {
-//        isValid = await EntraAuthenticator().ValidateCredentials()
-//        stopSpinner()
-//        group.leave()
-//    }
-//    group.wait()
-//    if isValid {
-//        print("✅ Credentials validated successfully.")
-//        exit(EXIT_SUCCESS)
-//    } else {
-//        print("❌ Credentials validation failed.")
-//        exit(EXIT_FAILURE)
-//    }
+    print("Validating credentials...")
+    let stopSpinner = startSpinner(message: "Validating credentials")
+    var isValid = false
+    let group = DispatchGroup()
+    group.enter()
+    Task {
+        do {
+            isValid = try await EntraAuthenticator().ValidateCredentials()
+        } catch {
+            isValid = false
+        }
+        stopSpinner()
+        group.leave()
+    }
+    group.wait()
+    if isValid {
+        print("✅ Credentials validated successfully.")
+        exit(EXIT_SUCCESS)
+    } else {
+        print("❌ Credentials validation failed.")
+        exit(EXIT_FAILURE)
+    }
 }
 
 // MARK: - Command Line Argument Handling
