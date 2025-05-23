@@ -69,7 +69,8 @@ func printUsage() {
       process-label           Fully process a given label folder
       scan-validate-folders   Scan all folder to check with are automation ready
       process-label-script    Process .sh file generate plist for folder
-    
+      login                   Validate Microsoft Entra ID credentials
+
       help                    Display this help message
     """)
 }
@@ -220,6 +221,28 @@ func checkForUpdates() {
 }
 
 
+// MARK: - Login Command
+func login() {
+//    print("Validating credentials...")
+//    let stopSpinner = startSpinner(message: "Validating credentials")
+//    var isValid = false
+//    let group = DispatchGroup()
+//    group.enter()
+//    Task {
+//        isValid = await EntraAuthenticator().ValidateCredentials()
+//        stopSpinner()
+//        group.leave()
+//    }
+//    group.wait()
+//    if isValid {
+//        print("✅ Credentials validated successfully.")
+//        exit(EXIT_SUCCESS)
+//    } else {
+//        print("❌ Credentials validation failed.")
+//        exit(EXIT_FAILURE)
+//    }
+}
+
 // MARK: - Command Line Argument Handling
 func handleCommandLineArguments() {
     let arguments = CommandLine.arguments
@@ -283,7 +306,9 @@ func handleCommandLineArguments() {
     // Check for self updates
     case "update-check":
         checkForUpdates()
-                
+    case "login":
+        login()
+
     case "help":
         printUsage()
         
