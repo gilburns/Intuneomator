@@ -421,11 +421,11 @@ class LabelAutomation {
     
     
     // MARK: - Inspection of download
-    static func inspectSignatureOfDownloadedSoftware(for processedAppResults: ProcessedAppResults, downloadURL: URL, inpectionType: String) -> Bool {
+    static func inspectSignatureOfDownloadedSoftware(for processedAppResults: ProcessedAppResults, downloadURL: URL, inspectionType: String) -> Bool {
         
-        Logger.log("Inspecting \(inpectionType) signature...", logType: logType)
+        Logger.log("Inspecting \(inspectionType) signature...", logType: logType)
         
-        switch inpectionType {
+        switch inspectionType {
         case "pkg":
             
             // Inspect pkg
@@ -488,7 +488,7 @@ class LabelAutomation {
             }
             
         default:
-            Logger.log("Unsupported file type: \(inpectionType)", logType: logType)
+            Logger.log("Unsupported file type: \(inspectionType)", logType: logType)
             return false
             
         }
