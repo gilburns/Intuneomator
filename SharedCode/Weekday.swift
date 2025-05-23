@@ -1,6 +1,6 @@
 //
 //  Weekday.swift
-//  IntuneomatorService
+//  Intuneomator
 //
 
 import Foundation
