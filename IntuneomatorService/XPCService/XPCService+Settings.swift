@@ -58,6 +58,18 @@ extension XPCService {
         reply(clientSecret)
     }
 
+        
+    func getLogAgeMax(reply: @escaping (Int) -> Void) {
+        let logAgeMax = ConfigManager.readPlistValue(key: "LogRetentionDays") ?? 2
+        reply(logAgeMax)
+    }
+    
+    func getLogSizeMax(reply: @escaping (Int) -> Void) {
+        let logSizeMax = ConfigManager.readPlistValue(key: "LogMaxSizeMB") ?? 2
+        reply(logSizeMax)
+    }
+    
+
 
     func getLogFolderSize(completion: @escaping (Int64) -> Void) {
         let size = LogManagerUtil.logFolderSizeInBytes()
@@ -110,6 +122,16 @@ extension XPCService {
     
     func setTeamsWebhookURL(_ url: String, reply: @escaping (Bool) -> Void) {
         let success = ConfigManager.writePlistValue(key: "TeamsWebhookURL", value: url)
+        reply(success)
+    }
+
+    func setLogAgeMax(_ logAgeMax: Int, reply: @escaping (Bool) -> Void) {
+        let success = ConfigManager.writePlistValue(key: "LogRetentionDays", value: logAgeMax)
+        reply(success)
+    }
+    
+    func setLogSizeMax(_ logSizeMax: Int, reply: @escaping (Bool) -> Void) {
+        let success = ConfigManager.writePlistValue(key: "LogMaxSizeMB", value: logSizeMax)
         reply(success)
     }
 
