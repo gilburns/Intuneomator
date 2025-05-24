@@ -60,7 +60,7 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         return isRunning
     }
 
-    
+    // MARK: - Setup Status
     func checkAuthSetupStatus(completion: @escaping () -> Void) {
         let group = DispatchGroup()
 
@@ -172,6 +172,17 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         Logger.logUser("inputChanged -> isStepCompleted: \(completed)", logType: "SetupWizard")
         #endif
         onCompletionStatusChanged?(completed) // ✅ Notify `WelcomeWizardViewController`
+    }
+
+    
+    // MARK: Actions
+    
+    @IBAction func openCertificateGeneration(_ sender: Any) {
+        // Show Cert Generator
+        let storyboard = NSStoryboard(name: "CertificateGenerator", bundle: nil)
+        guard let controller = storyboard.instantiateController(withIdentifier: "CertificateViewController") as? CertificateViewController else { return }
+
+        presentAsSheet(controller)
     }
 
     
@@ -349,6 +360,7 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
     }
 
     
+    // MARK: - Alerts
     private func showAlert(title: String, message: String, style: NSAlert.Style) {
         
         DispatchQueue.main.async {
