@@ -78,7 +78,7 @@ class Logger {
     }
 
     /// Logs a message to a specific log file determined by the `logType`.
-    static func logFileTransfer(_ message: String, logType: String = "Download") {
+    static func logNoDateStamp(_ message: String, logType: String = "Download") {
         
         // Date and Time for Log Entry
         let timestampFormatter = DateFormatter()
