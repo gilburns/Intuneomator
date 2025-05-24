@@ -176,7 +176,11 @@ class MainViewController: NSViewController {
     }
 
     @IBAction func openCertificateGeneration(_ sender: Any) {
-        presentSheet(withIdentifier: "CertificateView")
+        // Show Cert Generator
+        let storyboard = NSStoryboard(name: "CertificateGenerator", bundle: nil)
+        guard let controller = storyboard.instantiateController(withIdentifier: "CertificateViewController") as? CertificateViewController else { return }
+
+        presentAsSheet(controller)
     }
 
     @IBAction func openScheduleEditor(_ sender: Any) {
