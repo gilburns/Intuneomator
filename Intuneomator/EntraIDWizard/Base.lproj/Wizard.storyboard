@@ -368,6 +368,17 @@ The Public certificate key should be uploaded to Entra ID under the Intuneomator
                                     <action selector="requestEntraIDSecretKey:" target="MNX-xe-I8v" id="Xpm-bm-08t"/>
                                 </connections>
                             </button>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="kFF-Tf-5Cu">
+                                <rect key="frame" x="365" y="161" width="116" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="push" title="Generate a Certificate" bezelStyle="rounded" alignment="center" controlSize="mini" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="oak-Ip-YmF">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="miniSystem"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="openCertificateGeneration:" target="MNX-xe-I8v" id="zdb-nc-kXH"/>
+                                </connections>
+                            </button>
                         </subviews>
                     </view>
                     <connections>
