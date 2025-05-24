@@ -22,8 +22,6 @@ class TabViewController: NSViewController {
     
     @IBOutlet weak var labelCustomLabel: NSTextField!
     @IBOutlet weak var buttonCustomOnOff: NSSwitch!
-
-    @IBOutlet weak var buttonPreviewLabel: NSButton!
     
     // The data passed from the MainViewController
     var appData: AppInfo?
@@ -235,64 +233,6 @@ class TabViewController: NSViewController {
         }
     }
     
-    
-    // MARK: - Preview Label
-    @IBAction func previewLabelContents(_ sender: NSButton) {
-        let labelName = appData?.label ?? ""
-        let labelGuid = appData?.guid ?? ""
-        let labelFolder = "\(labelName)_\(labelGuid)"
-        
-        let customCheckURL = AppConstants.intuneomatorManagedTitlesFolderURL
-            .appendingPathComponent(labelFolder)
-            .appendingPathComponent(".custom")
-        
-        var labelPath: String?
-        
-        if !FileManager.default.fileExists(atPath: customCheckURL.path) {
-            labelPath = (AppConstants.installomatorLabelsFolderURL.path as NSString).appendingPathComponent("\(labelName).sh")
-        } else {
-            labelPath = (AppConstants.installomatorCustomLabelsFolderURL.path as NSString).appendingPathComponent("\(labelName).sh")
-        }
-
-        do {
-            let labelContents = try String(contentsOfFile: labelPath ?? "", encoding: .utf8)
-            showPopover(with: labelContents)
-        } catch {
-//            print("❌ Failed to read label file \(labelName).sh: \(error)")
-        }
-    }
-
-    func showPopover(with text: String) {
-        let popover = NSPopover()
-        popover.behavior = .transient // Dismisses when clicking outside
-
-        let popoverVC = NSViewController()
-        
-        // Create a scroll view
-        let scrollView = NSScrollView(frame: NSRect(x: 0, y: 0, width: 530, height: 380))
-        scrollView.hasVerticalScroller = true
-        scrollView.hasHorizontalScroller = true
-
-        // Create the text view with padding
-        let textView = NSTextView(frame: NSRect(x: 15, y: 15, width: 500, height: 350)) // Extra space for padding
-        textView.isEditable = false
-        textView.string = text
-        textView.textContainerInset = NSSize(width: 15, height: 15) // ✅ Adds padding inside the text area
-
-        // Assign text view to scroll view
-        scrollView.documentView = textView
-
-        // Assign scroll view to popover
-        popoverVC.view = scrollView
-        popover.contentViewController = popoverVC
-        popover.contentSize = scrollView.frame.size
-
-        let anchorView: NSView = buttonPreviewLabel
-        
-        // Anchor the popover to the button
-        popover.show(relativeTo: anchorView.bounds, of: anchorView, preferredEdge: .maxY)
-    }
-
     
     
     // MARK: - Cancel Button
