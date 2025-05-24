@@ -146,7 +146,7 @@ extension LabelAutomation {
         Logger.log("  Download complete: \(finalFilename) (\(String(format: "%.2f", fileSizeMB)) MB)", logType: logType)
         Logger.log("  Downloaded to: \(destinationURL.path)", logType: logType)
         
-        Logger.logFileTransfer("\(labelName)\t\(finalFilename)\t\(String(format: "%.2f", fileSizeMB)) MB\t\(finalURL)", logType: logType)
+        Logger.logNoDateStamp("\(labelName)\t\(finalFilename)\t\(String(format: "%.2f", fileSizeMB)) MB\t\(finalURL)", logType: logType)
 
         
         return destinationURL
