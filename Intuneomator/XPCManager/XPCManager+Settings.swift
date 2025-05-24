@@ -21,7 +21,12 @@ extension XPCManager {
     func setAuthMethod(_ method: String, completion: @escaping (Bool?) -> Void) {
         sendRequest({ $0.setAuthMethod(method, reply: $1) }, completion: completion)
     }
+
     
+    func setSecretExpirationDate(_ expirationDate: Date, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setSecretExpirationDate(expirationDate, reply: $1) }, completion: completion)
+    }
+
     func setTenantID(_ tenantID: String, completion: @escaping (Bool?) -> Void) {
         sendRequest({ $0.setTenantID(tenantID, reply: $1) }, completion: completion)
     }
@@ -82,6 +87,10 @@ extension XPCManager {
 
     func getCertExpiration(completion: @escaping (Date?) -> Void) {
         sendRequest({ $0.getCertExpiration(reply: $1) }, completion: completion)
+    }
+
+    func getSecretExpirationDate(completion: @escaping (Date?) -> Void) {
+        sendRequest({ $0.getSecretExpirationDate(reply: $1) }, completion: completion)
     }
 
     
