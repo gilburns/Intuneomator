@@ -3,7 +3,6 @@
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="23504"/>
-        <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -1086,6 +1085,15 @@ Gw
                                                                     <action selector="requestEntraIDSecretKey:" target="9UW-t9-eHm" id="qaW-Ah-Kc9"/>
                                                                 </connections>
                                                             </button>
+                                                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="a1h-tb-ydd">
+                                                                <rect key="frame" x="327" y="66" width="194" height="11"/>
+                                                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                                                                <textFieldCell key="cell" controlSize="mini" lineBreakMode="clipping" selectable="YES" alignment="right" title="Expiration:" id="7vF-9l-kif">
+                                                                    <font key="font" metaFont="miniSystem"/>
+                                                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                                </textFieldCell>
+                                                            </textField>
                                                         </subviews>
                                                     </view>
                                                 </box>
@@ -1102,12 +1110,13 @@ Gw
                         <outlet property="buttonSendTeamsNotifications" destination="rCb-Js-SjM" id="Lpj-pj-C1E"/>
                         <outlet property="buttonTestConnection" destination="EnT-kb-c6g" id="aBV-fk-0cq"/>
                         <outlet property="fieldAppsToKeep" destination="XCL-Yn-1Od" id="1L2-zI-bjD"/>
-                        <outlet property="fieldCertificateExpiration" destination="Ytl-mh-OYV" id="oID-DK-Z6L"/>
+                        <outlet property="fieldCertificateExpiration" destination="Ytl-mh-OYV" id="BS8-ep-bwT"/>
                         <outlet property="fieldCertificateThumbprint" destination="VWU-g9-3HA" id="C3g-rA-BKr"/>
                         <outlet property="fieldClientID" destination="d0Z-df-hRq" id="ZfS-nO-ApY"/>
                         <outlet property="fieldClientSecret" destination="eNx-Qa-toj" id="Aya-1U-og1"/>
                         <outlet property="fieldLogsMaxAge" destination="Sd6-Hv-bBI" id="7R3-rU-Jce"/>
                         <outlet property="fieldLogsMaxSize" destination="ABo-IK-4UX" id="gxb-Kz-61G"/>
+                        <outlet property="fieldSecretExpiration" destination="a1h-tb-ydd" id="r7p-RX-YRR"/>
                         <outlet property="fieldTeamsWebhookURL" destination="OgX-dF-nzh" id="k0H-Y5-YmB"/>
                         <outlet property="fieldTenantID" destination="b9I-Ql-2Jd" id="14J-PL-d6p"/>
                         <outlet property="radioButtonCertificate" destination="h7s-cd-nnW" id="Guj-CL-oaC"/>
@@ -1968,17 +1977,6 @@ Gw
                                     <action selector="toggleCustom:" target="yFK-XC-1Jv" id="xAy-4Y-j1Q"/>
                                 </connections>
                             </switch>
-                            <button toolTip="Preview label content" verifyAmbiguity="off" verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mpp-xW-IVh">
-                                <rect key="frame" x="383" y="20" width="30" height="19"/>
-                                <buttonCell key="cell" type="roundRect" bezelStyle="roundedRect" imagePosition="only" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="DzC-Vt-Snu">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="cellTitle"/>
-                                    <imageReference key="image" image="NSQuickLookTemplate" symbolScale="large"/>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="previewLabelContents:" target="yFK-XC-1Jv" id="FyV-li-jzs"/>
-                                </connections>
-                            </button>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Fz1-sh-NnB">
                                 <rect key="frame" x="52" y="22" width="325" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -2011,7 +2009,6 @@ Gw
                             <constraint firstItem="S6f-48-wEc" firstAttribute="top" secondItem="y3b-hF-K2t" secondAttribute="top" constant="44" id="Vc9-S2-S36"/>
                             <constraint firstItem="S6f-48-wEc" firstAttribute="leading" secondItem="y3b-hF-K2t" secondAttribute="leading" constant="13" id="aWd-hi-ZrB"/>
                             <constraint firstItem="S6f-48-wEc" firstAttribute="leading" secondItem="rEi-MS-ArC" secondAttribute="leading" id="ahv-Mz-TQF"/>
-                            <constraint firstItem="S6f-48-wEc" firstAttribute="centerX" secondItem="mpp-xW-IVh" secondAttribute="centerX" id="eFK-JX-g2B"/>
                             <constraint firstItem="YcY-FA-LRt" firstAttribute="leading" secondItem="Hpz-vv-0i0" secondAttribute="trailing" constant="14" id="fxc-HO-aOO"/>
                             <constraint firstAttribute="trailing" secondItem="S6f-48-wEc" secondAttribute="trailing" constant="18" id="p66-EK-9uX"/>
                             <constraint firstItem="S6f-48-wEc" firstAttribute="trailing" secondItem="rEi-MS-ArC" secondAttribute="trailing" id="wqF-hn-0fc"/>
@@ -2019,7 +2016,6 @@ Gw
                     </view>
                     <connections>
                         <outlet property="buttonCustomOnOff" destination="m5S-KN-2Ng" id="Gtd-nP-bLy"/>
-                        <outlet property="buttonPreviewLabel" destination="mpp-xW-IVh" id="IbI-Ki-EWZ"/>
                         <outlet property="cancelButton" destination="Hpz-vv-0i0" id="KnY-Rf-Pek"/>
                         <outlet property="imageCloudStatus" destination="cu9-Ld-wto" id="Vnm-Rd-Mk9"/>
                         <outlet property="labelAppName" destination="rEi-MS-ArC" id="CEp-O7-mHE"/>
@@ -2461,7 +2457,7 @@ Gw
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <box fixedFrame="YES" title="Installomator Label Details:" translatesAutoresizingMaskIntoConstraints="NO" id="eCB-AI-YyF">
+                            <box fixedFrame="YES" title="Installomator Resolved Label Details:" translatesAutoresizingMaskIntoConstraints="NO" id="eCB-AI-YyF">
                                 <rect key="frame" x="17" y="14" width="706" height="193"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                 <view key="contentView" id="RyK-2f-fh9">
@@ -2595,7 +2591,7 @@ Gw
                                             </textFieldCell>
                                         </textField>
                                         <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="crw-Z0-UMH">
-                                            <rect key="frame" x="481" y="107" width="194" height="21"/>
+                                            <rect key="frame" x="481" y="107" width="197" height="21"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                                             <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="8Vr-M3-UlI">
                                                 <font key="font" metaFont="system"/>
@@ -2811,6 +2807,17 @@ Gw
                                     </subviews>
                                 </view>
                             </box>
+                            <button toolTip="Preview Installomator Label" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zYf-2P-bnN">
+                                <rect key="frame" x="696" y="192" width="24" height="19"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                <buttonCell key="cell" type="roundRect" bezelStyle="roundedRect" image="eye" catalog="system" imagePosition="overlaps" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="RW6-Qb-Mkk">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="cellTitle"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="previewLabelContents:" target="ReB-I2-ePG" id="9DU-IC-b7p"/>
+                                </connections>
+                            </button>
                         </subviews>
                     </view>
                     <connections>
@@ -2822,6 +2829,7 @@ Gw
                         <outlet property="buttonInspectDownload" destination="z35-U6-M3T" id="1cF-A6-xij"/>
                         <outlet property="buttonManagedApp" destination="eqm-Z4-7Jy" id="WZ0-5w-WxF"/>
                         <outlet property="buttonPopUpMinimumOs" destination="35w-Np-gFu" id="CVo-1i-djO"/>
+                        <outlet property="buttonPreviewLabel" destination="zYf-2P-bnN" id="4py-Xc-J6M"/>
                         <outlet property="buttonSelectCategories" destination="chl-RN-iYc" id="wg0-RQ-73m"/>
                         <outlet property="fieldAppNewVersion" destination="bbR-An-aq9" id="rC6-4y-r6f"/>
                         <outlet property="fieldDeloyAsArchUniversal" destination="tPI-cn-AxM" id="iCw-Ns-gvj"/>
@@ -3127,7 +3135,7 @@ Gw
                                             </textFieldCell>
                                         </textField>
                                         <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4aF-oV-nKI">
-                                            <rect key="frame" x="18" y="71" width="127" height="16"/>
+                                            <rect key="frame" x="18" y="71" width="137" height="16"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <buttonCell key="cell" type="push" title="Import PreInstall Script…" bezelStyle="rounded" alignment="center" controlSize="mini" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Yc0-h6-uxQ">
                                                 <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -3268,6 +3276,7 @@ Gw
                         <outlet property="fieldPostInstallScript" destination="VVh-Q8-pd1" id="wDi-Ak-rBe"/>
                         <outlet property="fieldPreInstallScript" destination="dUH-En-oaD" id="bHL-S7-gIR"/>
                         <outlet property="importButton" destination="4aF-oV-nKI" id="knG-jo-9Kp"/>
+                        <outlet property="prePostHelpButton" destination="h3y-2i-BYz" id="SdD-my-KsU"/>
                         <outlet property="scriptsTabButtonsStackView" destination="VlF-Xz-Tqj" id="hYP-yc-SK4"/>
                         <outlet property="scriptsTabView" destination="XFS-77-dRs" id="r4B-J8-Cda"/>
                         <outlet property="unavailableLabel" destination="jDm-rL-Ejy" id="tMK-MK-qVR"/>
@@ -5630,6 +5639,7 @@ DQ
         <image name="clock.badge.questionmark" catalog="system" width="18" height="16"/>
         <image name="desktopcomputer.and.macbook" catalog="system" width="25" height="16"/>
         <image name="edit" width="128" height="128"/>
+        <image name="eye" catalog="system" width="21" height="13"/>
         <image name="gear" catalog="system" width="17" height="16"/>
         <image name="questionmark.circle" catalog="system" width="15" height="15"/>
     </resources>
