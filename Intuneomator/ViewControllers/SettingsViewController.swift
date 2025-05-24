@@ -217,25 +217,51 @@ class SettingsViewController: NSViewController {
     private func handleEntraIDSecretKey(_ secretKey: String) {
         // Implement logic to store, validate, or use the secret key
         Logger.logUser("Entered Entra ID Secret Key: \(secretKey)", logType: "SetupWizard") // Do NOT log in production
-        
+
         Logger.logUser("Saving secret key...", logType: "SetupWizard")
         XPCManager.shared.importEntraIDSecretKey(secretKey: secretKey) { success in
             if success ?? false {
                 Logger.logUser("Successfully imported Entra ID secret key.", logType: "SetupWizard")
                 DispatchQueue.main.async {
-                    self.showAlert(title: "Success", message: "Import was successful.")
-//                    self.onCompletionStatusChanged?(true)
+                    let alert = NSAlert()
+                    alert.messageText = "Success"
+                    alert.informativeText = "Import was successful. Would you like to set an expiration notification for the secret?"
+                    alert.alertStyle = .informational
+                    alert.addButton(withTitle: "Yes")
+                    alert.addButton(withTitle: "No")
+
+                    // Date picker accessory view for expiration date
+                    let datePicker = NSDatePicker(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
+                    datePicker.datePickerStyle = .textFieldAndStepper
+                    datePicker.datePickerElements = .yearMonthDay
+                    datePicker.dateValue = Date()
+                    datePicker.minDate = Date()
+                    alert.accessoryView = datePicker
+
+                    let response = alert.runModal()
+                    if response == .alertFirstButtonReturn {
+                        let expirationDate = datePicker.dateValue
+                        XPCManager.shared.setSecretExpirationDate(expirationDate) { success in
+                            DispatchQueue.main.async {
+                                if success ?? false {
+                                    self.showAlert(title: "Notification Scheduled", message: "We'll notify you before the secret expires on \(expirationDate).")
+                                } else {
+                                    self.showAlert(title: "Failed", message: "Could not save expiration notification.")
+                                }
+                            }
+                        }
+                    }
                 }
             } else {
                 Logger.logUser("Failed to import Entra ID secret key.", logType: "SetupWizard")
                 DispatchQueue.main.async {
                     self.showAlert(title: "Failed", message: "Import failed.")
                 }
-
             }
         }
     }
 
+    
     
     // MARK: - Track Changes
     func trackChanges() {
