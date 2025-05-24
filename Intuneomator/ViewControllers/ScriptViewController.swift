@@ -20,6 +20,7 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
     @IBOutlet weak var unavailableLabel: NSTextField!
     @IBOutlet weak var importButton: NSButton! // Outlet for the Import button
 
+    @IBOutlet weak var prePostHelpButton: NSButton!
 
     private var tabButtons: [NSButton] = [] // To keep track of buttons
 
@@ -70,46 +71,121 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
 
         // Initialize the Save button state
         updateSaveButtonState()
-        
-        setupImportButton()
+                
     }
 
     override func viewDidAppear() {
         super.viewDidAppear()
-//        print("isValid called in viewDidAppear: \(isValid)")
+
     }
 
     override func viewWillAppear() {
         super.viewWillAppear()
         updateScriptAvailability()
+        updatePlaceholders()
     }
     
     private func updateScriptAvailability() {
         let appType = AppDataManager.shared.currentAppType
+        
+
+        
         switch appType {
         case "macOSLobApp":
             fieldPreInstallScript.isEditable = false
             fieldPostInstallScript.isEditable = false
             importButton.isEnabled = false
             unavailableLabel.isHidden = false
+            prePostHelpButton.isEnabled = false
+            for index in 0...1 {
+                if let button = scriptsTabButtonsStackView.arrangedSubviews[index] as? NSButton {
+                    button.title = "Unavailable"
+                    button.isEnabled = false
+                    button.bezelColor = .controlColor
+                }
+            }
         case "macOSPkgApp":
             fieldPreInstallScript.isEditable = true
             fieldPostInstallScript.isEditable = true
             importButton.isEnabled = true
             unavailableLabel.isHidden = true
+            prePostHelpButton.isEnabled = true
+            if let button = scriptsTabButtonsStackView.arrangedSubviews[0] as? NSButton {
+                button.title = "Pre-Install Script"
+                button.isEnabled = true
+                button.bezelColor = .selectedControlColor
+            }
+            if let button = scriptsTabButtonsStackView.arrangedSubviews[1] as? NSButton {
+                button.title = "Post-Install Script"
+                button.isEnabled = true
+                button.bezelColor = .controlColor
+            }
         case "macOSDmgApp":
             fieldPreInstallScript.isEditable = false
             fieldPostInstallScript.isEditable = false
             importButton.isEnabled = false
             unavailableLabel.isHidden = false
+            prePostHelpButton.isEnabled = false
+            for index in 0...1 {
+                if let button = scriptsTabButtonsStackView.arrangedSubviews[index] as? NSButton {
+                    button.title = "Unavailable"
+                    button.isEnabled = false
+                    button.bezelColor = .controlColor
+                }
+            }
         default:
             fieldPreInstallScript.isEditable = false
             fieldPostInstallScript.isEditable = false
             importButton.isEnabled = false
             unavailableLabel.isHidden = false
+            prePostHelpButton.isEnabled = false
+            for index in 0...1 {
+                if let button = scriptsTabButtonsStackView.arrangedSubviews[index] as? NSButton {
+                    button.title = "Unavailable"
+                    button.isEnabled = false
+                    button.bezelColor = .controlColor
+                }
+            }
         }
     }
 
+// MARK: - Script View Placeholders
+    
+    func updatePlaceholders() {
+        
+        let appType = AppDataManager.shared.currentAppType
+        let placeholderPreInstallScript: String
+        let placeholderPostInstallScript: String
+        
+        switch appType {
+        case "macOSLobApp":
+            placeholderPreInstallScript = "Scripts are not supported by Intune for Line of Business deployment type."
+            placeholderPostInstallScript = "Scripts are not supported by Intune for Line of Business deployment type."
+            
+        case "macOSPkgApp":
+            placeholderPreInstallScript = "#!/bin/zsh\n\necho \"Hello, world!\"\n\necho \"This is my Pre-install script!\"\n\nexit 0"
+            placeholderPostInstallScript = "#!/bin/zsh\n\necho \"Hello, world!\"\n\necho \"This is my Post-install script!\"\n\nexit 0"
+            
+        case "macOSDmgApp":
+            placeholderPreInstallScript = "Scripts are not supported by Intune for DMG deployment type."
+            placeholderPostInstallScript = "Scripts are not supported by Intune for DMG deployment type."
+            
+        default:
+            placeholderPreInstallScript = "Scripts are only supported by Intune for PKG deployment type."
+            placeholderPostInstallScript = "Scripts are only supported by Intune for PKG deployment type."
+            
+        }
+
+        let attributes: [NSAttributedString.Key: Any] =
+          [.foregroundColor: NSColor.secondaryLabelColor]
+
+        fieldPreInstallScript.setValue(NSAttributedString(string: placeholderPreInstallScript, attributes: attributes), forKey: "placeholderAttributedString")
+
+        fieldPostInstallScript.setValue(NSAttributedString(string: placeholderPostInstallScript, attributes: attributes), forKey: "placeholderAttributedString")
+
+    }
+    
+    
 // MARK: - Actions
     @IBAction func importScript(_ sender: Any) {
         // Determine the currently selected tab
@@ -342,8 +418,20 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
             }
 
         }
-        scriptsTabButtonsStackView.distribution = .fill
+
         scriptsTabButtonsStackView.alignment = .top
+        
+        scriptsTabButtonsStackView.orientation = .vertical
+        scriptsTabButtonsStackView.distribution = .fillEqually
+        scriptsTabButtonsStackView.spacing = 5
+        scriptsTabButtonsStackView.wantsLayer = true
+
+        scriptsTabButtonsStackView.layer?.backgroundColor = NSColor.lightGray.cgColor
+        scriptsTabButtonsStackView.edgeInsets = NSEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
+        scriptsTabButtonsStackView.arrangedSubviews.forEach { $0.wantsLayer = true }
+
+        scriptsTabButtonsStackView.translatesAutoresizingMaskIntoConstraints = false
+
     }
 
     @objc private func tabButtonClicked(_ sender: NSButton) {
@@ -351,7 +439,7 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
         scriptsTabView.selectTabViewItem(at: sender.tag)
         updateButtonStates(selectedIndex: sender.tag)
         let buttonTitle = scriptsTabView.selectedTabViewItem?.label ?? ""
-        importButton.title = "Import \(buttonTitle) Script…"
+        importButton.title = "Import \(buttonTitle)…"
     }
 
     
@@ -360,11 +448,11 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
             if index == selectedIndex {
                 // Highlight selected button
                 button.state = .off
-                button.bezelColor = NSColor.systemBlue
+                button.bezelColor = .selectedControlColor
             } else {
                 // Grey out other buttons
                 button.state = .on
-                button.bezelColor = NSColor.lightGray
+                button.bezelColor = .controlColor
             }
 
             // Determine the file path based on the appData and index
@@ -385,45 +473,6 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
         }
     }
     
-    private func setupImportButton() {
-        // Add the Import Script button to the stack view
-//        importButton.title = "Import Script…"
-//        importButton.setButtonType(.momentaryPushIn)
-//        importButton.bezelStyle = .rounded
-//        importButton.alignment = .center
-        
-//        scriptsTabButtonsStackView.addArrangedSubview(importButton)
-        
-        scriptsTabButtonsStackView.orientation = .vertical
-        scriptsTabButtonsStackView.distribution = .fillEqually
-        scriptsTabButtonsStackView.spacing = 5
-        scriptsTabButtonsStackView.wantsLayer = true
-//        scriptsTabButtonsStackView.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
-        scriptsTabButtonsStackView.layer?.backgroundColor = NSColor.lightGray.cgColor
-        scriptsTabButtonsStackView.edgeInsets = NSEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
-        scriptsTabButtonsStackView.arrangedSubviews.forEach { $0.wantsLayer = true }
-
-        scriptsTabButtonsStackView.translatesAutoresizingMaskIntoConstraints = false
-
-//        scriptsTabButtonsStackView.trailingAnchor.constraint(equalTo: importButton.trailingAnchor).isActive = true
-//        scriptsTabButtonsStackView.topAnchor.constraint(equalTo: importButton.topAnchor).isActive = true
-//        scriptsTabButtonsStackView.bottomAnchor.constraint(equalTo: importButton.bottomAnchor).isActive = true
-//        scriptsTabButtonsStackView.leadingAnchor.constraint(equalTo: importButton.leadingAnchor).isActive = true
-
-//        // Ensure equal widths by matching the width of the first button
-//        if let firstButton = scriptsTabButtonsStackView.  firstButton {
-//            button.translatesAutoresizingMaskIntoConstraints = false
-//            button.widthAnchor.constraint(equalTo: firstButton.widthAnchor).isActive = true
-//        } else {
-//            firstButton = button
-//        }
-
-//        scriptsTabButtonsStackView.distribution = .fill
-//        scriptsTabButtonsStackView.setContentHuggingPriority(NSLayoutPriorityWindowSizeStayPut, for: NSLayoutConstraint.Attribute.width)
-        
-
-    }
-
     // MARK: - Help Buttons
     @IBAction func showHelpForPrePostScripts(_ sender: NSButton) {
         
