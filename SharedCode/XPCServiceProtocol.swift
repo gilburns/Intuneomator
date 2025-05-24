@@ -111,6 +111,8 @@ import Foundation
     func setLogAgeMax(_ logAgeMax: Int, reply: @escaping (Bool) -> Void)
     func setLogSizeMax(_ logSizeMax: Int, reply: @escaping (Bool) -> Void)
 
+    func setSecretExpirationDate(_ expirationDate: Date, reply: @escaping (Bool) -> Void)
+
     
     // Get info from daemon
     func getAppsToKeep(reply: @escaping (Int) -> Void)
@@ -126,6 +128,7 @@ import Foundation
     func getLogAgeMax(reply: @escaping (Int) -> Void)
     func getLogSizeMax(reply: @escaping (Int) -> Void)
 
+    func getSecretExpirationDate(reply: @escaping (Date?) -> Void)
     
     func getCacheFolderSize(completion: @escaping (Int64) -> Void)
     func getLogFolderSize(completion: @escaping (Int64) -> Void)
