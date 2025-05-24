@@ -198,13 +198,14 @@ func runIntuneAutomationQuiet() {
         
     }
     
-    // Check for certificate expiration before exiting
+    // Check for authentication expirations before exiting
     let authMethod = ConfigManager.readPlistValue(key: "AuthMethod") ?? ""
     if authMethod == "certificate" {
         let expirationChecker = ExpirationChecker()
         expirationChecker.checkCertificateExpirationAndNotify()
     } else {
-        Logger.log("Skipping cert expiration check; authMethod=\(authMethod)", logType: logType)
+        let expirationChecker = ExpirationChecker()
+        expirationChecker.checkSecretExpirationAndNotify()
     }
 }
 
