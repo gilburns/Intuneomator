@@ -29,7 +29,6 @@ class SettingsViewController: NSViewController {
     @IBOutlet weak var fieldLogsMaxSize: NSTextField!
 
     @IBOutlet weak var buttonTestConnection: NSButton!
-    @IBOutlet weak var progressIndicatorTestConnection: NSProgressIndicator!
     
     @IBOutlet weak var buttonSave: NSButton!
     @IBOutlet weak var buttonCancel: NSButton!
