@@ -166,30 +166,45 @@ func runIntuneAutomation() {
         print("  Connecting to Intune.")
         // Run the automation for folder
         processLabel(withParam: folder)
-        
     }
+   
 }
 
 // full automation daemon
 func runIntuneAutomationQuiet() {
-    print("Running Intune Automation...")
+    
+    var logType = "Automation"
+    
+    Logger.log("-------------------------------------------------------------------------", logType: logType)
+    
+    Logger.log("Running Intune Automation...", logType: logType)
+    
     let validFolders = LabelAutomation.scanAndValidateFolders()
     
-    print("Found -\(validFolders.count)- Intuneomator folders to process.")
+    Logger.log("Found -\(validFolders.count)- Intuneomator folders to process.", logType: logType)
     
     for (index, folder) in validFolders.enumerated() {
-        print("Processing folder \(index+1)/\(validFolders.count): \(folder)")
+        Logger.log("Processing folder \(index+1)/\(validFolders.count): \(folder)", logType: logType)
         let folderName = folder.components(separatedBy: "_")[0]
         
-        print("  Updating Installomator label data: \(folderName)")
+        Logger.log("  Updating Installomator label data: \(folderName)", logType: logType)
 
         // Update label plist (process_label.sh)
         processLabelScript(withParam: folder)
 
-        print("  Connecting to Intune.")
+        Logger.log("  Connecting to Intune.", logType: logType)
         // Run the automation for folder
         processLabelQuiet(withParam: folder)
         
+    }
+    
+    // Check for certificate expiration before exiting
+    let authMethod = ConfigManager.readPlistValue(key: "AuthMethod") ?? ""
+    if authMethod == "certificate" {
+        let expirationChecker = ExpirationChecker()
+        expirationChecker.checkCertificateExpirationAndNotify()
+    } else {
+        Logger.log("Skipping cert expiration check; authMethod=\(authMethod)", logType: logType)
     }
 }
 
@@ -218,6 +233,12 @@ func checkForUpdates() {
 
     group.wait()
 
+}
+
+func testFunction() {
+    print("Test function called")
+    let expirationChecker = ExpirationChecker()
+    expirationChecker.checkCertificateExpirationAndNotify()
 }
 
 
@@ -288,9 +309,20 @@ func handleCommandLineArguments() {
             exit(1)
         }
 
-    // clean up cache
+    // clean up cache and logs
     case "cache-cleanup":
-        CacheManagerUtil.runCleanup()
+        
+        do {
+            // cache cleanup
+            CacheManagerUtil.runCleanup()
+            
+            // cleanup system logs
+            LogManagerUtil.performLogCleanup()
+
+            // cleanup user‐level logs
+            LogManagerUtil.performLogCleanup(forLogFolder: "user")
+        }
+
 
     case "label-update":
         labelUpdates()
@@ -312,6 +344,9 @@ func handleCommandLineArguments() {
         checkForUpdates()
     case "login":
         login()
+        
+    case "test":
+        testFunction()
 
     case "help":
         printUsage()
