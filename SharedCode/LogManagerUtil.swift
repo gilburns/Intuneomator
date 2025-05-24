@@ -9,6 +9,8 @@ import Foundation
 
 class LogManagerUtil {
     
+    static let logFileName = "LogManager"
+
     static func logFolderSizeInBytes(forLogFolder logType: String = "system") -> Int64 {
         let fileManager = FileManager.default
         let folderURL: URL
@@ -63,7 +65,7 @@ class LogManagerUtil {
         ) else {
             return
         }
-
+        
         for case let fileURL as URL in enumerator {
             do {
                 let values = try fileURL.resourceValues(forKeys: [.isRegularFileKey, .contentModificationDateKey])
@@ -71,6 +73,8 @@ class LogManagerUtil {
                    let modifiedDate = values.contentModificationDate,
                    modifiedDate < expirationDate {
                     try fileManager.removeItem(at: fileURL)
+                    Logger.logNoDateStamp("  Deleting old log file:", logType: logFileName)
+                    Logger.logNoDateStamp("  (fileURL.path)", logType: logFileName)
                 }
             } catch {
                 continue
@@ -94,7 +98,7 @@ class LogManagerUtil {
         }
 
         let maxBytes = Int64(maxSizeMB) * 1024 * 1024
-        var currentSize = logFolderSizeInBytes(forLogFolder: logType)
+        let currentSize = logFolderSizeInBytes(forLogFolder: logType)
         guard currentSize > maxBytes else {
             return
         }
@@ -127,9 +131,14 @@ class LogManagerUtil {
 
         var bytesToFree = currentSize - maxBytes
 
+        Logger.logNoDateStamp("Found \(files.count) old log files, trimming to free up \(bytesToFree) bytes...", logType: logFileName)
+        
         for file in files {
             do {
                 try fileManager.removeItem(at: file.url)
+                Logger.logNoDateStamp("  Deleting old log file:", logType: logFileName)
+                Logger.logNoDateStamp("  \(file.url.path)", logType: logFileName)
+
                 bytesToFree -= file.size
                 if bytesToFree <= 0 {
                     break
@@ -144,13 +153,16 @@ class LogManagerUtil {
     /// Reads `LogRetentionDays` and `LogMaxSizeMB` keys; skips any step if the setting is missing or non-positive.
     /// - Parameter logType: The log folder type ("system" or "user").
     static func performLogCleanup(forLogFolder logType: String = "system") {
+        
         // Remove files older than configured retention days
         if let retentionDays: Int = ConfigManager.readPlistValue(key: "LogRetentionDays"), retentionDays > 0 {
+            Logger.logNoDateStamp("Cleaning up logs older than \(retentionDays) days...", logType: logFileName)
             removeLogFiles(olderThan: retentionDays, forLogFolder: logType)
         }
 
         // Trim logs to configured max size
         if let maxSizeMB: Int = ConfigManager.readPlistValue(key: "LogMaxSizeMB"), maxSizeMB > 0 {
+            Logger.logNoDateStamp("Trimming logs to maximum size of \(maxSizeMB) MB...", logType: logFileName)
             trimLogFiles(toMaxSizeMB: maxSizeMB, forLogFolder: logType)
         }
     }
