@@ -60,6 +60,16 @@ class KeychainManager {
 
         if status == errSecSuccess {
             Logger.log("Successfully stored Entra ID secret key in the system keychain.", logType: "KeychainManager")
+            
+            // Save the import date for possible expiration notifications later
+            let importDate = Date()
+            if ConfigManager.writePlistValue(key: "SecretImportDate", value: importDate) {
+                ConfigManager.restrictPlistPermissions()
+                Logger.log("Saved Secret Imports Date to plist.", logType: "KeychainManager")
+            } else {
+                Logger.log("Failed to save secert import date to plist.", logType: "KeychainManager")
+            }
+            
             return true
         } else {
             Logger.log("Failed to store Entra ID secret key: \(status)", logType: "KeychainManager")
