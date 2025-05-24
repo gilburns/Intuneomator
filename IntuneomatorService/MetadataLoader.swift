@@ -10,7 +10,7 @@ import Foundation
 /// Loads metadata, plist, installer scripts, and assignments for each Intuneomator managed title.
 struct MetadataLoader {
     private static let logType = "MetadataLoader"
-
+    
     /// Extracts metadata, plist, scripts, and group assignments into a `ProcessedAppResults`.
     /// - Parameter folderName: The Intuneomator managed title folder (e.g. "Safari_<UUID>").
     /// - Returns: A `ProcessedAppResults` if all required fields are present; otherwise `nil`.
@@ -23,12 +23,12 @@ struct MetadataLoader {
         }
         let labelName = String(parts[0])
         let labelGUID = String(parts[1])
-
+        
         // Full path to the managed title folder
         let folderPath = AppConstants.intuneomatorManagedTitlesFolderURL
             .appendingPathComponent(folderName)
             .path
-
+        
         // Load metadata.json
         var metadata: Metadata?
         let metadataURL = AppConstants.intuneomatorManagedTitlesFolderURL
@@ -40,7 +40,7 @@ struct MetadataLoader {
         } catch {
             Logger.log("Failed to load metadata: \(error)", logType: logType)
         }
-
+        
         // Extract metadata fields
         let expectedBundleID = metadata?.CFBundleIdentifier
         let categories = metadata?.categories
@@ -57,7 +57,7 @@ struct MetadataLoader {
         let minimumOS = metadata?.minimumOS
         let privacyInformationUrl = metadata?.privacyInformationUrl ?? ""
         let publisher = metadata?.publisher
-
+        
         guard
             let validatedExpectedBundleID = expectedBundleID,
             let validatedDeployAsArchTag = deployAsArchTag,
@@ -69,13 +69,13 @@ struct MetadataLoader {
             Logger.log("❌ Critical metadata keys are missing for \(folderName). Skipping.", logType: logType)
             return nil
         }
-
+        
         // Determine which .plist to read
         let plistPathArm64 = (folderPath as NSString).appendingPathComponent("\(labelName).plist")
         let plistPathx86_64 = (folderPath as NSString).appendingPathComponent("\(labelName)_i386.plist")
         var downloadURLx86_64: String = ""
         var plistPath: String = ""
-
+        
         let isDualArch = titleIsDualArch(forFolder: folderName)
         if isDualArch {
             switch validatedDeployAsArchTag {
@@ -86,18 +86,18 @@ struct MetadataLoader {
         } else {
             plistPath = plistPathArm64
         }
-
+        
         guard FileManager.default.fileExists(atPath: plistPath) else {
             Logger.log("❌ Missing plist file: \(plistPath)", logType: logType)
             return nil
         }
         Logger.log("  Reading plist: \(plistPath)", logType: logType)
-
+        
         guard let plistData = NSDictionary(contentsOfFile: plistPath) as? [String: Any] else {
             Logger.log("❌ Failed to parse plist: \(plistPath)", logType: logType)
             return nil
         }
-
+        
         if validatedDeployAsArchTag == 2 && isDualArch {
             guard let plistDatax86 = NSDictionary(contentsOfFile: plistPathx86_64) as? [String: Any] else {
                 Logger.log("❌ Failed to parse plist: \(plistPathx86_64)", logType: logType)
@@ -105,14 +105,14 @@ struct MetadataLoader {
             }
             downloadURLx86_64 = plistDatax86["downloadURL"] as? String ?? ""
         }
-
+        
         let appNewVersion = plistData["appNewVersion"] as? String
         let downloadURL = plistData["downloadURL"] as? String
         let expectedTeamID = plistData["expectedTeamID"] as? String
         let name = plistData["name"] as? String
         let type = plistData["type"] as? String
         let labelIcon = plistData["labelIcon"] as? String
-
+        
         guard
             let validatedDownloadURL = downloadURL,
             let validatedExpectedTeamID = expectedTeamID,
@@ -124,12 +124,12 @@ struct MetadataLoader {
             return nil
         }
         Logger.log("  Extracted plist and metadata for \(folderName): name=\(validatedName), version=\(appNewVersion ?? "N/A"), downloadURL=\(validatedDownloadURL), type=\(validatedType)", logType: logType)
-
+        
         // Load installer scripts
         let scriptsBase = AppConstants.intuneomatorManagedTitlesFolderURL.appendingPathComponent(folderName)
         let preScriptURL = scriptsBase.appendingPathComponent("preinstall.sh")
         let postScriptURL = scriptsBase.appendingPathComponent("postinstall.sh")
-
+        
         var preInstallScript: String?
         var postInstallScript: String?
         if FileManager.default.fileExists(atPath: preScriptURL.path) {
@@ -142,7 +142,7 @@ struct MetadataLoader {
         } else {
             postInstallScript = ""
         }
-
+        
         // Load group assignments
         let assignmentsURL = AppConstants.intuneomatorManagedTitlesFolderURL
             .appendingPathComponent(folderName)
@@ -170,7 +170,7 @@ struct MetadataLoader {
         } catch {
             Logger.log("Failed to load assignments: \(error)", logType: logType)
         }
-
+        
         // Build the final ProcessedAppResults
         let results = ProcessedAppResults(
             appAssignments: groupAssignments,
@@ -209,7 +209,7 @@ struct MetadataLoader {
         )
         return results
     }
-
+    
     /// Detects if both ARM64 and x86_64 plists exist for a title, indicating a dual-arch package.
     static func titleIsDualArch(forFolder folder: String) -> Bool {
         let base = AppConstants.intuneomatorManagedTitlesFolderURL.appendingPathComponent(folder)
@@ -217,6 +217,6 @@ struct MetadataLoader {
         let armURL = base.appendingPathComponent("\(label).plist")
         let x86URL = base.appendingPathComponent("\(label)_i386.plist")
         return FileManager.default.fileExists(atPath: armURL.path) &&
-               FileManager.default.fileExists(atPath: x86URL.path)
+        FileManager.default.fileExists(atPath: x86URL.path)
     }
 }
