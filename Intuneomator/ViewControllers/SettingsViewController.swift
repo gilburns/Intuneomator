@@ -16,7 +16,8 @@ class SettingsViewController: NSViewController {
     @IBOutlet weak var fieldCertificateThumbprint: NSTextField!
     
     @IBOutlet weak var fieldCertificateExpiration: NSTextField! // view only
-    
+    @IBOutlet weak var fieldSecretExpiration: NSTextField! // view only
+
     @IBOutlet weak var fieldAppsToKeep: NSTextField!
     
     @IBOutlet weak var radioButtonCertificate: NSButton!
@@ -449,7 +450,23 @@ class SettingsViewController: NSViewController {
             }
         }
     }
-    
+
+    func getSecretExpiration() {
+        XPCManager.shared.getSecretExpirationDate { secretExpiration in
+            DispatchQueue.main.async {
+                if let secretExpiration = secretExpiration {
+                    let formatter = DateFormatter()
+                    formatter.dateStyle = .medium
+                    formatter.timeStyle = .short
+                    formatter.timeZone = TimeZone.current
+                    self.fieldSecretExpiration.stringValue = "Expiration: \(formatter.string(from: secretExpiration))"
+                } else {
+                    self.fieldCertificateExpiration.stringValue = "Not Available"
+                }
+            }
+        }
+    }
+
     
     func getCertThumbprint() {
         XPCManager.shared.getCertThumbprint { certThumbprint in
@@ -633,6 +650,7 @@ class SettingsViewController: NSViewController {
         getTeamsWebhookURL()
         getTeamsNotificationsEnabled()
         getCertExpiration()
+        getSecretExpiration()
         getClientSecret()
         getCertThumbprint()
         getLogAgeMax()
