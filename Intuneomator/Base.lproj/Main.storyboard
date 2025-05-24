@@ -35,6 +35,12 @@
                                                 <action selector="openScheduleEditor:" target="Ady-hI-5gd" id="Ge2-2e-69h"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Certificate Generator…" id="c8Z-LX-ubp">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="openCertificateGeneration:" target="Ady-hI-5gd" id="hvu-xA-rGL"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem isSeparatorItem="YES" id="wFC-TO-SCJ"/>
                                         <menuItem title="Services" id="NMo-om-nkz">
                                             <modifierMask key="keyEquivalentModifierMask"/>
@@ -1049,10 +1055,6 @@ Gw
                                                                     <action selector="buttonValidateEntraCredentialsButtonClicked:" target="9UW-t9-eHm" id="3Mh-LR-qMs"/>
                                                                 </connections>
                                                             </button>
-                                                            <progressIndicator fixedFrame="YES" maxValue="100" displayedWhenStopped="NO" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="nNL-Ke-lIX">
-                                                                <rect key="frame" x="409" y="249" width="16" height="16"/>
-                                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                                            </progressIndicator>
                                                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ytl-mh-OYV">
                                                                 <rect key="frame" x="327" y="140" width="194" height="11"/>
                                                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
