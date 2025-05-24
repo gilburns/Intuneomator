@@ -53,6 +53,11 @@ extension XPCService {
         reply(expirationDate)
     }
 
+    func getSecretExpirationDate(reply: @escaping (Date?) -> Void) {
+        let expirationDate = ConfigManager.readPlistValue(key: "SecretExpirationDate") as Date?
+        reply(expirationDate)
+    }
+
     func getClientSecret(reply: @escaping (String?) -> Void) {
         let clientSecret = KeychainManager.retrieveEntraIDSecretKey()
         reply(clientSecret)
@@ -88,6 +93,11 @@ extension XPCService {
     }
     
     
+    func setSecretExpirationDate(_ expirationDate: Date, reply: @escaping (Bool) -> Void) {
+        let success = ConfigManager.writePlistValue(key: "SecretExpirationDate", value: expirationDate)
+        reply(success)
+    }
+
     func setAppsToKeep(_ appCount: Int, reply: @escaping (Bool) -> Void) {
         let success = ConfigManager.writePlistValue(key: "AppsVersionsToKeep", value: appCount)
         reply(success)
