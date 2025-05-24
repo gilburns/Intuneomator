@@ -43,6 +43,8 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     @IBOutlet weak var fieldIntuneID: NSTextField!
     @IBOutlet weak var fieldIntuneVersion: NSTextField!
     
+    @IBOutlet weak var buttonPreviewLabel: NSButton!
+    
     @IBOutlet weak var fieldAppNewVersion: NSTextField!
     @IBOutlet weak var fieldDownloadFile: NSTextField!
     @IBOutlet weak var fieldDownloadURL: NSTextField!
@@ -236,7 +238,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         fieldName.stringValue = plistDictionary["name"] as? String ?? ""
         fieldPackageID.stringValue = plistDictionary["packageID"] as? String ?? ""
         fieldPackageID.toolTip = plistDictionary["packageID"] as? String ?? ""
-        fieldType.stringValue = plistDictionary["type"] as? String ?? ""        
+        fieldType.stringValue = plistDictionary["type"] as? String ?? ""
         
     }
     
@@ -429,6 +431,88 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         }
     }
         
+    
+    // MARK: - Preview Label
+    @IBAction func previewLabelContents(_ sender: NSButton) {
+        guard let labelName = appData?.label,
+              let labelGuid = appData?.guid else { return }
+        
+        let labelFolder = "\(labelName)_\(labelGuid)"
+        
+        let customCheckURL = AppConstants.intuneomatorManagedTitlesFolderURL
+            .appendingPathComponent(labelFolder)
+            .appendingPathComponent(".custom")
+        
+        var labelURL: URL?
+        
+        if !FileManager.default.fileExists(atPath: customCheckURL.path) {
+            labelURL = AppConstants.installomatorLabelsFolderURL.appendingPathComponent("\(labelName).sh")
+        } else {
+            labelURL = AppConstants.installomatorCustomLabelsFolderURL.appendingPathComponent("\(labelName).sh")
+        }
+
+        guard FileManager.default.fileExists(atPath: labelURL!.path) else {
+            return
+        }
+                
+        do {
+            let labelContents = try String(contentsOfFile: labelURL!.path, encoding: .utf8)
+            showPopover(with: labelContents)
+        } catch {
+            print("❌ Failed to read label file \(labelName).sh: \(error)")
+        }
+    }
+
+    func showPopover(with text: String) {
+        let popover = NSPopover()
+        popover.behavior = .transient
+
+        // Constants
+        let maxHeight: CGFloat = 380
+        let width: CGFloat      = 550
+        let padding: CGFloat    = 15
+        let textWidth           = width - 2*padding
+
+        // Compute text height for given width & font
+        let font = NSFont.systemFont(ofSize: NSFont.systemFontSize)
+        let attrs = [NSAttributedString.Key.font: font]
+        let bounding = NSString(string: text)
+            .boundingRect(
+               with: NSSize(width: textWidth, height: .greatestFiniteMagnitude),
+               options: [.usesLineFragmentOrigin, .usesFontLeading],
+               attributes: attrs
+            )
+        let textHeight   = ceil(bounding.height)
+        let totalHeight  = textHeight + 3*padding
+        let popoverHeight = min(maxHeight, totalHeight)
+
+        // Build scroll/text views at the new height
+        let scrollView = NSScrollView(frame: NSRect(x: 0, y: 0, width: width, height: popoverHeight))
+        scrollView.hasVerticalScroller   = true
+        scrollView.hasHorizontalScroller = false
+
+        let textView = NSTextView(frame: NSRect(x: padding,
+                                                y: padding,
+                                                width: textWidth,
+                                                height: popoverHeight - 2*padding))
+        textView.isEditable          = false
+        textView.font                = font
+        textView.string              = text
+        textView.textContainerInset  = NSSize(width: padding, height: padding)
+
+        scrollView.documentView = textView
+
+        // Set as popover content
+        let vc = NSViewController()
+        vc.view = scrollView
+        popover.contentViewController = vc
+        popover.contentSize = NSSize(width: width, height: popoverHeight)
+
+        // Show it
+        popover.show(relativeTo: buttonPreviewLabel.bounds,
+                     of: buttonPreviewLabel,
+                     preferredEdge: .maxY)
+    }
     
     // MARK: - Other Metadata
     
