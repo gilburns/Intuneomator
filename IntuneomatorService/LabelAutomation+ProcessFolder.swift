@@ -468,6 +468,9 @@ extension LabelAutomation {
                     deploymentArch = "🔄 Unknown"
                 }
                 
+                let assignedGroups = processedAppResults?.appAssignments ?? []
+                
+                
                 // We were sucessful with the upload
                 if uploadSucceeded {
                     do {
@@ -485,9 +488,7 @@ extension LabelAutomation {
                             deploymentType: deploymentType,
                             architecture: deploymentArch,
                             releaseNotesURL: nil,
-                            requiredGroups: "",
-                            availableGroups: "",
-                            uninstallGroups: "",
+                            assignedGroups: assignedGroups,
                             isSuccess: true
                         )
                     }
@@ -507,9 +508,7 @@ extension LabelAutomation {
                             deploymentType: deploymentType,
                             architecture: deploymentArch,
                             releaseNotesURL: nil,
-                            requiredGroups: nil,
-                            availableGroups: nil,
-                            uninstallGroups: nil,
+                            assignedGroups: assignedGroups,
                             isSuccess: false,
                             errorMessage: "Failed to upload to Intune. The automation will try again the next time it runs."
                         )
