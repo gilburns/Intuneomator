@@ -10,11 +10,12 @@ import Foundation
 // Swift Class for Sending Teams Workflow Notifications
 class TeamsNotifier {
     let webhookURL: String
-    
+    static let logType = "TeamsNotifier"
+
     init(webhookURL: String) {
         self.webhookURL = webhookURL
     }
-    
+        
     func sendTeamsNotification(bodyContent: [[String: Any]]) {
         let payload: [String: Any] = [
             "type": "message",
@@ -38,21 +39,21 @@ class TeamsNotifier {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = jsonData
 
-            Logger.log("🔹 Sending request to Teams Webhook...", logType: "TeamsNotifier")
-            Logger.log("🔹 Payload JSON: \(String(data: jsonData, encoding: .utf8) ?? "Invalid JSON")", logType: "TeamsNotifier")
+            Logger.log("🔹 Sending request to Teams Webhook...", logType: TeamsNotifier.logType)
+            Logger.log("🔹 Payload JSON: \(String(data: jsonData, encoding: .utf8) ?? "Invalid JSON")", logType: TeamsNotifier.logType)
 
             let semaphore = DispatchSemaphore(value: 0)
 
             let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 if let error = error {
-                    Logger.log("❌ Error sending notification: \(error.localizedDescription)", logType: "TeamsNotifier")
+                    Logger.log("❌ Error sending notification: \(error.localizedDescription)", logType: TeamsNotifier.logType)
                 } else if let httpResponse = response as? HTTPURLResponse {
                     if (200...299).contains(httpResponse.statusCode) {
-                        Logger.log("✅ Notification sent successfully!", logType: "TeamsNotifier")
+                        Logger.log("✅ Notification sent successfully!", logType: TeamsNotifier.logType)
                     } else {
-                        Logger.log("❌ Failed to send notification. HTTP Status: \(httpResponse.statusCode)", logType: "TeamsNotifier")
+                        Logger.log("❌ Failed to send notification. HTTP Status: \(httpResponse.statusCode)", logType: TeamsNotifier.logType)
                         if let data = data, let responseBody = String(data: data, encoding: .utf8) {
-                            Logger.log("🔹 Response Body: \(responseBody)", logType: "TeamsNotifier")
+                            Logger.log("🔹 Response Body: \(responseBody)", logType: TeamsNotifier.logType)
                         }
                     }
                 }
@@ -62,7 +63,7 @@ class TeamsNotifier {
             task.resume()
             semaphore.wait()
         } catch {
-            Logger.log("❌ Error serializing JSON: \(error)", logType: "TeamsNotifier")
+            Logger.log("❌ Error serializing JSON: \(error)", logType: TeamsNotifier.logType)
         }
     }
     
