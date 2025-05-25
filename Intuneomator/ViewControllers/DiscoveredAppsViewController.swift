@@ -229,8 +229,6 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
         let selectedApp = filteredApps[tableView.selectedRow]
         let labelName = selectedApp.installomatorLabel
         
-//        print("✅ Automating label: \(labelName)")
-
         // Send the new content to the XPC service
         XPCManager.shared.addNewLabel(labelName, "installomator") { dirPath in
             DispatchQueue.main.async {
@@ -327,8 +325,6 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
             return
         }
         
-//        print("appName = \(appName)")
-//        print("devices = \(devices)")
         sheetController.appName = appName
         sheetController.devices = devices
 
@@ -479,4 +475,3 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
 
     
 }
-
