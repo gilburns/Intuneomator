@@ -8,14 +8,12 @@
 import Foundation
 
 extension TeamsNotifier {
-    
-    static let logType = "TeamsNotifier"
-    
+                
     static func processNotification(for processedAppResults: ProcessedAppResults, success: Bool) -> Bool {
         
         guard ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") == true
         else {
-          Logger.log("Notifications disabled", logType: logType)
+            Logger.log("Notifications disabled", logType: logType)
           return false
         }
 
