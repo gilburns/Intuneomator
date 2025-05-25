@@ -997,7 +997,7 @@ extension EntraGraphRequests {
                 }
             }
             if let error = lastError {
-                throw error
+                throw NSError(domain: "IntuneUploadError", code: -1, userInfo: [NSLocalizedDescriptionKey : error.localizedDescription])
             }
             
             
