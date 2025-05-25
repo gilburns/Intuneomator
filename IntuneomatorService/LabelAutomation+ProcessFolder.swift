@@ -409,10 +409,12 @@ extension LabelAutomation {
 
         
         // MARK: - Send Teams Notification
-        
-        let sendNotification = TeamsNotifier.processNotification(for: processedAppResults, success: uploadSucceeded)
-        
-        if sendNotification {
+                
+        let didSend = TeamsNotifier.processNotification(
+            for: processedAppResults ?? .empty,
+            success: uploadSucceeded
+        )
+        if didSend {
             Logger.log("Message sent to Teams channel")
         }
         
