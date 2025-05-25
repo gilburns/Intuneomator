@@ -15,8 +15,7 @@ class TeamsNotifier {
         self.webhookURL = webhookURL
     }
     
-    
-    func sendNotification(
+    func sendSuccessNotification(
         title: String,
         version: String,
         size: String,
@@ -25,9 +24,7 @@ class TeamsNotifier {
         deploymentType: String?,
         architecture: String?,
         releaseNotesURL: String?,
-        assignedGroups: [[String : Any]],
-        isSuccess: Bool,
-        errorMessage: String? = nil
+        assignedGroups: [[String : Any]]
     ) {
         var facts: [[String: String]] = [
             ["title": "Version:", "value": version],
@@ -44,8 +41,8 @@ class TeamsNotifier {
         if let releaseNotesURL = releaseNotesURL {
             facts.append(["title": "Release Notes:", "value": "[Update Details](\(releaseNotesURL))"])
         }
-
-        // ✅ Main Card Content (Image, Title, Separator, Details)
+        
+        // ✅ Success Card Content (Image, Title, Separator, Details)
         var bodyContent: [[String: Any]] = [
             [
                 "type": "ColumnSet",
@@ -72,14 +69,14 @@ class TeamsNotifier {
                                 "facts": [
                                     [
                                         "title": " ",
-                                        "value": isSuccess ? "🟢 **SUCCESS**" : "🔴 **FAILED**",
-                                        "color": isSuccess ? "Good" : "Attention",
+                                        "value": "🟢 **SUCCESS**",
+                                        "color": "Good",
                                     ]
                                 ]
                             ]
                         ],
                         "width": "auto",
-                        "style": isSuccess ? "good" : "attention",
+                        "style": "good",
                     ]
                 ]
             ],
@@ -110,9 +107,121 @@ class TeamsNotifier {
             ]
         ]
         
-
-        // ✅ Handle Failure Case: Show Error Box Instead of Assignments
-        if !isSuccess, let errorMessage = errorMessage, !errorMessage.trimmingCharacters(in: .whitespaces).isEmpty {
+        // ✅ Add Assignment Groups for Success
+        let groupInfoBlocks = formatAssignedGroups(assignedGroups)
+        bodyContent.append(contentsOf: groupInfoBlocks)
+        
+        // Fetch CVEs and send notification when complete
+        Logger.log("Loading CVEs for \(title)...", logType: "Teams")
+        let fetcher = CVEFetcher()
+        
+        fetcher.fetchCVEsSimple(for: title) { result in
+            // Add CVE sections to bodyContent
+            switch result {
+            case .success(let cves):
+                let cveSections = fetcher.createCVESections(cves)
+                bodyContent.append(contentsOf: cveSections)
+                Logger.log("CVE fetch complete. Found \(cves.count) CVEs", logType: "Teams")
+            case .failure(let error):
+                Logger.log("Error fetching CVEs: \(error)", logType: "Teams")
+                // Continue without CVE data
+            }
+            
+            // Send Teams Notification
+            self.sendTeamsNotification(bodyContent: bodyContent)
+        }
+    }
+    
+    func sendErrorNotification(
+        title: String,
+        version: String,
+        size: String,
+        time: String,
+        imageURL: String,
+        deploymentType: String?,
+        architecture: String?,
+        errorMessage: String
+    ) {
+        var facts: [[String: String]] = [
+            ["title": "Version:", "value": version],
+            ["title": "Size:", "value": size],
+            ["title": "Time:", "value": time]
+        ]
+        
+        if let deploymentType = deploymentType {
+            facts.append(["title": "Deployment Type:", "value": deploymentType])
+        }
+        if let architecture = architecture {
+            facts.append(["title": "Architecture:", "value": architecture])
+        }
+        
+        // ✅ Error Card Content (Image, Title, Separator, Details)
+        var bodyContent: [[String: Any]] = [
+            [
+                "type": "ColumnSet",
+                "columns": [
+                    [
+                        "type": "Column",
+                        "items": [
+                            ["type": "Image", "url": imageURL, "size": "Medium"]
+                        ],
+                        "width": "auto"
+                    ],
+                    [
+                        "type": "Column",
+                        "items": [
+                            ["type": "TextBlock", "text": " ", "weight": "Bolder", "size": "Medium"]
+                        ],
+                        "width": "stretch"
+                    ],
+                    [
+                        "type": "Column",
+                        "items": [
+                            [
+                                "type": "FactSet",
+                                "facts": [
+                                    [
+                                        "title": " ",
+                                        "value": "🔴 **FAILED**",
+                                        "color": "Attention",
+                                    ]
+                                ]
+                            ]
+                        ],
+                        "width": "auto",
+                        "style": "attention",
+                    ]
+                ]
+            ],
+            [
+                "type": "TextBlock",
+                "text": "**\(title)**",
+                "weight": "Bolder",
+                "spacing": "None",
+                "size": "Large"
+            ],
+            [
+                "type": "TextBlock",
+                "text": "Intuneomator deployment update",
+                "weight": "Lighter",
+                "spacing": "Small",
+                "size": "Small"
+            ],
+            [
+                "type": "TextBlock",
+                "text": "---",
+                "weight": "Lighter",
+                "spacing": "Medium",
+                "separator": true
+            ],
+            [
+                "type": "FactSet",
+                "facts": facts
+            ]
+        ]
+        
+        // ✅ Add Error Details
+        if !errorMessage.trimmingCharacters(in: .whitespaces).isEmpty {
             bodyContent.append([
                 "type": "TextBlock",
                 "text": "**Error Details**",
@@ -137,36 +246,11 @@ class TeamsNotifier {
                 "bleed": true
             ])
         }
-        // ✅ Only Add Assignments If No Failure Occurred
-        // ✅ Handle Failure Case: Show Error Box Instead of Assignments
-        if isSuccess {
-            
-            let groupInfoBlocks = formatAssignedGroups(assignedGroups)
-            bodyContent.append(contentsOf: groupInfoBlocks)
-            
-        }
         
-        // Fetch CVEs and send notification when complete
-        Logger.log("Loading CVEs for \(title)...", logType: "Teams")
-        let fetcher = CVEFetcher()
-        
-        fetcher.fetchCVEsSimple(for: title) { result in
-            // Add CVE sections to bodyContent
-            switch result {
-            case .success(let cves):
-                let cveSections = fetcher.createCVESections(cves)
-                bodyContent.append(contentsOf: cveSections)
-                Logger.log("CVE fetch complete. Found \(cves.count) CVEs", logType: "Teams")
-            case .failure(let error):
-                Logger.log("Error fetching CVEs: \(error)", logType: "Teams")
-                // Continue without CVE data
-            }
-            
-            // Send Teams Notification
-            self.sendTeamsNotification(bodyContent: bodyContent)
-        }
+        // Send Teams Notification directly (no CVEs for errors)
+        sendTeamsNotification(bodyContent: bodyContent)
     }
-    
+
     func sendUpdateNotification(
         initialVersion: String,
         updatedVersion: String,
