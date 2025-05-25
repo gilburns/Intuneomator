@@ -115,11 +115,11 @@ class TeamsNotifier {
         Logger.log("Loading CVEs for \(title)...", logType: "Teams")
         let fetcher = CVEFetcher()
         
-        fetcher.fetchCVEsSimple(for: title) { result in
+        fetcher.fetchCVEsSimple(for: title) { [self] result in
             // Add CVE sections to bodyContent
             switch result {
             case .success(let cves):
-                let cveSections = fetcher.createCVESections(cves)
+                let cveSections = createCVESections(cves)
                 bodyContent.append(contentsOf: cveSections)
                 Logger.log("CVE fetch complete. Found \(cves.count) CVEs", logType: "Teams")
             case .failure(let error):
