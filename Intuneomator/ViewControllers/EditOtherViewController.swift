@@ -192,19 +192,6 @@ class EditOtherViewController: NSViewController, NSTextStorageDelegate {
 
     func highlightChangedFields() {
         
-//        print("Highlighting changed fields")
-//        print("Developer: \(String(describing: currentMetadataPartial?.developer!))")
-//        print("Developer: \(String(describing: lastMetadataPartial?.developer!))")
-//        print("informationUrl: \(String(describing: currentMetadataPartial?.informationUrl!))")
-//        print("informationUrl: \(String(describing: lastMetadataPartial?.informationUrl!))")
-//        print("owner: \(String(describing: currentMetadataPartial?.owner!))")
-//        print("owner: \(String(describing: lastMetadataPartial?.owner!))")
-//        print("privacyInformationUrl: \(String(describing: currentMetadataPartial?.privacyInformationUrl!))")
-//        print("privacyInformationUrl: \(String(describing: lastMetadataPartial?.privacyInformationUrl!))")
-//        print("Notes: \(String(describing: currentMetadataPartial?.notes!))")
-//        print("Notes: \(String(describing: lastMetadataPartial?.notes!))")
-
-        
         // Highlight developer field if changed
         if currentMetadataPartial?.developer != lastMetadataPartial?.developer {
             highlightField(fieldDeveloper)
@@ -262,16 +249,6 @@ class EditOtherViewController: NSViewController, NSTextStorageDelegate {
 //            button.backgroundColor = nil // Optionally ensure backgroundColor is reset
         }
     }
-    
-//    func clearHighlight(_ field: NSControl) {
-//        if let textField = field as? NSTextField {
-//            textField.layer?.borderColor = NSColor.clear.cgColor
-//            textField.layer?.borderWidth = 0.0
-//        } else if let button = field as? NSButton {
-//            button.layer?.backgroundColor = NSColor.clear.cgColor
-//        }
-//    }
-
     
     
     func setTextViewBorder(field: NSTextView, color: NSColor) {
