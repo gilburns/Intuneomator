@@ -92,3 +92,16 @@ extension TeamsNotifier {
     
 }
 
+extension TeamsNotifier {
+  /// accepts an optional, unwraps (or uses .empty) and forwards
+  static func processNotification(
+    for maybeResults: ProcessedAppResults?,
+    success: Bool
+  ) -> Bool {
+    // unwrap once; use .empty if nil
+    return processNotification(
+      for: maybeResults ?? .empty,
+      success: success
+    )
+  }
+}
