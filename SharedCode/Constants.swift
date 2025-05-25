@@ -104,6 +104,68 @@ struct ProcessedAppResults {
     
 }
 
+extension ProcessedAppResults {
+  static let empty = ProcessedAppResults(
+    appAssignments: [],
+    appBundleIdActual: "",
+    appBundleIdExpected: "",
+    appCategories: [],
+    appDeploymentArch: 3,
+    appDeploymentType: 3,
+    appDescription: "",
+    appDeveloper: "",
+    appDisplayName: "",
+    appDownloadURL: "",
+    appDownloadURLx86: "",
+    appIconURL: "",
+    appIgnoreVersion: false,
+    appInfoURL: "",
+    appIsDualArchCapable: false,
+    appIsFeatured: false,
+    appIsManaged: false,
+    appLabelName: "",
+    appLabelType: "",
+    appLocalURL: "",
+    appLocalURLx86: "",
+    appMinimumOS: "",
+    appNotes: "",
+    appOwner: "",
+    appPlatform: "",
+    appPrivacyPolicyURL: "",
+    appPublisherName: "",
+    appScriptPreInstall: "",
+    appScriptPostInstall: "",
+    appTeamID: "",
+    appTrackingID: "",
+    appVersionActual: "",
+    appVersionExpected: ""
+  )
+}
+
+extension ProcessedAppResults {
+    
+    /// Emoji + label for architecture
+    var architectureEmoji: String {
+        switch appDeploymentArch {
+        case 0: return "🌍 Arm64"
+        case 1: return "🌍 x86_64"
+        case 2: return "🌍 Universal"
+        default: return "❓ Unknown"
+        }
+    }
+
+    /// Emoji + label for deployment type (DMG, PKG, LOB)
+    var deploymentTypeEmoji: String {
+        switch appDeploymentType {
+        case 0: return "💾 DMG"
+        case 1: return "📦 PKG"
+        case 2: return "🏢 LOB"
+        default: return "❓ Unknown"
+        }
+    }
+}
+
+
 struct Category: Codable, Equatable {
     var displayName: String
     var id: String
