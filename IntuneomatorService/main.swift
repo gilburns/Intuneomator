@@ -187,26 +187,32 @@ func runIntuneAutomationQuiet() {
         Logger.log("Processing folder \(index+1)/\(validFolders.count): \(folder)", logType: logType)
         let folderName = folder.components(separatedBy: "_")[0]
         
-        Logger.log("  Updating Installomator label data: \(folderName)", logType: logType)
+        Logger.log("  Updating Installomator label data: \(folder)", logType: logType)
 
         // Update label plist (process_label.sh)
         processLabelScript(withParam: folder)
 
-        Logger.log("  Connecting to Intune.", logType: logType)
+        Logger.log("  Processing \(folder).", logType: logType)
         // Run the automation for folder
         processLabelQuiet(withParam: folder)
-        
     }
     
     // Check for authentication expirations before exiting
-    let authMethod = ConfigManager.readPlistValue(key: "AuthMethod") ?? ""
-    if authMethod == "certificate" {
+    guard let authMethod = ConfigManager.readPlistValue(key: "AuthMethod") as String? else {
+        return
+    }
+    
+    switch authMethod {
+    case "certificate":
         let expirationChecker = ExpirationChecker()
         expirationChecker.checkCertificateExpirationAndNotify()
-    } else {
+    case "secret":
         let expirationChecker = ExpirationChecker()
         expirationChecker.checkSecretExpirationAndNotify()
+    default:
+        Logger.log("Unsupported authMethod: \(authMethod)", logType: logType)
     }
+
 }
 
 // individual ondemaindQueue processing for daemon
@@ -238,8 +244,13 @@ func checkForUpdates() {
 
 func testFunction() {
     print("Test function called")
-    let expirationChecker = ExpirationChecker()
-    expirationChecker.checkCertificateExpirationAndNotify()
+    
+//    let group = DispatchGroup()
+//    group.enter()
+//    
+//        
+//    group.leave()
+//    group.wait()
 }
 
 
