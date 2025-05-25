@@ -96,6 +96,12 @@ class TeamsNotifier {
             ],
             [
                 "type": "TextBlock",
+                "text": "**Software Details:**",
+                "weight": "Bolder",
+                "spacing": "Medium"
+            ],
+            [
+                "type": "TextBlock",
                 "text": "---",
                 "weight": "Lighter",
                 "spacing": "Medium",
