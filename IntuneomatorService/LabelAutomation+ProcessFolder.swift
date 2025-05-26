@@ -321,10 +321,13 @@ extension LabelAutomation {
         Logger.log("  " + folderName + ": Confirming app upload to Intune...", logType: logType)
         
         var uploadSucceeded: Bool = false
-        
-        do {
-            try await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
+        do{
+            try await Task.sleep(nanoseconds: 15_000_000_000) // 15 seconds
+        } catch {
+            Logger.log("Error sleeping: \(error.localizedDescription)")
+        }
 
+        do {
             let entraAuthenticator = EntraAuthenticator()
             let authToken = try await entraAuthenticator.getEntraIDToken()
             
