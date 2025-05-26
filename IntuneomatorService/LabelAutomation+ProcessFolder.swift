@@ -263,9 +263,6 @@ extension LabelAutomation {
 
         }
         
-        Logger.log("\(processedAppResults!)", logType: logType)
-        
-        
         // MARK: - Upload to Intune
         do {
             
@@ -308,7 +305,7 @@ extension LabelAutomation {
             let fileSizeBytes = fileAttributes[.size] as? Int64 ?? 0
             let fileSizeMB = Double(fileSizeBytes) / 1_048_576
                     
-            Logger.logNoDateStamp("\(labelDisplayName)\t\(labelName)\t\(finalFilename ?? "Unknown")\t\(String(format: "%.2f", fileSizeMB)) MB\t\(fileIdentifier)\t\(fileVersionActual)\t\(fileVersionExpected)\t\(labelTrackingID)\t\(finalURL)", logType: logType)
+            Logger.logNoDateStamp("\(labelDisplayName)\t\(labelName)\t\(finalFilename ?? "Unknown")\t\(String(format: "%.2f", fileSizeMB)) MB\t\(fileIdentifier)\t\(fileVersionActual)\t\(fileVersionExpected)\t\(labelTrackingID)\t\(finalURL)", logType: "Upload")
             
         } catch {
             Logger.log("Unable to get file size: \(error.localizedDescription)", logType: logType)
