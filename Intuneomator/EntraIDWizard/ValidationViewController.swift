@@ -11,6 +11,8 @@ class ValidationViewController: NSViewController, WizardStepProtocol {
     var onCompletionStatusChanged: ((Bool) -> Void)?
     var isStepCompleted: Bool { return true }
 
+    private let logType = "Settings"
+
     @IBOutlet weak var tenantIDTextField: NSTextField!
     @IBOutlet weak var applicationIDTextField: NSTextField!
     
@@ -133,15 +135,15 @@ class ValidationViewController: NSViewController, WizardStepProtocol {
     // MARK: - XPC Methods
     private func setApplicationID() {
         let appIDString = applicationIDTextField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        XPCManager.shared.setApplicationID(appIDString) { success in
-            Logger.logUser("Application ID updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+        XPCManager.shared.setApplicationID(appIDString) { [self] success in
+            Logger.logUser("Application ID updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
     
     private func setTenantID() {
         let tenantIDString = tenantIDTextField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        XPCManager.shared.setTenantID(tenantIDString) { success in
-            Logger.logUser("Tenant ID updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+        XPCManager.shared.setTenantID(tenantIDString) { [self] success in
+            Logger.logUser("Tenant ID updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
 
