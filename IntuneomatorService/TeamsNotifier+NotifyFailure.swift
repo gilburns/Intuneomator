@@ -124,7 +124,7 @@ extension TeamsNotifier {
             ])
         }
         
-        // Send Teams Notification directly (no CVEs for errors)
+        // Send Teams Notification
         sendTeamsNotification(bodyContent: bodyContent)
     }
 
