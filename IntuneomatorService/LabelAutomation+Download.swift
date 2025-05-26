@@ -13,7 +13,8 @@ extension LabelAutomation {
     // Check if the version already exists in cache
     static func isVersionCached(forLabel labelName: String, displayName: String, version: String, deploymentType: Int, deploymentArch: Int) throws -> URL {
         let versionCheckPath = AppConstants.intuneomatorCacheFolderURL
-            .appendingPathComponent("\(labelName)/\(version)/")
+            .appendingPathComponent(labelName)
+            .appendingPathComponent(version)
         
         Logger.log("LabelAutomation: Checking cache for version: \(versionCheckPath)", logType: logType)
         Logger.log("Label: \(labelName)", logType: logType)
@@ -60,7 +61,7 @@ extension LabelAutomation {
     }
     
     
-    // Async version of the function (alternative approach)
+    // Async version of the function
     static func isVersionUploadedToIntuneAsync(appInfo: [FilteredIntuneAppInfo], version: String) async -> Bool {
         // Simple direct check
         return appInfo.contains { app in
