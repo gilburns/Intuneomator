@@ -9,18 +9,18 @@ import Foundation
 
 extension TeamsNotifier {
                 
-    static func processNotification(for processedAppResults: ProcessedAppResults, success: Bool) -> Bool {
+    func processNotification(for processedAppResults: ProcessedAppResults, success: Bool) -> Bool {
         
         guard ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") == true
         else {
-            Logger.log("Notifications disabled", logType: logType)
+            Logger.log("Notifications disabled", logType: TeamsNotifier.logType)
           return false
         }
 
         guard let urlString: String = ConfigManager.readPlistValue(key: "TeamsWebhookURL"),
               !urlString.isEmpty
         else {
-          Logger.log("No Teams Webhook URL set. Skipping.", logType: logType)
+            Logger.log("No Teams Webhook URL set. Skipping.", logType: TeamsNotifier.logType)
           return false
         }
         
@@ -36,7 +36,7 @@ extension TeamsNotifier {
 
         
         // Date via static formatter
-        let time = "🕰️ \(dateFormatter.string(from: Date()))"
+        let time = "🕰️ \(TeamsNotifier.dateFormatter.string(from: Date()))"
         
         let assignedGroups = processedAppResults.appAssignments
         
@@ -92,7 +92,7 @@ extension TeamsNotifier {
 
 extension TeamsNotifier {
   /// accepts an optional, unwraps (or uses .empty) and forwards
-  static func processNotification(
+  func processNotification(
     for maybeResults: ProcessedAppResults?,
     success: Bool
   ) -> Bool {
