@@ -8,10 +8,12 @@
 import Foundation
 
 class PKGCreatorUniversal {
+    
+    private let logType  = "PKGCreatorUniversal"
 
     func createUniversalPackage(inputPathArm64: String, inputPathx86_64: String, outputDir: String) -> (packagePath: String, appName: String, appID: String, appVersion: String)? {
 
-        Logger.log("createUniversalPackage", logType: "PKGCreatorUniversal")
+        Logger.log("createUniversalPackage", logType: logType)
         let fileManager = FileManager.default
         let tempDir = "\(NSTemporaryDirectory())/universal-temp-\(UUID().uuidString)"
         let rootArm = "\(tempDir)/root_arm"
@@ -25,16 +27,16 @@ class PKGCreatorUniversal {
         let distributionXML = "\(tempDir)/distribution.xml"
         let finalPackagePath: String
         
-        Logger.log("Temp dir created: \(tempDir)", logType: "PKGCreatorUniversal")
-        Logger.log("Output dir created: \(outputDir)", logType: "PKGCreatorUniversal")
-        Logger.log("Input arm64: \(inputPathArm64)", logType: "PKGCreatorUniversal")
-        Logger.log("Input x86_64: \(inputPathx86_64)", logType: "PKGCreatorUniversal")
+        Logger.log("Temp dir created: \(tempDir)", logType: logType)
+        Logger.log("Output dir created: \(outputDir)", logType: logType)
+        Logger.log("Input arm64: \(inputPathArm64)", logType: logType)
+        Logger.log("Input x86_64: \(inputPathx86_64)", logType: logType)
 
         do {
             try fileManager.createDirectory(atPath: appsArm, withIntermediateDirectories: true)
             try fileManager.createDirectory(atPath: appsX86, withIntermediateDirectories: true)
         } catch {
-            Logger.log("Error: Failed to create temp root directories - \(error)", logType: "PKGCreatorUniversal")
+            Logger.log("Error: Failed to create temp root directories - \(error)", logType: logType)
             return nil
         }
 
@@ -47,12 +49,12 @@ class PKGCreatorUniversal {
             try fileManager.copyItem(atPath: inputPathArm64, toPath: destArm)
             try fileManager.copyItem(atPath: inputPathx86_64, toPath: destX86)
         } catch {
-            Logger.log("Error copying app bundles - \(error)", logType: "PKGCreatorUniversal")
+            Logger.log("Error copying app bundles - \(error)", logType: logType)
             return nil
         }
 
         guard let appInfo = extractAppInfo(from: destArm) else {
-            Logger.log("Error reading Info.plist from ARM app", logType: "PKGCreatorUniversal")
+            Logger.log("Error reading Info.plist from ARM app", logType: logType)
             return nil
         }
 
@@ -118,7 +120,7 @@ class PKGCreatorUniversal {
         do {
             try xml.write(toFile: distributionXML, atomically: true, encoding: .utf8)
         } catch {
-            Logger.log("Failed to write distribution.xml - \(error)", logType: "PKGCreatorUniversal")
+            Logger.log("Failed to write distribution.xml - \(error)", logType: logType)
             return nil
         }
 
@@ -132,14 +134,14 @@ class PKGCreatorUniversal {
         if fileManager.fileExists(atPath: finalPackagePath) {
             return (finalPackagePath, appInfo.appName, appInfo.appID, appInfo.appVersion)
         } else {
-            Logger.log("Universal package creation failed.", logType: "PKGCreatorUniversal")
+            Logger.log("Universal package creation failed.", logType: logType)
             return nil
         }
     }
 
     private func modifyComponentPlist(at path: String) -> Bool {
         guard let plistData = NSMutableArray(contentsOfFile: path) else {
-            Logger.log("Error: Unable to read component plist.", logType: "PKGCreatorUniversal")
+            Logger.log("Error: Unable to read component plist.", logType: logType)
             return false
         }
         
@@ -177,7 +179,7 @@ class PKGCreatorUniversal {
         let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
         let output = String(data: outputData, encoding: .utf8) ?? ""
         
-        Logger.log("Command output: \(output)", logType: "PKGCreatorUniversal")
+        Logger.log("Command output: \(output)", logType: logType)
 
         return process.terminationStatus == 0
     }
