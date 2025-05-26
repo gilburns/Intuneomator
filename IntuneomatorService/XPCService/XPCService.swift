@@ -11,7 +11,7 @@ import Foundation
 class XPCService: NSObject, XPCServiceProtocol {
     
     private var transactionObjects: [String: NSObject] = [:]
-    
+        
     func beginOperation(identifier: String, timeout: TimeInterval = 300, completion: @escaping (Bool) -> Void) {
         if self.transactionObjects[identifier] != nil {
             completion(false)
