@@ -16,7 +16,7 @@ extension XPCService {
         scheduleData: Data,
         withReply reply: @escaping (Bool, String?) -> Void
     ) {
-        Logger.log("createOrUpdateScheduledTask called for \(label)", logType: "TaskScheduling")
+        Logger.log("createOrUpdateScheduledTask called for \(label)", logType: logType)
         
         do {
             guard let decoded = try NSKeyedUnarchiver.unarchivedObject(ofClasses: [NSArray.self, ScheduledTime.self], from: scheduleData) as? [ScheduledTime] else {
@@ -47,7 +47,7 @@ extension XPCService {
         label: String,
         withReply reply: @escaping (Bool, String?) -> Void
     ) {
-        Logger.log("XPCService: createOrUpdateScheduledTask called for \(label)", logType: "TaskScheduling")
+        Logger.log("XPCService: createOrUpdateScheduledTask called for \(label)", logType: logType)
         
         ScheduledTaskManager.removeScheduledTask(label: label, completion: reply)
     }
