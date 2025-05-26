@@ -15,7 +15,8 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
     var onCompletionStatusChanged: ((Bool) -> Void)?
     var isStepCompleted: Bool { return true } // ✅ Read-only, so always complete
 
-    
+    private let logType = "Settings"
+
     @IBOutlet weak var webView: WKWebView!
 
     
@@ -43,7 +44,7 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
             let htmlText = convertMarkdownToHTML(markdownText)
             webView.loadHTMLString(htmlText, baseURL: nil)
         } catch {
-            Logger.logUser("Failed to load Markdown file.", logType: "SetupWizard")
+            Logger.logUser("Failed to load Markdown file.", logType: logType)
         }
     }
 
@@ -77,19 +78,19 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
     // MARK: - Printing
 
     @IBAction func printInstructionsClicked(_ sender: NSButton) {
-        webView.createPDF { result in
+        webView.createPDF { [self] result in
             switch result {
             case .success(let pdfData):
                 self.printPDFData(pdfData)
             case .failure(let error):
-                Logger.logUser("Failed to create PDF for printing: \(error.localizedDescription)", logType: "SetupWizard")
+                Logger.logUser("Failed to create PDF for printing: \(error.localizedDescription)", logType: logType)
             }
         }
     }
     
     func printPDFData(_ pdfData: Data) {
         guard let pdfDocument = PDFDocument(data: pdfData) else {
-            Logger.logUser("Error: Failed to create PDF document from data", logType: "SetupWizard")
+            Logger.logUser("Error: Failed to create PDF document from data", logType: logType)
             return
         }
 
@@ -131,21 +132,21 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
         
     func exportWebViewToPDF(to url: URL) {
         if #available(macOS 12.0, *) {
-            webView.createPDF { result in
+            webView.createPDF { [self] result in
                 switch result {
                 case .success(let data):
                     do {
                         try data.write(to: url)
-                        Logger.logUser("PDF successfully saved at: \(url)", logType: "SetupWizard")
+                        Logger.logUser("PDF successfully saved at: \(url)", logType: logType)
                     } catch {
-                        Logger.logUser("Failed to save PDF: \(error)", logType: "SetupWizard")
+                        Logger.logUser("Failed to save PDF: \(error)", logType: logType)
                     }
                 case .failure(let error):
-                    Logger.logUser("Failed to create PDF: \(error.localizedDescription)", logType: "SetupWizard")
+                    Logger.logUser("Failed to create PDF: \(error.localizedDescription)", logType: logType)
                 }
             }
         } else {
-            Logger.logUser("PDF export is only supported on macOS 12 or later.", logType: "SetupWizard")
+            Logger.logUser("PDF export is only supported on macOS 12 or later.", logType: logType)
         }
     }
     
