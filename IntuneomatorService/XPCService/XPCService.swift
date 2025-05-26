@@ -12,6 +12,8 @@ class XPCService: NSObject, XPCServiceProtocol {
     
     private var transactionObjects: [String: NSObject] = [:]
         
+    private let logType = "XPCService"
+    
     func beginOperation(identifier: String, timeout: TimeInterval = 300, completion: @escaping (Bool) -> Void) {
         if self.transactionObjects[identifier] != nil {
             completion(false)
@@ -19,12 +21,12 @@ class XPCService: NSObject, XPCServiceProtocol {
         }
         
         self.transactionObjects[identifier] = NSObject()
-        Logger.log("Transaction begun for: \(identifier)", logType: "XPCService")
+        Logger.log("Transaction begun for: \(identifier)", logType: logType)
         
         // Add automatic timeout
         DispatchQueue.main.asyncAfter(deadline: .now() + timeout) { [weak self] in
             if self?.transactionObjects[identifier] != nil {
-                Logger.log("Transaction \(identifier) timed out after \(timeout) seconds", logType: "XPCService")
+                Logger.log("Transaction \(identifier) timed out after \(timeout) seconds", logType: self!.logType)
                 self?.transactionObjects.removeValue(forKey: identifier)
             }
         }
@@ -36,7 +38,7 @@ class XPCService: NSObject, XPCServiceProtocol {
         // Remove the transaction object
         if self.transactionObjects[identifier] != nil {
             self.transactionObjects.removeValue(forKey: identifier)
-            Logger.log("Transaction ended for: \(identifier)", logType: "XPCService")
+            Logger.log("Transaction ended for: \(identifier)", logType: logType)
         }
         completion(true)
     }
@@ -47,7 +49,7 @@ class XPCService: NSObject, XPCServiceProtocol {
     
     
     func sendMessage(_ message: String, reply: @escaping (String) -> Void) {
-        Logger.log("Daemon received: \(message)", logType: "XPCService")
+        Logger.log("Daemon received: \(message)", logType: logType)
         reply("Daemon Response: Received '\(message)' at \(Date())")
     }
 
