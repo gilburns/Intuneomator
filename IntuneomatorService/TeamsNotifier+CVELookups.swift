@@ -12,11 +12,26 @@ extension TeamsNotifier {
     
     func createCVESections(_ cves: [VulnerabilityEntry]) -> [[String: Any]] {
         guard !cves.isEmpty else {
-            return [[
-                "type": "TextBlock",
-                "text": "✅ No recent security vulnerabilities found",
-                "color": "good"
-            ]]
+            return [
+                [
+                    "type": "TextBlock",
+                    "text": "---",
+                    "weight": "Lighter",
+                    "spacing": "Medium",
+                    "separator": true
+                ],
+                [
+                    "type": "TextBlock",
+                    "text": "**Security Vulnerabilities:**",
+                    "weight": "Bolder",
+                    "spacing": "Medium"
+                ],
+                [
+                    "type": "TextBlock",
+                    "text": "✅ No recent security vulnerabilities found",
+                    "color": "good"
+                ]
+            ]
         }
         
         // Build severity summary
