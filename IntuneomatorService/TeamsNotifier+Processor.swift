@@ -74,7 +74,7 @@ extension TeamsNotifier {
                     imageURL: iconImageURL,
                     deploymentType: processedAppResults.deploymentTypeEmoji,
                     architecture: processedAppResults.architectureEmoji,
-                    errorMessage: "Failed to upload to Intune. The automation will try again the next time it runs."
+                    errorMessage: "Failed to upload to Intune. The automation will try again the next time it runs. If this error persists, please review the logs for more information."
                 )
             }
             return true
