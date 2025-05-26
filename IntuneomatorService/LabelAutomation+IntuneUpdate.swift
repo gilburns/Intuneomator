@@ -42,8 +42,6 @@ extension LabelAutomation {
             return
         }
         
-        Logger.log("Processed App Results: \(String(describing: processedAppResults))", logType: logType)
-
         // MARK: - Check Intune for any versions
         
         // Check Intune for an existing versions
