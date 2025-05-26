@@ -4627,19 +4627,6 @@ Gw
             </objects>
             <point key="canvasLocation" x="-966" y="-958"/>
         </scene>
-        <!--View Controller-->
-        <scene sceneID="zNC-c6-XkE">
-            <objects>
-                <viewController id="FIq-Sl-JrK" sceneMemberID="viewController">
-                    <view key="view" id="US8-oQ-eX7">
-                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </view>
-                </viewController>
-                <customObject id="vki-iO-3XY" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-1375" y="807"/>
-        </scene>
         <!--Discovered Apps View Controller-->
         <scene sceneID="3hg-cQ-NjY">
             <objects>
