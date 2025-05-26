@@ -11,50 +11,51 @@ extension LabelAutomation {
     
     // MARK: - Downloaded file cached
     // Check if the version already exists in cache
-    static func isVersionCached(forLabel labelName: String, displayName: String, version: String, deploymentType: Int, deploymentArch: Int) throws -> URL {
-        let versionCheckPath = AppConstants.intuneomatorCacheFolderURL
-            .appendingPathComponent(labelName)
-            .appendingPathComponent(version)
+    static func isVersionCached(forProcessedResult results: ProcessedAppResults) throws -> URL {
         
-        Logger.log("LabelAutomation: Checking cache for version: \(versionCheckPath)", logType: logType)
-        Logger.log("Label: \(labelName)", logType: logType)
-        Logger.log("Display name: \(displayName)", logType: logType)
-        Logger.log("Version: \(version)", logType: logType)
-        Logger.log("Deployment type: \(deploymentType)", logType: logType)
-        Logger.log("Deployment arch: \(deploymentArch)", logType: logType)
+        let versionCheckPath = AppConstants.intuneomatorCacheFolderURL
+            .appendingPathComponent(results.appLabelName)
+            .appendingPathComponent(results.appVersionExpected)
+        
+        Logger.log("Checking cache for local version:", logType: logType)
         
         let fileName: String
         
         let fileSuffix: String
-        if deploymentType == 0 {
+        if results.appDeploymentType == 0 {
             fileSuffix = "dmg"
         } else {
             fileSuffix = "pkg"
         }
         
         let fileArch: String
-        if deploymentArch == 0 {
+        if results.appDeploymentArch == 0 {
             fileArch = "arm64"
-        } else if deploymentArch == 1 {
+        } else if results.appDeploymentArch == 1 {
             fileArch = "x86_64"
         } else {
             fileArch = "universal"
         }
         
-        if deploymentType == 2 {
-            fileName = "\(displayName)-\(version).\(fileSuffix)"
+        if results.appDeploymentType == 2 {
+            fileName = "\(results.appDisplayName)-\(results.appVersionExpected).\(fileSuffix)"
         } else  {
-            fileName = "\(displayName)-\(version)-\(fileArch).\(fileSuffix)"
+            let dualArch = titleIsDualArch(forLabel: results.appLabelName, guid: results.appTrackingID)
+            if dualArch {
+                fileName = "\(results.appDisplayName)-\(results.appVersionExpected)-\(fileArch).\(fileSuffix)"
+            } else {
+                fileName = "\(results.appDisplayName)-\(results.appVersionExpected).\(fileSuffix)"
+            }
         }
         
-        
-        let fullPath = versionCheckPath.appendingPathComponent(fileName)
+        let fullPath = versionCheckPath
+            .appendingPathComponent(fileName)
         
         if FileManager.default.fileExists(atPath: fullPath.path) {
-            Logger.log("LabelAutomation: File exists: \(fullPath.path))", logType: logType)
+            Logger.log("  File already cached: \(fileName))", logType: logType)
             return fullPath
         } else {
-            Logger.log("LabelAutomation: File does not exists: \(fullPath.path)", logType: logType)
+            Logger.log("  File not in cache: \(fileName)", logType: logType)
         }
         
         throw NSError(domain: "InvalidURL", code: 100, userInfo: [NSLocalizedDescriptionKey: "Cached file not found: \(fileName)"])
@@ -69,6 +70,15 @@ extension LabelAutomation {
         }
     }
     
+    static func titleIsDualArch(forLabel label: String, guid: String) -> Bool {
+        
+        let labelX86PlistPath = AppConstants.intuneomatorManagedTitlesFolderURL
+            .appendingPathComponent("\(label)_\(guid)", isDirectory: true)
+            .appendingPathComponent("\(label)_i386.plist", isDirectory: true)
+        
+        return FileManager.default.fileExists(atPath: labelX86PlistPath.path)
+    }
+
     
     // MARK: - Download File
     static func downloadFile(for folderName: String, processedAppResults: ProcessedAppResults, downloadArch: String = "Arm") async throws -> URL {
