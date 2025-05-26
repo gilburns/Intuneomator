@@ -10,6 +10,7 @@ import Foundation
 // Swift Class for Sending Teams Workflow Notifications
 class TeamsNotifier {
     let webhookURL: String
+    
     static let logType = "TeamsNotifier"
 
     init(webhookURL: String) {
