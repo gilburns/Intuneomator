@@ -10,6 +10,8 @@ import Foundation
 class OnDemandTaskRunner {
     static let idleWaitTime: TimeInterval = 5.0
     static let maxIdleIterations = 5 // 5 * 5 = 25 seconds idle
+    
+    static let logType = "OnDemandTaskRunner"
 
     static func start() async {
         let queueDirectory = AppConstants.intuneomatorOndemandTriggerURL
@@ -27,14 +29,14 @@ class OnDemandTaskRunner {
                 if name.hasSuffix(".trigger") {
                     triggerFiles.append(file)
                 } else {
-                    Logger.log("Removing unexpected file: \(name)", logType: "OnDemandTaskRunner")
+                    Logger.log("Removing unexpected file: \(name)", logType: logType)
                     try? FileManager.default.removeItem(at: file)
                 }
             }
 
             if triggerFiles.isEmpty {
                 idleCount += 1
-                Logger.log("Idle count: \(idleCount)", logType: "OnDemandTaskRunner")
+                Logger.log("Idle count: \(idleCount)", logType: logType)
                 try? await Task.sleep(nanoseconds: UInt64(idleWaitTime * 1_000_000_000))
                 continue
             }
@@ -43,26 +45,26 @@ class OnDemandTaskRunner {
 
             for file in triggerFiles {
                 let folderName = file.deletingPathExtension().lastPathComponent
-                Logger.log("Processing touch file: \(folderName)", logType: "OnDemandTaskRunner")
+                Logger.log("Processing touch file: \(folderName)", logType: logType)
                 let folderPath = managedTitlesDirectory.appendingPathComponent(folderName)
 
                 guard FileManager.default.fileExists(atPath: folderPath.path, isDirectory: nil) else {
-                    Logger.log("Skipping nonexistent folder: \(folderName)", logType: "OnDemandTaskRunner")
+                    Logger.log("Skipping nonexistent folder: \(folderName)", logType: logType)
                     try? FileManager.default.removeItem(at: file)
                     continue
                 }
 
                 do {
-                    Logger.log("Processing: \(folderName)", logType: "OnDemandTaskRunner")
+                    Logger.log("Processing: \(folderName)", logType: logType)
                     await LabelAutomation.processFolder(named: folderName)
                     try FileManager.default.removeItem(at: file)
-                    Logger.log("Finished: \(folderName)", logType: "OnDemandTaskRunner")
+                    Logger.log("Finished: \(folderName)", logType: logType)
                 } catch {
-                    Logger.log("Error processing \(folderName): \(error.localizedDescription)", logType: "OnDemandTaskRunner")
+                    Logger.log("Error processing \(folderName): \(error.localizedDescription)", logType: logType)
                 }
             }
         }
 
-        Logger.log("No more files to process. Exiting.", logType: "OnDemandTaskRunner")
+        Logger.log("No more files to process. Exiting.", logType: logType)
     }
 }
