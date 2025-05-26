@@ -18,7 +18,7 @@ extension LabelAutomation {
         var appInfo: [FilteredIntuneAppInfo]
 
         Logger.log("--------------------------------------------------------", logType: logType)
-        Logger.log("🚀 Start removal of Intune automations for: \(folderName)", logType: logType)
+        Logger.log("🚀 Start removal of Intune automations for: \(folderName)", logType: "Automation")
         Logger.log("Start removal of Intune automations for: \(folderName)", logType: logType)
 
         let folderResults = InstallomatorLabelProcessor.runProcessLabelScript(for: folderName)
