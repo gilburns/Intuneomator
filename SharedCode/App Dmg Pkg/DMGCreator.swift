@@ -9,13 +9,15 @@ import Foundation
 
 class DMGCreator {
 
+    private let logType = "DMGCreator"
+    
     // MARK: - Main Logic
 
     // Process the input path and generate the DMG
     func processToDMG(inputPath: String, outputDirectory: String?) throws -> (dmgPath: String, appName: String, appID: String, appVersion: String) {
         
-        Logger.log("processing \(inputPath)", logType: "DMGCreator")
-        Logger.log("Output \(String(describing: outputDirectory))", logType: "DMGCreator")
+        Logger.log("processing \(inputPath)", logType: logType)
+        Logger.log("Output \(String(describing: outputDirectory))", logType: logType)
 
         let tempDir = NSTemporaryDirectory() + UUID().uuidString
         
@@ -24,7 +26,7 @@ class DMGCreator {
             do {
                 try FileManager.default.removeItem(atPath: tempDir)
             } catch {
-                Logger.log("Warning: Failed to clean up temporary directory: \(error.localizedDescription)", logType: "DMGCreator")
+                Logger.log("Warning: Failed to clean up temporary directory: \(error.localizedDescription)", logType: logType)
             }
         }
         
@@ -52,10 +54,10 @@ class DMGCreator {
 
         let appArch: String = getAppArchitecture(appPath: appPath) ?? "unknown"
 
-        Logger.log("appName \(appName)", logType: "DMGCreator")
-        Logger.log("appID \(appID)", logType: "DMGCreator")
-        Logger.log("appVersion \(appVersion)", logType: "DMGCreator")
-        Logger.log("appArch \(appArch)", logType: "DMGCreator")
+        Logger.log("appName \(appName)", logType: logType)
+        Logger.log("appID \(appID)", logType: logType)
+        Logger.log("appVersion \(appVersion)", logType: logType)
+        Logger.log("appArch \(appArch)", logType: logType)
 
         
         // Determine output directory
@@ -66,7 +68,7 @@ class DMGCreator {
         do {
             try createDMG(fromApp: appPath, outputDirectory: outputDir)
         } catch {
-            Logger.log("Failed to create DMG: \(error.localizedDescription)", logType: "DMGCreator")
+            Logger.log("Failed to create DMG: \(error.localizedDescription)", logType: logType)
         }
         return (dmgPath: dmgPath, appName: appName, appID: appID, appVersion: appVersion)
     }
@@ -148,9 +150,9 @@ class DMGCreator {
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
             
-            Logger.log("Command output: \(output)", logType: "DMGCreator")
+            Logger.log("Command output: \(output)", logType: logType)
         } catch {
-            Logger.log("Error running command: \(error)", logType: "DMGCreator")
+            Logger.log("Error running command: \(error)", logType: logType)
             throw NSError(domain: "ShellCommandError", code: Int(process.terminationStatus), userInfo: nil)
         }
         
@@ -211,9 +213,9 @@ class DMGCreator {
                 "-anyowners",
                 outputDMGPath
             ])
-            Logger.log("DMG created successfully at \(outputDMGPath)", logType: "DMGCreator")
+            Logger.log("DMG created successfully at \(outputDMGPath)", logType: logType)
         } catch {
-            Logger.log("Error creating DMG: \(error)", logType: "DMGCreator")
+            Logger.log("Error creating DMG: \(error)", logType: logType)
             return
         }
     }
