@@ -20,6 +20,8 @@ class CertificateViewController: NSViewController {
     @IBOutlet weak var statusLabel: NSTextField! // New status field
     @IBOutlet weak var generateButton: NSButton! // Generate button
 
+    
+    // MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         thumbprintLabel.stringValue = ""
@@ -61,6 +63,7 @@ class CertificateViewController: NSViewController {
     }
 
 
+    // MARK: Actions
     @IBAction func generateCertificateButtonClicked(_ sender: NSButton) {
         let certName = certNameField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         let outputPath = outputPathField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
