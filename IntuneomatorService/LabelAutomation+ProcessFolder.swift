@@ -249,7 +249,8 @@ extension LabelAutomation {
                         Logger.log("  Version \(processedAppResults!.appVersionActual) is not yet uploaded to Intune", logType: logType)
                         
                     } catch {
-                        Logger.log("Failed to fetch app info from Intune: \(error.localizedDescription)", logType: logType)
+                        let messageResult = TeamsNotifier.processNotification(for: processedAppResults ?? .empty, success: false, errorMessage: "Failed to fetch app info from Intune \(processedAppResults?.appDisplayName ?? "unknown"): \(error.localizedDescription)")
+                        Logger.log("Failed to fetch app info from Intune \(processedAppResults?.appDisplayName ?? "unknown"): \(error.localizedDescription). Teams notification sent: \(messageResult)", logType: logType)
                         return
                     }
                 }
@@ -275,7 +276,7 @@ extension LabelAutomation {
             }
             
             guard FileManager.default.fileExists(atPath: localFilePath) else {
-                let messageResult = TeamsNotifier.processNotification(for: processedAppResults, success: false)
+                let messageResult = TeamsNotifier.processNotification(for: processedAppResults ?? .empty, success: false, errorMessage: "Upload file does not exist at path. Please check the logs for file path and try again.")
                 Logger.log("File does not exist. Teams notification sent: \(messageResult)", logType: logType)
                 return
             }
@@ -284,7 +285,8 @@ extension LabelAutomation {
             try await EntraGraphRequests.uploadAppToIntune(authToken: authToken, app: processedAppResults!)
             
         } catch {
-            Logger.log("Error uploading \(processedAppResults?.appLocalURL ?? "unknown") to Intune: \(error.localizedDescription)", logType: logType)
+            let messageResult = TeamsNotifier.processNotification(for: processedAppResults ?? .empty, success: false, errorMessage: "Error uploading \(processedAppResults?.appLocalURL ?? "unknown") to Intune: \(error.localizedDescription)")
+            Logger.log("Error uploading \(processedAppResults?.appLocalURL ?? "unknown") to Intune: \(error.localizedDescription). Teams notification sent: \(messageResult)", logType: logType)
         }
         
         
