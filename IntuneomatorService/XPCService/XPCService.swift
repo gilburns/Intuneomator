@@ -12,7 +12,7 @@ class XPCService: NSObject, XPCServiceProtocol {
     
     private var transactionObjects: [String: NSObject] = [:]
         
-    private let logType = "XPCService"
+    let logType = "XPCService"
     
     func beginOperation(identifier: String, timeout: TimeInterval = 300, completion: @escaping (Bool) -> Void) {
         if self.transactionObjects[identifier] != nil {
