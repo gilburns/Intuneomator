@@ -11,6 +11,7 @@ class TeamsNotificationsViewController: NSViewController, WizardStepProtocol {
     var onCompletionStatusChanged: ((Bool) -> Void)?
     var isStepCompleted: Bool { return true }
 
+    private let logType = "Settings"
 
     @IBOutlet weak var fieldAppsToKeep: NSTextField!
     @IBOutlet weak var fieldLogDirectory: NSTextField!
@@ -49,21 +50,21 @@ class TeamsNotificationsViewController: NSViewController, WizardStepProtocol {
     
     
     @IBAction func buttonSendTeamsMessageClicked (_ sender: NSButton) {
-        Logger.logUser("Send Teams Notifications button clicked", logType: "SetupWizard")
-        Logger.logUser("Button state: \(sender.state)", logType: "SetupWizard")
+        Logger.logUser("Send Teams Notifications button clicked", logType: logType)
+        Logger.logUser("Button state: \(sender.state)", logType: logType)
         fieldTeamsWebhookURL.isEnabled = sender.state == .on
         
         let isEnabled = sender.state == .on
-        XPCManager.shared.setTeamsNotificationsEnabled(isEnabled) { success in
-            Logger.logUser("Teams notifications updated: \(success == true ? "✅" : "❌")", logType: "SetupWizard")
+        XPCManager.shared.setTeamsNotificationsEnabled(isEnabled) { [self] success in
+            Logger.logUser("Teams notifications updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
 
     
     @IBAction func webhookURLChanged(_ sender: NSTextField) {
         let urlString = sender.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        XPCManager.shared.setTeamsWebhookURL(urlString) { success in
-            Logger.logUser("Webhook URL updated: \(success == true ? "✅" : "❌")", logType: "SetupWizard")
+        XPCManager.shared.setTeamsWebhookURL(urlString) { [self] success in
+            Logger.logUser("Webhook URL updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
 
