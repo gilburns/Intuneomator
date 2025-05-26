@@ -8,6 +8,8 @@
 import Foundation
 import AppKit
 
+private let logType = "EditViewController"
+
 extension EditViewController {
     
     // MARK: - Download Inspection
@@ -232,9 +234,9 @@ extension EditViewController {
             if dmgHasSLA(at: location.path) {
                 let success = await convertDmgWithSLA(at: location.path)
                 if success {
-                    Logger.logUser("Successfully converted dmg with SLA", logType: "EditViewController")
+                    Logger.logUser("Successfully converted dmg with SLA", logType: logType)
                 } else {
-                    Logger.logUser("Failed to convert dmg with SLA", logType: "EditViewController")
+                    Logger.logUser("Failed to convert dmg with SLA", logType: logType)
                     throw NSError(domain: "EditViewController", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert dmg containing pkg"])
                 }
             }
@@ -575,7 +577,7 @@ extension EditViewController {
         process.waitUntilExit()
         
         guard process.terminationStatus == 0 else {
-            Logger.logUser("Error: Failed to check for SLA in DMG.", logType: "LabelAutomation")
+            Logger.logUser("Error: Failed to check for SLA in DMG.", logType: logType)
             return false
         }
         
@@ -606,7 +608,7 @@ extension EditViewController {
         do {
             try process.run()
         } catch {
-            Logger.logUser("Error: Could not launch hdiutil: \(error)", logType: "LabelAutomation")
+            Logger.logUser("Error: Could not launch hdiutil: \(error)", logType: logType)
             return false
         }
         
@@ -618,12 +620,12 @@ extension EditViewController {
         }
         
         guard process.terminationStatus == 0 else {
-            Logger.logUser("Error: hdiutil failed to convert DMG with SLA.", logType: "LabelAutomation")
+            Logger.logUser("Error: hdiutil failed to convert DMG with SLA.", logType: logType)
             return false
         }
         
         guard FileManager.default.fileExists(atPath: tempFileURL.path) else {
-            Logger.logUser("Error: Converted file not found at expected location.", logType: "LabelAutomation")
+            Logger.logUser("Error: Converted file not found at expected location.", logType: logType)
             return false
         }
         
@@ -631,7 +633,7 @@ extension EditViewController {
             try FileManager.default.removeItem(atPath: path)
             try FileManager.default.moveItem(atPath: tempFileURL.path, toPath: path)
         } catch {
-            Logger.logUser("Failed to finalize converted DMG: \(error)", logType: "LabelAutomation")
+            Logger.logUser("Failed to finalize converted DMG: \(error)", logType: logType)
             return false
         }
         
