@@ -14,6 +14,8 @@ class WelcomeWizardViewController: NSViewController, NSTableViewDelegate, NSTabl
     
     var mainWindowController: MainWindowController?
 
+    private let logType = "Settings"
+    
     @IBOutlet weak var containerView: NSView!
     
     @IBOutlet weak var nextButton: NSButton!
@@ -124,10 +126,10 @@ class WelcomeWizardViewController: NSViewController, NSTableViewDelegate, NSTabl
     }
 
     func finalizeSetup() {
-        Logger.logUser("Wizard completed. Processing configuration...", logType: "SetupWizard")
+        Logger.logUser("Wizard completed. Processing configuration...", logType: logType)
         
-        XPCManager.shared.setFirstRunCompleted(true) { success in
-            Logger.logUser("First run updated: \(success == true ? "✅" : "❌")", logType: "SetupWizard")
+        XPCManager.shared.setFirstRunCompleted(true) { [self] success in
+            Logger.logUser("First run updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
 
         self.showMainWindow()
@@ -148,7 +150,7 @@ class WelcomeWizardViewController: NSViewController, NSTableViewDelegate, NSTabl
             window.delegate = mainWindowController // Ensure delegate is set
             window.makeKeyAndOrderFront(nil)
         } else {
-            Logger.logUser("Error: mainWindowController has no window.", logType: "SetupWizard")
+            Logger.logUser("Error: mainWindowController has no window.", logType: logType)
         }
     }
 
