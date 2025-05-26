@@ -74,7 +74,7 @@ class LogManagerUtil {
                    modifiedDate < expirationDate {
                     try fileManager.removeItem(at: fileURL)
                     Logger.logNoDateStamp("  Deleting old log file:", logType: logFileName)
-                    Logger.logNoDateStamp("  (fileURL.path)", logType: logFileName)
+                    Logger.logNoDateStamp("  \(fileURL.path)", logType: logFileName)
                 }
             } catch {
                 continue
