@@ -9,6 +9,8 @@ import Foundation
 
 class CacheManagerUtil {
     
+    static private let logType = "CacheCleaner"
+    
     /// Removes any cache folders that do not correspond to a managed title
     static func removeOrphanedCaches() {
         let managedTitlesURL = AppConstants.intuneomatorManagedTitlesFolderURL
@@ -32,7 +34,7 @@ class CacheManagerUtil {
                 if !managedTitles.contains(folderName) {
                     // Not a managed title, delete it
                     try? FileManager.default.removeItem(at: folder)
-                    Logger.log("🗑️ Removed orphaned cache folder: \(folderName)", logType: "CacheCleaner")
+                    Logger.log("🗑️ Removed orphaned cache folder: \(folderName)", logType: logType)
                 }
             }
         }
@@ -60,7 +62,7 @@ class CacheManagerUtil {
                 for version in versionsToDelete {
                     let versionPath = titleFolder.appendingPathComponent(version)
                     try? FileManager.default.removeItem(at: versionPath)
-                    Logger.log("🧹 Deleted old version: \(titleFolderName)/\(version)", logType: "CacheCleaner")
+                    Logger.log("🧹 Deleted old version: \(titleFolderName)/\(version)", logType: logType)
                 }
             }
         }
@@ -68,10 +70,10 @@ class CacheManagerUtil {
     
     /// Run full cleanup: orphaned folders first, then trim versions
     static func runCleanup() {
-        Logger.log("🔍 Running orphaned cache cleanup...", logType: "CacheCleaner")
+        Logger.log("🔍 Running orphaned cache cleanup...", logType: logType)
         removeOrphanedCaches()
         
-        Logger.log("🔍 Trimming old versions...", logType: "CacheCleaner")
+        Logger.log("🔍 Trimming old versions...", logType: logType)
         trimOldVersions()
     }
     
