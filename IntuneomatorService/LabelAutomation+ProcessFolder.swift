@@ -20,7 +20,7 @@ extension LabelAutomation {
         var appInfo: [FilteredIntuneAppInfo]
         
         Logger.log("--------------------------------------------------------", logType: logType)
-        Logger.log("🚀 Start processing of \(folderName)", logType: logType)
+        Logger.log("🚀 Start processing of \(folderName)", logType: "Automation")
         Logger.log("Start processing: \(folderName)", logType: logType)
 
         let folderResults = InstallomatorLabelProcessor.runProcessLabelScript(for: folderName)
