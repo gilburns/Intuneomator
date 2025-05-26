@@ -112,7 +112,7 @@ extension TeamsNotifier {
         bodyContent.append(contentsOf: groupInfoBlocks)
         
         // Fetch CVEs and send notification when complete
-        Logger.log("Loading CVEs for \(title)...", logType: "Teams")
+        Logger.log("Loading CVEs for \(title)...", logType: TeamsNotifier.logType)
         let fetcher = CVEFetcher()
         
         fetcher.fetchCVEsSimple(for: title) { [self] result in
@@ -121,9 +121,9 @@ extension TeamsNotifier {
             case .success(let cves):
                 let cveSections = createCVESections(cves)
                 bodyContent.append(contentsOf: cveSections)
-                Logger.log("CVE fetch complete. Found \(cves.count) CVEs", logType: "Teams")
+                Logger.log("CVE fetch complete. Found \(cves.count) CVEs", logType: TeamsNotifier.logType)
             case .failure(let error):
-                Logger.log("Error fetching CVEs: \(error)", logType: "Teams")
+                Logger.log("Error fetching CVEs: \(error)", logType: TeamsNotifier.logType)
                 // Continue without CVE data
             }
             
