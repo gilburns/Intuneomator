@@ -53,7 +53,7 @@ extension TeamsNotifier {
                 // Send the notification (Currently missing some attributes)
                 teamsNotifier.sendSuccessNotification(
                     title: processedAppResults.appDisplayName,
-                    version: processedAppResults.appVersionActual,
+                    version: "⦿ \(processedAppResults.appVersionActual)",
                     size: size,
                     time: time,
                     imageURL: iconImageURL,
