@@ -241,7 +241,6 @@ class EntraGraphRequests {
         var assignments: [[String: Any]] = []
         
         for assignment in appAssignments {
-            Logger.log ("Processing Assignment: \(assignment)", logType: logType)
             
             guard let assignmentType = assignment["assignmentType"] as? String,
                   let mode = assignment["mode"] as? String else {
@@ -306,9 +305,7 @@ class EntraGraphRequests {
             }
             assignments.append(assignmentObject)
         }
-        
-        Logger.log("Assignments: \(assignments)", logType: logType)
-        
+                
         // Prepare the request payload
         let requestPayload: [String: Any] = ["mobileAppAssignments": assignments]
         
