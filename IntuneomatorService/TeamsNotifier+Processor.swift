@@ -9,7 +9,8 @@ import Foundation
 
 extension TeamsNotifier {
                 
-    static func processNotification(for processedAppResults: ProcessedAppResults, success: Bool) -> Bool {
+    // Convience method for sending success/fail messages to teams
+    static func processNotification(for processedAppResults: ProcessedAppResults, success: Bool, errorMessage: String? = nil) -> Bool {
         
         guard ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") == true
         else {
@@ -64,6 +65,13 @@ extension TeamsNotifier {
             return true
 
         } else {
+            var teamsMessage: String = ""
+            if errorMessage!.isEmpty {
+                teamsMessage = "Failed to upload to Intune. The automation will try again the next time it runs. If this error persists, please review the logs for more information."
+            } else {
+                teamsMessage = errorMessage ?? "No error message provided."
+            }
+            
             do {
                 // Send the notification (Currently missing some attributes)
                 teamsNotifier.sendErrorNotification(
@@ -74,7 +82,7 @@ extension TeamsNotifier {
                     imageURL: iconImageURL,
                     deploymentType: processedAppResults.deploymentTypeEmoji,
                     architecture: processedAppResults.architectureEmoji,
-                    errorMessage: "Failed to upload to Intune. The automation will try again the next time it runs. If this error persists, please review the logs for more information."
+                    errorMessage: teamsMessage
                 )
             }
             return true
