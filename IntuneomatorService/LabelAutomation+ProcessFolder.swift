@@ -275,7 +275,8 @@ extension LabelAutomation {
             }
             
             guard FileManager.default.fileExists(atPath: localFilePath) else {
-                Logger.log("File does not exist", logType: logType)
+                let messageResult = TeamsNotifier.processNotification(for: processedAppResults, success: false)
+                Logger.log("File does not exist. Teams notification sent: \(messageResult)", logType: logType)
                 return
             }
             
