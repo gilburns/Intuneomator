@@ -70,8 +70,8 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                             </scrollView>
-                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="veC-JJ-bku">
-                                <rect key="frame" x="18" y="44" width="211" height="16"/>
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="veC-JJ-bku">
+                                <rect key="frame" x="18" y="44" width="414" height="16"/>
                                 <textFieldCell key="cell" title="Built on Installomator open source" id="emO-OO-Uuf">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
