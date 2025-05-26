@@ -8,11 +8,13 @@
 import Foundation
 
 class FirstRun {
+    
+    static let logType = "FirstRun"
 
     static func checkFirstRun() -> Void {
         
         if ConfigManager.readPlistValue(key: "FirstRunServiceCompleted") ?? false {
-//            Logger.log("Intuneomator first run has already run. Exiting...", logType: "FirstRun")
+//            Logger.log("Intuneomator first run has already run. Exiting...", logType: logType)
             return
         }
         
@@ -29,15 +31,15 @@ class FirstRun {
         let setFirstRun = ConfigManager.writePlistValue(key: "FirstRunServiceCompleted", value: true)
         
         if !setFirstRun {
-            Logger.log("Failed to set FirstRun to true in config.plist", logType: "FirstRun")
+            Logger.log("Failed to set FirstRun to true in config.plist", logType: logType)
         } else {
-            Logger.log(">>> First run complete! <<<", logType: "FirstRun")
+            Logger.log(">>> First run complete! <<<", logType: logType)
         }
     }
     
 // MARK: - Setup Folders
     static func setupSupportFolders() {
-        Logger.log("Checking for and creating application support folders...", logType: "FirstRun")
+        Logger.log("Checking for and creating application support folders...", logType: logType)
         let folders = [
             AppConstants.intuneomatorFolderURL.path,
             AppConstants.intuneomatorCacheFolderURL.path,
@@ -52,15 +54,15 @@ class FirstRun {
         for folder in folders {
             if !FileManager.default.fileExists(atPath: folder) {
                 _ = FileFolderManagerUtil.createFolder(at: folder)
-                Logger.log("Created folder: \(folder)", logType: "FirstRun")
+                Logger.log("Created folder: \(folder)", logType: logType)
             }
         }
         
         // Check if Installomator labels exist
         // Installs labels at first launch
-        Logger.log("Checking for Installomator labels...", logType: "FirstRun")
+        Logger.log("Checking for Installomator labels...", logType: logType)
         if !FileManager.default.fileExists(atPath: AppConstants.installomatorLabelsFolderURL.path) {
-            Logger.log("Installomator labels not found. Downloading...", logType: "FirstRun")
+            Logger.log("Installomator labels not found. Downloading...", logType: logType)
             downloadInstallomatorLabels()
         }
     }
@@ -70,7 +72,7 @@ class FirstRun {
         InstallomatorLabels.installInstallomatorLabels { success, message in
             DispatchQueue.main.async {
                 if success {
-                    Logger.log("Installomator labels downloaded successfully.", logType: "FirstRun")
+                    Logger.log("Installomator labels downloaded successfully.", logType: logType)
 
                     if FileFolderManagerUtil.changePermissionsRecursively(
                         at: AppConstants.installomatorLabelsFolderURL.path,
@@ -78,7 +80,7 @@ class FirstRun {
                         excludeHiddenFiles: true,
                         skipDirectories: true
                     ) {
-                        Logger.log("Permissions changed for files recursively!", logType: "FirstRun")
+                        Logger.log("Permissions changed for files recursively!", logType: logType)
                     }
                     if FileFolderManagerUtil.changePermissionsRecursively(
                         at: AppConstants.installomatorLabelsFolderURL.path,
@@ -86,10 +88,10 @@ class FirstRun {
                         excludeHiddenFiles: true,
                         skipDirectories: false
                     ) {
-                        Logger.log("Permissions changed for directories recursively!", logType: "FirstRun")
+                        Logger.log("Permissions changed for directories recursively!", logType: logType)
                     }
                 } else {
-                    Logger.log("Failed to download Installomator labels: \(message)", logType: "FirstRun")
+                    Logger.log("Failed to download Installomator labels: \(message)", logType: logType)
                 }
             }
         }
@@ -116,11 +118,11 @@ class FirstRun {
                         (weekday: daemon.weekday, hour: daemon.hour, minute: 0)
                     ],
                     completion: { success, message in
-                        Logger.log(success ? "✅ Created \(daemon.label)" : "❌ Failed to create \(daemon.label): \(message ?? "unknown error")", logType: "FirstRun")
+                        Logger.log(success ? "✅ Created \(daemon.label)" : "❌ Failed to create \(daemon.label): \(message ?? "unknown error")", logType: logType)
                     }
                 )
             } else {
-                Logger.log("ℹ️ \(daemon.label) already exists, skipping creation.", logType: "FirstRun")
+                Logger.log("ℹ️ \(daemon.label) already exists, skipping creation.", logType: logType)
             }
         }
     }
