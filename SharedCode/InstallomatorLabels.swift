@@ -131,7 +131,6 @@ class InstallomatorLabels {
 
             return (true, "Labels successfully updated to version \(versionContent)")
         } catch {
-            Logger.log("Error installing labels: \(error.localizedDescription)", logType: "InstallomatorLabels")
             return (false, "Error: \(error.localizedDescription)")
         }
     }
