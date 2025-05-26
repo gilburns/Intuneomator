@@ -16,6 +16,8 @@ class DaemonUpdateManager {
     static let tempUpdaterPath = "/tmp/IntuneomatorUpdater"
     static let destinationPkgPath = "/Library/Application Support/Intuneomator/IntuneomatorUpdate.pkg"
     static let expectedTeamID = "G4MQ57TVLE"
+    
+    static let logType = "DaemonUpdateManager"
 
     
     static var localVersion: String {
@@ -30,29 +32,29 @@ class DaemonUpdateManager {
     static func checkAndPerformUpdateIfNeeded() {
         fetchRemoteVersion { remoteVersion in
             guard let remoteVersion = remoteVersion else {
-                Logger.log("❌ Failed to fetch remote version.", logType: "UpdateManager")
+                Logger.log("❌ Failed to fetch remote version.", logType: logType)
                 exit(EXIT_FAILURE)
             }
 
             if remoteVersion.compare(localVersion, options: .numeric) == .orderedDescending {
-                Logger.log("⬇️ New version available: \(remoteVersion)", logType: "UpdateManager")
+                Logger.log("⬇️ New version available: \(remoteVersion)", logType: logType)
                 downloadPkg { success in
                     if success {
                         validatePkgDownload { isValid in
                             if isValid {
                                 runUpdater()
                             } else {
-                                Logger.log("❌ Package signature validation failed.", logType: "UpdateManager")
+                                Logger.log("❌ Package signature validation failed.", logType: logType)
                                 exit(EXIT_FAILURE)
                             }
                         }
                     } else {
-                        Logger.log("❌ Update download failed.", logType: "UpdateManager")
+                        Logger.log("❌ Update download failed.", logType: logType)
                         exit(EXIT_FAILURE)
                     }
                 }
             } else {
-                Logger.log("✅ Already up-to-date.", logType: "UpdateManager")
+                Logger.log("✅ Already up-to-date.", logType: logType)
                 exit(EXIT_SUCCESS)
             }
         }
@@ -73,9 +75,9 @@ class DaemonUpdateManager {
         let resultTeamID = signatureResult["DeveloperTeam"] as? String ?? ""
         let resultDeveloperID = signatureResult["DeveloperID"] as? String ?? ""
 
-        Logger.log("Validated Result: \(resultAccepted)", logType: "UpdateManager")
-        Logger.log("Validated Team ID: \(resultTeamID)", logType: "UpdateManager")
-        Logger.log("Validated Developer ID: \(resultDeveloperID)", logType: "UpdateManager")
+        Logger.log("Validated Result: \(resultAccepted)", logType: logType)
+        Logger.log("Validated Team ID: \(resultTeamID)", logType: logType)
+        Logger.log("Validated Developer ID: \(resultDeveloperID)", logType: logType)
 
         #if DEBUG
         if resultTeamID == expectedTeamID {
@@ -115,7 +117,7 @@ class DaemonUpdateManager {
                 try FileManager.default.moveItem(at: tempURL, to: destURL)
                 completion(true)
             } catch {
-                Logger.log("❌ Move error: \(error)", logType: "UpdateManager")
+                Logger.log("❌ Move error: \(error)", logType: logType)
                 completion(false)
             }
         }
@@ -138,12 +140,12 @@ class DaemonUpdateManager {
             process.executableURL = URL(fileURLWithPath: "/tmp/IntuneomatorUpdater")
             process.arguments = ["--caller-pid", "\(getpid())"]
             try process.run()
-            Logger.log("🚀 Updater launched successfully.", logType: "UpdateManager")
+            Logger.log("🚀 Updater launched successfully.", logType: logType)
 
             sleep(4)
             exit(EXIT_SUCCESS)
         } catch {
-            Logger.log("❌ Failed to run updater: \(error)", logType: "UpdateManager")
+            Logger.log("❌ Failed to run updater: \(error)", logType: logType)
             exit(EXIT_FAILURE)
         }
     }
