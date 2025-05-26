@@ -8,11 +8,13 @@
 import WebKit
 import Cocoa
 
+private let logType = "Settings"
+
 extension WKWebView {
     func printWebViewContent(window: NSWindow?) {
         self.evaluateJavaScript("document.body.scrollHeight") { result, error in
             guard let height = result as? CGFloat, error == nil else {
-                Logger.logUser("Error getting document height: \(error?.localizedDescription ?? "Unknown error")", logType: "SetupWizard")
+                Logger.logUser("Error getting document height: \(error?.localizedDescription ?? "Unknown error")", logType: logType)
                 return
             }
 
