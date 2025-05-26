@@ -142,7 +142,6 @@ class InstallomatorLabelProcessor {
                 return false
             }
         } else {
-            Logger.log("❌ Label script does not contain arch command: \(folderName)", logType: logType)
             return true
         }
         Logger.log("❌ Unknown error occurred when running process_label.sh", logType: logType)
