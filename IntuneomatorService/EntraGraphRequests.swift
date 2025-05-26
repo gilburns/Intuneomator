@@ -10,6 +10,7 @@ import CommonCrypto
 
 class EntraGraphRequests {
     
+    
     enum GraphAPIError: Error {
         case invalidURL
         case requestFailed(Error)
