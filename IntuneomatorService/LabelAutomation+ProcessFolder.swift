@@ -43,9 +43,7 @@ extension LabelAutomation {
             Logger.log("Tracking ID is missing", logType: logType)
             return
         }
-        
-        Logger.log("Processed App Results: \(String(describing: processedAppResults))", logType: logType)
-        
+                
         // MARK: - Check Intune with expected version
         
         // appNewVersion has a known value.
@@ -94,7 +92,11 @@ extension LabelAutomation {
         var cacheCheckURL: URL = URL(fileURLWithPath: "/")
         
         do{
-            cacheCheckURL = try isVersionCached(forLabel: processedAppResults?.appLabelName ?? "", displayName: processedAppResults?.appDisplayName ?? "", version: processedAppResults?.appVersionExpected ?? "", deploymentType: processedAppResults?.appDeploymentType ?? 0, deploymentArch: processedAppResults?.appDeploymentArch ?? 0)
+            let results = processedAppResults ?? .empty
+            
+            cacheCheckURL = try isVersionCached(
+                forProcessedResult: results
+            )
 
             Logger.log("cacheCheck: \(cacheCheckURL)", logType: logType)
 
@@ -314,13 +316,14 @@ extension LabelAutomation {
 
         
         // MARK: - Check Intune for the new version and unassign or remove old versions.
+        
         // Check Intune for the new version
         Logger.log("  " + folderName + ": Confirming app upload to Intune...", logType: logType)
         
         var uploadSucceeded: Bool = false
         
         do {
-            try await Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
+            try await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
 
             let entraAuthenticator = EntraAuthenticator()
             let authToken = try await entraAuthenticator.getEntraIDToken()
