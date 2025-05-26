@@ -106,7 +106,7 @@ extension XPCService {
     func setAuthMethod(_ method: String, reply: @escaping (Bool) -> Void) {
         let validMethods = ["certificate", "secret"]
         guard validMethods.contains(method) else {
-            Logger.log("Invalid auth method: \(method)", logType: "XPCService")
+            Logger.log("Invalid auth method: \(method)", logType: logType)
             reply(false)
             return
         }
@@ -125,7 +125,7 @@ extension XPCService {
     }
     
     func setTeamsNotificationsEnabled(_ enabled: Bool, reply: @escaping (Bool) -> Void) {
-        Logger.log("setTeamsNotificationsEnabled: \(enabled)", logType: "XPCService")
+        Logger.log("setTeamsNotificationsEnabled: \(enabled)", logType: logType)
         let success = ConfigManager.writePlistValue(key: "TeamsNotificationsEnabled", value: enabled)
         reply(success)
     }
