@@ -132,7 +132,7 @@ extension EntraGraphRequests {
             ])
         }
         
-        Logger.log("  Uploaded \(displayName) metadata. App ID: \(appId)", logType: logType)
+        Logger.log("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", logType: logType)
         Logger.log("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", logType: "Automation")
 
         // Start upload session
@@ -459,8 +459,8 @@ extension EntraGraphRequests {
             ])
         }
         
-        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: logType)
-        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: "Automation")
+        Logger.log("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", logType: logType)
+        Logger.log("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", logType: "Automation")
 
         // Start upload session
         do {
@@ -746,8 +746,8 @@ extension EntraGraphRequests {
             ])
         }
         
-        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: logType)
-        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: "Automation")
+        Logger.log("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", logType: logType)
+        Logger.log("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", logType: "Automation")
 
         // Start upload session
         do {
