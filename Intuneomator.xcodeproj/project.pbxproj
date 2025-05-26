@@ -73,8 +73,6 @@
 			membershipExceptions = (
 				ConfigManager.swift,
 				TeamsNotifier.swift,
-				"TeamsNotifier+CVELookups.swift",
-				"TeamsNotifier+GroupsFormatting.swift",
 				"TeamsNotifier+NotifyUpdate.swift",
 			);
 			target = 1B9DD88C2DDD759C005ECE05 /* IntuneomatorUpdater */;
