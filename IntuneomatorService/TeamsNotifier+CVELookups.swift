@@ -28,7 +28,7 @@ extension TeamsNotifier {
                 ],
                 [
                     "type": "TextBlock",
-                    "text": "✅ No recent security vulnerabilities found",
+                    "text": "🟢 No recent security vulnerabilities found",
                     "color": "good"
                 ]
             ]
@@ -69,13 +69,21 @@ extension TeamsNotifier {
             let nvdUrl = "https://nvd.nist.gov/vuln/detail/\(cveId)"
             let scoreText = cve.baseScore != nil ? " | \(cve.severity ?? "Unknown") (\(cve.baseScore!))" : ""
             
+            let severityEmoji = if cve.severity?.lowercased() == "critical" || cve.severity?.lowercased() == "high" {
+                "🔴"  // Red for HIGH/CRITICAL
+            } else if cve.severity?.lowercased() == "medium" {
+                "🟡"    // Yellow for MEDIUM
+            } else {
+                "🔵"     // Blue for LOW
+            }
+
             // Truncate description to first 200 characters
             let fullDescription = cve.englishDescription ?? "No description"
             let truncatedDescription = fullDescription.count > 200
             ? String(fullDescription.prefix(200)) + "..."
             : fullDescription
             
-            cveDetails += "**[\(cveId)](\(nvdUrl))**\(scoreText)\n"
+            cveDetails += "\(severityEmoji) **[\(cveId)](\(nvdUrl))**\(scoreText)\n"
             cveDetails += "\(truncatedDescription) [Read more](\(nvdUrl))\n\n"
         }
         
