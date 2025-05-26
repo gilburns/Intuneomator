@@ -173,7 +173,7 @@ func runIntuneAutomation() {
 // full automation daemon
 func runIntuneAutomationQuiet() {
     
-    var logType = "Automation"
+    let logType = "Automation"
     
     Logger.log("-------------------------------------------------------------------------", logType: logType)
     
@@ -185,7 +185,6 @@ func runIntuneAutomationQuiet() {
     
     for (index, folder) in validFolders.enumerated() {
         Logger.log("Processing folder \(index+1)/\(validFolders.count): \(folder)", logType: logType)
-        let folderName = folder.components(separatedBy: "_")[0]
         
         Logger.log("  Updating Installomator label data: \(folder)", logType: logType)
 
