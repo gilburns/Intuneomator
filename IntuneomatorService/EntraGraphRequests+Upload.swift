@@ -10,19 +10,21 @@ import CommonCrypto
 
 extension EntraGraphRequests {
     
+    static let logType = "EntraGraphRequests"
+    
     // MARK: - Intune Upload Functions
     static func uploadAppToIntune(authToken: String, app: ProcessedAppResults) async throws {
         
-        Logger.log("🖥️  Uploading app to Intune...", logType: "EntraGraphRequests")
+        Logger.log("🖥️  Uploading app to Intune...", logType: logType)
         
         if app.appDeploymentType == 2 {
-            Logger.log("Deplying LOB app...", logType: "EntraGraphRequests")
+            Logger.log("Deplying LOB app...", logType: logType)
             try await uploadLOBPkg(authToken: authToken, app: app)
         } else if app.appDeploymentType == 1 {
-            Logger.log("Deplying PKG app...", logType: "EntraGraphRequests")
+            Logger.log("Deplying PKG app...", logType: logType)
             try await uploadPKGWithScripts(authToken: authToken, app: app)
         } else if app.appDeploymentType == 0 {
-            Logger.log("Deplying DMG app...", logType: "EntraGraphRequests")
+            Logger.log("Deplying DMG app...", logType: logType)
             try await uploadDMGApp(authToken: authToken, app: app)
         } else {
             throw NSError(domain: "UnsupportedFileType", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unsupported file type for upload."])
@@ -108,10 +110,10 @@ extension EntraGraphRequests {
         let (metadataData, metadataResponse) = try await URLSession.shared.data(for: request)
         
         if let httpResponse = metadataResponse as? HTTPURLResponse {
-            Logger.log("Metadata response status code: \(httpResponse.statusCode)", logType: "EntraGraphRequests")
+            Logger.log("Metadata response status code: \(httpResponse.statusCode)", logType: logType)
             if !(200...299).contains(httpResponse.statusCode) {
                 let responseBody = String(data: metadataData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("Error response body: \(responseBody)", logType: "EntraGraphRequests")
+                Logger.log("Error response body: \(responseBody)", logType: logType)
                 throw NSError(domain: "UploadLOBPkg", code: httpResponse.statusCode, userInfo: [
                     NSLocalizedDescriptionKey: "Failed to create app metadata. Status: \(httpResponse.statusCode)"
                 ])
@@ -130,7 +132,7 @@ extension EntraGraphRequests {
             ])
         }
         
-        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: "EntraGraphRequests")
+        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: logType)
         Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: "Automation")
 
         // Start upload session
@@ -146,7 +148,7 @@ extension EntraGraphRequests {
             let (versionData, versionResponse) = try await URLSession.shared.data(for: versionRequest)
             if let httpResponse = versionResponse as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
                 let responseBody = String(data: versionData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("Failed to create content version. Status: \(httpResponse.statusCode), Response: \(responseBody)", logType: "EntraGraphRequests")
+                Logger.log("Failed to create content version. Status: \(httpResponse.statusCode), Response: \(responseBody)", logType: logType)
                 throw NSError(domain: "UploadLOBPkg", code: httpResponse.statusCode, userInfo: [
                     NSLocalizedDescriptionKey: "Failed to create content version. Status: \(httpResponse.statusCode)",
                     "responseBody": responseBody
@@ -154,7 +156,7 @@ extension EntraGraphRequests {
             }
             
             let versionJson = try JSONSerialization.jsonObject(with: versionData) as? [String: Any]
-//            Logger.log("Version JSON: \(versionJson as Any)", logType: "EntraGraphRequests")
+//            Logger.log("Version JSON: \(versionJson as Any)", logType: logType)
             guard let versionId = versionJson?["id"] as? String else {
                 throw NSError(domain: "UploadLOBPkg", code: 10, userInfo: [NSLocalizedDescriptionKey: "Failed to get version ID"])
             }
@@ -188,7 +190,7 @@ extension EntraGraphRequests {
             let (fileData, fileResponse) = try await URLSession.shared.data(for: fileRequest)
             if let httpResponse = fileResponse as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
                 let responseBody = String(data: fileData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("File registration failed. Status: \(httpResponse.statusCode), Response: \(responseBody)", logType: "EntraGraphRequests")
+                Logger.log("File registration failed. Status: \(httpResponse.statusCode), Response: \(responseBody)", logType: logType)
                 throw NSError(domain: "UploadLOBPkg", code: httpResponse.statusCode, userInfo: [
                     NSLocalizedDescriptionKey: "File registration failed. Status: \(httpResponse.statusCode)"
                 ])
@@ -196,7 +198,7 @@ extension EntraGraphRequests {
             
             
             let fileJson = try JSONSerialization.jsonObject(with: fileData) as? [String: Any]
-//            Logger.log("File registration response: \(fileJson as Any)", logType: "EntraGraphRequests")
+//            Logger.log("File registration response: \(fileJson as Any)", logType: logType)
             
             // After file registration
             guard let fileId = fileJson?["id"] as? String else {
@@ -221,7 +223,7 @@ extension EntraGraphRequests {
                 let (statusData, _) = try await URLSession.shared.data(for: statusRequest)
                 let statusJson = try JSONSerialization.jsonObject(with: statusData) as? [String: Any]
                 
-//                Logger.log("File status response: \(statusJson as Any)", logType: "EntraGraphRequests")
+//                Logger.log("File status response: \(statusJson as Any)", logType: logType)
                 
                 // Check if azureStorageUri is available
                 if let uri = statusJson?["azureStorageUri"] as? String, !uri.isEmpty {
@@ -251,9 +253,9 @@ extension EntraGraphRequests {
             
             // Commit the file
             
-            Logger.log("Committing appId: \(appId)", logType: "EntraGraphRequests")
-            Logger.log("Committing versionId: \(versionId)", logType: "EntraGraphRequests")
-            Logger.log("Committing fileId: \(fileId)", logType: "EntraGraphRequests")
+            Logger.log("Committing appId: \(appId)", logType: logType)
+            Logger.log("Committing versionId: \(versionId)", logType: logType)
+            Logger.log("Committing fileId: \(fileId)", logType: logType)
             
             let fileCommitURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appId)/microsoft.graph.macOSLobApp/contentVersions/\(versionId)/files/\(fileId)/commit")!
             
@@ -272,7 +274,7 @@ extension EntraGraphRequests {
             
             if let httpResponse = fileCommitResponse as? HTTPURLResponse, httpResponse.statusCode != 200 {
                 let responseBody = String(data: fileCommitResponseData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("File commit status \(httpResponse.statusCode): \(responseBody)", logType: "EntraGraphRequests")
+                Logger.log("File commit status \(httpResponse.statusCode): \(responseBody)", logType: logType)
             }
             
             // After committing the file wait for commit to complete
@@ -295,16 +297,16 @@ extension EntraGraphRequests {
             let (updateResponseData, updateResponse) = try await URLSession.shared.data(for: updateRequest)
             if let httpResponse = updateResponse as? HTTPURLResponse, httpResponse.statusCode != 204 {
                 let responseBody = String(data: updateResponseData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("App update failed with status \(httpResponse.statusCode): \(responseBody)", logType: "EntraGraphRequests")
+                Logger.log("App update failed with status \(httpResponse.statusCode): \(responseBody)", logType: logType)
                 throw NSError(domain: "UploadLOBPkg", code: 7, userInfo: [
                     NSLocalizedDescriptionKey: "Failed to update app with committed content version. Status: \(httpResponse.statusCode)"
                 ])
             }
             
-            Logger.log("LOB package uploaded and committed successfully ✅", logType: "EntraGraphRequests")
+            Logger.log("LOB package uploaded and committed successfully ✅", logType: logType)
         }
         
-        Logger.log("Assigning categories to Intune app...", logType: "EntraGraphRequests")
+        Logger.log("Assigning categories to Intune app...", logType: logType)
         
         // Assign the categories to the newly uploaded app
         do {
@@ -317,7 +319,7 @@ extension EntraGraphRequests {
                 categories: app.appCategories
             )
         } catch {
-            Logger.log("Error assigning categories: \(error.localizedDescription)", logType: "EntraGraphRequests")
+            Logger.log("Error assigning categories: \(error.localizedDescription)", logType: logType)
         }
         
         // Assign the groups to the newly uploaded app
@@ -435,10 +437,10 @@ extension EntraGraphRequests {
         let (metadataData, metadataResponse) = try await URLSession.shared.data(for: request)
         
         if let httpResponse = metadataResponse as? HTTPURLResponse {
-            Logger.log("Metadata response status code: \(httpResponse.statusCode)", logType: "EntraGraphRequests")
+            Logger.log("Metadata response status code: \(httpResponse.statusCode)", logType: logType)
             if !(200...299).contains(httpResponse.statusCode) {
                 let responseBody = String(data: metadataData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("Error response body: \(responseBody)", logType: "EntraGraphRequests")
+                Logger.log("Error response body: \(responseBody)", logType: logType)
                 throw NSError(domain: "UploadPKGWithScripts", code: httpResponse.statusCode, userInfo: [
                     NSLocalizedDescriptionKey: "Failed to create PKG app metadata. Status: \(httpResponse.statusCode)"
                 ])
@@ -457,7 +459,7 @@ extension EntraGraphRequests {
             ])
         }
         
-        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: "EntraGraphRequests")
+        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: logType)
         Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: "Automation")
 
         // Start upload session
@@ -473,7 +475,7 @@ extension EntraGraphRequests {
             let (versionData, versionResponse) = try await URLSession.shared.data(for: versionRequest)
             if let httpResponse = versionResponse as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
                 let responseBody = String(data: versionData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("Failed to create content version. Status: \(httpResponse.statusCode), Response: \(responseBody)", logType: "EntraGraphRequests")
+                Logger.log("Failed to create content version. Status: \(httpResponse.statusCode), Response: \(responseBody)", logType: logType)
                 throw NSError(domain: "UploadPKGWithScripts", code: httpResponse.statusCode, userInfo: [
                     NSLocalizedDescriptionKey: "Failed to create content version. Status: \(httpResponse.statusCode)",
                     "responseBody": responseBody
@@ -481,7 +483,7 @@ extension EntraGraphRequests {
             }
             
             let versionJson = try JSONSerialization.jsonObject(with: versionData) as? [String: Any]
-//            Logger.log("Version JSON: \(versionJson as Any)", logType: "EntraGraphRequests")
+//            Logger.log("Version JSON: \(versionJson as Any)", logType: logType)
             guard let versionId = versionJson?["id"] as? String else {
                 throw NSError(domain: "UploadPKGWithScripts", code: 10, userInfo: [NSLocalizedDescriptionKey: "Failed to get version ID"])
             }
@@ -513,14 +515,14 @@ extension EntraGraphRequests {
             let (fileData, fileResponse) = try await URLSession.shared.data(for: fileRequest)
             if let httpResponse = fileResponse as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
                 let responseBody = String(data: fileData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("File registration failed. Status: \(httpResponse.statusCode), Response: \(responseBody)", logType: "EntraGraphRequests")
+                Logger.log("File registration failed. Status: \(httpResponse.statusCode), Response: \(responseBody)", logType: logType)
                 throw NSError(domain: "UploadPKGWithScripts", code: httpResponse.statusCode, userInfo: [
                     NSLocalizedDescriptionKey: "File registration failed. Status: \(httpResponse.statusCode)"
                 ])
             }
             
             let fileJson = try JSONSerialization.jsonObject(with: fileData) as? [String: Any]
-//            Logger.log("File registration response: \(fileJson as Any)", logType: "EntraGraphRequests")
+//            Logger.log("File registration response: \(fileJson as Any)", logType: logType)
             
             guard let fileId = fileJson?["id"] as? String else {
                 throw NSError(domain: "UploadPKGWithScripts", code: 11, userInfo: [NSLocalizedDescriptionKey: "Failed to get file ID from registration"])
@@ -542,7 +544,7 @@ extension EntraGraphRequests {
                 let (statusData, _) = try await URLSession.shared.data(for: statusRequest)
                 let statusJson = try JSONSerialization.jsonObject(with: statusData) as? [String: Any]
                 
-//                Logger.log("File status response: \(statusJson as Any)", logType: "EntraGraphRequests")
+//                Logger.log("File status response: \(statusJson as Any)", logType: logType)
                 
                 if let uri = statusJson?["azureStorageUri"] as? String, !uri.isEmpty {
                     azureStorageUri = uri
@@ -566,9 +568,9 @@ extension EntraGraphRequests {
             try await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
             
             // Commit the file
-            Logger.log("Committing appId: \(appId)", logType: "EntraGraphRequests")
-            Logger.log("Committing versionId: \(versionId)", logType: "EntraGraphRequests")
-            Logger.log("Committing fileId: \(fileId)", logType: "EntraGraphRequests")
+            Logger.log("Committing appId: \(appId)", logType: logType)
+            Logger.log("Committing versionId: \(versionId)", logType: logType)
+            Logger.log("Committing fileId: \(fileId)", logType: logType)
             
             let fileCommitURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appId)/microsoft.graph.macOSPkgApp/contentVersions/\(versionId)/files/\(fileId)/commit")!
             var fileCommitRequest = URLRequest(url: fileCommitURL)
@@ -584,7 +586,7 @@ extension EntraGraphRequests {
             
             if let httpResponse = fileCommitResponse as? HTTPURLResponse, httpResponse.statusCode != 200 {
                 let responseBody = String(data: fileCommitResponseData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("File commit status \(httpResponse.statusCode): \(responseBody)", logType: "EntraGraphRequests")
+                Logger.log("File commit status \(httpResponse.statusCode): \(responseBody)", logType: logType)
             }
             
             // Wait for file upload to complete
@@ -606,13 +608,13 @@ extension EntraGraphRequests {
             let (updateResponseData, updateResponse) = try await URLSession.shared.data(for: updateRequest)
             if let httpResponse = updateResponse as? HTTPURLResponse, httpResponse.statusCode != 204 {
                 let responseBody = String(data: updateResponseData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("App update failed with status \(httpResponse.statusCode): \(responseBody)", logType: "EntraGraphRequests")
+                Logger.log("App update failed with status \(httpResponse.statusCode): \(responseBody)", logType: logType)
                 throw NSError(domain: "UploadPKGWithScripts", code: 7, userInfo: [
                     NSLocalizedDescriptionKey: "Failed to update app with committed content version. Status: \(httpResponse.statusCode)"
                 ])
             }
             
-            Logger.log("Assigning categories to Intune app...", logType: "EntraGraphRequests")
+            Logger.log("Assigning categories to Intune app...", logType: logType)
             
             // Assign the categories to the newly uploaded app
             do {
@@ -625,7 +627,7 @@ extension EntraGraphRequests {
                     categories: app.appCategories
                 )
             } catch {
-                Logger.log("Error assigning categories: \(error.localizedDescription)", logType: "EntraGraphRequests")
+                Logger.log("Error assigning categories: \(error.localizedDescription)", logType: logType)
             }
             
             // Assign the groups to the newly uploaded app
@@ -722,10 +724,10 @@ extension EntraGraphRequests {
         let (metadataData, metadataResponse) = try await URLSession.shared.data(for: request)
         
         if let httpResponse = metadataResponse as? HTTPURLResponse {
-            Logger.log("Metadata response status code: \(httpResponse.statusCode)", logType: "EntraGraphRequests")
+            Logger.log("Metadata response status code: \(httpResponse.statusCode)", logType: logType)
             if !(200...299).contains(httpResponse.statusCode) {
                 let responseBody = String(data: metadataData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("Error response body: \(responseBody)", logType: "EntraGraphRequests")
+                Logger.log("Error response body: \(responseBody)", logType: logType)
                 throw NSError(domain: "UploadDMGApp", code: httpResponse.statusCode, userInfo: [
                     NSLocalizedDescriptionKey: "Failed to create DMG app metadata. Status: \(httpResponse.statusCode)"
                 ])
@@ -744,7 +746,7 @@ extension EntraGraphRequests {
             ])
         }
         
-        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: "EntraGraphRequests")
+        Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: logType)
         Logger.log("Uploaded \(displayName) metadata. App ID: \(appId)", logType: "Automation")
 
         // Start upload session
@@ -760,7 +762,7 @@ extension EntraGraphRequests {
             let (versionData, versionResponse) = try await URLSession.shared.data(for: versionRequest)
             if let httpResponse = versionResponse as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
                 let responseBody = String(data: versionData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("Failed to create content version. Status: \(httpResponse.statusCode), Response: \(responseBody)", logType: "EntraGraphRequests")
+                Logger.log("Failed to create content version. Status: \(httpResponse.statusCode), Response: \(responseBody)", logType: logType)
                 throw NSError(domain: "UploadDMGApp", code: httpResponse.statusCode, userInfo: [
                     NSLocalizedDescriptionKey: "Failed to create content version. Status: \(httpResponse.statusCode)",
                     "responseBody": responseBody
@@ -768,7 +770,7 @@ extension EntraGraphRequests {
             }
             
             let versionJson = try JSONSerialization.jsonObject(with: versionData) as? [String: Any]
-//            Logger.log("Version JSON: \(versionJson as Any)", logType: "EntraGraphRequests")
+//            Logger.log("Version JSON: \(versionJson as Any)", logType: logType)
             guard let versionId = versionJson?["id"] as? String else {
                 throw NSError(domain: "UploadDMGApp", code: 10, userInfo: [NSLocalizedDescriptionKey: "Failed to get version ID"])
             }
@@ -800,14 +802,14 @@ extension EntraGraphRequests {
             let (fileData, fileResponse) = try await URLSession.shared.data(for: fileRequest)
             if let httpResponse = fileResponse as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
                 let responseBody = String(data: fileData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("File registration failed. Status: \(httpResponse.statusCode), Response: \(responseBody)", logType: "EntraGraphRequests")
+                Logger.log("File registration failed. Status: \(httpResponse.statusCode), Response: \(responseBody)", logType: logType)
                 throw NSError(domain: "UploadDMGApp", code: httpResponse.statusCode, userInfo: [
                     NSLocalizedDescriptionKey: "File registration failed. Status: \(httpResponse.statusCode)"
                 ])
             }
             
             let fileJson = try JSONSerialization.jsonObject(with: fileData) as? [String: Any]
-//            Logger.log("File registration response: \(fileJson as Any)", logType: "EntraGraphRequests")
+//            Logger.log("File registration response: \(fileJson as Any)", logType: logType)
             
             guard let fileId = fileJson?["id"] as? String else {
                 throw NSError(domain: "UploadDMGApp", code: 11, userInfo: [NSLocalizedDescriptionKey: "Failed to get file ID from registration"])
@@ -829,7 +831,7 @@ extension EntraGraphRequests {
                 let (statusData, _) = try await URLSession.shared.data(for: statusRequest)
                 let statusJson = try JSONSerialization.jsonObject(with: statusData) as? [String: Any]
                 
-//                Logger.log("File status response: \(statusJson as Any)", logType: "EntraGraphRequests")
+//                Logger.log("File status response: \(statusJson as Any)", logType: logType)
                 
                 if let uri = statusJson?["azureStorageUri"] as? String, !uri.isEmpty {
                     azureStorageUri = uri
@@ -853,9 +855,9 @@ extension EntraGraphRequests {
             try await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
             
             // Commit the file
-            Logger.log("Committing appId: \(appId)", logType: "EntraGraphRequests")
-            Logger.log("Committing versionId: \(versionId)", logType: "EntraGraphRequests")
-            Logger.log("Committing fileId: \(fileId)", logType: "EntraGraphRequests")
+            Logger.log("Committing appId: \(appId)", logType: logType)
+            Logger.log("Committing versionId: \(versionId)", logType: logType)
+            Logger.log("Committing fileId: \(fileId)", logType: logType)
             
             let fileCommitURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appId)/microsoft.graph.macOSDmgApp/contentVersions/\(versionId)/files/\(fileId)/commit")!
             var fileCommitRequest = URLRequest(url: fileCommitURL)
@@ -871,7 +873,7 @@ extension EntraGraphRequests {
             
             if let httpResponse = fileCommitResponse as? HTTPURLResponse, httpResponse.statusCode != 200 {
                 let responseBody = String(data: fileCommitResponseData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("File commit status \(httpResponse.statusCode): \(responseBody)", logType: "EntraGraphRequests")
+                Logger.log("File commit status \(httpResponse.statusCode): \(responseBody)", logType: logType)
             }
             
             // Wait for file upload to complete
@@ -893,13 +895,13 @@ extension EntraGraphRequests {
             let (updateResponseData, updateResponse) = try await URLSession.shared.data(for: updateRequest)
             if let httpResponse = updateResponse as? HTTPURLResponse, httpResponse.statusCode != 204 {
                 let responseBody = String(data: updateResponseData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("App update failed with status \(httpResponse.statusCode): \(responseBody)", logType: "EntraGraphRequests")
+                Logger.log("App update failed with status \(httpResponse.statusCode): \(responseBody)", logType: logType)
                 throw NSError(domain: "UploadDMGApp", code: 7, userInfo: [
                     NSLocalizedDescriptionKey: "Failed to update app with committed content version. Status: \(httpResponse.statusCode)"
                 ])
             }
             
-            Logger.log("Assigning categories to Intune app...", logType: "EntraGraphRequests")
+            Logger.log("Assigning categories to Intune app...", logType: logType)
             
             // Assign the categories to the newly uploaded app
             do {
@@ -912,7 +914,7 @@ extension EntraGraphRequests {
                     categories: app.appCategories
                 )
             } catch {
-                Logger.log("Error assigning categories: \(error.localizedDescription)", logType: "EntraGraphRequests")
+                Logger.log("Error assigning categories: \(error.localizedDescription)", logType: logType)
             }
             
             // Assign the groups to the newly uploaded app
@@ -990,7 +992,7 @@ extension EntraGraphRequests {
                     lastError = error
                     if attempt < 3 {
                         // Exponential backoff before retrying
-                        Logger.log("Throughput throttled, retrying block upload in \(0.5 * Double(attempt)) seconds...", logType: "EntraGraphRequests")
+                        Logger.log("Throughput throttled, retrying block upload in \(0.5 * Double(attempt)) seconds...", logType: logType)
                         try await Task.sleep(nanoseconds: UInt64(0.5 * Double(attempt) * 1_000_000_000))
                         continue
                     }
@@ -1001,7 +1003,7 @@ extension EntraGraphRequests {
             }
             
             
-            Logger.log("Uploaded block \(blockIndex): \(chunkData.count / 1024) KB", logType: "EntraGraphRequests")
+            Logger.log("Uploaded block \(blockIndex): \(chunkData.count / 1024) KB", logType: logType)
             
             blockIndex += 1
             offset += chunkData.count
@@ -1025,7 +1027,7 @@ extension EntraGraphRequests {
         blockListRequest.addValue("application/xml", forHTTPHeaderField: "Content-Type")
         blockListRequest.httpBody = blockListData
         
-        Logger.log("Block list upload started...", logType: "EntraGraphRequests")
+        Logger.log("Block list upload started...", logType: logType)
 
         // Upload block list
         let (blockListResponseData, blockListResponse) = try await URLSession.shared.data(for: blockListRequest)
@@ -1033,14 +1035,14 @@ extension EntraGraphRequests {
         
         guard let blockListHTTPResponse = blockListResponse as? HTTPURLResponse, blockListHTTPResponse.statusCode == 201 else {
             let responseString = String(data: blockListResponseData, encoding: .utf8) ?? "<non-UTF8 data>"
-            Logger.log("Block list upload failed: \(responseString)", logType: "EntraGraphRequests")
+            Logger.log("Block list upload failed: \(responseString)", logType: logType)
             throw NSError(domain: "UploadLOBPkg", code: 3, userInfo: [
                 NSLocalizedDescriptionKey: "Failed to upload block list XML"
             ])
         }
-        Logger.log("Block list upload complete ✅", logType: "EntraGraphRequests")
+        Logger.log("Block list upload complete ✅", logType: logType)
         
-        Logger.log("File upload complete ✅", logType: "EntraGraphRequests")
+        Logger.log("File upload complete ✅", logType: logType)
     }
     
     
@@ -1060,14 +1062,14 @@ extension EntraGraphRequests {
             let (statusData, _) = try await URLSession.shared.data(for: statusRequest)
             
             if let statusJson = try JSONSerialization.jsonObject(with: statusData) as? [String: Any] {
-//                Logger.log("Full file status response: \(statusJson)", logType: "EntraGraphRequests")
+//                Logger.log("Full file status response: \(statusJson)", logType: logType)
                 
                 if let uploadState = statusJson["uploadState"] as? String {
-                    Logger.log("File upload state: \(uploadState)", logType: "EntraGraphRequests")
+                    Logger.log("File upload state: \(uploadState)", logType: logType)
                     
                     // Check for success state
                     if uploadState == "commitFileSuccess" {
-                        Logger.log("File upload successfully committed ✅", logType: "EntraGraphRequests")
+                        Logger.log("File upload successfully committed ✅", logType: logType)
                         return
                     }
                     
@@ -1075,10 +1077,10 @@ extension EntraGraphRequests {
                     if uploadState == "commitFileFailed" {
                         // Get more error details if available
                         if let errorCode = statusJson["errorCode"] as? String {
-                            Logger.log("Error code: \(errorCode)", logType: "EntraGraphRequests")
+                            Logger.log("Error code: \(errorCode)", logType: logType)
                         }
                         if let errorDescription = statusJson["errorDescription"] as? String {
-                            Logger.log("Error description: \(errorDescription)", logType: "EntraGraphRequests")
+                            Logger.log("Error description: \(errorDescription)", logType: logType)
                         }
                         
                         throw NSError(domain: "UploadApp", code: 6, userInfo: [
