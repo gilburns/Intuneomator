@@ -8,6 +8,8 @@
 import Cocoa
 import Foundation
 
+private let logType = "AppDelegate"
+
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
 
@@ -15,25 +17,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var mainWindowController: MainWindowController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        Logger.logUser("Intuneomator starting...", logType: "AppDelegate")
+        Logger.logUser("Intuneomator starting...", logType: logType)
         Task {
             do {
                 // Fetch mobile app categories
                 try await AppDataManager.shared.fetchMobileAppCategories()
-                Logger.logUser("Mobile app categories loaded successfully.", logType: "AppDelegate")
+                Logger.logUser("Mobile app categories loaded successfully.", logType: logType)
                 
                 // Fetch Entra groups
                 try await AppDataManager.shared.fetchEntraGroups()
-                Logger.logUser("Entra ID groups loaded successfully.", logType: "AppDelegate")
+                Logger.logUser("Entra ID groups loaded successfully.", logType: logType)
                 
                 // Fetch Entra Application Filters
                 try await AppDataManager.shared.fetchEntraFilters()
-                Logger.logUser("Entra Application Filters loaded successfully.", logType: "AppDelegate")
-                Logger.logUser("Filters: \(AppDataManager.shared.entraFilters)", logType: "AppDelegate")
+                Logger.logUser("Entra Application Filters loaded successfully.", logType: logType)
+                Logger.logUser("Filters: \(AppDataManager.shared.entraFilters)", logType: logType)
                 
                 
             } catch {
-                Logger.logUser("Error during initialization: \(error.localizedDescription)", logType: "AppDelegate")
+                Logger.logUser("Error during initialization: \(error.localizedDescription)", logType: logType)
             }
         }
         
@@ -85,7 +87,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.delegate = mainWindowController // Ensure delegate is set
             window.makeKeyAndOrderFront(nil)
         } else {
-            Logger.logUser("Error: mainWindowController has no window.", logType: "AppDelegate")
+            Logger.logUser("Error: mainWindowController has no window.", logType: logType)
         }
     }
 
@@ -113,22 +115,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     if url != AppConstants.intuneomatorTempFolderURL {
                         do {
                             try FileManager.default.removeItem(at: url)
-                            Logger.logUser("Removed old temp folder: \(url.path)", logType: "AppDelegate")
+                            Logger.logUser("Removed old temp folder: \(url.path)", logType: logType)
                         } catch {
-                            Logger.logUser("Failed to remove old temp folder: \(url.path), error: \(error)", logType: "AppDelegate")
+                            Logger.logUser("Failed to remove old temp folder: \(url.path), error: \(error)", logType: logType)
                         }
                     }
                 }
             }
         } catch {
-            Logger.logUser("Error reading contents of temp directory: \(error)", logType: "AppDelegate")
+            Logger.logUser("Error reading contents of temp directory: \(error)", logType: logType)
         }
     }
     
     // MARK: - Setup Folders and Installomator Labels
 
     private func setupApplicationSupportFolders() {
-        Logger.logUser("Checking for and creating application support folders...", logType: "AppDelegate")
+        Logger.logUser("Checking for and creating application support folders...", logType: logType)
         let folders = [
             AppConstants.intuneomatorTempFolderURL.path
         ]
@@ -138,9 +140,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if !FileManager.default.fileExists(atPath: folder) {
                 do {
                     try FileManager.default.createDirectory(atPath: folder, withIntermediateDirectories: true, attributes: nil)
-                    Logger.logUser("Created folder: \(folder)", logType: "AppDelegate")
+                    Logger.logUser("Created folder: \(folder)", logType: logType)
                 } catch {
-                    Logger.logUser("Failed to create folder: \(folder), error: \(error)", logType: "AppDelegate")
+                    Logger.logUser("Failed to create folder: \(folder), error: \(error)", logType: logType)
                 }
             }
         }
