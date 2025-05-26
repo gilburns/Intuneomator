@@ -92,6 +92,13 @@ extension TeamsNotifier {
                 "separator": true
             ],
             [
+                "type": "TextBlock",
+                "text": "**Software Details:**",
+                "weight": "Bolder",
+                "spacing": "Medium"
+            ],
+
+            [
                 "type": "FactSet",
                 "facts": facts
             ]
