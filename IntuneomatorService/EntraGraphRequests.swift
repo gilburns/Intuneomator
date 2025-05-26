@@ -58,7 +58,7 @@ class EntraGraphRequests {
             throw NSError(domain: "InvalidURL", code: -1)
         }
         
-        Logger.log("URL: \(urlString)", logType: "EntraGraphRequests")
+        Logger.log("URL: \(urlString)", logType: logType)
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -68,7 +68,7 @@ class EntraGraphRequests {
         let (data, _) = try await URLSession.shared.data(for: request)
         let decoded = try JSONDecoder().decode(GraphResponse.self, from: data)
 
-        Logger.log("Decoded: \(decoded)", logType: "EntraGraphRequests")
+        Logger.log("Decoded: \(decoded)", logType: logType)
         
         return decoded.value.map {
             [
@@ -221,10 +221,10 @@ class EntraGraphRequests {
     // MARK: - Assign Groups to App
     static func assignGroupsToApp(authToken: String, appId: String, appAssignments: [[String: Any]], appType: String, installAsManaged: Bool) async throws {
         
-        Logger.log("assignGroupsToApp", logType: "EntraGraphRequests")
-        Logger.log("appId: \(appId)", logType: "EntraGraphRequests")
-        Logger.log("assignments: \(appAssignments)", logType: "EntraGraphRequests")
-        Logger.log("appType: \(appType)", logType: "EntraGraphRequests")
+        Logger.log("assignGroupsToApp", logType: logType)
+        Logger.log("appId: \(appId)", logType: logType)
+        Logger.log("assignments: \(appAssignments)", logType: logType)
+        Logger.log("appType: \(appType)", logType: logType)
         
         
         // Format the URL for the assignment endpoint
@@ -234,13 +234,13 @@ class EntraGraphRequests {
             throw GraphAPIError.invalidURL
         }
         
-        Logger.log("URL: \(url)", logType: "EntraGraphRequests")
+        Logger.log("URL: \(url)", logType: logType)
         
         // Build the assignments payload
         var assignments: [[String: Any]] = []
         
         for assignment in appAssignments {
-            Logger.log ("Processing Assignment: \(assignment)", logType: "EntraGraphRequests")
+            Logger.log ("Processing Assignment: \(assignment)", logType: logType)
             
             guard let assignmentType = assignment["assignmentType"] as? String,
                   let mode = assignment["mode"] as? String else {
@@ -306,7 +306,7 @@ class EntraGraphRequests {
             assignments.append(assignmentObject)
         }
         
-        Logger.log("Assignments: \(assignments)", logType: "EntraGraphRequests")
+        Logger.log("Assignments: \(assignments)", logType: logType)
         
         // Prepare the request payload
         let requestPayload: [String: Any] = ["mobileAppAssignments": assignments]
@@ -315,10 +315,10 @@ class EntraGraphRequests {
         guard let jsonData = try? JSONSerialization.data(withJSONObject: requestPayload) else {
             throw GraphAPIError.encodingError
         }
-//        Logger.log("jsonData: \(jsonData)", logType: "EntraGraphRequests")
+//        Logger.log("jsonData: \(jsonData)", logType: logType)
         
         // Add more detailed logging
-//        Logger.log("Final request payload: \(String(data: jsonData, encoding: .utf8) ?? "Could not decode payload")", logType: "EntraGraphRequests")
+//        Logger.log("Final request payload: \(String(data: jsonData, encoding: .utf8) ?? "Could not decode payload")", logType: logType)
         
         // Prepare the request
         var request = URLRequest(url: url)
@@ -335,13 +335,13 @@ class EntraGraphRequests {
               (200...299).contains(httpResponse.statusCode) else {
             // If there's an error, try to extract more details
             if let errorString = String(data: data, encoding: .utf8) {
-                Logger.log("Error String: \(errorString)", logType: "EntraGraphRequests")
+                Logger.log("Error String: \(errorString)", logType: logType)
 
                 throw GraphAPIError.apiError("API Error: \(errorString)")
             }
             throw GraphAPIError.invalidResponse
         }
-//        Logger.log("Http Response: \(httpResponse)", logType: "EntraGraphRequests")
+//        Logger.log("Http Response: \(httpResponse)", logType: logType)
     }
     
     
@@ -417,10 +417,10 @@ class EntraGraphRequests {
                 throw GraphAPIError.invalidResponse
             }
             
-            Logger.log("Removed assignment: \(assignment.id)", logType: "EntraGraphRequests")
+            Logger.log("Removed assignment: \(assignment.id)", logType: logType)
         }
         
-        Logger.log("All assignments removed for app: \(appId)", logType: "EntraGraphRequests")
+        Logger.log("All assignments removed for app: \(appId)", logType: logType)
     }
     
     
@@ -493,7 +493,7 @@ class EntraGraphRequests {
             throw GraphAPIError.apiError("Failed to update scripts. Status code: \(httpResponse.statusCode)")
         }
         
-        Logger.log("Successfully updated scripts for app ID \(appId)", logType: "EntraGraphRequests")
+        Logger.log("Successfully updated scripts for app ID \(appId)", logType: logType)
         Logger.log("Successfully updated \(app.appDisplayName) scripts for app ID \(appId)", logType: "Automation")
     }
 
@@ -523,7 +523,7 @@ class EntraGraphRequests {
             throw GraphAPIError.invalidResponse
         }
         
-        Logger.log("App deleted successfully: \(appId)", logType: "EntraGraphRequests")
+        Logger.log("App deleted successfully: \(appId)", logType: logType)
     }
 }
 
