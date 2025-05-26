@@ -19,7 +19,7 @@ extension TeamsNotifier {
             ]]
         }
         
-        // Build severity summary (same as before)
+        // Build severity summary
         let critical = cves.filter { $0.severity?.uppercased() == "CRITICAL" }.count
         let high = cves.filter { $0.severity?.uppercased() == "HIGH" }.count
         let medium = cves.filter { $0.severity?.uppercased() == "MEDIUM" }.count
@@ -69,7 +69,7 @@ extension TeamsNotifier {
         } else if medium > 0 {
             "warning"    // Yellow for MEDIUM
         } else {
-            "accent"     // Blue for LOW (less alarming)
+            "accent"     // Blue for LOW
         }
 
         return [
