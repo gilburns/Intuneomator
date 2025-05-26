@@ -9,11 +9,11 @@ import Foundation
 import CommonCrypto
 
 extension EntraGraphRequests {
-
+    
     // MARK: - Assign Categories to App
     static func assignCategoriesToIntuneApp(authToken: String, appID: String, categories: [Category]) async throws {
-        Logger.log("Assigning categories to Intune app \(appID)", logType: "AssignCategoriesToIntuneApp")
-        Logger.log("Categories: \(categories)", logType: "AssignCategoriesToIntuneApp")
+        Logger.log("Assigning categories to Intune app \(appID)", logType: logType)
+        Logger.log("Categories: \(categories)", logType: logType)
         
         // Try using the beta endpoint since that worked in Graph Explorer
         guard let baseUrl = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appID)/categories/$ref") else {
@@ -25,7 +25,7 @@ extension EntraGraphRequests {
             let body = [
                 "@odata.id": "https://graph.microsoft.com/beta/deviceAppManagement/mobileAppCategories/\(category.id)"
             ]
-            Logger.log("Request Body for category \(category.displayName): \(body)", logType: "AssignCategoriesToIntuneApp")
+            Logger.log("Request Body for category \(category.displayName): \(body)", logType: logType)
             
             guard let jsonData = try? JSONSerialization.data(withJSONObject: body, options: []) else {
                 throw NSError(domain: "IntuneAPIError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to serialize request body"])
@@ -49,7 +49,7 @@ extension EntraGraphRequests {
                 
                 if httpResponse.statusCode != 204 && httpResponse.statusCode != 200 {
                     let errorInfo = String(data: data, encoding: .utf8) ?? "No error details available"
-                    Logger.log("Error assigning category \(category.displayName): Status \(httpResponse.statusCode), Response: \(errorInfo)", logType: "AssignCategoriesToIntuneApp")
+                    Logger.log("Error assigning category \(category.displayName): Status \(httpResponse.statusCode), Response: \(errorInfo)", logType: logType)
                     
                     // If we hit rate limiting or a temporary issue, add a delay before continuing
                     if httpResponse.statusCode == 429 || httpResponse.statusCode >= 500 {
@@ -61,22 +61,22 @@ extension EntraGraphRequests {
                                   userInfo: [NSLocalizedDescriptionKey: "Failed to assign category \(category.displayName) to app \(appID). Status code: \(httpResponse.statusCode). Error: \(errorInfo)"])
                 }
                 
-                Logger.log("Successfully assigned category \(category.displayName) to app \(appID)", logType: "AssignCategoriesToIntuneApp")
+                Logger.log("Successfully assigned category \(category.displayName) to app \(appID)", logType: logType)
                 
                 // Add a small delay between requests to avoid overwhelming the API
                 try await Task.sleep(nanoseconds: 500_000_000) // 500ms delay
             } catch {
-                Logger.log("Exception while assigning category \(category.displayName): \(error)", logType: "AssignCategoriesToIntuneApp")
+                Logger.log("Exception while assigning category \(category.displayName): \(error)", logType: logType)
                 throw error
             }
         }
         
-        Logger.log("Completed assigning all categories to app \(appID)", logType: "AssignCategoriesToIntuneApp")
+        Logger.log("Completed assigning all categories to app \(appID)", logType: logType)
     }
     
     // MARK: - Remove All Category Assignments
     static func removeAllCategoriesFromIntuneApp(authToken: String, appID: String) async throws {
-        Logger.log("Removing all category assignments from Intune app \(appID)", logType: "RemoveCategoriesFromIntuneApp")
+        Logger.log("Removing all category assignments from Intune app \(appID)", logType: logType)
         
         // First, get the current category assignments
         guard let categoriesUrl = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appID)/categories") else {
@@ -109,23 +109,23 @@ extension EntraGraphRequests {
         
         // If no categories are assigned, we're done
         if value.isEmpty {
-            Logger.log("No categories assigned to app \(appID)", logType: "RemoveCategoriesFromIntuneApp")
+            Logger.log("No categories assigned to app \(appID)", logType: logType)
             return
         }
         
         // Log found categories
-        Logger.log("Found \(value.count) categories assigned to app \(appID)", logType: "RemoveCategoriesFromIntuneApp")
+        Logger.log("Found \(value.count) categories assigned to app \(appID)", logType: logType)
         
         // Remove each category
         for categoryInfo in value {
             guard let categoryId = categoryInfo["id"] as? String else {
-                Logger.log("Could not extract category ID from: \(categoryInfo)", logType: "RemoveCategoriesFromIntuneApp")
+                Logger.log("Could not extract category ID from: \(categoryInfo)", logType: logType)
                 continue
             }
             
             // URL for deletion
             guard let deleteUrl = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appID)/categories/\(categoryId)/$ref") else {
-                Logger.log("Invalid URL formation for category \(categoryId)", logType: "RemoveCategoriesFromIntuneApp")
+                Logger.log("Invalid URL formation for category \(categoryId)", logType: logType)
                 continue
             }
             
@@ -144,7 +144,7 @@ extension EntraGraphRequests {
                 
                 if deleteHttpResponse.statusCode != 204 && deleteHttpResponse.statusCode != 200 {
                     let errorInfo = String(data: deleteData, encoding: .utf8) ?? "No error details available"
-                    Logger.log("Error removing category \(categoryId): Status \(deleteHttpResponse.statusCode), Response: \(errorInfo)", logType: "RemoveCategoriesFromIntuneApp")
+                    Logger.log("Error removing category \(categoryId): Status \(deleteHttpResponse.statusCode), Response: \(errorInfo)", logType: logType)
                     
                     // If we hit rate limiting or a temporary issue, add a delay before continuing
                     if deleteHttpResponse.statusCode == 429 || deleteHttpResponse.statusCode >= 500 {
@@ -155,17 +155,17 @@ extension EntraGraphRequests {
                                   userInfo: [NSLocalizedDescriptionKey: "Failed to remove category \(categoryId) from app \(appID). Status code: \(deleteHttpResponse.statusCode). Error: \(errorInfo)"])
                 }
                 
-                Logger.log("Successfully removed category \(categoryId) from app \(appID)", logType: "RemoveCategoriesFromIntuneApp")
+                Logger.log("Successfully removed category \(categoryId) from app \(appID)", logType: logType)
                 
                 // Add a small delay between requests to avoid overwhelming the API
                 try await Task.sleep(nanoseconds: 500_000_000) // 500ms delay
             } catch {
-                Logger.log("Exception while removing category \(categoryId): \(error)", logType: "RemoveCategoriesFromIntuneApp")
+                Logger.log("Exception while removing category \(categoryId): \(error)", logType: logType)
                 throw error
             }
         }
         
-        Logger.log("Successfully removed all categories from app \(appID)", logType: "RemoveCategoriesFromIntuneApp")
+        Logger.log("Successfully removed all categories from app \(appID)", logType: logType)
     }
     
     
@@ -254,7 +254,7 @@ extension EntraGraphRequests {
             throw GraphAPIError.apiError("Failed to update metadata. Status code: \(httpResponse.statusCode)")
         }
         
-        Logger.log("Successfully updated metadata for app ID \(appId)", logType: "EntraGraphRequests")
+        Logger.log("Successfully updated metadata for app ID \(appId)", logType: logType)
         Logger.log("Successfully updated \(app.appDisplayName) metadata for app ID \(appId)", logType: "Automation")
     }
 
