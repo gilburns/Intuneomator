@@ -9,7 +9,7 @@ import Foundation
 
 extension TeamsNotifier {
                 
-    func processNotification(for processedAppResults: ProcessedAppResults, success: Bool) -> Bool {
+    static func processNotification(for processedAppResults: ProcessedAppResults, success: Bool) -> Bool {
         
         guard ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") == true
         else {
@@ -92,7 +92,7 @@ extension TeamsNotifier {
 
 extension TeamsNotifier {
   /// accepts an optional, unwraps (or uses .empty) and forwards
-  func processNotification(
+    static func processNotification(
     for maybeResults: ProcessedAppResults?,
     success: Bool
   ) -> Bool {
