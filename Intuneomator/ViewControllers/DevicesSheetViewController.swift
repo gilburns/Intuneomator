@@ -19,6 +19,8 @@ class DevicesSheetViewController: NSViewController, NSTableViewDelegate, NSTable
     var appName: String = ""
     var devices: [DeviceInfo] = []
     
+    
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
@@ -51,6 +53,7 @@ class DevicesSheetViewController: NSViewController, NSTableViewDelegate, NSTable
     }
 
     
+    // MARK: Table Functions
     func numberOfRows(in tableView: NSTableView) -> Int {
         return devices.count
     }
@@ -80,6 +83,7 @@ class DevicesSheetViewController: NSViewController, NSTableViewDelegate, NSTable
         return nil
     }
     
+    // MARK: Actions
     @IBAction func dismissSheet(_ sender: NSButton) {
         self.dismiss(self)
     }
@@ -117,6 +121,8 @@ class DevicesSheetViewController: NSViewController, NSTableViewDelegate, NSTable
         }
     }
     
+    
+    // MARK: Dialog Helpers
     func showSuccessDialog(message: String) {
         let alert = NSAlert()
         alert.messageText = "Success"
