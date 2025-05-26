@@ -365,12 +365,12 @@ class EntraGraphRequests {
             if appTypeSupportsAssignmentFilters(appType) {
                 target["deviceAndAppManagementAssignmentFilterId"] = filterId
                 target["deviceAndAppManagementAssignmentFilterType"] = filterMode.lowercased()
-                Logger.log("🔎 Filter applied: ID=\(filterId), Type=\(filterMode.lowercased()) to \(target))", logType: "AssignGroupsToApp")
+                Logger.log("🔎 Filter applied: ID=\(filterId), Type=\(filterMode.lowercased()) to \(target))", logType: logType)
             } else {
-                Logger.log("⚠️ Filter was provided for unsupported appType: \(appType). Ignoring.", logType: "AssignGroupsToApp")
+                Logger.log("⚠️ Filter was provided for unsupported appType: \(appType). Ignoring.", logType: logType)
             }
         } else {
-            Logger.log("ℹ️ No filter applied for this assignment target", logType: "AssignGroupsToApp")
+            Logger.log("ℹ️ No filter applied for this assignment target", logType: logType)
         }
     }
     
