@@ -8,6 +8,8 @@
 import Cocoa
 import UniformTypeIdentifiers
 
+private let logType: "MainViewController"
+
 class MainViewController: NSViewController {
     
     var appData: [AppInfo] = []
@@ -296,7 +298,7 @@ class MainViewController: NSViewController {
         XPCManager.shared.checkIntuneForAutomation() { success in
             if let success = success {
                 if success {
-                            Logger.logUser("Scan completed successfully.", logType: "MainViewController")
+                    Logger.logUser("Scan completed successfully.", logType: logType)
                     DispatchQueue.main.async {
                     }
                 }
@@ -504,7 +506,7 @@ class MainViewController: NSViewController {
                 XPCManager.shared.scanAllInstallomatorManagedLabels() { success in
                     if let success = success {
                         if success {
-//                            Logger.logUser("Scan completed successfully.", logType: "MainViewController")
+//                            Logger.logUser("Scan completed successfully.", logType: logType)
                             DispatchQueue.main.async {
                                 self.progressSpinner.stopAnimation(self)
                                 self.statusLabel.isHidden = true
