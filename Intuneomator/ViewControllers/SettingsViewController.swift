@@ -8,6 +8,8 @@
 import Foundation
 import Cocoa
 
+private let logType = "Settings"
+
 class SettingsViewController: NSViewController {
     
     @IBOutlet weak var fieldTenantID: NSTextField!
@@ -147,21 +149,21 @@ class SettingsViewController: NSViewController {
     
     private func processP12File(fileURL: URL, passphrase: String) {
         // Implement your logic for handling the p12 file and passphrase
-        Logger.logUser("Selected file: \(fileURL.path)", logType: "SetupWizard")
-        Logger.logUser("Entered passphrase: \(passphrase)", logType: "SetupWizard") // Remove this in production for security reasons
+        Logger.logUser("Selected file: \(fileURL.path)", logType: logType)
+        Logger.logUser("Entered passphrase: \(passphrase)", logType: logType) // Remove this in production for security reasons
         
         do {
             let p12Data = try Data(contentsOf: fileURL)
             XPCManager.shared.importP12Certificate(p12Data: p12Data, passphrase: passphrase) { success in
                 DispatchQueue.main.async {
                     if success ?? false {
-                        Logger.logUser("Successfully imported .p12 into the daemon.", logType: "SetupWizard")
+                        Logger.logUser("Successfully imported .p12 into the daemon.", logType: logType)
                         DispatchQueue.main.async {
                             self.showAlert(title: "Success", message: "Import was successful.")
                         }
 //                        self.onCompletionStatusChanged?(true)
                     } else {
-                        Logger.logUser("Failed to import .p12.", logType: "SetupWizard")
+                        Logger.logUser("Failed to import .p12.", logType: logType)
                         DispatchQueue.main.async {
                             self.showAlert(title: "Success", message: "Import failed.")
                         }
@@ -170,7 +172,7 @@ class SettingsViewController: NSViewController {
                 }
             }
         } catch {
-            Logger.logUser("Failed to read .p12 file: \(error)", logType: "SetupWizard")
+            Logger.logUser("Failed to read .p12 file: \(error)", logType: logType)
         }
         
     }
@@ -216,12 +218,12 @@ class SettingsViewController: NSViewController {
     
     private func handleEntraIDSecretKey(_ secretKey: String) {
         // Implement logic to store, validate, or use the secret key
-        Logger.logUser("Entered Entra ID Secret Key: \(secretKey)", logType: "SetupWizard") // Do NOT log in production
+        Logger.logUser("Entered Entra ID Secret Key: \(secretKey)", logType: logType) // Do NOT log in production
 
-        Logger.logUser("Saving secret key...", logType: "SetupWizard")
+        Logger.logUser("Saving secret key...", logType: logType)
         XPCManager.shared.importEntraIDSecretKey(secretKey: secretKey) { success in
             if success ?? false {
-                Logger.logUser("Successfully imported Entra ID secret key.", logType: "SetupWizard")
+                Logger.logUser("Successfully imported Entra ID secret key.", logType: logType)
                 DispatchQueue.main.async {
                     let alert = NSAlert()
                     alert.messageText = "Success"
@@ -253,7 +255,7 @@ class SettingsViewController: NSViewController {
                     }
                 }
             } else {
-                Logger.logUser("Failed to import Entra ID secret key.", logType: "SetupWizard")
+                Logger.logUser("Failed to import Entra ID secret key.", logType: logType)
                 DispatchQueue.main.async {
                     self.showAlert(title: "Failed", message: "Import failed.")
                 }
@@ -276,9 +278,6 @@ class SettingsViewController: NSViewController {
 
         checkFieldChange(fieldLogsMaxAge.stringValue, originalValue: settings.logAgeMax, control: fieldLogsMaxAge)
         checkFieldChange(fieldLogsMaxSize.stringValue, originalValue: settings.logSizeMax, control: fieldLogsMaxSize)
-
-//        checkFieldChange(fieldClientSecret.stringValue, originalValue: settings.secret, control: fieldClientSecret)
-//        checkFieldChange(fieldCertificateThumbprint.stringValue, originalValue: settings.certThumbprint, control: fieldCertificateThumbprint)
 
         var authType: String? = "unknown"
         if radioButtonSecret.state == .on {
@@ -567,28 +566,28 @@ class SettingsViewController: NSViewController {
     private func setTeamsWebHookEnabled() {
         let isEnabled = (buttonSendTeamsNotifications.state == .on)
         XPCManager.shared.setTeamsNotificationsEnabled(isEnabled) { success in
-            Logger.logUser("Teams notifications updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+            Logger.logUser("Teams notifications updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
     
     private func setTeamsWebHookURL() {
         let urlString = fieldTeamsWebhookURL.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         XPCManager.shared.setTeamsWebhookURL(urlString) { success in
-            Logger.logUser("Webhook URL updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+            Logger.logUser("Webhook URL updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
     
     private func setCertificateThumbprint() {
         let thumbprint = fieldCertificateThumbprint.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         XPCManager.shared.setApplicationID(thumbprint) { success in
-            Logger.logUser("Certificate Thumbprint updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+            Logger.logUser("Certificate Thumbprint updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
     
     private func setClientSecret() {
         let secret = fieldClientSecret.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         XPCManager.shared.setApplicationID(secret) { success in
-            Logger.logUser("Client Secret updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+            Logger.logUser("Client Secret updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
     
@@ -602,42 +601,42 @@ class SettingsViewController: NSViewController {
         }
         
         XPCManager.shared.setAuthMethod(authMethod) { success in
-            Logger.logUser("Auth Method updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+            Logger.logUser("Auth Method updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
     
     private func setAppsToKeep() {
         let appsToKeepString = Int(fieldAppsToKeep.stringValue.trimmingCharacters(in: .whitespacesAndNewlines))
         XPCManager.shared.setAppsToKeep(appsToKeepString ?? 2) { success in
-            Logger.logUser("Apps to keep updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+            Logger.logUser("Apps to keep updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
     
     private func setApplicationID() {
         let appIDString = fieldClientID.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         XPCManager.shared.setApplicationID(appIDString) { success in
-            Logger.logUser("Application ID updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+            Logger.logUser("Application ID updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
     
     private func setTenantID() {
         let tenantIDString = fieldTenantID.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         XPCManager.shared.setTenantID(tenantIDString) { success in
-            Logger.logUser("Tenant ID updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+            Logger.logUser("Tenant ID updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
     
     private func setLogAgeMax() {
         let logAgeMaxString = Int(fieldLogsMaxAge.stringValue.trimmingCharacters(in: .whitespacesAndNewlines))
         XPCManager.shared.setLogAgeMax(logAgeMaxString ?? 0) { success in
-            Logger.logUser("Log max age updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+            Logger.logUser("Log max age updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
 
     private func setLogSizeMax() {
         let logSizeMaxString = Int(fieldLogsMaxSize.stringValue.trimmingCharacters(in: .whitespacesAndNewlines))
         XPCManager.shared.setLogSizeMax(logSizeMaxString ?? 0) { success in
-            Logger.logUser("Log max size updated: \(success == true ? "✅" : "❌")", logType: "Settings")
+            Logger.logUser("Log max size updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
 
