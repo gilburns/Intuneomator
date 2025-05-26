@@ -10,7 +10,7 @@ import Foundation
 extension TeamsNotifier {
                 
     // Convience method for sending success/fail messages to teams
-    static func processNotification(for processedAppResults: ProcessedAppResults, success: Bool, errorMessage: String? = nil) -> Bool {
+    static func processNotification(for processedAppResults: ProcessedAppResults, success: Bool, errorMessage: String? = "") -> Bool {
         
         guard ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") == true
         else {
