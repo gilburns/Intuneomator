@@ -8,7 +8,7 @@
 import Cocoa
 import UniformTypeIdentifiers
 
-private let logType: "MainViewController"
+private let logType = "MainViewController"
 
 class MainViewController: NSViewController {
     
