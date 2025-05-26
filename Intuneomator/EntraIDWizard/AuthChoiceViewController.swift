@@ -16,6 +16,8 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
     var hasPrivateKey: Bool?
     var hasSecretKey: Bool?
     
+    private let logType = "Settings"
+
     @IBOutlet weak var radioButtonCertificate: NSButton!
     @IBOutlet weak var radioButtonSecret: NSButton!
     
@@ -65,26 +67,26 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         let group = DispatchGroup()
 
         group.enter()
-        XPCManager.shared.privateKeyExists { exists in
+        XPCManager.shared.privateKeyExists { [self] exists in
             self.hasPrivateKey = exists ?? false
             #if DEBUG
-            Logger.logUser("privateKeyExists returned: \(self.hasPrivateKey!)", logType: "SetupWizard")
+            Logger.logUser("privateKeyExists returned: \(self.hasPrivateKey!)", logType: logType)
             #endif
             group.leave()
         }
 
         group.enter()
-        XPCManager.shared.entraIDSecretKeyExists { exists in
+        XPCManager.shared.entraIDSecretKeyExists { [self] exists in
             self.hasSecretKey = exists ?? false
             #if DEBUG
-            Logger.logUser("entraIDSecretKeyExists returned: \(self.hasSecretKey!)", logType: "SetupWizard")
+            Logger.logUser("entraIDSecretKeyExists returned: \(self.hasSecretKey!)", logType: logType)
             #endif
             group.leave()
         }
 
-        group.notify(queue: .main) {
+        group.notify(queue: .main) { [self] in
             #if DEBUG
-            Logger.logUser("Auth setup check completed. hasPrivateKey: \(self.hasPrivateKey!), hasSecretKey: \(self.hasSecretKey!)", logType: "SetupWizard")
+            Logger.logUser("Auth setup check completed. hasPrivateKey: \(self.hasPrivateKey!), hasSecretKey: \(self.hasSecretKey!)", logType: logType)
             #endif
             completion()
         }
@@ -111,37 +113,34 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
     // MARK: Select Auth Method - If Configured
     func getAuthMethod() {
         #if DEBUG
-        Logger.logUser("getAuthMethod", logType: "SetupWizard")
+        Logger.logUser("getAuthMethod", logType: logType)
         #endif
         XPCManager.shared.getAuthMethod { authMethod in
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { [self] in
                 
                 #if DEBUG
                 if let method = authMethod {
-                    Logger.logUser(method.capitalized, logType: "SetupWizard")
+                    Logger.logUser(method.capitalized, logType: logType)
                 } else {
-                    Logger.logUser("authMethod is nil", logType: "SetupWizard")
+                    Logger.logUser("authMethod is nil", logType: logType)
                 }
                 #endif
                 
                 switch authMethod?.capitalized ?? "Certificate" {
                 case "Certificate": // Certificate
                     #if DEBUG
-                    Logger.logUser("Certificate", logType: "SetupWizard")
+                    Logger.logUser("Certificate", logType: logType)
                     #endif
                     self.buttonImportCert.isEnabled = true
                     self.buttonSaveSecretKey.isEnabled = false
                     self.radioButtonCertificate.performClick(self)
-                    //            settings.connectMethod = "Cert"
                 case "Secret": // Secret
                     #if DEBUG
-                    Logger.logUser("Secret", logType: "SetupWizard")
+                    Logger.logUser("Secret", logType: logType)
                     #endif
                     self.buttonImportCert.isEnabled = false
                     self.buttonSaveSecretKey.isEnabled = true
                     self.radioButtonSecret.performClick(self)
-                    
-                    //            settings.connectMethod = "Secret"
                 default:
                     break
                 }
@@ -157,19 +156,19 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
             selectedMethod = "certificate"
         }
         
-        XPCManager.shared.setAuthMethod(selectedMethod) { success in
+        XPCManager.shared.setAuthMethod(selectedMethod) { [self] success in
             #if DEBUG
             if success ?? false {
-                Logger.logUser("Successfully updated auth method to: \(selectedMethod)", logType: "SetupWizard")
+                Logger.logUser("Successfully updated auth method to: \(selectedMethod)", logType: logType)
             } else {
-                Logger.logUser("Failed to update auth method.", logType: "SetupWizard")
+                Logger.logUser("Failed to update auth method.", logType: logType)
             }
             #endif
         }
         
         let completed = isStepCompleted
         #if DEBUG
-        Logger.logUser("inputChanged -> isStepCompleted: \(completed)", logType: "SetupWizard")
+        Logger.logUser("inputChanged -> isStepCompleted: \(completed)", logType: logType)
         #endif
         onCompletionStatusChanged?(completed) // ✅ Notify `WelcomeWizardViewController`
     }
@@ -243,21 +242,21 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
     
     private func processP12File(fileURL: URL, passphrase: String) {
         // Implement your logic for handling the p12 file and passphrase
-        Logger.logUser("Selected file: \(fileURL.path)", logType: "SetupWizard")
-        Logger.logUser("Entered passphrase: \(passphrase)", logType: "SetupWizard") // Remove this in production for security reasons
+        Logger.logUser("Selected file: \(fileURL.path)", logType: logType)
+        Logger.logUser("Entered passphrase: \(passphrase)", logType: logType) // Remove this in production for security reasons
         
         do {
             let p12Data = try Data(contentsOf: fileURL)
             XPCManager.shared.importP12Certificate(p12Data: p12Data, passphrase: passphrase) { success in
-                DispatchQueue.main.async {
+                DispatchQueue.main.async { [self] in
                     if success ?? false {
-                        Logger.logUser("Successfully imported .p12 into the daemon.", logType: "SetupWizard")
+                        Logger.logUser("Successfully imported .p12 into the daemon.", logType: logType)
                         DispatchQueue.main.async {
                             self.showAlert(title: "Success", message: "Import was successful.")
                         }
                         self.onCompletionStatusChanged?(true)
                     } else {
-                        Logger.logUser("Failed to import .p12.", logType: "SetupWizard")
+                        Logger.logUser("Failed to import .p12.", logType: logType)
                         DispatchQueue.main.async {
                             self.showAlert(title: "Success", message: "Import failed.")
                         }
@@ -266,7 +265,7 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
                 }
             }
         } catch {
-            Logger.logUser("Failed to read .p12 file: \(error)", logType: "SetupWizard")
+            Logger.logUser("Failed to read .p12 file: \(error)", logType: logType)
         }
         
     }
@@ -312,12 +311,12 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
     
     private func handleEntraIDSecretKey(_ secretKey: String) {
         // Implement logic to store, validate, or use the secret key
-        Logger.logUser("Entered Entra ID Secret Key: \(secretKey)", logType: "SetupWizard") // Do NOT log in production
+        Logger.logUser("Entered Entra ID Secret Key: \(secretKey)", logType: logType) // Do NOT log in production
 
-        Logger.logUser("Saving secret key...", logType: "SetupWizard")
-        XPCManager.shared.importEntraIDSecretKey(secretKey: secretKey) { success in
+        Logger.logUser("Saving secret key...", logType: logType)
+        XPCManager.shared.importEntraIDSecretKey(secretKey: secretKey) { [self] success in
             if success ?? false {
-                Logger.logUser("Successfully imported Entra ID secret key.", logType: "SetupWizard")
+                Logger.logUser("Successfully imported Entra ID secret key.", logType: logType)
                 DispatchQueue.main.async {
                     self.onCompletionStatusChanged?(true)
 
@@ -351,7 +350,7 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
                     }
                 }
             } else {
-                Logger.logUser("Failed to import Entra ID secret key.", logType: "SetupWizard")
+                Logger.logUser("Failed to import Entra ID secret key.", logType: logType)
                 DispatchQueue.main.async {
                     self.showAlert(title: "Failed", message: "Import failed.")
                 }
