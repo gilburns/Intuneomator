@@ -13,7 +13,7 @@ extension LabelAutomation {
     static func processFolder(named folderName: String) async {
         
         // Variables to track label processing
-        var processedAppResults: ProcessedAppResults?
+        var wrappedProcessedAppResults: ProcessedAppResults?
         var checkedIntune: Bool = false
         
         // For check version in Intune
@@ -31,9 +31,8 @@ extension LabelAutomation {
         }
                 
         // Get the Processed App Results starter for this folder
-        processedAppResults = extractDataForProcessedAppResults(from: folderName)
-        
-        guard var processedAppResults = processedAppResults else {
+        wrappedProcessedAppResults = extractDataForProcessedAppResults(from: folderName)
+        guard var processedAppResults = wrappedProcessedAppResults else {
             Logger.log("ProcessedAppResults unexpectedly nil", logType: logType)
             return
         }
@@ -82,7 +81,7 @@ extension LabelAutomation {
                 }
                 
                 // Check if current version is already uploaded to Intune
-                let versionExistsInIntune = isVersionUploadedToIntuneAsync(appInfo: appInfo, version: processedAppResults.appVersionExpected)
+                let versionExistsInIntune = isVersionUploadedToIntune(appInfo: appInfo, version: processedAppResults.appVersionExpected)
                 
                 // Version is already in Intune. No need to continue
                 if versionExistsInIntune {
@@ -103,17 +102,15 @@ extension LabelAutomation {
         
         // MARK: - Check cache for pre-existing download
         
-        var cacheCheckURL: URL = URL(fileURLWithPath: "/")
-        cacheCheckURL = isVersionCached(forProcessedResult: processedAppResults)
-        Logger.log("cacheCheck: \(cacheCheckURL.path)", logType: logType)
+        let cacheCheckURL = isVersionCached(forProcessedResult: processedAppResults)
 
-        
         // MARK: - Download the file
         
-        if cacheCheckURL != URL(fileURLWithPath: "/") {
+        if let cacheURL = cacheCheckURL {
             Logger.log("Cached item found. No need to download", logType: logType)
+            Logger.log("Item is cached at: \(cacheURL.path)", logType: logType)
             
-            processedAppResults.appLocalURL = cacheCheckURL.path
+            processedAppResults.appLocalURL = cacheURL.path
 
             let actualBundleID = processedAppResults.appBundleIdExpected
             let actualVersion = processedAppResults.appVersionExpected
@@ -194,51 +191,31 @@ extension LabelAutomation {
                 Logger.log("  Version: \(String(describing: processedAppResults.appVersionActual))", logType: logType)
                 
                 
-                
-                // MARK: - Check Intune with download version
+                // MARK: - Check download version against Intune versions
                 if processedAppResults.appVersionActual != processedAppResults.appVersionExpected || checkedIntune == false {
                     Logger.log("  Version mismatch or Intune check not performed previously.", logType: logType)
                     
                     // Check Intune for an existing version
                     Logger.log("  " + folderName + ": Fetching app info from Intune...", logType: logType)
                     
-                    do {
+                    // Check if current actual version is already uploaded to Intune
+                    let versionExistsInIntune = isVersionUploadedToIntune(appInfo: appInfo, version: processedAppResults.appVersionActual)
+                    
+                    // Version is already in Intune. No need to continue
+                    if versionExistsInIntune {
+                        Logger.log("    ---", logType: logType)
+                        Logger.log("    Version \(processedAppResults.appVersionActual) is already uploaded to Intune", logType: logType)
+                                     
                         
-                        appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: appTrackingID)
-                        
-                        Logger.log("  Found \(appInfo.count) apps matching tracking ID \(appTrackingID)", logType: logType)
-                        
-                        for app in appInfo {
-                            Logger.log("    ---", logType: logType)
-                            Logger.log("    App: \(app.displayName)", logType: logType)
-                            Logger.log("    Ver: \(app.primaryBundleVersion)", logType: logType)
-                            Logger.log("     ID: \(app.id)", logType: logType)
-                        }
-                        
-                        // Check if current version is already uploaded to Intune
-                        let versionExistsInIntune = isVersionUploadedToIntuneAsync(appInfo: appInfo, version: processedAppResults.appVersionActual)
-                        
-                        // Version is already in Intune. No need to continue
-                        if versionExistsInIntune {
-                            Logger.log("    ---", logType: logType)
-                            Logger.log("    Version \(processedAppResults.appVersionActual) is already uploaded to Intune", logType: logType)
-                                         
-                            
-                            // Clean up the download before we bail
-                            let deleteFolder = cleanUpTmpFiles(forAppLabel: appLabelName)
-                            Logger.log("Folder cleanup : \(deleteFolder)", logType: logType)
-                            return
-                        }
-                        
-                        checkedIntune = true
-                        
-                        Logger.log("  Version \(processedAppResults.appVersionActual) is not yet uploaded to Intune", logType: logType)
-                        
-                    } catch {
-                        let messageResult = TeamsNotifier.processNotification(for: processedAppResults, success: false, errorMessage: "Failed to fetch app info from Intune \(processedAppResults.appDisplayName): \(error.localizedDescription)")
-                        Logger.log("Failed to fetch app info from Intune \(processedAppResults.appDisplayName): \(error.localizedDescription). Teams notification sent: \(messageResult)", logType: logType)
+                        // Clean up the download before we bail
+                        let deleteFolder = cleanUpTmpFiles(forAppLabel: appLabelName)
+                        Logger.log("Folder cleanup : \(deleteFolder)", logType: logType)
                         return
                     }
+                    
+                    checkedIntune = true
+                    
+                    Logger.log("  Version \(processedAppResults.appVersionActual) is not yet uploaded to Intune", logType: logType)
                 }
 
             } catch {
@@ -253,8 +230,7 @@ extension LabelAutomation {
         do {
                         
            let localFilePath = processedAppResults.appLocalURL
-            
-            
+
             guard FileManager.default.fileExists(atPath: localFilePath) else {
                 let messageResult = TeamsNotifier.processNotification(for: processedAppResults, success: false, errorMessage: "Upload file does not exist at path. Please check the logs for file path and try again.")
                 Logger.log("File does not exist. Teams notification sent: \(messageResult)", logType: logType)
@@ -270,29 +246,9 @@ extension LabelAutomation {
         }
         
         
-        // Get file size for logging
-        do {
-            let labelDisplayName = processedAppResults.appDisplayName
-            let labelName = processedAppResults.appLabelName
-            let finalFilename = URL(string: processedAppResults.appLocalURL)?.lastPathComponent
-            // file size
-            let fileIdentifier = processedAppResults.appBundleIdActual
-            let fileVersionActual = processedAppResults.appVersionActual
-            let fileVersionExpected = processedAppResults.appVersionExpected
-            let labelTrackingID = processedAppResults.appTrackingID
-            let finalURL = processedAppResults.appLocalURL
-
-            let fileAttributes = try FileManager.default.attributesOfItem(atPath: finalURL)
-            let fileSizeBytes = fileAttributes[.size] as? Int64 ?? 0
-            let fileSizeMB = Double(fileSizeBytes) / 1_048_576
-                    
-            // Write the upload info to the Upload log file
-            Logger.logNoDateStamp("\(labelDisplayName)\t\(labelName)\t\(finalFilename ?? "Unknown")\t\(String(format: "%.2f", fileSizeMB)) MB\t\(fileIdentifier)\t\(fileVersionActual)\t\(fileVersionExpected)\t\(labelTrackingID)\t\(finalURL)", logType: "Upload")
-            
-        } catch {
-            Logger.log("Unable to get file size: \(error.localizedDescription)", logType: logType)
-        }
-
+        // MARK: - Write Upload log for tracking
+        logUploadFileInfo(processedAppResults: processedAppResults)
+        
         
         // MARK: - Check Intune for the new version and unassign or remove old versions.
         
@@ -301,7 +257,9 @@ extension LabelAutomation {
         
         var uploadSucceeded: Bool = false
         do {
-            let (uploadResult, appInfo) = await pollForIntuneUploadStatus(withID: appTrackingID, processedAppResults: processedAppResults, authToken: authToken)
+            let (uploadResult, appInfoResult) = await pollForIntuneUploadStatus(withID: appTrackingID, processedAppResults: processedAppResults, authToken: authToken)
+            uploadSucceeded = uploadResult
+            appInfo = appInfoResult
         }
         
         // clean up Intune for failed upload
@@ -359,35 +317,9 @@ extension LabelAutomation {
         }
     
         
-        // Write the .uploaded file count for GUI app
-        let appVersionsToKeep = ConfigManager.readPlistValue(key: "AppVersionsToKeep") ?? 2
-        let totalVersions = appInfo.count
-        let versionsToDeleteCount = max(0, totalVersions - appVersionsToKeep)
-
-        let remainingCount = appInfo.count - versionsToDeleteCount
+        // MARK: - Write the .uploaded file count for GUI app
+        recordUploadCount(forAppFolder: folderName, appInfo: appInfo)
         
-        do {
-
-            let uploadedFileURL = AppConstants.intuneomatorManagedTitlesFolderURL
-                .appendingPathComponent(folderName)
-                .appendingPathComponent(".uploaded")
-
-            if remainingCount > 0 {
-
-                // Write app count to the file
-                let appCountString = "\(remainingCount)"
-                try appCountString.write(to: uploadedFileURL, atomically: true, encoding: .utf8)
-            } else {
-
-                if FileManager.default.fileExists(atPath: uploadedFileURL.path) {
-                    try FileManager.default.removeItem(atPath: uploadedFileURL.path)
-                }
-            }
-
-        } catch {
-            Logger.log("❌ Error: \(error)", logType: logType)
-        }
-
         
         // MARK: - Send Teams Notification
                 
