@@ -316,32 +316,47 @@ extension LabelAutomation {
         // Check Intune for the new version
         Logger.log("  " + folderName + ": Confirming app upload to Intune...", logType: logType)
         
-        var uploadSucceeded: Bool = false
-        do{
-            try await Task.sleep(nanoseconds: 15_000_000_000) // 15 seconds
-        } catch {
-            Logger.log("Error sleeping: \(error.localizedDescription)")
-        }
+        // Polling constants
+        let maxPollAttempts = 10
+        let pollInterval: UInt64 = 3_000_000_000 // 3 seconds in nanoseconds
+
+        var uploadSucceeded = false
+        var currentAttempt = 0
 
         do {
             let entraAuthenticator = EntraAuthenticator()
             let authToken = try await entraAuthenticator.getEntraIDToken()
-            
-            appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: trackingID)
-            
-            Logger.log("  Found \(appInfo.count) apps matching tracking ID \(trackingID)", logType: logType)
-            
-            // Check if current version is already uploaded to Intune
-            uploadSucceeded = await isVersionUploadedToIntuneAsync(appInfo: appInfo, version: processedAppResults.appVersionActual)
-            
-            // Version is in Intune. Success!
-            if uploadSucceeded {
-                Logger.log("Version \(processedAppResults.appVersionActual) was uploaded to Intune", logType: logType)
-            } else {
-                Logger.log("Version \(processedAppResults.appVersionActual) was NOT uploaded to Intune", logType: logType)
+
+            while currentAttempt < maxPollAttempts && !uploadSucceeded {
+                appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: trackingID)
+                uploadSucceeded = await isVersionUploadedToIntuneAsync(appInfo: appInfo, version: processedAppResults.appVersionActual)
+                
+                if uploadSucceeded {
+                    Logger.log("Version \(processedAppResults.appVersionActual) was uploaded to Intune", logType: logType)
+                    break
+                } else {
+                    Logger.log("Waiting for version \(processedAppResults.appVersionActual) to appear in Intune (attempt \(currentAttempt + 1))", logType: logType)
+                    try await Task.sleep(nanoseconds: pollInterval)
+                    currentAttempt += 1
+                }
+            }
+
+            if !uploadSucceeded {
+                Logger.log("Version \(processedAppResults.appVersionActual) was NOT uploaded to Intune after polling", logType: logType)
                 return
             }
 
+            // ...continue with unassigning/removing old versions
+
+        } catch {
+            Logger.log("Failed to check for successful upload to Intune: \(error.localizedDescription)", logType: logType)
+            return
+        }
+        
+        // Unassign old versions
+        do {
+            let entraAuthenticator = EntraAuthenticator()
+            let authToken = try await entraAuthenticator.getEntraIDToken()
             
             // Unassign old versions
             for app in appInfo {
