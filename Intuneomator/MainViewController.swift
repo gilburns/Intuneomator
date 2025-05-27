@@ -541,8 +541,8 @@ class MainViewController: NSViewController {
                         }
                     }
                     DispatchQueue.main.async {
-                        self.appData = loadedAppData.sorted(by: { $0.name < $1.name })
-                        self.filteredAppData = loadedAppData.sorted(by: { $0.name < $1.name })
+                        self.appData = loadedAppData.sorted(by: { $0.name.lowercased() < $1.name.lowercased() })
+                        self.filteredAppData = loadedAppData.sorted(by: { $0.name.lowercased() < $1.name.lowercased() })
                     }
                 }
             } catch {
@@ -686,9 +686,9 @@ class MainViewController: NSViewController {
             if let newAppInfo = await processSubdirectory(directoryURL) {
                 DispatchQueue.main.async {
                     self.appData.append(newAppInfo)
-                    self.appData.sort(by: { $0.name < $1.name })
+                    self.appData.sort(by: { $0.name.lowercased() < $1.name.lowercased() })
                     self.filteredAppData.append(newAppInfo)
-                    self.filteredAppData.sort(by: { $0.name < $1.name })
+                    self.filteredAppData.sort(by: { $0.name.lowercased() < $1.name.lowercased() })
                     self.tableView.reloadData()
 //                    print("New directory processed and added to table view.")
                     
