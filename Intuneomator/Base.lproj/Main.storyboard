@@ -807,7 +807,7 @@ Gw
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <subviews>
                                                 <box fixedFrame="YES" title="Intune Versions:" translatesAutoresizingMaskIntoConstraints="NO" id="NPv-G4-N2G">
-                                                    <rect key="frame" x="6" y="109" width="547" height="79"/>
+                                                    <rect key="frame" x="6" y="236" width="547" height="79"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                     <view key="contentView" id="UM2-lp-Ha5">
                                                         <rect key="frame" x="4" y="5" width="539" height="59"/>
@@ -837,42 +837,9 @@ Gw
                                                         </subviews>
                                                     </view>
                                                 </box>
-                                                <box fixedFrame="YES" title="Intuneomator Notifications:" translatesAutoresizingMaskIntoConstraints="NO" id="J0U-mw-KjS">
-                                                    <rect key="frame" x="6" y="192" width="547" height="114"/>
-                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                                                    <view key="contentView" id="3Z1-An-9f2">
-                                                        <rect key="frame" x="4" y="5" width="539" height="94"/>
-                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                                        <subviews>
-                                                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="rCb-Js-SjM">
-                                                                <rect key="frame" x="18" y="57" width="316" height="18"/>
-                                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                                                <buttonCell key="cell" type="check" title="Send Teams Notifications for automation events" bezelStyle="regularSquare" imagePosition="left" inset="2" id="CxZ-0Z-hDW">
-                                                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                                                    <font key="font" metaFont="system"/>
-                                                                </buttonCell>
-                                                                <connections>
-                                                                    <action selector="buttonSendTeamsMessageClicked:" target="9UW-t9-eHm" id="Ayg-Dw-O3u"/>
-                                                                </connections>
-                                                            </button>
-                                                            <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OgX-dF-nzh">
-                                                                <rect key="frame" x="20" y="20" width="499" height="21"/>
-                                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                                                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" placeholderString="https://my-teams-webhook-url" drawsBackground="YES" id="Gkc-3p-Qvt">
-                                                                    <font key="font" metaFont="system"/>
-                                                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                                                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                                                </textFieldCell>
-                                                                <connections>
-                                                                    <action selector="fieldAppsTeamsWebhookURLDidChange:" target="9UW-t9-eHm" id="Lx6-Wj-BKj"/>
-                                                                </connections>
-                                                            </textField>
-                                                        </subviews>
-                                                    </view>
-                                                </box>
                                                 <box fixedFrame="YES" title="Intuneomator Logs:" translatesAutoresizingMaskIntoConstraints="NO" id="Yf7-hK-7uV">
-                                                    <rect key="frame" x="6" y="10" width="547" height="95"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                                    <rect key="frame" x="6" y="137" width="547" height="95"/>
+                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                     <view key="contentView" id="JSX-jA-Fdh">
                                                         <rect key="frame" x="4" y="5" width="539" height="75"/>
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -937,6 +904,111 @@ Gw
                                                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                                 </textFieldCell>
                                                             </textField>
+                                                        </subviews>
+                                                    </view>
+                                                </box>
+                                                <box fixedFrame="YES" title="Intuneomator Updates" translatesAutoresizingMaskIntoConstraints="NO" id="LRl-Y9-DKv">
+                                                    <rect key="frame" x="6" y="19" width="547" height="114"/>
+                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                                    <view key="contentView" id="K1i-sB-fO6">
+                                                        <rect key="frame" x="4" y="5" width="539" height="94"/>
+                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                        <subviews>
+                                                            <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tkv-nq-Gmu">
+                                                                <rect key="frame" x="17" y="50" width="392" height="25"/>
+                                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                                                <popUpButtonCell key="cell" type="push" title="Automatically keep Intuneomator up-to-date" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="uMv-1I-tOJ" id="loi-dJ-bYn">
+                                                                    <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                                                                    <font key="font" metaFont="menu"/>
+                                                                    <menu key="menu" id="buU-yb-jCK">
+                                                                        <items>
+                                                                            <menuItem title="Automatically keep Intuneomator up-to-date" state="on" id="uMv-1I-tOJ"/>
+                                                                            <menuItem title="Send Teams Notification when an update is available" id="zYV-Zc-qg4"/>
+                                                                        </items>
+                                                                    </menu>
+                                                                </popUpButtonCell>
+                                                            </popUpButton>
+                                                        </subviews>
+                                                    </view>
+                                                </box>
+                                            </subviews>
+                                        </view>
+                                    </tabViewItem>
+                                    <tabViewItem label="Notifications" identifier="" id="gyj-Ca-fzr">
+                                        <view key="view" id="CnU-Up-pJX">
+                                            <rect key="frame" x="10" y="33" width="559" height="310"/>
+                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                            <subviews>
+                                                <box fixedFrame="YES" title="Intuneomator Notifications:" translatesAutoresizingMaskIntoConstraints="NO" id="J0U-mw-KjS">
+                                                    <rect key="frame" x="6" y="10" width="547" height="305"/>
+                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                                    <view key="contentView" id="3Z1-An-9f2">
+                                                        <rect key="frame" x="4" y="5" width="539" height="285"/>
+                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                        <subviews>
+                                                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="rCb-Js-SjM">
+                                                                <rect key="frame" x="18" y="248" width="316" height="18"/>
+                                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                                                <buttonCell key="cell" type="check" title="Send Teams Notifications for automation events" bezelStyle="regularSquare" imagePosition="left" inset="2" id="CxZ-0Z-hDW">
+                                                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                                    <font key="font" metaFont="system"/>
+                                                                </buttonCell>
+                                                                <connections>
+                                                                    <action selector="buttonSendTeamsMessageClicked:" target="9UW-t9-eHm" id="Ayg-Dw-O3u"/>
+                                                                </connections>
+                                                            </button>
+                                                            <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OgX-dF-nzh">
+                                                                <rect key="frame" x="20" y="211" width="499" height="21"/>
+                                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" placeholderString="https://my-teams-webhook-url" drawsBackground="YES" id="Gkc-3p-Qvt">
+                                                                    <font key="font" metaFont="system"/>
+                                                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                                </textFieldCell>
+                                                                <connections>
+                                                                    <action selector="fieldAppsTeamsWebhookURLDidChange:" target="9UW-t9-eHm" id="Lx6-Wj-BKj"/>
+                                                                </connections>
+                                                            </textField>
+                                                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Qhj-KN-3Yp">
+                                                                <rect key="frame" x="44" y="186" width="329" height="18"/>
+                                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                                                <buttonCell key="cell" type="check" title="Include Groups Assignment details in notifications" bezelStyle="regularSquare" imagePosition="left" inset="2" id="F8e-PQ-WH2">
+                                                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                                    <font key="font" metaFont="system"/>
+                                                                </buttonCell>
+                                                            </button>
+                                                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Xjz-qt-k9v">
+                                                                <rect key="frame" x="44" y="164" width="314" height="18"/>
+                                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                                                <buttonCell key="cell" type="check" title="Include CVE Vulnerability details in notifications" bezelStyle="regularSquare" imagePosition="left" inset="2" id="wX4-8m-Omz">
+                                                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                                    <font key="font" metaFont="system"/>
+                                                                </buttonCell>
+                                                            </button>
+                                                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mN4-lb-7Ol">
+                                                                <rect key="frame" x="44" y="142" width="334" height="18"/>
+                                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                                                <buttonCell key="cell" type="check" title="Send notifications regarding Intuneomator updates" bezelStyle="regularSquare" imagePosition="left" inset="2" id="SdO-12-79L">
+                                                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                                    <font key="font" metaFont="system"/>
+                                                                </buttonCell>
+                                                            </button>
+                                                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="acm-ZG-qWC">
+                                                                <rect key="frame" x="44" y="120" width="365" height="18"/>
+                                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                                                <buttonCell key="cell" type="check" title="Send notifications regarding Installomator label updates" bezelStyle="regularSquare" imagePosition="left" inset="2" id="tWi-Hk-b9v">
+                                                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                                    <font key="font" metaFont="system"/>
+                                                                </buttonCell>
+                                                            </button>
+                                                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0an-9i-Iza">
+                                                                <rect key="frame" x="44" y="98" width="243" height="18"/>
+                                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                                                <buttonCell key="cell" type="check" title="Send notifications for cleanup tasks" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbY-Em-GFR">
+                                                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                                    <font key="font" metaFont="system"/>
+                                                                </buttonCell>
+                                                            </button>
                                                         </subviews>
                                                     </view>
                                                 </box>
