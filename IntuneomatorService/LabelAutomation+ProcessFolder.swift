@@ -44,7 +44,21 @@ extension LabelAutomation {
         Logger.log("  Tracking ID: \(String(describing: processedAppResults.appTrackingID))", logType: logType)
         Logger.log("  Version to check: \(String(describing: processedAppResults.appVersionExpected))", logType: logType)
         
-        let trackingID = processedAppResults.appTrackingID
+        
+        let appLabelName = processedAppResults.appLabelName
+        let appTrackingID = processedAppResults.appTrackingID
+        
+        
+        // Get Graph Token to use throughout the run
+        var authToken: String
+        do {
+            let entraAuthenticator = EntraAuthenticator()
+            authToken = try await entraAuthenticator.getEntraIDToken()
+        } catch {
+            Logger.log("Falied to get Entra ID Token: \(error)", logType: logType)
+            // Teams Notification for auth failure
+            return
+        }
         
         // MARK: - Check Intune with expected version
         
@@ -55,12 +69,10 @@ extension LabelAutomation {
             Logger.log("  " + folderName + ": Fetching app info from Intune...", logType: logType)
             
             do {
-                let entraAuthenticator = EntraAuthenticator()
-                let authToken = try await entraAuthenticator.getEntraIDToken()
                 
-                appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: trackingID)
+                appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: appTrackingID)
                 
-                Logger.log("    Found \(appInfo.count) apps matching tracking ID \(trackingID)", logType: logType)
+                Logger.log("    Found \(appInfo.count) apps matching tracking ID \(appTrackingID)", logType: logType)
                 
                 for app in appInfo {
                     Logger.log("    ---", logType: logType)
@@ -70,7 +82,7 @@ extension LabelAutomation {
                 }
                 
                 // Check if current version is already uploaded to Intune
-                let versionExistsInIntune = await isVersionUploadedToIntuneAsync(appInfo: appInfo, version: processedAppResults.appVersionExpected)
+                let versionExistsInIntune = isVersionUploadedToIntuneAsync(appInfo: appInfo, version: processedAppResults.appVersionExpected)
                 
                 // Version is already in Intune. No need to continue
                 if versionExistsInIntune {
@@ -92,24 +104,14 @@ extension LabelAutomation {
         // MARK: - Check cache for pre-existing download
         
         var cacheCheckURL: URL = URL(fileURLWithPath: "/")
-        
-        do{
-            cacheCheckURL = try isVersionCached(
-                forProcessedResult: processedAppResults
-            )
+        cacheCheckURL = isVersionCached(forProcessedResult: processedAppResults)
+        Logger.log("cacheCheck: \(cacheCheckURL.path)", logType: logType)
 
-            Logger.log("cacheCheck: \(cacheCheckURL)", logType: logType)
-
-        } catch {
-            Logger.log("No cache data found", logType: logType)
-        }
-        
-        
         
         // MARK: - Download the file
         
         if cacheCheckURL != URL(fileURLWithPath: "/") {
-            Logger.log("Cache hit. No need to download", logType: logType)
+            Logger.log("Cached item found. No need to download", logType: logType)
             
             processedAppResults.appLocalURL = cacheCheckURL.path
 
@@ -130,16 +132,11 @@ extension LabelAutomation {
                 // Version needs to be downloaded and then uploaded to intune
                 let downloadURL = processedAppResults.appDownloadURL
                 
-                Logger.log("  Download URL: \(String(describing: downloadURL))", logType: logType)
-                
-//                let downloadURL = downloadURL, !downloadURL.isEmpty else {
-//                    Logger.log("  No download URL available for \(processedAppResults.appDisplayName)", logType: logType)
-//                    return
-//                }
-                
+                Logger.log("  Download URL: \(downloadURL)", logType: logType)
+                                
                 var downloadedFileURLx86 = URL(string: "ftp://")!
 
-                // First, download the file
+                // Download the file
                 let downloadedFileURL = try await downloadFile(
                     for: folderName,
                     processedAppResults: processedAppResults
@@ -157,10 +154,8 @@ extension LabelAutomation {
                     downloadedFileURLx86 = downloadedFileURL
                 }
                 
-                Logger.log("  Downloaded file path: \(downloadedFileURL.path)", logType: logType)
-                
-                Logger.log ("  Processing file for: \(downloadURL)", logType: logType)
-                Logger.log("  Processing folder: \(folderName)", logType: logType)
+                processedAppResults.appDownloadURL = downloadURL
+                processedAppResults.appDownloadURLx86 = downloadedFileURLx86.path
                 
                 // MARK: - Process the downloaded file
                 
@@ -208,12 +203,10 @@ extension LabelAutomation {
                     Logger.log("  " + folderName + ": Fetching app info from Intune...", logType: logType)
                     
                     do {
-                        let entraAuthenticator = EntraAuthenticator()
-                        let authToken = try await entraAuthenticator.getEntraIDToken()
                         
-                        appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: trackingID)
+                        appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: appTrackingID)
                         
-                        Logger.log("  Found \(appInfo.count) apps matching tracking ID \(trackingID)", logType: logType)
+                        Logger.log("  Found \(appInfo.count) apps matching tracking ID \(appTrackingID)", logType: logType)
                         
                         for app in appInfo {
                             Logger.log("    ---", logType: logType)
@@ -223,7 +216,7 @@ extension LabelAutomation {
                         }
                         
                         // Check if current version is already uploaded to Intune
-                        let versionExistsInIntune = await isVersionUploadedToIntuneAsync(appInfo: appInfo, version: processedAppResults.appVersionActual)
+                        let versionExistsInIntune = isVersionUploadedToIntuneAsync(appInfo: appInfo, version: processedAppResults.appVersionActual)
                         
                         // Version is already in Intune. No need to continue
                         if versionExistsInIntune {
@@ -232,18 +225,8 @@ extension LabelAutomation {
                                          
                             
                             // Clean up the download before we bail
-                            let downloadFolder = AppConstants.intuneomatorCacheFolderURL
-                                .appendingPathComponent(processedAppResults.appLabelName)
-                                .appendingPathComponent("tmp")
-                            
-                            if FileManager.default.fileExists(atPath: downloadFolder.path) {
-                                // Delete the tmp directory
-                                do{
-                                    try FileManager.default.removeItem(at: downloadFolder)
-                                } catch {
-                                    Logger.log("❌ Failed to delete tmp folder: \(error.localizedDescription)", logType: logType)
-                                }
-                            }
+                            let deleteFolder = cleanUpTmpFiles(forAppLabel: appLabelName)
+                            Logger.log("Folder cleanup : \(deleteFolder)", logType: logType)
                             return
                         }
                         
@@ -265,11 +248,10 @@ extension LabelAutomation {
         }
         
         // MARK: - Upload to Intune
+        // Store the newly created app in case we need the value later
+        var newAppID: String = ""
         do {
-            
-            let entraAuthenticator = EntraAuthenticator()
-            let authToken = try await entraAuthenticator.getEntraIDToken()
-            
+                        
            let localFilePath = processedAppResults.appLocalURL
             
             
@@ -280,7 +262,7 @@ extension LabelAutomation {
             }
             
             // Call the upload function
-            try await EntraGraphRequests.uploadAppToIntune(authToken: authToken, app: processedAppResults)
+            newAppID = try await EntraGraphRequests.uploadAppToIntune(authToken: authToken, app: processedAppResults)
             
         } catch {
             let messageResult = TeamsNotifier.processNotification(for: processedAppResults, success: false, errorMessage: "Error uploading \(processedAppResults.appLocalURL) to Intune: \(error.localizedDescription)")
@@ -304,6 +286,7 @@ extension LabelAutomation {
             let fileSizeBytes = fileAttributes[.size] as? Int64 ?? 0
             let fileSizeMB = Double(fileSizeBytes) / 1_048_576
                     
+            // Write the upload info to the Upload log file
             Logger.logNoDateStamp("\(labelDisplayName)\t\(labelName)\t\(finalFilename ?? "Unknown")\t\(String(format: "%.2f", fileSizeMB)) MB\t\(fileIdentifier)\t\(fileVersionActual)\t\(fileVersionExpected)\t\(labelTrackingID)\t\(finalURL)", logType: "Upload")
             
         } catch {
@@ -316,49 +299,27 @@ extension LabelAutomation {
         // Check Intune for the new version
         Logger.log("  " + folderName + ": Confirming app upload to Intune...", logType: logType)
         
-        // Polling constants
-        let maxPollAttempts = 10
-        let pollInterval: UInt64 = 3_000_000_000 // 3 seconds in nanoseconds
-
-        var uploadSucceeded = false
-        var currentAttempt = 0
-
+        var uploadSucceeded: Bool = false
         do {
-            let entraAuthenticator = EntraAuthenticator()
-            let authToken = try await entraAuthenticator.getEntraIDToken()
-
-            while currentAttempt < maxPollAttempts && !uploadSucceeded {
-                appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: trackingID)
-                uploadSucceeded = await isVersionUploadedToIntuneAsync(appInfo: appInfo, version: processedAppResults.appVersionActual)
-                
-                if uploadSucceeded {
-                    Logger.log("Version \(processedAppResults.appVersionActual) was uploaded to Intune", logType: logType)
-                    break
-                } else {
-                    Logger.log("Waiting for version \(processedAppResults.appVersionActual) to appear in Intune (attempt \(currentAttempt + 1))", logType: logType)
-                    try await Task.sleep(nanoseconds: pollInterval)
-                    currentAttempt += 1
-                }
+            let (uploadResult, appInfo) = await pollForIntuneUploadStatus(withID: appTrackingID, processedAppResults: processedAppResults, authToken: authToken)
+        }
+        
+        // clean up Intune for failed upload
+        if uploadSucceeded == false {
+            Logger.log("  " + folderName + ": App upload to Intune failed!", logType: logType)
+            do {
+                try await EntraGraphRequests.deleteIntuneApp(authToken: authToken, appId: newAppID)
+            } catch {
+                Logger.log("Error deleting Intune app: \(error.localizedDescription)", logType: logType)
+                // Teams notification for failed delete?
             }
-
-            if !uploadSucceeded {
-                Logger.log("Version \(processedAppResults.appVersionActual) was NOT uploaded to Intune after polling", logType: logType)
-                return
-            }
-
-            // ...continue with unassigning/removing old versions
-
-        } catch {
-            Logger.log("Failed to check for successful upload to Intune: \(error.localizedDescription)", logType: logType)
             return
         }
         
+        // ...continue with unassigning/removing old versions
         // Unassign old versions
         do {
-            let entraAuthenticator = EntraAuthenticator()
-            let authToken = try await entraAuthenticator.getEntraIDToken()
             
-            // Unassign old versions
             for app in appInfo {
                 Logger.log("App: \(app.displayName)", logType: logType)
                 Logger.log("Version: \(app.primaryBundleVersion)", logType: logType)
@@ -393,12 +354,12 @@ extension LabelAutomation {
             }
             
         } catch {
-            Logger.log("Failed to check for successful upload to Intune: \(error.localizedDescription)", logType: logType)
+            Logger.log("Failed to delete older apps from Intune: \(error.localizedDescription)", logType: logType)
             return
         }
     
         
-        // Write the .uploaded file count
+        // Write the .uploaded file count for GUI app
         let appVersionsToKeep = ConfigManager.readPlistValue(key: "AppVersionsToKeep") ?? 2
         let totalVersions = appInfo.count
         let versionsToDeleteCount = max(0, totalVersions - appVersionsToKeep)
@@ -441,18 +402,9 @@ extension LabelAutomation {
         
         // MARK: - Clean up
         // Clean up
-        let downloadFolder = AppConstants.intuneomatorCacheFolderURL
-            .appendingPathComponent(processedAppResults.appLabelName)
-            .appendingPathComponent("tmp")
         
-        if FileManager.default.fileExists(atPath: downloadFolder.path) {
-            // Delete the tmp directory
-            do{
-                try FileManager.default.removeItem(at: downloadFolder)
-            } catch {
-                Logger.log("❌ Failed to delete tmp folder: \(error.localizedDescription)", logType: logType)
-            }
-        }
+        let deleteFolder = cleanUpTmpFiles(forAppLabel: appLabelName)
+        Logger.log("Folder cleanup : \(deleteFolder)", logType: logType)
     }
     
 }
