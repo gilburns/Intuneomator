@@ -59,8 +59,6 @@ class EntraGraphRequests {
             throw NSError(domain: "InvalidURL", code: -1)
         }
         
-        Logger.log("URL: \(urlString)", logType: logType)
-
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
@@ -68,8 +66,6 @@ class EntraGraphRequests {
 
         let (data, _) = try await URLSession.shared.data(for: request)
         let decoded = try JSONDecoder().decode(GraphResponse.self, from: data)
-
-        Logger.log("Decoded: \(decoded)", logType: logType)
         
         return decoded.value.map {
             [
@@ -234,9 +230,7 @@ class EntraGraphRequests {
         guard let url = URL(string: baseURL) else {
             throw GraphAPIError.invalidURL
         }
-        
-        Logger.log("URL: \(url)", logType: logType)
-        
+                
         // Build the assignments payload
         var assignments: [[String: Any]] = []
         
