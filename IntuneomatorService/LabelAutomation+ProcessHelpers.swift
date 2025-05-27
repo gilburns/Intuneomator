@@ -11,9 +11,9 @@ extension LabelAutomation {
 
     // MARK: - Downloaded file cached
     // Check if the version already exists in cache
-    static func isVersionCached(forProcessedResult results: ProcessedAppResults) -> URL {
+    static func isVersionCached(forProcessedResult results: ProcessedAppResults) -> URL? {
         
-        let versionCheckPath = AppConstants.intuneomatorCacheFolderURL
+        let versionCheckPath: URL = AppConstants.intuneomatorCacheFolderURL
             .appendingPathComponent(results.appLabelName)
             .appendingPathComponent(results.appVersionExpected)
                 
@@ -51,14 +51,14 @@ extension LabelAutomation {
         
         if FileManager.default.fileExists(atPath: fullPath.path) {
             return fullPath
-        } else {
-            return URL(fileURLWithPath: "/")
         }
+        
+        return nil
     }
     
     
     // Async version of the function
-    static func isVersionUploadedToIntuneAsync(appInfo: [FilteredIntuneAppInfo], version: String) -> Bool {
+    static func isVersionUploadedToIntune(appInfo: [FilteredIntuneAppInfo], version: String) -> Bool {
         // Simple direct check
         return appInfo.contains { app in
             return app.primaryBundleVersion == version
@@ -93,7 +93,7 @@ extension LabelAutomation {
 
             while currentAttempt < maxPollAttempts && !uploadSucceeded {
                 appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: appTrackingID)
-                uploadSucceeded = isVersionUploadedToIntuneAsync(appInfo: appInfo, version: processedAppResults.appVersionActual)
+                uploadSucceeded = isVersionUploadedToIntune(appInfo: appInfo, version: processedAppResults.appVersionActual)
                 
                 if uploadSucceeded {
                     Logger.log("Version \(processedAppResults.appVersionActual) was uploaded to Intune", logType: logType)
@@ -117,6 +117,70 @@ extension LabelAutomation {
         return (false, [])
     }
 
+    // MARK: - Log Upload File Info
+    
+    static func logUploadFileInfo(processedAppResults: ProcessedAppResults) {
+        
+        do {
+            let labelDisplayName = processedAppResults.appDisplayName
+            let labelName = processedAppResults.appLabelName
+            let finalFilename = URL(string: processedAppResults.appLocalURL)?.lastPathComponent
+            // file size
+            let fileIdentifier = processedAppResults.appBundleIdActual
+            let fileVersionActual = processedAppResults.appVersionActual
+            let fileVersionExpected = processedAppResults.appVersionExpected
+            let labelTrackingID = processedAppResults.appTrackingID
+            let finalURL = processedAppResults.appLocalURL
+
+            let fileAttributes = try FileManager.default.attributesOfItem(atPath: finalURL)
+            let fileSizeBytes = fileAttributes[.size] as? Int64 ?? 0
+            let fileSizeMB = Double(fileSizeBytes) / 1_048_576
+                    
+            // Write the upload info to the Upload log file
+            Logger.logNoDateStamp("\(labelDisplayName)\t\(labelName)\t\(finalFilename ?? "Unknown")\t\(String(format: "%.2f", fileSizeMB)) MB\t\(fileIdentifier)\t\(fileVersionActual)\t\(fileVersionExpected)\t\(labelTrackingID)\t\(finalURL)", logType: "Upload")
+            
+        } catch {
+            Logger.log("Unable to get file size: \(error.localizedDescription)", logType: logType)
+        }
+
+    }
+    
+    // MARK: - Record upload count
+    
+    static func recordUploadCount(forAppFolder folderName: String, appInfo: [FilteredIntuneAppInfo]) {
+        
+        // Write the .uploaded file count for GUI app
+        let appVersionsToKeep = ConfigManager.readPlistValue(key: "AppVersionsToKeep") ?? 2
+        let totalVersions = appInfo.count
+        let versionsToDeleteCount = max(0, totalVersions - appVersionsToKeep)
+
+        let remainingCount = appInfo.count - versionsToDeleteCount
+        
+        do {
+
+            let uploadedFileURL = AppConstants.intuneomatorManagedTitlesFolderURL
+                .appendingPathComponent(folderName)
+                .appendingPathComponent(".uploaded")
+
+            if remainingCount > 0 {
+
+                // Write app count to the file
+                let appCountString = "\(remainingCount)"
+                try appCountString.write(to: uploadedFileURL, atomically: true, encoding: .utf8)
+            } else {
+
+                if FileManager.default.fileExists(atPath: uploadedFileURL.path) {
+                    try FileManager.default.removeItem(atPath: uploadedFileURL.path)
+                }
+            }
+
+        } catch {
+            Logger.log("❌ Error: \(error)", logType: logType)
+        }
+
+    }
+    
+    
 
     // MARK: - Tmp folder cleanup
     // Clean up automation tmp folder
