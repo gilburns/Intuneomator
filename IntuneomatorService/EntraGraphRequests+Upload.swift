@@ -13,29 +13,31 @@ extension EntraGraphRequests {
     static let logType = "EntraGraphRequests"
     
     // MARK: - Intune Upload Functions
-    static func uploadAppToIntune(authToken: String, app: ProcessedAppResults) async throws {
+    static func uploadAppToIntune(authToken: String, app: ProcessedAppResults) async throws -> String {
         
         Logger.log("🖥️  Uploading app to Intune...", logType: logType)
+        let uploadedAppID: String
         
         if app.appDeploymentType == 2 {
             Logger.log("Deplying LOB app...", logType: logType)
-            try await uploadLOBPkg(authToken: authToken, app: app)
+            uploadedAppID = try await uploadLOBPkg(authToken: authToken, app: app)
         } else if app.appDeploymentType == 1 {
             Logger.log("Deplying PKG app...", logType: logType)
-            try await uploadPKGWithScripts(authToken: authToken, app: app)
+            uploadedAppID = try await uploadPKGWithScripts(authToken: authToken, app: app)
         } else if app.appDeploymentType == 0 {
             Logger.log("Deplying DMG app...", logType: logType)
-            try await uploadDMGApp(authToken: authToken, app: app)
+            uploadedAppID = try await uploadDMGApp(authToken: authToken, app: app)
         } else {
             throw NSError(domain: "UnsupportedFileType", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unsupported file type for upload."])
         }
+        return uploadedAppID
     }
     
     
     // MARK: - LOB
     // https://learn.microsoft.com/en-us/graph/api/intune-apps-macoslobapp-create?view=graph-rest-beta
     
-    static func uploadLOBPkg(authToken: String, app: ProcessedAppResults) async throws {
+    static func uploadLOBPkg(authToken: String, app: ProcessedAppResults) async throws -> String {
         
         // Create the metadata payload
         let metadataURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps")!
@@ -337,15 +339,14 @@ extension EntraGraphRequests {
             ])
         }
         
-//        print("LOB app uploaded and committed successfully ✅")
-        
+        return appId
     }
     
     
     // MARK: - PKG
     // https://learn.microsoft.com/en-us/graph/api/intune-apps-macospkgapp-create?view=graph-rest-beta
     
-    static func uploadPKGWithScripts(authToken: String, app: ProcessedAppResults) async throws {
+    static func uploadPKGWithScripts(authToken: String, app: ProcessedAppResults) async throws -> String {
         // Create the metadata payload with PKG-specific type
         let metadataURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps")!
         var request = URLRequest(url: metadataURL)
@@ -645,15 +646,14 @@ extension EntraGraphRequests {
                 ])
             }
             
-            
-//            print("PKG with scripts uploaded and committed successfully ✅")
         }
+        return appId
     }
     
     // MARK: - DMG
     // https://learn.microsoft.com/en-us/graph/api/intune-apps-macosdmgapp-create?view=graph-rest-beta
     
-    static func uploadDMGApp(authToken: String, app: ProcessedAppResults) async throws {
+    static func uploadDMGApp(authToken: String, app: ProcessedAppResults) async throws -> String {
         // Create the metadata payload with DMG-specific type
         let metadataURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps")!
         var request = URLRequest(url: metadataURL)
@@ -932,8 +932,8 @@ extension EntraGraphRequests {
                 ])
             }
             
-//            print("DMG app uploaded and committed successfully ✅")
         }
+        return appId
     }
     
     
