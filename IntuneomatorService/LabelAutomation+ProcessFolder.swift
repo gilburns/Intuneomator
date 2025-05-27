@@ -17,7 +17,7 @@ extension LabelAutomation {
         var checkedIntune: Bool = false
         
         // For check version in Intune
-        var appInfo: [FilteredIntuneAppInfo]
+        var appInfo: [FilteredIntuneAppInfo] = []
         
         Logger.log("--------------------------------------------------------", logType: logType)
         Logger.log("🚀 Start processing of \(folderName)", logType: "Automation")
