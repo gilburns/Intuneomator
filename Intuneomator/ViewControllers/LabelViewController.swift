@@ -116,8 +116,10 @@ class LabelViewController: NSViewController {
         switch sender.state {
         case .on:
             self.filteredLabelData = self.customLabelData
+            self.labelDetailsField.string.removeAll()
         case .off:
             self.filteredLabelData = self.labelData
+            self.labelDetailsField.string.removeAll()
         default:
             break
         }
@@ -201,8 +203,8 @@ class LabelViewController: NSViewController {
                 .sorted(by: { $0.label < $1.label })
 
             
-            labelData += customLabelData.sorted(by: { $0.label < $1.label })
-            
+            labelData += customLabelData
+            labelData = labelData.sorted(by: { $0.label < $1.label })
             filteredLabelData = labelData
             labelTableView.reloadData()
         } catch {
@@ -217,9 +219,6 @@ class LabelViewController: NSViewController {
         let visibleLabelsCount = filteredLabelData.count
         labelCount.stringValue = "Viewing \(visibleLabelsCount) of \(allLabelsCount) labels"
     }
-
-    
-
     
 
     
