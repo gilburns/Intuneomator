@@ -83,6 +83,7 @@
 				"Constants+IntuneServiceError.swift",
 				"Constants+LabelInfo.swift",
 				"Constants+Metadata.swift",
+				"Constants+PlistData.swift",
 				"Constants+ProcessedAppResults.swift",
 				"Constants+Settings.swift",
 			);
