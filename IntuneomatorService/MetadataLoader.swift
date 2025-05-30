@@ -213,7 +213,6 @@ struct MetadataLoader {
             appMinimumOS: validatedMinimumOS,
             appNotes: notes,
             appOwner: owner,
-            appPlatform: "",
             appPrivacyPolicyURL: privacyInformationUrl,
             appPublisherName: validatedPublisher,
             appScriptPreInstall: preInstallScript ?? "",
