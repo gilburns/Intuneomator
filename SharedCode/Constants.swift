@@ -66,6 +66,18 @@ extension AppInfo {
     }
 }
 
+enum DeploymentArchTag: Int, Codable {
+    case arm64 = 0
+    case x86_64 = 1
+    case universal = 2
+}
+
+enum DeploymentTypeTag: Int, Codable {
+    case dmg = 0
+    case pkg = 1
+    case lob = 2
+}
+
 
 struct ProcessedAppResults {
     var appAssignments: [[String : Any]]
