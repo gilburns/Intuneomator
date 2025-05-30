@@ -79,6 +79,7 @@
 				"Constants+AppConstants.swift",
 				"Constants+AppInfo.swift",
 				"Constants+CertificateInfo.swift",
+				"Constants+CVEFetcher.swift",
 				"Constants+DetectedApp.swift",
 				"Constants+IntuneServiceError.swift",
 				"Constants+LabelInfo.swift",
