@@ -56,17 +56,3 @@ struct FilteredIntuneAppInfo: Codable {
     let primaryBundleVersion: String
 }
 
-
-
-
-// Define a struct to store extracted plist data
-struct PlistData {
-    let appNewVersion: String?
-    let downloadURL: String
-    let expectedTeamID: String
-    let name: String
-    let type: String
-}
-
-
-
