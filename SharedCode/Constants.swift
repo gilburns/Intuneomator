@@ -66,19 +66,6 @@ extension AppInfo {
     }
 }
 
-enum DeploymentArchTag: Int, Codable {
-    case arm64 = 0
-    case x86_64 = 1
-    case universal = 2
-}
-
-enum DeploymentTypeTag: Int, Codable {
-    case dmg = 0
-    case pkg = 1
-    case lob = 2
-}
-
-
 struct ProcessedAppResults {
     var appAssignments: [[String : Any]]
     var appBundleIdActual: String
@@ -104,7 +91,6 @@ struct ProcessedAppResults {
     var appMinimumOS: String
     var appNotes: String
     var appOwner: String
-    var appPlatform: String
     var appPrivacyPolicyURL: String
     var appPublisherName: String
     var appScriptPreInstall: String
@@ -142,7 +128,6 @@ extension ProcessedAppResults {
     appMinimumOS: "",
     appNotes: "",
     appOwner: "",
-    appPlatform: "",
     appPrivacyPolicyURL: "",
     appPublisherName: "",
     appScriptPreInstall: "",
@@ -176,6 +161,18 @@ extension ProcessedAppResults {
         default: return "❓ Unknown"
         }
     }
+}
+
+enum DeploymentArchTag: Int, Codable {
+    case arm64 = 0
+    case x86_64 = 1
+    case universal = 2
+}
+
+enum DeploymentTypeTag: Int, Codable {
+    case dmg = 0
+    case pkg = 1
+    case lob = 2
 }
 
 struct ProcessedFileResult {
