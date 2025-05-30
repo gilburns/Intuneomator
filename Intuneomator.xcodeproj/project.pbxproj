@@ -48,26 +48,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		1B55F3B92DC7AE29003A06BD /* Exceptions for "LaunchDaemon" folder in "Intuneomator" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				com.gilburns.intuneomator.automation.plist,
-				com.gilburns.intuneomator.cachecleaner.plist,
-				com.gilburns.intuneomator.labelupdater.plist,
-				com.gilburns.intuneomator.ondemand.plist,
-				com.gilburns.intuneomator.service.plist,
-			);
-			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
-		};
-		1B9DD84E2DDC1B2C005ECE05 /* Exceptions for "SharedCode" folder in "Intuneomator" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"App Dmg Pkg/DMGCreator.swift",
-				"App Dmg Pkg/PKGCreator.swift",
-				"App Dmg Pkg/PKGCreatorUniversal.swift",
-			);
-			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
-		};
 		1B9DD8A12DDE176F005ECE05 /* Exceptions for "IntuneomatorService" folder in "IntuneomatorUpdater" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -80,18 +60,10 @@
 		1B9DD8A42DDE1907005ECE05 /* Exceptions for "SharedCode" folder in "IntuneomatorUpdater" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Constants.swift,
 				CVEFetcher.swift,
 				Logging.swift,
 			);
 			target = 1B9DD88C2DDD759C005ECE05 /* IntuneomatorUpdater */;
-		};
-		1B9DD8A82DDEC5E6005ECE05 /* Exceptions for "Intuneomator" folder in "Intuneomator" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
 		};
 		1B9DD9E62DE0EC0D005ECE05 /* Exceptions for "IntuneomatorService" folder in "Intuneomator" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -99,6 +71,29 @@
 				ConfigManager.swift,
 			);
 			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
+		};
+		1B9DDA432DE9F0A3005ECE05 /* Exceptions for "Constants" folder in "IntuneomatorService" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Constants.swift,
+				"Constants+AppConstants.swift",
+				"Constants+AppInfo.swift",
+				"Constants+CertificateInfo.swift",
+				"Constants+DetectedApp.swift",
+				"Constants+IntuneServiceError.swift",
+				"Constants+LabelInfo.swift",
+				"Constants+Metadata.swift",
+				"Constants+ProcessedAppResults.swift",
+				"Constants+Settings.swift",
+			);
+			target = 1BB046652D81324E004B6F3E /* IntuneomatorService */;
+		};
+		1B9DDA442DE9F0A3005ECE05 /* Exceptions for "Constants" folder in "IntuneomatorUpdater" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Constants.swift,
+			);
+			target = 1B9DD88C2DDD759C005ECE05 /* IntuneomatorUpdater */;
 		};
 		1BB046722D822B48004B6F3E /* Exceptions for "SharedCode" folder in "IntuneomatorService" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -110,7 +105,6 @@
 				"App Dmg Pkg/PkgInspector.swift",
 				"App Dmg Pkg/SignatureInspector.swift",
 				AutomationCheck.swift,
-				Constants.swift,
 				CVEFetcher.swift,
 				Extensions.swift,
 				FileFolderManagerUtil.swift,
@@ -135,11 +129,17 @@
 			path = IntuneomatorUpdater;
 			sourceTree = "<group>";
 		};
-		1BB046522D81321F004B6F3E /* Intuneomator */ = {
+		1B9DDA392DE9F085005ECE05 /* Constants */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				1B9DD8A82DDEC5E6005ECE05 /* Exceptions for "Intuneomator" folder in "Intuneomator" target */,
+				1B9DDA432DE9F0A3005ECE05 /* Exceptions for "Constants" folder in "IntuneomatorService" target */,
+				1B9DDA442DE9F0A3005ECE05 /* Exceptions for "Constants" folder in "IntuneomatorUpdater" target */,
 			);
+			path = Constants;
+			sourceTree = "<group>";
+		};
+		1BB046522D81321F004B6F3E /* Intuneomator */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Intuneomator;
 			sourceTree = "<group>";
 		};
@@ -155,7 +155,6 @@
 		1BB0466D2D822AFF004B6F3E /* SharedCode */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				1B9DD84E2DDC1B2C005ECE05 /* Exceptions for "SharedCode" folder in "Intuneomator" target */,
 				1BB046722D822B48004B6F3E /* Exceptions for "SharedCode" folder in "IntuneomatorService" target */,
 				1B9DD8A42DDE1907005ECE05 /* Exceptions for "SharedCode" folder in "IntuneomatorUpdater" target */,
 			);
@@ -164,9 +163,6 @@
 		};
 		1BB046AC2D872F90004B6F3E /* LaunchDaemon */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				1B55F3B92DC7AE29003A06BD /* Exceptions for "LaunchDaemon" folder in "Intuneomator" target */,
-			);
 			path = LaunchDaemon;
 			sourceTree = "<group>";
 		};
@@ -216,6 +212,7 @@
 				1BB046672D81324E004B6F3E /* IntuneomatorService */,
 				1B9DD88E2DDD759C005ECE05 /* IntuneomatorUpdater */,
 				1BB0466D2D822AFF004B6F3E /* SharedCode */,
+				1B9DDA392DE9F085005ECE05 /* Constants */,
 				1BB046AC2D872F90004B6F3E /* LaunchDaemon */,
 				1BB046512D81321F004B6F3E /* Products */,
 				1BB047292D8A37F1004B6F3E /* LICENSE.md */,
@@ -274,6 +271,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				1B9DDA392DE9F085005ECE05 /* Constants */,
 				1BB046522D81321F004B6F3E /* Intuneomator */,
 				1BB0466D2D822AFF004B6F3E /* SharedCode */,
 				1BB046AC2D872F90004B6F3E /* LaunchDaemon */,
