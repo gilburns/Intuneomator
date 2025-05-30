@@ -101,7 +101,7 @@ struct ProcessedAppResults {
     var appTrackingID: String
     var appVersionActual: String
     var appVersionExpected: String
-    
+    var appUploadFilename: String
 }
 
 extension ProcessedAppResults {
@@ -138,7 +138,8 @@ extension ProcessedAppResults {
     appTeamID: "",
     appTrackingID: "",
     appVersionActual: "",
-    appVersionExpected: ""
+    appVersionExpected: "",
+    appUploadFilename: ""
   )
 }
 
@@ -165,6 +166,12 @@ extension ProcessedAppResults {
     }
 }
 
+struct ProcessedFileResult {
+  let url: URL
+  let name: String
+  let bundleID: String
+  let version: String
+}
 
 struct Category: Codable, Equatable {
     var displayName: String
