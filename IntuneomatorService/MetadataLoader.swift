@@ -58,6 +58,7 @@ struct MetadataLoader {
         let privacyInformationUrl = metadata?.privacyInformationUrl ?? ""
         let publisher = metadata?.publisher
         
+        
         guard
             let validatedExpectedBundleID = expectedBundleID,
             let validatedDeployAsArchTag = deployAsArchTag,
@@ -73,7 +74,7 @@ struct MetadataLoader {
         // Determine which .plist to read
         let plistPathArm64 = (folderPath as NSString).appendingPathComponent("\(labelName).plist")
         let plistPathx86_64 = (folderPath as NSString).appendingPathComponent("\(labelName)_i386.plist")
-        var downloadURLx86_64: String = ""
+        var downloadURLx86_64String: String = ""
         var plistPath: String = ""
         
         let isDualArch = titleIsDualArch(forFolder: folderName)
@@ -103,11 +104,13 @@ struct MetadataLoader {
                 Logger.log("❌ Failed to parse plist: \(plistPathx86_64)", logType: logType)
                 return nil
             }
-            downloadURLx86_64 = plistDatax86["downloadURL"] as? String ?? ""
+            downloadURLx86_64String = plistDatax86["downloadURL"] as? String ?? ""
         }
+        let downloadURLx86_64 = downloadURLx86_64String
         
         let appNewVersion = plistData["appNewVersion"] as? String
-        let downloadURL = plistData["downloadURL"] as? String
+        let downloadURLString = plistData["downloadURL"] as? String
+        let downloadURL = downloadURLString
         let expectedTeamID = plistData["expectedTeamID"] as? String
         let name = plistData["name"] as? String
         let type = plistData["type"] as? String
@@ -118,13 +121,23 @@ struct MetadataLoader {
             let validatedExpectedTeamID = expectedTeamID,
             let validatedName = name,
             let validatedType = type,
-            let validatedLabelIcon = labelIcon
+            let validatedLabelIcon = labelIcon,
+            let validatedAppNewVersion = appNewVersion
         else {
             Logger.log("❌ Critical plist keys are missing for \(folderName). Skipping.", logType: logType)
             return nil
         }
         Logger.log("  Extracted plist and metadata for \(folderName): name=\(validatedName), version=\(appNewVersion ?? "N/A"), downloadURL=\(validatedDownloadURL), type=\(validatedType)", logType: logType)
         
+        // calculate the file name
+        var filename: String
+        do {
+            let finalFileNameCalculated = try finalFilename(forAppTitle: validatedName, version: validatedAppNewVersion, deploymentType: validatedDeploymentTypeTag, deploymentArch: validatedDeployAsArchTag, isDualArch: isDualArch)
+            filename = finalFileNameCalculated
+        } catch {
+            filename = "UnknownFile"
+        }
+
         // Load installer scripts
         let scriptsBase = AppConstants.intuneomatorManagedTitlesFolderURL.appendingPathComponent(folderName)
         let preScriptURL = scriptsBase.appendingPathComponent("preinstall.sh")
@@ -205,7 +218,8 @@ struct MetadataLoader {
             appTeamID: validatedExpectedTeamID,
             appTrackingID: labelGUID,
             appVersionActual: "",
-            appVersionExpected: appNewVersion ?? ""
+            appVersionExpected: appNewVersion ?? "",
+            appUploadFilename: filename
         )
         return results
     }
@@ -218,5 +232,38 @@ struct MetadataLoader {
         let x86URL = base.appendingPathComponent("\(label)_i386.plist")
         return FileManager.default.fileExists(atPath: armURL.path) &&
         FileManager.default.fileExists(atPath: x86URL.path)
+    }
+    
+    
+    static func finalFilename(forAppTitle title: String, version: String, deploymentType: Int, deploymentArch: Int, isDualArch: Bool) throws -> String {
+        
+        let fileName: String
+        
+        let fileSuffix: String
+        if deploymentType == 0 {
+            fileSuffix = "dmg"
+        } else {
+            fileSuffix = "pkg"
+        }
+        
+        let fileArch: String
+        if deploymentArch == 0 {
+            fileArch = "arm64"
+        } else if deploymentArch == 1 {
+            fileArch = "x86_64"
+        } else {
+            fileArch = "universal"
+        }
+        
+        if deploymentType == 2 {
+            fileName = "\(title)-\(version).\(fileSuffix)"
+        } else  {
+            if isDualArch {
+                fileName = "\(title)-\(version)-\(fileArch).\(fileSuffix)"
+            } else {
+                fileName = "\(title)-\(version).\(fileSuffix)"
+            }
+        }
+        return fileName
     }
 }
