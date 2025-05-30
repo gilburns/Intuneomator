@@ -45,8 +45,8 @@ struct MetadataLoader {
         let expectedBundleID = metadata?.CFBundleIdentifier
         let categories = metadata?.categories
         let developer = metadata?.developer ?? ""
-        let deployAsArchTag = metadata?.deployAsArchTag
-        let deploymentTypeTag = metadata?.deploymentTypeTag
+        let deployAsArchTagRaw = metadata?.deployAsArchTag
+        let deploymentTypeTagRaw = metadata?.deploymentTypeTag
         let description = metadata?.description
         let featured = metadata?.isFeatured ?? false
         let ignoreVersion = metadata?.ignoreVersionDetection ?? false
@@ -61,8 +61,10 @@ struct MetadataLoader {
         
         guard
             let validatedExpectedBundleID = expectedBundleID,
-            let validatedDeployAsArchTag = deployAsArchTag,
-            let validatedDeploymentTypeTag = deploymentTypeTag,
+            let deployAsArchTagRawValue = deployAsArchTagRaw,
+            let deploymentTypeTagRawValue = deploymentTypeTagRaw,
+            let deployAsArchTag = DeploymentArchTag(rawValue: deployAsArchTagRawValue),
+            let deploymentTypeTag = DeploymentTypeTag(rawValue: deploymentTypeTagRawValue),
             let validatedDescription = description,
             let validatedMinimumOS = minimumOS,
             let validatedPublisher = publisher
@@ -75,14 +77,15 @@ struct MetadataLoader {
         let plistPathArm64 = (folderPath as NSString).appendingPathComponent("\(labelName).plist")
         let plistPathx86_64 = (folderPath as NSString).appendingPathComponent("\(labelName)_i386.plist")
         var downloadURLx86_64String: String = ""
-        var plistPath: String = ""
         
         let isDualArch = titleIsDualArch(forFolder: folderName)
+        var plistPath: String = ""
         if isDualArch {
-            switch validatedDeployAsArchTag {
-            case 1: plistPath = plistPathx86_64
-            case 2: plistPath = plistPathArm64
-            default: plistPath = plistPathArm64
+            switch deployAsArchTag {
+            case .x86_64:
+                plistPath = plistPathx86_64
+            case .arm64, .universal:
+                plistPath = plistPathArm64
             }
         } else {
             plistPath = plistPathArm64
@@ -99,7 +102,7 @@ struct MetadataLoader {
             return nil
         }
         
-        if validatedDeployAsArchTag == 2 && isDualArch {
+        if deployAsArchTag == .universal && isDualArch {
             guard let plistDatax86 = NSDictionary(contentsOfFile: plistPathx86_64) as? [String: Any] else {
                 Logger.log("❌ Failed to parse plist: \(plistPathx86_64)", logType: logType)
                 return nil
@@ -132,7 +135,7 @@ struct MetadataLoader {
         // calculate the file name
         var filename: String
         do {
-            let finalFileNameCalculated = try finalFilename(forAppTitle: validatedName, version: validatedAppNewVersion, deploymentType: validatedDeploymentTypeTag, deploymentArch: validatedDeployAsArchTag, isDualArch: isDualArch)
+            let finalFileNameCalculated = try finalFilename(forAppTitle: validatedName, version: validatedAppNewVersion, deploymentType: DeploymentTypeTag(rawValue: deploymentTypeTag.rawValue) ?? .pkg, deploymentArch: DeploymentArchTag(rawValue: deployAsArchTag.rawValue) ?? .universal, isDualArch: isDualArch)
             filename = finalFileNameCalculated
         } catch {
             filename = "UnknownFile"
@@ -190,8 +193,8 @@ struct MetadataLoader {
             appBundleIdActual: "",
             appBundleIdExpected: validatedExpectedBundleID,
             appCategories: categories ?? [],
-            appDeploymentArch: validatedDeployAsArchTag,
-            appDeploymentType: validatedDeploymentTypeTag,
+            appDeploymentArch: deployAsArchTag.rawValue,
+            appDeploymentType: deploymentTypeTag.rawValue,
             appDescription: validatedDescription,
             appDeveloper: developer,
             appDisplayName: validatedName,
@@ -235,27 +238,23 @@ struct MetadataLoader {
     }
     
     
-    static func finalFilename(forAppTitle title: String, version: String, deploymentType: Int, deploymentArch: Int, isDualArch: Bool) throws -> String {
+    static func finalFilename(forAppTitle title: String, version: String, deploymentType: DeploymentTypeTag, deploymentArch: DeploymentArchTag, isDualArch: Bool) throws -> String {
         
         let fileName: String
         
-        let fileSuffix: String
-        if deploymentType == 0 {
-            fileSuffix = "dmg"
-        } else {
-            fileSuffix = "pkg"
-        }
-        
+        let fileSuffix: String = (deploymentType == .dmg) ? "dmg" : "pkg"
         let fileArch: String
-        if deploymentArch == 0 {
+        
+        switch deploymentArch {
+        case .arm64:
             fileArch = "arm64"
-        } else if deploymentArch == 1 {
+        case .x86_64:
             fileArch = "x86_64"
-        } else {
+        case .universal:
             fileArch = "universal"
         }
         
-        if deploymentType == 2 {
+        if deploymentType == .lob {
             fileName = "\(title)-\(version).\(fileSuffix)"
         } else  {
             if isDualArch {
