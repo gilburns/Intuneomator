@@ -10,7 +10,7 @@ import Foundation
 extension LabelAutomation {
     
     // MARK: - Inspection of download
-    static func inspectSignatureOfDownloadedSoftware(for processedAppResults: ProcessedAppResults, downloadURL: URL, inspectionType: String) -> Bool {
+    static func inspectSignatureOfDownloadedSoftware(for downloadURL: URL, expectedTeamID: String, inspectionType: String) -> Bool {
         
         Logger.log("Inspecting \(inspectionType) signature...", logType: logType)
         
@@ -33,9 +33,9 @@ extension LabelAutomation {
                 
                 if let teamID = inspectionResult["DeveloperTeam"] as? String {
                     Logger.log("  Download Team ID: \(teamID)", logType: logType)
-                    Logger.log("  Expected Team ID: \(processedAppResults.appTeamID)", logType: logType)
-                    if teamID != processedAppResults.appTeamID {
-                        Logger.log("  Team ID mismatch! Expected: \(processedAppResults.appTeamID), Actual: \(teamID)", logType: logType)
+                    Logger.log("  Expected Team ID: \(expectedTeamID)", logType: logType)
+                    if teamID != expectedTeamID {
+                        Logger.log("  Team ID mismatch! Expected: \(expectedTeamID), Actual: \(teamID)", logType: logType)
                         throw NSError(domain: "LabelAutomation", code: 1003, userInfo: [NSLocalizedDescriptionKey : "Team ID mismatch"])
                     } else {
                         Logger.log("  Team ID matches", logType: logType)
@@ -63,9 +63,9 @@ extension LabelAutomation {
                 
                 if let teamID = inspectionResult["DeveloperTeam"] as? String {
                     Logger.log("  Download Team ID: \(teamID)", logType: logType)
-                    Logger.log("  Expected Team ID: \(processedAppResults.appTeamID)", logType: logType)
-                    if teamID != processedAppResults.appTeamID {
-                        Logger.log("  Team ID mismatch! Expected: \(processedAppResults.appTeamID), Actual: \(teamID)", logType: logType)
+                    Logger.log("  Expected Team ID: \(expectedTeamID)", logType: logType)
+                    if teamID != expectedTeamID {
+                        Logger.log("  Team ID mismatch! Expected: \(expectedTeamID), Actual: \(teamID)", logType: logType)
                         throw NSError(domain: "LabelAutomation", code: 1003, userInfo: [NSLocalizedDescriptionKey : "Team ID mismatch"])
                     } else {
                         Logger.log("  Team ID matches", logType: logType)
