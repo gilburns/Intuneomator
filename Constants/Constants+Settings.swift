@@ -17,6 +17,12 @@ struct Settings: Codable {
     var connectMethod: String = ""
     var privateKeyFile: String = ""
     var sendTeamsNotifications: Bool = false
+    var sendTeamsNotificationsForCleanup: Bool = false
+    var sendTeamsNotificationsForCVEs: Bool = false
+    var sendTeamsNotificationsForGroups: Bool = false
+    var sendTeamsNotificationsForLabelUpdates: Bool = false
+    var sendTeamsNotificationsForUpdates: Bool = false
+    var sendTeamsNotificationsStyle: Int = 0
     var teamsWebhookURL: String = ""
     var logAgeMax: String = ""
     var logSizeMax: String = ""
