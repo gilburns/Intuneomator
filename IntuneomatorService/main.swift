@@ -75,6 +75,29 @@ func printUsage() {
     """)
 }
 
+// MARK: - Label Update Teams Notifications
+func sendLabelUpdateTeamsNotifications(withPreviousVersion previousLabelsVersion: String, andCurrentVersion currentLabelsVersion: String, isSuccess: Bool) {
+    // 🔔 Teams Notification
+    let logType: String = "LabelUpdate"
+    
+    let sendTeamNotification = ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") ?? false
+    let sendForUpdates = ConfigManager.readPlistValue(key: "TeamsNotificationsForLabelUpdates") == false
+    
+    if sendTeamNotification && sendForUpdates {
+        let url = ConfigManager.readPlistValue(key: "TeamsWebhookURL") ?? ""
+        
+        if url.isEmpty {
+            Logger.log("No Teams Webhook URL set in Config. Not sending notification.", logType: logType)
+        } else {
+            Logger.log("Labels versions: \(previousLabelsVersion) \(currentLabelsVersion)", logType: logType)
+            let teamsNotifier = TeamsNotifier(webhookURL: url)
+            teamsNotifier.sendLabelUpdateNotification(initialVersion: previousLabelsVersion, updatedVersion: currentLabelsVersion, isSuccess: isSuccess)
+        }
+    }
+}
+
+
+
 // MARK: - Command Line Functions
 // Functions that can be called via command line parameters
 func scanAndValidateFolders() -> [String] {
@@ -132,14 +155,24 @@ func labelUpdates() {
             exit(EXIT_SUCCESS)
         }
 
+        let localVersionString = InstallomatorLabels.getInstallomatorLocalVersion()
+        let parts = versionMessage.components(separatedBy: ": ")
+        let currentVersionString: String
+        if let dateString = parts.last {
+            currentVersionString = dateString
+        } else {
+            currentVersionString = "Unknown"
+        }
         Logger.log("⬇️ Updating Installomator labels...", logType: "LabelUpdate")
 
         let (success, updateMessage) = await InstallomatorLabels.installInstallomatorLabelsAsync()
         if success {
             Logger.log("✅ \(updateMessage)", logType: "LabelUpdate")
+            sendLabelUpdateTeamsNotifications(withPreviousVersion: localVersionString, andCurrentVersion: currentVersionString, isSuccess: success)
             exit(EXIT_SUCCESS)
         } else {
             Logger.log("❌ \(updateMessage)", logType: "LabelUpdate")
+            sendLabelUpdateTeamsNotifications(withPreviousVersion: localVersionString, andCurrentVersion: currentVersionString, isSuccess: success)
             exit(EXIT_FAILURE)
         }
     }
