@@ -82,7 +82,8 @@ class CVEFetcher {
         }
         
         var req = URLRequest(url: url)
-        
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+
         // Add API key in header
         if let apiKey = apiKey {
             req.setValue(apiKey, forHTTPHeaderField: "apiKey")
@@ -148,7 +149,8 @@ class CVEFetcher {
         }
         
         var req = URLRequest(url: url)
-        
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+
         // Add API key in headers
         if let apiKey = apiKey {
             req.setValue(apiKey, forHTTPHeaderField: "apiKey")
@@ -347,7 +349,8 @@ class CVEFetcher {
         }
         
         var req = URLRequest(url: url)
-        
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+
         // Add API key in headers
         if let apiKey = apiKey {
             req.setValue(apiKey, forHTTPHeaderField: "apiKey")
