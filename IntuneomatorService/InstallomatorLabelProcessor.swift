@@ -42,7 +42,7 @@ class InstallomatorLabelProcessor {
     }
 
     static func runProcessLabelScript(for folderName: String) -> Bool {
-        Logger.log("Running process_label.sh for \(folderName)...", logType: logType)
+//        Logger.log("Running process_label.sh for \(folderName)...", logType: logType)
         
         guard let intuneomatorAppPath = getIntuneomatorAppPath() else {
             Logger.log("❌ Could not find Intuneomator.app.", logType: logType)
@@ -77,7 +77,7 @@ class InstallomatorLabelProcessor {
             return false
         }
 
-        Logger.log("▶️ Running process_label.sh for \(folderName)...", logType: logType)
+//        Logger.log("▶️ Running process_label.sh for \(folderName)...", logType: logType)
 
         let process = Process()
         let pipe = Pipe()
@@ -93,10 +93,10 @@ class InstallomatorLabelProcessor {
 
             let data = pipe.fileHandleForReading.readDataToEndOfFile()
             if let output = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) {
-                Logger.log("📜 process_label.sh output: \(output)", logType: logType)
+//                Logger.log("📜 process_label.sh output: \(output)", logType: logType)
 
                 if output == "Plist created" {
-                    Logger.log("✅ plist successfully updated for \(folderName)", logType: logType)
+//                    Logger.log("✅ plist successfully updated for \(folderName)", logType: logType)
 //                    return true
                 } else {
                     Logger.log("❌ plist update failed for \(folderName)", logType: logType)
@@ -109,9 +109,9 @@ class InstallomatorLabelProcessor {
         }
         
         let archResult = self.containsArchCommand(filePath: labelScriptPath)
-        Logger.log("Arch result: \(archResult)", logType: logType)
+//        Logger.log("Arch result: \(archResult)", logType: logType)
         if archResult {
-                Logger.log("❌ Label script contains arch command, running again: \(folderName)", logType: logType)
+//                Logger.log("❌ Label script contains arch command, running again: \(folderName)", logType: logType)
             
             let process = Process()
             let pipe = Pipe()
@@ -127,10 +127,10 @@ class InstallomatorLabelProcessor {
                 
                 let data = pipe.fileHandleForReading.readDataToEndOfFile()
                 if let output = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) {
-                    Logger.log("📜 process_label.sh output: \(output)", logType: logType)
+//                    Logger.log("📜 process_label.sh output: \(output)", logType: logType)
                     
                     if output == "Plist created" {
-                        Logger.log("✅ plist successfully updated for \(folderName)", logType: logType)
+//                        Logger.log("✅ plist successfully updated for \(folderName)", logType: logType)
                         return true
                     } else {
                         Logger.log("❌ plist update failed for \(folderName)", logType: logType)
@@ -162,7 +162,7 @@ class InstallomatorLabelProcessor {
         if parts.count == 2 {
             label = String(parts[0]) // Assign the name
             guid = String(parts[1]) // Assign the GUID
-            Logger.log("Name: \(label!), GUID: \(guid!)", logType: logType)
+//            Logger.log("Name: \(label!), GUID: \(guid!)", logType: logType)
         } else {
             Logger.log("Invalid directory format.", logType: logType)
         }
@@ -183,7 +183,7 @@ class InstallomatorLabelProcessor {
         
         let updatedScriptPath = URL(fileURLWithPath: updatedLabelsDir)
             .appendingPathComponent("\(label!).sh")
-        Logger.log("Updated script path: \(updatedScriptPath.path)", logType: logType)
+//        Logger.log("Updated script path: \(updatedScriptPath.path)", logType: logType)
         
         
         
@@ -197,11 +197,11 @@ class InstallomatorLabelProcessor {
                     
                     if originalContents != updatedContents {
                         // Replace the script with the updated version
-                        Logger.log("Script at \(existingScriptURL.path) is out of date.", logType: logType)
+//                        Logger.log("Script at \(existingScriptURL.path) is out of date.", logType: logType)
                         try updatedContents.write(to: existingScriptURL, atomically: true, encoding: .utf8)
                         Logger.log("Replaced outdated script at \(existingScriptURL.path) with updated content.", logType: logType)
                         } else {
-                        Logger.log("Script at \(existingScriptURL.path) is already up to date.", logType: logType)
+//                        Logger.log("Script at \(existingScriptURL.path) is already up to date.", logType: logType)
                     }
                 }
             } catch {
