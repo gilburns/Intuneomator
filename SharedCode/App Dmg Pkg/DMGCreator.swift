@@ -16,8 +16,8 @@ class DMGCreator {
     // Process the input path and generate the DMG
     func processToDMG(inputPath: String, outputDirectory: String?) throws -> (dmgPath: String, appName: String, appID: String, appVersion: String) {
         
-        Logger.log("processing \(inputPath)", logType: logType)
-        Logger.log("Output \(String(describing: outputDirectory))", logType: logType)
+//        Logger.log("processing \(inputPath)", logType: logType)
+//        Logger.log("Output \(String(describing: outputDirectory))", logType: logType)
 
         let tempDir = NSTemporaryDirectory() + UUID().uuidString
         
@@ -54,10 +54,10 @@ class DMGCreator {
 
         let appArch: String = getAppArchitecture(appPath: appPath) ?? "unknown"
 
-        Logger.log("appName \(appName)", logType: logType)
-        Logger.log("appID \(appID)", logType: logType)
-        Logger.log("appVersion \(appVersion)", logType: logType)
-        Logger.log("appArch \(appArch)", logType: logType)
+//        Logger.log("appName \(appName)", logType: logType)
+//        Logger.log("appID \(appID)", logType: logType)
+//        Logger.log("appVersion \(appVersion)", logType: logType)
+//        Logger.log("appArch \(appArch)", logType: logType)
 
         
         // Determine output directory
@@ -148,9 +148,9 @@ class DMGCreator {
             process.waitUntilExit()
             
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
-            let output = String(data: outputData, encoding: .utf8) ?? ""
+//            let output = String(data: outputData, encoding: .utf8) ?? ""
             
-            Logger.log("Command output: \(output)", logType: logType)
+//            Logger.log("Command output: \(output)", logType: logType)
         } catch {
             Logger.log("Error running command: \(error)", logType: logType)
             throw NSError(domain: "ShellCommandError", code: Int(process.terminationStatus), userInfo: nil)
@@ -213,7 +213,7 @@ class DMGCreator {
                 "-anyowners",
                 outputDMGPath
             ])
-            Logger.log("DMG created successfully at \(outputDMGPath)", logType: logType)
+//            Logger.log("DMG created successfully at \(outputDMGPath)", logType: logType)
         } catch {
             Logger.log("Error creating DMG: \(error)", logType: logType)
             return
