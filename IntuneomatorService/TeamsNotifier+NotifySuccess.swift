@@ -128,6 +128,7 @@ extension TeamsNotifier {
             }
             
             // Send Teams Notification
+            Logger.log("Sending Teams Notification...", logType: TeamsNotifier.logType)
             self.sendTeamsNotification(bodyContent: bodyContent)
         }
     }
