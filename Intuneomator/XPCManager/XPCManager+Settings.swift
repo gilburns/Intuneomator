@@ -43,6 +43,30 @@ extension XPCManager {
         sendRequest({ $0.setTeamsWebhookURL(url, reply: $1) }, completion: completion)
     }
     
+    func setTeamsNotificationsForCleanup(_ enabled: Bool, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setTeamsNotificationsForCleanup(enabled, reply: $1) }, completion: completion)
+    }
+
+    func setTeamsNotificationsForCVEs(_ enabled: Bool, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setTeamsNotificationsForCVEs(enabled, reply: $1) }, completion: completion)
+    }
+
+    func setTeamsNotificationsForGroups(_ enabled: Bool, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setTeamsNotificationsForGroups(enabled, reply: $1) }, completion: completion)
+    }
+
+    func setTeamsNotificationsForLabelUpdates(_ enabled: Bool, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setTeamsNotificationsForLabelUpdates(enabled, reply: $1) }, completion: completion)
+    }
+
+    func setTeamsNotificationsForUpdates(_ enabled: Bool, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setTeamsNotificationsForUpdates(enabled, reply: $1) }, completion: completion)
+    }
+
+    func setTeamsNotificationsStyle(_ enabled: Bool, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setTeamsNotificationsStyle(enabled, reply: $1) }, completion: completion)
+    }
+    
     func setLogAgeMax(_ logAgeMax: Int, completion: @escaping (Bool?) -> Void) {
         sendRequest({ $0.setLogAgeMax(logAgeMax, reply: $1) }, completion: completion)
     }
@@ -79,6 +103,30 @@ extension XPCManager {
     
     func getTeamsWebhookURL(completion: @escaping (String?) -> Void) {
         sendRequest({ $0.getTeamsWebhookURL(reply: $1) }, completion: completion)
+    }
+
+    func getTeamsNotificationsForCleanup(completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.getTeamsNotificationsForCleanup(reply: $1) }, completion: completion)
+    }
+
+    func getTeamsNotificationsForCVEs(completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.getTeamsNotificationsForCVEs(reply: $1) }, completion: completion)
+    }
+
+    func getTeamsNotificationsForGroups(completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.getTeamsNotificationsForGroups(reply: $1) }, completion: completion)
+    }
+
+    func getTeamsNotificationsForLabelUpdates(completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.getTeamsNotificationsForLabelUpdates(reply: $1) }, completion: completion)
+    }
+
+    func getTeamsNotificationsForUpdates(completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.getTeamsNotificationsForUpdates(reply: $1) }, completion: completion)
+    }
+
+    func getTeamsNotificationsStyle(completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.getTeamsNotificationsStyle(reply: $1) }, completion: completion)
     }
 
     func getCertThumbprint(completion: @escaping (String?) -> Void) {
