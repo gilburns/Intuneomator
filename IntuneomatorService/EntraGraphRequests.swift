@@ -218,12 +218,6 @@ class EntraGraphRequests {
     // MARK: - Assign Groups to App
     static func assignGroupsToApp(authToken: String, appId: String, appAssignments: [[String: Any]], appType: String, installAsManaged: Bool) async throws {
         
-        Logger.log("assignGroupsToApp", logType: logType)
-        Logger.log("appId: \(appId)", logType: logType)
-        Logger.log("assignments: \(appAssignments)", logType: logType)
-        Logger.log("appType: \(appType)", logType: logType)
-        
-        
         // Format the URL for the assignment endpoint
         let baseURL = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appId)/microsoft.graph.assign"
         
@@ -333,7 +327,6 @@ class EntraGraphRequests {
             }
             throw GraphAPIError.invalidResponse
         }
-//        Logger.log("Http Response: \(httpResponse)", logType: logType)
     }
     
     
