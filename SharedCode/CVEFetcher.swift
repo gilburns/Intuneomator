@@ -401,13 +401,8 @@ class CVEFetcher {
         completion: @escaping (Result<[VulnerabilityEntry], Error>) -> Void
     ) {
         if let error = error {
-<<<<<<< Updated upstream
-            print("❌ [CVEFetcher] Network error:", error)
-            return completion(.failure(CVEFetcherError.networkError(error)))
-=======
             Logger.log("❌ [CVEFetcher] Network error: \(error)", logType: logType)
-            return completion(.failure(error))
->>>>>>> Stashed changes
+            return completion(.failure(CVEFetcherError.networkError(error)))
         }
 
         guard let http = response as? HTTPURLResponse else {
@@ -415,38 +410,25 @@ class CVEFetcher {
         }
 
         guard (200..<300).contains(http.statusCode) else {
-<<<<<<< Updated upstream
-            print("❌ [CVEFetcher] HTTP Error:", http.statusCode)
-            return completion(.failure(CVEFetcherError.httpError(http.statusCode)))
-=======
-            let err = NSError(domain: "CVEFetcher", code: http.statusCode,
-                              userInfo: [NSLocalizedDescriptionKey: "HTTP \(http.statusCode)"])
             Logger.log("❌ [CVEFetcher] HTTP Error: \(http.statusCode)", logType: logType)
-            return completion(.failure(err))
->>>>>>> Stashed changes
+            return completion(.failure(CVEFetcherError.httpError(http.statusCode)))
         }
 
         guard let data = data else {
-<<<<<<< Updated upstream
             if http.statusCode == 200 {
-                print("📭 [CVEFetcher] No CVEs found for the given query.")
+                Logger.log("📭 [CVEFetcher] No CVEs found for the given query.", logType: logType)
                 return completion(.success([])) // Valid empty response
             } else {
-                print("❌ [CVEFetcher] Unexpected empty response.")
+                Logger.log("❌ [CVEFetcher] Unexpected empty response.", logType: logType)
                 return completion(.failure(CVEFetcherError.emptyResponse)) // Unexpected empty response
             }
-=======
-            Logger.log("❌ [CVEFetcher] Empty body", logType: logType)
-            return completion(.success([]))
->>>>>>> Stashed changes
         }
         
         do {
             let apiResp = try JSONDecoder().decode(NVDResponse.self, from: data)
             completion(.success(apiResp.vulnerabilities))
         } catch {
-<<<<<<< Updated upstream
-            print("❌ [CVEFetcher] Decode error:", error)
+            Logger.log("❌ [CVEFetcher] Decode error: \(error)", logType: logType)
             completion(.failure(CVEFetcherError.decodeError(error)))
         }
     }
@@ -465,10 +447,6 @@ class CVEFetcher {
             print("❌ [CVEFetcher] Decode Error:", decodeError.localizedDescription)
         case .cpeSearchFailed(let message):
             print("❌ [CVEFetcher] CPE Search Failed:", message)
-=======
-            Logger.log("❌ [CVEFetcher] Decode error: \(error)", logType: logType)
-            completion(.failure(error))
->>>>>>> Stashed changes
         }
     }
     
