@@ -14,6 +14,7 @@ enum CVEFetcherError: Error {
     case httpError(Int)
     case emptyResponse
     case decodeError(Error)
+    case cpeSearchFailed(String) // Context message
 }
 
 /// How we should scope our search
