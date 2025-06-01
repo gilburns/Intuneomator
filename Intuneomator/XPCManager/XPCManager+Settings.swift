@@ -63,7 +63,7 @@ extension XPCManager {
         sendRequest({ $0.setTeamsNotificationsForUpdates(enabled, reply: $1) }, completion: completion)
     }
 
-    func setTeamsNotificationsStyle(_ enabled: Bool, completion: @escaping (Bool?) -> Void) {
+    func setTeamsNotificationsStyle(_ enabled: Int, completion: @escaping (Bool?) -> Void) {
         sendRequest({ $0.setTeamsNotificationsStyle(enabled, reply: $1) }, completion: completion)
     }
     
@@ -125,7 +125,7 @@ extension XPCManager {
         sendRequest({ $0.getTeamsNotificationsForUpdates(reply: $1) }, completion: completion)
     }
 
-    func getTeamsNotificationsStyle(completion: @escaping (Bool?) -> Void) {
+    func getTeamsNotificationsStyle(completion: @escaping (Int?) -> Void) {
         sendRequest({ $0.getTeamsNotificationsStyle(reply: $1) }, completion: completion)
     }
 
