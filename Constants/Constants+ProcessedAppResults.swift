@@ -8,39 +8,39 @@
 import Foundation
 
 struct ProcessedAppResults {
-    var appAssignments: [[String : Any]]
+    let appAssignments: [[String : Any]]
     var appBundleIdActual: String
-    var appBundleIdExpected: String
-    var appCategories: [Category]
-    var appDeploymentArch: Int
-    var appDeploymentType: Int
-    var appDescription: String
-    var appDeveloper: String
+    let appBundleIdExpected: String
+    let appCategories: [Category]
+    let appDeploymentArch: Int
+    let appDeploymentType: Int
+    let appDescription: String
+    let appDeveloper: String
     var appDisplayName: String
     var appDownloadURL: String
     var appDownloadURLx86: String
-    var appIconURL: String
-    var appIgnoreVersion: Bool
-    var appInfoURL: String
-    var appIsDualArchCapable: Bool
-    var appIsFeatured: Bool
-    var appIsManaged: Bool
-    var appLabelName: String
-    var appLabelType: String
+    let appIconURL: String
+    let appIgnoreVersion: Bool
+    let appInfoURL: String
+    let appIsDualArchCapable: Bool
+    let appIsFeatured: Bool
+    let appIsManaged: Bool
+    let appLabelName: String
+    let appLabelType: String
     var appLocalURL: String
     var appLocalURLx86: String
-    var appMinimumOS: String
-    var appNotes: String
-    var appOwner: String
-    var appPrivacyPolicyURL: String
-    var appPublisherName: String
-    var appScriptPreInstall: String
-    var appScriptPostInstall: String
-    var appTeamID: String
-    var appTrackingID: String
+    let appMinimumOS: String
+    let appNotes: String
+    let appOwner: String
+    let appPrivacyPolicyURL: String
+    let appPublisherName: String
+    let appScriptPreInstall: String
+    let appScriptPostInstall: String
+    let appTeamID: String
+    let appTrackingID: String
     var appVersionActual: String
-    var appVersionExpected: String
-    var appUploadFilename: String
+    let appVersionExpected: String
+    let appUploadFilename: String
 }
 
 extension ProcessedAppResults {
