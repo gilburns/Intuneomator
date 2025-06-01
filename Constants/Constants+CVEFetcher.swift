@@ -7,6 +7,15 @@
 
 import Foundation
 
+/// Define custom error types
+enum CVEFetcherError: Error {
+    case invalidURL
+    case networkError(Error)
+    case httpError(Int)
+    case emptyResponse
+    case decodeError(Error)
+}
+
 /// How we should scope our search
 enum CVEFilter {
     case application(vendor: String, product: String)
