@@ -236,8 +236,9 @@ if success {
 
     // 🔔 Teams Notification
     let sendTeamNotification = ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") ?? false
+    let sendForUpdates = ConfigManager.readPlistValue(key: "TeamsNotificationsForUpdates") == false
 
-    if sendTeamNotification {
+    if sendTeamNotification && sendForUpdates {
         let url = ConfigManager.readPlistValue(key: "TeamsWebhookURL") ?? ""
 
         if url.isEmpty {
