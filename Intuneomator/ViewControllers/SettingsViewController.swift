@@ -26,6 +26,13 @@ class SettingsViewController: NSViewController {
     @IBOutlet weak var radioButtonSecret: NSButton!
     
     @IBOutlet weak var buttonSendTeamsNotifications: NSButton!
+    @IBOutlet weak var buttonSendTeamsNotificationsForCleanup: NSButton!
+    @IBOutlet weak var buttonSendTeamsNotificationsForCVEs: NSButton!
+    @IBOutlet weak var buttonSendTeamsNotificationsForGroups: NSButton!
+    @IBOutlet weak var buttonSendTeamsNotificationsForLabelUpdates: NSButton!
+    @IBOutlet weak var buttonSendTeamsNotificationsForUpdates: NSButton!
+    @IBOutlet weak var buttonSendTeamsNotificationsStyle: NSPopUpButton!
+
     @IBOutlet weak var fieldTeamsWebhookURL: NSTextField!
     
     @IBOutlet weak var fieldLogsMaxAge: NSTextField!
@@ -84,9 +91,50 @@ class SettingsViewController: NSViewController {
     
     @IBAction func buttonSendTeamsMessageClicked (_ sender: NSButton) {
         fieldTeamsWebhookURL.isEnabled = sender.state == .on
+        buttonSendTeamsNotificationsForCleanup.isEnabled = sender.state == .on
+        buttonSendTeamsNotificationsForCVEs.isEnabled = sender.state == .on
+        buttonSendTeamsNotificationsForGroups.isEnabled = sender.state == .on
+        buttonSendTeamsNotificationsForLabelUpdates.isEnabled = sender.state == .on
+        buttonSendTeamsNotificationsForUpdates.isEnabled = sender.state == .on
+        buttonSendTeamsNotificationsStyle.isEnabled = sender.state == .on
         trackChanges()
     }
-    
+
+    @IBAction func buttonSendTeamsMessageForCleanupClicked (_ sender: NSButton) {
+        trackChanges()
+    }
+
+    @IBAction func buttonSendTeamsMessageForCVEsClicked (_ sender: NSButton) {
+        trackChanges()
+    }
+
+    @IBAction func buttonSendTeamsMessageForGroupsClicked (_ sender: NSButton) {
+        trackChanges()
+    }
+
+    @IBAction func buttonSendTeamsMessageForLabelUpdatesClicked (_ sender: NSButton) {
+        trackChanges()
+    }
+
+    @IBAction func buttonSendTeamsMessageForUpdatesClicked (_ sender: NSButton) {
+        trackChanges()
+    }
+
+    @IBAction func buttonSendTeamsMessageStyleClicked (_ sender: NSButton) {
+        
+        if sender.selectedTag() == 0 {
+            self.buttonSendTeamsNotificationsForCVEs.isEnabled = true
+            self.buttonSendTeamsNotificationsForGroups.isEnabled = true
+        } else {
+            self.buttonSendTeamsNotificationsForCVEs.isEnabled = false
+            self.buttonSendTeamsNotificationsForGroups.isEnabled = false
+            self.buttonSendTeamsNotificationsForCVEs.state = .off
+            self.buttonSendTeamsNotificationsForGroups.state = .off
+        }
+
+        trackChanges()
+    }
+
     @IBAction func buttonValidateEntraCredentialsButtonClicked(_ sender: NSButton) {
         buttonTestConnection.isEnabled = false
 
@@ -274,6 +322,15 @@ class SettingsViewController: NSViewController {
 
         checkFieldChange(fieldTeamsWebhookURL.stringValue, originalValue: settings.teamsWebhookURL, control: fieldTeamsWebhookURL)
         checkFieldChange(buttonSendTeamsNotifications.state == .on, originalValue: settings.sendTeamsNotifications, control: buttonSendTeamsNotifications)
+
+        checkFieldChange(buttonSendTeamsNotificationsForCleanup.state == .on, originalValue: settings.sendTeamsNotificationsForCleanup, control: buttonSendTeamsNotificationsForCleanup)
+        checkFieldChange(buttonSendTeamsNotificationsForCVEs.state == .on, originalValue: settings.sendTeamsNotificationsForCVEs, control: buttonSendTeamsNotificationsForCVEs)
+        checkFieldChange(buttonSendTeamsNotificationsForGroups.state == .on, originalValue: settings.sendTeamsNotificationsForGroups, control: buttonSendTeamsNotificationsForGroups)
+        checkFieldChange(buttonSendTeamsNotificationsForLabelUpdates.state == .on, originalValue: settings.sendTeamsNotificationsForLabelUpdates, control: buttonSendTeamsNotificationsForLabelUpdates)
+        checkFieldChange(buttonSendTeamsNotificationsForUpdates.state == .on, originalValue: settings.sendTeamsNotificationsForUpdates, control: buttonSendTeamsNotificationsForUpdates)
+        checkFieldChange(buttonSendTeamsNotificationsStyle.selectedTag(), originalValue: settings.sendTeamsNotificationsStyle, control: buttonSendTeamsNotificationsStyle)
+
+
         checkFieldChange(fieldAppsToKeep.stringValue, originalValue: settings.appsToKeep, control: fieldAppsToKeep)
 
         checkFieldChange(fieldLogsMaxAge.stringValue, originalValue: settings.logAgeMax, control: fieldLogsMaxAge)
@@ -535,11 +592,92 @@ class SettingsViewController: NSViewController {
                 let teamsNotificationsEnabled = teamsNotificationsEnabled ?? false
                 self.buttonSendTeamsNotifications.state = teamsNotificationsEnabled ? .on : .off
                 self.fieldTeamsWebhookURL.isEnabled = teamsNotificationsEnabled
+                
+                self.buttonSendTeamsNotificationsForCleanup.isEnabled = teamsNotificationsEnabled
+                self.buttonSendTeamsNotificationsForCVEs.isEnabled = teamsNotificationsEnabled
+                self.buttonSendTeamsNotificationsForGroups.isEnabled = teamsNotificationsEnabled
+                self.buttonSendTeamsNotificationsForLabelUpdates.isEnabled = teamsNotificationsEnabled
+                self.buttonSendTeamsNotificationsForUpdates.isEnabled = teamsNotificationsEnabled
+                self.buttonSendTeamsNotificationsStyle.isEnabled = teamsNotificationsEnabled
+
                 self.settings.sendTeamsNotifications = teamsNotificationsEnabled
             }
         }
     }
-    
+
+    func getTeamsNotificationsForCleanup() {
+        // Get First Run Status
+        XPCManager.shared.getTeamsNotificationsForCleanup { teamsNotificationsForCleanup in
+            DispatchQueue.main.async {
+                let teamsNotificationsForCleanup = teamsNotificationsForCleanup ?? false
+                self.buttonSendTeamsNotificationsForCleanup.state = teamsNotificationsForCleanup ? .on : .off
+                self.settings.sendTeamsNotificationsForCleanup = teamsNotificationsForCleanup
+            }
+        }
+    }
+
+    func getTeamsNotificationsForCVEs() {
+        // Get First Run Status
+        XPCManager.shared.getTeamsNotificationsForCVEs { teamsNotificationsForCVEs in
+            DispatchQueue.main.async {
+                let teamsNotificationsForCVEs = teamsNotificationsForCVEs ?? false
+                self.buttonSendTeamsNotificationsForCVEs.state = teamsNotificationsForCVEs ? .on : .off
+                self.settings.sendTeamsNotificationsForCVEs = teamsNotificationsForCVEs
+            }
+        }
+    }
+
+    func getTeamsNotificationsForGroups() {
+        // Get First Run Status
+        XPCManager.shared.getTeamsNotificationsForGroups { teamsNotificationsForGroups in
+            DispatchQueue.main.async {
+                let teamsNotificationsForGroups = teamsNotificationsForGroups ?? false
+                self.buttonSendTeamsNotificationsForGroups.state = teamsNotificationsForGroups ? .on : .off
+                self.settings.sendTeamsNotificationsForGroups = teamsNotificationsForGroups
+            }
+        }
+    }
+
+    func getTeamsNotificationsForLabelUpdates() {
+        // Get First Run Status
+        XPCManager.shared.getTeamsNotificationsForLabelUpdates { teamsNotificationsForLabelUpdates in
+            DispatchQueue.main.async {
+                let teamsNotificationsForLabelUpdates = teamsNotificationsForLabelUpdates ?? false
+                self.buttonSendTeamsNotificationsForLabelUpdates.state = teamsNotificationsForLabelUpdates ? .on : .off
+                self.settings.sendTeamsNotificationsForLabelUpdates = teamsNotificationsForLabelUpdates
+            }
+        }
+    }
+
+    func getTeamsNotificationsForUpdates() {
+        // Get First Run Status
+        XPCManager.shared.getTeamsNotificationsForUpdates { teamsNotificationsForUpdates in
+            DispatchQueue.main.async {
+                let teamsNotificationsForUpdates = teamsNotificationsForUpdates ?? false
+                self.buttonSendTeamsNotificationsForUpdates.state = teamsNotificationsForUpdates ? .on : .off
+                self.settings.sendTeamsNotificationsForUpdates = teamsNotificationsForUpdates
+            }
+        }
+    }
+
+    func getTeamsNotificationsStyle() {
+        // Get First Run Status
+        XPCManager.shared.getTeamsNotificationsStyle { teamsNotificationsStyle in
+            DispatchQueue.main.async {
+                let teamsNotificationsStyle = teamsNotificationsStyle ?? 0
+                self.buttonSendTeamsNotificationsStyle.selectItem(withTag: teamsNotificationsStyle)
+                self.settings.sendTeamsNotificationsStyle = teamsNotificationsStyle
+                if teamsNotificationsStyle == 0 {
+                    self.buttonSendTeamsNotificationsForCVEs.isEnabled = true
+                    self.buttonSendTeamsNotificationsForGroups.isEnabled = true
+                } else {
+                    self.buttonSendTeamsNotificationsForCVEs.isEnabled = false
+                    self.buttonSendTeamsNotificationsForGroups.isEnabled = false
+                }
+            }
+        }
+    }
+
     func getLogAgeMax() {
         XPCManager.shared.getLogAgeMax { logAgeMax in
             DispatchQueue.main.async {
@@ -577,6 +715,48 @@ class SettingsViewController: NSViewController {
         }
     }
     
+    private func setTeamsWebHookEnabledForCleanup() {
+        let isEnabled = (buttonSendTeamsNotificationsForCleanup.state == .on)
+        XPCManager.shared.setTeamsNotificationsForCleanup(isEnabled) { success in
+            Logger.logUser("Teams notifications for cleanup: \(success == true ? "✅" : "❌")", logType: logType)
+        }
+    }
+
+    private func setTeamsWebHookEnabledForCVEs() {
+        let isEnabled = (buttonSendTeamsNotificationsForCVEs.state == .on)
+        XPCManager.shared.setTeamsNotificationsForCVEs(isEnabled) { success in
+            Logger.logUser("Teams notifications for CVEs: \(success == true ? "✅" : "❌")", logType: logType)
+        }
+    }
+
+    private func setTeamsWebHookEnabledForGroups() {
+        let isEnabled = (buttonSendTeamsNotificationsForGroups.state == .on)
+        XPCManager.shared.setTeamsNotificationsForGroups(isEnabled) { success in
+            Logger.logUser("Teams notifications for Groups: \(success == true ? "✅" : "❌")", logType: logType)
+        }
+    }
+
+    private func setTeamsWebHookEnabledForLabelUpdates() {
+        let isEnabled = (buttonSendTeamsNotificationsForLabelUpdates.state == .on)
+        XPCManager.shared.setTeamsNotificationsForLabelUpdates(isEnabled) { success in
+            Logger.logUser("Teams notifications for Label Updates: \(success == true ? "✅" : "❌")", logType: logType)
+        }
+    }
+
+    private func setTeamsWebHookEnabledForUpdates() {
+        let isEnabled = (buttonSendTeamsNotificationsForUpdates.state == .on)
+        XPCManager.shared.setTeamsNotificationsForUpdates(isEnabled) { success in
+            Logger.logUser("Teams notifications for Updates: \(success == true ? "✅" : "❌")", logType: logType)
+        }
+    }
+
+    private func setTeamsWebHookStyle() {
+        let selectedTag = (buttonSendTeamsNotificationsStyle.selectedTag())
+        XPCManager.shared.setTeamsNotificationsStyle(selectedTag) { success in
+            Logger.logUser("Teams notifications Style: \(success == true ? "✅" : "❌")", logType: logType)
+        }
+    }
+
     private func setCertificateThumbprint() {
         let thumbprint = fieldCertificateThumbprint.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         XPCManager.shared.setApplicationID(thumbprint) { success in
@@ -648,6 +828,12 @@ class SettingsViewController: NSViewController {
         getAuthMethod()
         getTeamsWebhookURL()
         getTeamsNotificationsEnabled()
+        getTeamsNotificationsForCleanup()
+        getTeamsNotificationsForCVEs()
+        getTeamsNotificationsForGroups()
+        getTeamsNotificationsForLabelUpdates()
+        getTeamsNotificationsForUpdates()
+        getTeamsNotificationsStyle()
         getCertExpiration()
         getSecretExpiration()
         getClientSecret()
@@ -699,6 +885,36 @@ class SettingsViewController: NSViewController {
         if settings.sendTeamsNotifications != (buttonSendTeamsNotifications.state == .on) {
             
             setTeamsWebHookEnabled()
+        }
+
+        if settings.sendTeamsNotificationsForCleanup != (buttonSendTeamsNotificationsForCleanup.state == .on) {
+            
+            setTeamsWebHookEnabledForCleanup()
+        }
+
+        if settings.sendTeamsNotificationsForCVEs != (buttonSendTeamsNotificationsForCVEs.state == .on) {
+            
+            setTeamsWebHookEnabledForCVEs()
+        }
+
+        if settings.sendTeamsNotificationsForGroups != (buttonSendTeamsNotificationsForGroups.state == .on) {
+            
+            setTeamsWebHookEnabledForGroups()
+        }
+
+        if settings.sendTeamsNotificationsForLabelUpdates != (buttonSendTeamsNotificationsForLabelUpdates.state == .on) {
+            
+            setTeamsWebHookEnabledForLabelUpdates()
+        }
+
+        if settings.sendTeamsNotificationsForUpdates != (buttonSendTeamsNotificationsForUpdates.state == .on) {
+            
+            setTeamsWebHookEnabledForUpdates()
+        }
+
+        if settings.sendTeamsNotificationsStyle != (buttonSendTeamsNotificationsStyle.tag) {
+            
+            setTeamsWebHookStyle()
         }
 
 
