@@ -61,6 +61,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				CVEFetcher.swift,
+				CVEFetcherError.swift,
 				Logging.swift,
 			);
 			target = 1B9DD88C2DDD759C005ECE05 /* IntuneomatorUpdater */;
@@ -94,6 +95,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Constants.swift,
+				"Constants+AppConstants.swift",
+				"Constants+CVEFetcher.swift",
 			);
 			target = 1B9DD88C2DDD759C005ECE05 /* IntuneomatorUpdater */;
 		};
