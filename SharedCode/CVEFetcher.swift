@@ -13,6 +13,8 @@ class CVEFetcher {
     private let cpeBaseURL = "https://services.nvd.nist.gov/rest/json/cpes/2.0"
     private let apiKey: String?
     
+    let logType = "CVE"
+    
     init(session: URLSession = .shared, apiKey: String? = nil) {
         self.session = session
         self.apiKey = apiKey
@@ -88,7 +90,7 @@ class CVEFetcher {
             req.setValue(apiKey, forHTTPHeaderField: "apiKey")
         }
         
-        print("🔍 [CVEFetcher] Starting request to:", url.absoluteString)
+        Logger.log("🔍 [CVEFetcher] Starting request to: \(url.absoluteString)", logType: logType)
         
         let task = session.dataTask(with: req) { data, resp, err in
             self.handleCVEResponse(data: data, response: resp, error: err, completion: completion)
@@ -104,7 +106,7 @@ class CVEFetcher {
         maxResults: Int?,
         completion: @escaping (Result<[VulnerabilityEntry], Error>) -> Void
     ) {
-        print("🔍 [CVEFetcher] Searching for multiple CPEs for: \(applicationName)")
+        Logger.log("🔍 [CVEFetcher] Searching for multiple CPEs for: \(applicationName)", logType: logType)
         
         // Get multiple CPE names for the app
         searchMultipleCPEs(for: applicationName) { [weak self] result in
@@ -113,18 +115,18 @@ class CVEFetcher {
             switch result {
             case .success(let cpeNames):
                 if cpeNames.isEmpty {
-                    print("❌ [CVEFetcher] No CPE names found for \(applicationName)")
+                    Logger.log("❌ [CVEFetcher] No CPE names found for \(applicationName)", logType: logType)
                     completion(.success([]))
                     return
                 }
                 
-                print("📋 [CVEFetcher] Found \(cpeNames.count) CPE names for \(applicationName)")
+                Logger.log("📋 [CVEFetcher] Found \(cpeNames.count) CPE names for \(applicationName)", logType: logType)
                 
                 // Fetch CVEs for all CPE names
                 self.fetchCVEsForMultipleCPEs(cpeNames, daysBack: daysBack, maxResults: maxResults, completion: completion)
                 
             case .failure(let error):
-                print("❌ [CVEFetcher] Failed to search CPEs: \(error)")
+                Logger.log("❌ [CVEFetcher] Failed to search CPEs: \(error)", logType: logType)
                 completion(.failure(error))
             }
         }
@@ -155,7 +157,7 @@ class CVEFetcher {
             req.setValue(apiKey, forHTTPHeaderField: "apiKey")
         }
         
-        print("🔍 [CVEFetcher] Searching CPE dictionary for: \(applicationName)")
+        Logger.log("🔍 [CVEFetcher] Searching CPE dictionary for: \(applicationName)", logType: logType)
         
         let task = session.dataTask(with: req) { data, resp, err in
             if let err = err {
@@ -219,9 +221,9 @@ class CVEFetcher {
                 // Limit to max 3 CPEs to speed things up
                 let limitedCPEs = Array(cpeNames.prefix(3))
                 
-                print("📋 [CVEFetcher] Found \(limitedCPEs.count) matching CPEs:")
+                Logger.log("📋 [CVEFetcher] Found \(limitedCPEs.count) matching CPEs:", logType: self.logType)
                 for (index, cpeName) in limitedCPEs.enumerated() {
-                    print("  \(index + 1). \(cpeName)")
+                    Logger.log("  \(index + 1). \(cpeName)", logType: self.logType)
                 }
                 
                 completion(.success(limitedCPEs))
@@ -245,7 +247,7 @@ class CVEFetcher {
         var errors: [Error] = []
         let lock = NSLock()
         
-        print("🔍 [CVEFetcher] Fetching CVEs for \(cpeNames.count) CPE names...")
+        Logger.log("🔍 [CVEFetcher] Fetching CVEs for \(cpeNames.count) CPE names...", logType: logType)
         
         for (index, cpeName) in cpeNames.enumerated() {
             group.enter()
@@ -261,10 +263,10 @@ class CVEFetcher {
                     switch result {
                     case .success(let cves):
                         allCVEs.append(contentsOf: cves)
-                        print("✅ [CVEFetcher] Found \(cves.count) CVEs for CPE: \(cpeName)")
+                        Logger.log("✅ [CVEFetcher] Found \(cves.count) CVEs for CPE: \(cpeName)", logType: self.logType)
                     case .failure(let error):
                         errors.append(error)
-                        print("❌ [CVEFetcher] Failed for CPE \(cpeName): \(error)")
+                        Logger.log("❌ [CVEFetcher] Failed for CPE \(cpeName): \(error)", logType: self.logType)
                     }
                     lock.unlock()
                     group.leave()
@@ -273,26 +275,26 @@ class CVEFetcher {
         }
         
         group.notify(queue: .global()) {
-            print("🔄 [CVEFetcher] Processing \(allCVEs.count) total CVEs...")
+            Logger.log("🔄 [CVEFetcher] Processing \(allCVEs.count) total CVEs...", logType: self.logType)
             
             if allCVEs.isEmpty {
                 if !errors.isEmpty {
-                    print("❌ [CVEFetcher] All requests failed")
+                    Logger.log("❌ [CVEFetcher] All requests failed", logType: self.logType)
                     completion(.failure(errors.first!))
                 } else {
-                    print("📭 [CVEFetcher] No CVEs found")
+                    Logger.log("📭 [CVEFetcher] No CVEs found", logType: self.logType)
                     completion(.success([]))
                 }
                 return
             }
             
             // Deduplicate by CVE ID and keep most recent
-            print("🔄 [CVEFetcher] Deduplicating CVEs...")
+            Logger.log("🔄 [CVEFetcher] Deduplicating CVEs...", logType: self.logType)
             let deduplicatedCVEs = self.deduplicateCVEs(allCVEs)
-            print("🔄 [CVEFetcher] After deduplication: \(deduplicatedCVEs.count) unique CVEs")
+            Logger.log("🔄 [CVEFetcher] After deduplication: \(deduplicatedCVEs.count) unique CVEs", logType: self.logType)
             
             // Sort by published date (newest first)
-            print("🔄 [CVEFetcher] Sorting CVEs by date...")
+            Logger.log("🔄 [CVEFetcher] Sorting CVEs by date...", logType: self.logType)
             let sortedCVEs = deduplicatedCVEs.sorted { cve1, cve2 in
                 guard let date1 = cve1.publishedDate, let date2 = cve2.publishedDate else {
                     return cve1.publishedDate != nil
@@ -303,8 +305,8 @@ class CVEFetcher {
             // Take the most recent ones
             let finalResults = Array(sortedCVEs.prefix(maxResults ?? 5))
             
-            print("✅ [CVEFetcher] Final results: \(finalResults.count) unique CVEs (from \(allCVEs.count) total)")
-            print("🎯 [CVEFetcher] Calling completion handler...")
+            Logger.log("✅ [CVEFetcher] Final results: \(finalResults.count) unique CVEs (from \(allCVEs.count) total)", logType: self.logType)
+            Logger.log("🎯 [CVEFetcher] Calling completion handler...", logType: self.logType)
             
             completion(.success(finalResults))
         }
@@ -354,7 +356,7 @@ class CVEFetcher {
             req.setValue(apiKey, forHTTPHeaderField: "apiKey")
         }
         
-        print("🔍 [CVEFetcher] Starting request for CPE \(cpeName) to:", url.absoluteString)
+        Logger.log("🔍 [CVEFetcher] Starting request for CPE \(cpeName) to: \(url.absoluteString)", logType: logType)
         
         let task = session.dataTask(with: req) { data, resp, err in
             self.handleCVEResponse(data: data, response: resp, error: err, completion: completion)
@@ -399,8 +401,13 @@ class CVEFetcher {
         completion: @escaping (Result<[VulnerabilityEntry], Error>) -> Void
     ) {
         if let error = error {
+<<<<<<< Updated upstream
             print("❌ [CVEFetcher] Network error:", error)
             return completion(.failure(CVEFetcherError.networkError(error)))
+=======
+            Logger.log("❌ [CVEFetcher] Network error: \(error)", logType: logType)
+            return completion(.failure(error))
+>>>>>>> Stashed changes
         }
 
         guard let http = response as? HTTPURLResponse else {
@@ -408,11 +415,19 @@ class CVEFetcher {
         }
 
         guard (200..<300).contains(http.statusCode) else {
+<<<<<<< Updated upstream
             print("❌ [CVEFetcher] HTTP Error:", http.statusCode)
             return completion(.failure(CVEFetcherError.httpError(http.statusCode)))
+=======
+            let err = NSError(domain: "CVEFetcher", code: http.statusCode,
+                              userInfo: [NSLocalizedDescriptionKey: "HTTP \(http.statusCode)"])
+            Logger.log("❌ [CVEFetcher] HTTP Error: \(http.statusCode)", logType: logType)
+            return completion(.failure(err))
+>>>>>>> Stashed changes
         }
 
         guard let data = data else {
+<<<<<<< Updated upstream
             if http.statusCode == 200 {
                 print("📭 [CVEFetcher] No CVEs found for the given query.")
                 return completion(.success([])) // Valid empty response
@@ -420,12 +435,17 @@ class CVEFetcher {
                 print("❌ [CVEFetcher] Unexpected empty response.")
                 return completion(.failure(CVEFetcherError.emptyResponse)) // Unexpected empty response
             }
+=======
+            Logger.log("❌ [CVEFetcher] Empty body", logType: logType)
+            return completion(.success([]))
+>>>>>>> Stashed changes
         }
         
         do {
             let apiResp = try JSONDecoder().decode(NVDResponse.self, from: data)
             completion(.success(apiResp.vulnerabilities))
         } catch {
+<<<<<<< Updated upstream
             print("❌ [CVEFetcher] Decode error:", error)
             completion(.failure(CVEFetcherError.decodeError(error)))
         }
@@ -445,6 +465,10 @@ class CVEFetcher {
             print("❌ [CVEFetcher] Decode Error:", decodeError.localizedDescription)
         case .cpeSearchFailed(let message):
             print("❌ [CVEFetcher] CPE Search Failed:", message)
+=======
+            Logger.log("❌ [CVEFetcher] Decode error: \(error)", logType: logType)
+            completion(.failure(error))
+>>>>>>> Stashed changes
         }
     }
     
@@ -472,7 +496,7 @@ class CVEFetcher {
         maxResults: Int? = 5,
         completion: @escaping (Result<[VulnerabilityEntry], Error>) -> Void
     ) {
-        print("🔍 [CVEFetcher] Using simple keyword search for: \(applicationName)")
+        Logger.log("🔍 [CVEFetcher] Using simple keyword search for: \(applicationName)", logType: logType)
         
         fetchCVEs(
             product: applicationName,
