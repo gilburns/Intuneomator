@@ -10,7 +10,7 @@ import Foundation
 extension TeamsNotifier {
                 
     // Convience method for sending success/fail messages to teams
-    static func processNotification(for processedAppResults: ProcessedAppResults, success: Bool, errorMessage: String? = "") -> Bool {
+    static func processNotification(for processedAppResults: ProcessedAppResults, success: Bool, errorMessage: String? = "") async -> Bool {
         
         guard ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") == true
         else {
@@ -51,7 +51,7 @@ extension TeamsNotifier {
             do {
                 
                 // Send the notification (Currently missing some attributes)
-                teamsNotifier.sendSuccessNotification(
+                await teamsNotifier.sendSuccessNotification(
                     title: processedAppResults.appDisplayName,
                     version: "⦿ \(processedAppResults.appVersionActual)",
                     size: size,
@@ -98,16 +98,16 @@ extension TeamsNotifier {
     
 }
 
-extension TeamsNotifier {
-  /// accepts an optional, unwraps (or uses .empty) and forwards
-    static func processNotification(
-    for maybeResults: ProcessedAppResults?,
-    success: Bool
-  ) -> Bool {
-    // unwrap once; use .empty if nil
-    return processNotification(
-      for: maybeResults ?? .empty,
-      success: success
-    )
-  }
-}
+//extension TeamsNotifier {
+//  /// accepts an optional, unwraps (or uses .empty) and forwards
+//    static func processNotification(
+//    for maybeResults: ProcessedAppResults?,
+//    success: Bool
+//  ) -> Bool {
+//    // unwrap once; use .empty if nil
+//    return processNotification(
+//      for: maybeResults ?? .empty,
+//      success: success
+//    )
+//  }
+//}
