@@ -77,10 +77,9 @@ class CVEFetcher {
         comps.queryItems = queryItems
         
         guard let url = comps.url else {
-            return completion(.failure(NSError(domain: "CVEFetcher", code: 0,
-                                               userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
+            return completion(.failure(CVEFetcherError.invalidURL))
         }
-        
+
         var req = URLRequest(url: url)
         req.setValue("application/json", forHTTPHeaderField: "Accept")
 
@@ -344,8 +343,7 @@ class CVEFetcher {
         comps.queryItems = queryItems
         
         guard let url = comps.url else {
-            return completion(.failure(NSError(domain: "CVEFetcher", code: 0,
-                                               userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
+            return completion(.failure(CVEFetcherError.invalidURL))
         }
         
         var req = URLRequest(url: url)
@@ -402,25 +400,26 @@ class CVEFetcher {
     ) {
         if let error = error {
             print("❌ [CVEFetcher] Network error:", error)
-            return completion(.failure(error))
+            return completion(.failure(CVEFetcherError.networkError(error)))
         }
-        
+
         guard let http = response as? HTTPURLResponse else {
-            let err = NSError(domain: "CVEFetcher", code: 1,
-                              userInfo: [NSLocalizedDescriptionKey: "No HTTP response"])
-            return completion(.failure(err))
+            return completion(.failure(CVEFetcherError.httpError(-1)))
         }
-        
+
         guard (200..<300).contains(http.statusCode) else {
-            let err = NSError(domain: "CVEFetcher", code: http.statusCode,
-                              userInfo: [NSLocalizedDescriptionKey: "HTTP \(http.statusCode)"])
             print("❌ [CVEFetcher] HTTP Error:", http.statusCode)
-            return completion(.failure(err))
+            return completion(.failure(CVEFetcherError.httpError(http.statusCode)))
         }
-        
+
         guard let data = data else {
-            print("❌ [CVEFetcher] Empty body")
-            return completion(.success([]))
+            if http.statusCode == 200 {
+                print("📭 [CVEFetcher] No CVEs found for the given query.")
+                return completion(.success([])) // Valid empty response
+            } else {
+                print("❌ [CVEFetcher] Unexpected empty response.")
+                return completion(.failure(CVEFetcherError.emptyResponse)) // Unexpected empty response
+            }
         }
         
         do {
@@ -428,7 +427,24 @@ class CVEFetcher {
             completion(.success(apiResp.vulnerabilities))
         } catch {
             print("❌ [CVEFetcher] Decode error:", error)
-            completion(.failure(error))
+            completion(.failure(CVEFetcherError.decodeError(error)))
+        }
+    }
+    
+    func handleError(_ error: CVEFetcherError) {
+        switch error {
+        case .invalidURL:
+            print("❌ [CVEFetcher] Error: Invalid URL")
+        case .networkError(let networkError):
+            print("❌ [CVEFetcher] Network Error:", networkError.localizedDescription)
+        case .httpError(let statusCode):
+            print("❌ [CVEFetcher] HTTP Error with status code:", statusCode)
+        case .emptyResponse:
+            print("❌ [CVEFetcher] Error: Empty response from server")
+        case .decodeError(let decodeError):
+            print("❌ [CVEFetcher] Decode Error:", decodeError.localizedDescription)
+        case .cpeSearchFailed(let message):
+            print("❌ [CVEFetcher] CPE Search Failed:", message)
         }
     }
     
@@ -476,3 +492,4 @@ class CVEFetcher {
         fetchCVEsForApplication(applicationName, daysBack: 30, maxResults: 3, completion: completion)
     }
 }
+
