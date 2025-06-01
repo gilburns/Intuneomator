@@ -9,7 +9,7 @@ import Foundation
 
 /// Scans the Intuneomator managed titles folder and validates each subfolder.
 struct FolderScanner {
-    private static let logType = "FolderScanner"
+    private static let logType = "Automation"
 
     /// Scans and validates all managed titles directories.
     /// - Returns: An array of folder names ready for automation.
@@ -38,7 +38,7 @@ struct FolderScanner {
         }
         Logger.log("--------------------------------------------------------", logType: logType)
 
-        Logger.log("📋 Valid software titles for automation: \(validFolders.joined(separator: ", "))", logType: logType)
+//        Logger.log("📋 Valid software titles for automation: \(validFolders.joined(separator: ", "))", logType: logType)
         Logger.log("🏁 Scan complete. \(validFolders.count) folders ready for automation.", logType: logType)
 
         return validFolders
