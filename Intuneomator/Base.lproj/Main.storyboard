@@ -970,7 +970,7 @@ Gw
                                                                 </connections>
                                                             </textField>
                                                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Qhj-KN-3Yp">
-                                                                <rect key="frame" x="44" y="186" width="329" height="18"/>
+                                                                <rect key="frame" x="44" y="134" width="329" height="18"/>
                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                                 <buttonCell key="cell" type="check" title="Include Groups Assignment details in notifications" bezelStyle="regularSquare" imagePosition="left" inset="2" id="F8e-PQ-WH2">
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -978,7 +978,7 @@ Gw
                                                                 </buttonCell>
                                                             </button>
                                                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Xjz-qt-k9v">
-                                                                <rect key="frame" x="44" y="164" width="314" height="18"/>
+                                                                <rect key="frame" x="44" y="112" width="314" height="18"/>
                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                                 <buttonCell key="cell" type="check" title="Include CVE Vulnerability details in notifications" bezelStyle="regularSquare" imagePosition="left" inset="2" id="wX4-8m-Omz">
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -986,7 +986,7 @@ Gw
                                                                 </buttonCell>
                                                             </button>
                                                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mN4-lb-7Ol">
-                                                                <rect key="frame" x="44" y="142" width="334" height="18"/>
+                                                                <rect key="frame" x="44" y="63" width="334" height="18"/>
                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                                 <buttonCell key="cell" type="check" title="Send notifications regarding Intuneomator updates" bezelStyle="regularSquare" imagePosition="left" inset="2" id="SdO-12-79L">
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -994,7 +994,7 @@ Gw
                                                                 </buttonCell>
                                                             </button>
                                                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="acm-ZG-qWC">
-                                                                <rect key="frame" x="44" y="120" width="365" height="18"/>
+                                                                <rect key="frame" x="44" y="41" width="365" height="18"/>
                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                                 <buttonCell key="cell" type="check" title="Send notifications regarding Installomator label updates" bezelStyle="regularSquare" imagePosition="left" inset="2" id="tWi-Hk-b9v">
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -1002,13 +1002,40 @@ Gw
                                                                 </buttonCell>
                                                             </button>
                                                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0an-9i-Iza">
-                                                                <rect key="frame" x="44" y="98" width="243" height="18"/>
+                                                                <rect key="frame" x="44" y="19" width="243" height="18"/>
                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                                 <buttonCell key="cell" type="check" title="Send notifications for cleanup tasks" bezelStyle="regularSquare" imagePosition="left" inset="2" id="cbY-Em-GFR">
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
                                                             </button>
+                                                            <box verticalHuggingPriority="750" fixedFrame="YES" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="cze-B9-Gzi">
+                                                                <rect key="frame" x="20" y="86" width="499" height="5"/>
+                                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                                            </box>
+                                                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="eVB-bU-meQ">
+                                                                <rect key="frame" x="44" y="187" width="112" height="16"/>
+                                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                                                <textFieldCell key="cell" lineBreakMode="clipping" title="Notification Style:" id="waj-FL-IEk">
+                                                                    <font key="font" metaFont="system"/>
+                                                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                                </textFieldCell>
+                                                            </textField>
+                                                            <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="LFQ-JX-gp2">
+                                                                <rect key="frame" x="43" y="155" width="334" height="25"/>
+                                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                                                <popUpButtonCell key="cell" type="push" title="1 notification for each software title" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="lM1-pM-Nob" id="Poy-jI-RAx">
+                                                                    <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                                                                    <font key="font" metaFont="menu"/>
+                                                                    <menu key="menu" id="QWz-7n-Gxw">
+                                                                        <items>
+                                                                            <menuItem title="1 notification for each software title" state="on" id="lM1-pM-Nob"/>
+                                                                            <menuItem title="1 notification each automation run" id="G7m-Ua-d6R"/>
+                                                                        </items>
+                                                                    </menu>
+                                                                </popUpButtonCell>
+                                                            </popUpButton>
                                                         </subviews>
                                                     </view>
                                                 </box>
