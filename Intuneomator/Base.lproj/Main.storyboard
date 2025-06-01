@@ -976,6 +976,9 @@ Gw
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
+                                                                <connections>
+                                                                    <action selector="buttonSendTeamsMessageForGroupsClicked:" target="9UW-t9-eHm" id="fRd-1m-8du"/>
+                                                                </connections>
                                                             </button>
                                                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Xjz-qt-k9v">
                                                                 <rect key="frame" x="44" y="112" width="314" height="18"/>
@@ -984,6 +987,9 @@ Gw
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
+                                                                <connections>
+                                                                    <action selector="buttonSendTeamsMessageForCVEsClicked:" target="9UW-t9-eHm" id="IhM-Of-Tsi"/>
+                                                                </connections>
                                                             </button>
                                                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mN4-lb-7Ol">
                                                                 <rect key="frame" x="44" y="63" width="334" height="18"/>
@@ -992,6 +998,9 @@ Gw
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
+                                                                <connections>
+                                                                    <action selector="buttonSendTeamsMessageForUpdatesClicked:" target="9UW-t9-eHm" id="HIZ-U6-C00"/>
+                                                                </connections>
                                                             </button>
                                                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="acm-ZG-qWC">
                                                                 <rect key="frame" x="44" y="41" width="365" height="18"/>
@@ -1000,6 +1009,9 @@ Gw
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
+                                                                <connections>
+                                                                    <action selector="buttonSendTeamsMessageForLabelUpdatesClicked:" target="9UW-t9-eHm" id="wXH-3R-KyE"/>
+                                                                </connections>
                                                             </button>
                                                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0an-9i-Iza">
                                                                 <rect key="frame" x="44" y="19" width="243" height="18"/>
@@ -1008,6 +1020,9 @@ Gw
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
+                                                                <connections>
+                                                                    <action selector="buttonSendTeamsMessageForCleanupClicked:" target="9UW-t9-eHm" id="R00-Xi-JX4"/>
+                                                                </connections>
                                                             </button>
                                                             <box verticalHuggingPriority="750" fixedFrame="YES" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="cze-B9-Gzi">
                                                                 <rect key="frame" x="20" y="86" width="499" height="5"/>
@@ -1025,16 +1040,19 @@ Gw
                                                             <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="LFQ-JX-gp2">
                                                                 <rect key="frame" x="43" y="155" width="334" height="25"/>
                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                                                <popUpButtonCell key="cell" type="push" title="1 notification for each software title" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="lM1-pM-Nob" id="Poy-jI-RAx">
+                                                                <popUpButtonCell key="cell" type="push" title="Send a notification for each software title update" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="lM1-pM-Nob" id="Poy-jI-RAx">
                                                                     <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                                                                     <font key="font" metaFont="menu"/>
                                                                     <menu key="menu" id="QWz-7n-Gxw">
                                                                         <items>
-                                                                            <menuItem title="1 notification for each software title" state="on" id="lM1-pM-Nob"/>
-                                                                            <menuItem title="1 notification each automation run" id="G7m-Ua-d6R"/>
+                                                                            <menuItem title="Send a notification for each software title update" state="on" id="lM1-pM-Nob"/>
+                                                                            <menuItem title="Send a notification each automation run" tag="1" id="G7m-Ua-d6R"/>
                                                                         </items>
                                                                     </menu>
                                                                 </popUpButtonCell>
+                                                                <connections>
+                                                                    <action selector="buttonSendTeamsMessageStyleClicked:" target="9UW-t9-eHm" id="214-vo-Nw4"/>
+                                                                </connections>
                                                             </popUpButton>
                                                         </subviews>
                                                     </view>
@@ -1207,6 +1225,12 @@ Gw
                         <outlet property="buttonCancel" destination="hEm-rk-UFP" id="SNi-br-NwW"/>
                         <outlet property="buttonSave" destination="w2e-VK-eKu" id="BwI-jw-Xdy"/>
                         <outlet property="buttonSendTeamsNotifications" destination="rCb-Js-SjM" id="Lpj-pj-C1E"/>
+                        <outlet property="buttonSendTeamsNotificationsForCVEs" destination="Xjz-qt-k9v" id="87e-UM-fAo"/>
+                        <outlet property="buttonSendTeamsNotificationsForCleanup" destination="0an-9i-Iza" id="8BC-q0-Pxf"/>
+                        <outlet property="buttonSendTeamsNotificationsForGroups" destination="Qhj-KN-3Yp" id="wMa-PG-AhE"/>
+                        <outlet property="buttonSendTeamsNotificationsForLabelUpdates" destination="acm-ZG-qWC" id="ex1-Ek-XMm"/>
+                        <outlet property="buttonSendTeamsNotificationsForUpdates" destination="mN4-lb-7Ol" id="q4F-cJ-zuC"/>
+                        <outlet property="buttonSendTeamsNotificationsStyle" destination="LFQ-JX-gp2" id="8aJ-9e-vdv"/>
                         <outlet property="buttonTestConnection" destination="EnT-kb-c6g" id="aBV-fk-0cq"/>
                         <outlet property="fieldAppsToKeep" destination="XCL-Yn-1Od" id="1L2-zI-bjD"/>
                         <outlet property="fieldCertificateExpiration" destination="Ytl-mh-OYV" id="BS8-ep-bwT"/>
