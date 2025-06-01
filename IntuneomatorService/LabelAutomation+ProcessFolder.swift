@@ -237,7 +237,7 @@ extension LabelAutomation {
            let localFilePath = processedAppResults.appLocalURL
 
             guard FileManager.default.fileExists(atPath: localFilePath) else {
-                let messageResult = TeamsNotifier.processNotification(for: processedAppResults, success: false, errorMessage: "Upload file does not exist at path. Please check the logs for file path and try again.")
+                let messageResult = await TeamsNotifier.processNotification(for: processedAppResults, success: false, errorMessage: "Upload file does not exist at path. Please check the logs for file path and try again.")
                 Logger.log("File does not exist. Teams notification sent: \(messageResult)", logType: logType)
                 return
             }
@@ -246,7 +246,7 @@ extension LabelAutomation {
             newAppID = try await EntraGraphRequests.uploadAppToIntune(authToken: authToken, app: processedAppResults)
             
         } catch {
-            let messageResult = TeamsNotifier.processNotification(for: processedAppResults, success: false, errorMessage: "Error uploading \(processedAppResults.appLocalURL) to Intune: \(error.localizedDescription)")
+            let messageResult = await TeamsNotifier.processNotification(for: processedAppResults, success: false, errorMessage: "Error uploading \(processedAppResults.appLocalURL) to Intune: \(error.localizedDescription)")
             Logger.log("Error uploading \(processedAppResults.appLocalURL) to Intune: \(error.localizedDescription). Teams notification sent: \(messageResult)", logType: logType)
         }
         
@@ -336,7 +336,7 @@ extension LabelAutomation {
         
         // MARK: - Send Teams Notification
                 
-        let didSend = TeamsNotifier.processNotification(
+        let didSend = await TeamsNotifier.processNotification(
             for: processedAppResults,
             success: uploadSucceeded
         )
