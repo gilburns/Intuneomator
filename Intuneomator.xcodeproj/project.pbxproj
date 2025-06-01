@@ -108,6 +108,7 @@
 				"App Dmg Pkg/SignatureInspector.swift",
 				AutomationCheck.swift,
 				CVEFetcher.swift,
+				CVEFetcherError.swift,
 				Extensions.swift,
 				FileFolderManagerUtil.swift,
 				InstallomatorLabels.swift,
