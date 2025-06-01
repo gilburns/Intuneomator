@@ -41,6 +41,36 @@ extension XPCService {
         reply(url)
     }
     
+    func getTeamsNotificationsForCleanup(reply: @escaping (Bool) -> Void) {
+        let enabled = ConfigManager.readPlistValue(key: "TeamsNotificationsForCleanup") ?? false
+        reply(enabled)
+    }
+
+    func getTeamsNotificationsForCVEs(reply: @escaping (Bool) -> Void) {
+        let enabled = ConfigManager.readPlistValue(key: "TeamsNotificationsForCVEs") ?? false
+        reply(enabled)
+    }
+
+    func getTeamsNotificationsForGroups(reply: @escaping (Bool) -> Void) {
+        let enabled = ConfigManager.readPlistValue(key: "TeamsNotificationsForGroups") ?? false
+        reply(enabled)
+    }
+
+    func getTeamsNotificationsForLabelUpdates(reply: @escaping (Bool) -> Void) {
+        let enabled = ConfigManager.readPlistValue(key: "TeamsNotificationsForLabelUpdates") ?? false
+        reply(enabled)
+    }
+
+    func getTeamsNotificationsForUpdates(reply: @escaping (Bool) -> Void) {
+        let enabled = ConfigManager.readPlistValue(key: "TeamsNotificationsForUpdates") ?? false
+        reply(enabled)
+    }
+
+    func getTeamsNotificationsStyle(reply: @escaping (Bool) -> Void) {
+        let enabled = ConfigManager.readPlistValue(key: "TeamsNotificationsStyle") ?? false
+        reply(enabled)
+    }
+
     func getCertThumbprint(reply: @escaping (String?) -> Void) {
         let certDetails = ConfigManager.readPlistValue(key: "CertificateDetails") ?? [:]
         let certThumbprint = certDetails["Thumbprint"] as? String
@@ -106,7 +136,6 @@ extension XPCService {
     func setAuthMethod(_ method: String, reply: @escaping (Bool) -> Void) {
         let validMethods = ["certificate", "secret"]
         guard validMethods.contains(method) else {
-            Logger.log("Invalid auth method: \(method)", logType: logType)
             reply(false)
             return
         }
@@ -125,13 +154,42 @@ extension XPCService {
     }
     
     func setTeamsNotificationsEnabled(_ enabled: Bool, reply: @escaping (Bool) -> Void) {
-        Logger.log("setTeamsNotificationsEnabled: \(enabled)", logType: logType)
         let success = ConfigManager.writePlistValue(key: "TeamsNotificationsEnabled", value: enabled)
         reply(success)
     }
     
     func setTeamsWebhookURL(_ url: String, reply: @escaping (Bool) -> Void) {
         let success = ConfigManager.writePlistValue(key: "TeamsWebhookURL", value: url)
+        reply(success)
+    }
+
+    func setTeamsNotificationsForCleanup(_ enabled: Bool, reply: @escaping (Bool) -> Void) {
+        let success = ConfigManager.writePlistValue(key: "TeamsNotificationsForCleanup", value: enabled)
+        reply(success)
+    }
+
+    func setTeamsNotificationsForCVEs(_ enabled: Bool, reply: @escaping (Bool) -> Void) {
+        let success = ConfigManager.writePlistValue(key: "TeamsNotificationsForCVEs", value: enabled)
+        reply(success)
+    }
+
+    func setTeamsNotificationsForGroups(_ enabled: Bool, reply: @escaping (Bool) -> Void) {
+        let success = ConfigManager.writePlistValue(key: "TeamsNotificationsForGroups", value: enabled)
+        reply(success)
+    }
+
+    func setTeamsNotificationsForLabelUpdates(_ enabled: Bool, reply: @escaping (Bool) -> Void) {
+        let success = ConfigManager.writePlistValue(key: "TeamsNotificationsForLabelUpdates", value: enabled)
+        reply(success)
+    }
+
+    func setTeamsNotificationsForUpdates(_ enabled: Bool, reply: @escaping (Bool) -> Void) {
+        let success = ConfigManager.writePlistValue(key: "TeamsNotificationsForUpdates", value: enabled)
+        reply(success)
+    }
+
+    func setTeamsNotificationsStyle(_ enabled: Bool, reply: @escaping (Bool) -> Void) {
+        let success = ConfigManager.writePlistValue(key: "TeamsNotificationsStyle", value: enabled)
         reply(success)
     }
 
@@ -147,3 +205,4 @@ extension XPCService {
 
     
 }
+
