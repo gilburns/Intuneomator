@@ -27,8 +27,8 @@ class AppInspector {
             
             let minOSVersion = plist?["LSMinimumSystemVersion"] as? String ?? "Unknown"
             
-            Logger.log("Bundle ID found: \(bundleID)", logType: "AppInspector")
-            Logger.log(String(format: "Version found: %@ (minimum OS: %@)", version, minOSVersion), logType: "AppInspector")
+//            Logger.log("Bundle ID found: \(bundleID)", logType: "AppInspector")
+//            Logger.log(String(format: "Version found: %@ (minimum OS: %@)", version, minOSVersion), logType: "AppInspector")
             
             completion(.success((bundleID, version, minOSVersion)))
         } catch {
