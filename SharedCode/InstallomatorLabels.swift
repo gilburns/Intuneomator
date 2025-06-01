@@ -52,6 +52,30 @@ class InstallomatorLabels {
         }
     }
 
+    static func getInstallomatorLocalVersion() -> String {
+        
+        let installomatorLocalVersionPath = AppConstants.installomatorVersionFileURL.path
+
+        let installomatorLocalVersion: String
+        do {
+            if FileManager.default.fileExists(atPath: installomatorLocalVersionPath) {
+                installomatorLocalVersion = try String(contentsOfFile: installomatorLocalVersionPath).trimmingCharacters(in: .whitespacesAndNewlines)
+            } else {
+                installomatorLocalVersion = "1990-01-01"
+            }
+
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+
+            guard let localVersionDate = dateFormatter.date(from: installomatorLocalVersion) else {
+                return ""
+            }
+            return installomatorLocalVersion
+        } catch {
+            return ""
+        }
+    }
+    
     static func compareInstallomatorVersion(completion: @escaping (Bool, String) -> Void) {
         Task {
             let result = await compareInstallomatorVersionAsync()
