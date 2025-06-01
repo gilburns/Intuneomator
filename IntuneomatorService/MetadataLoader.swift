@@ -95,7 +95,6 @@ struct MetadataLoader {
             Logger.log("❌ Missing plist file: \(plistPath)", logType: logType)
             return nil
         }
-        Logger.log("  Reading plist: \(plistPath)", logType: logType)
         
         guard let plistData = NSDictionary(contentsOfFile: plistPath) as? [String: Any] else {
             Logger.log("❌ Failed to parse plist: \(plistPath)", logType: logType)
@@ -130,7 +129,7 @@ struct MetadataLoader {
             Logger.log("❌ Critical plist keys are missing for \(folderName). Skipping.", logType: logType)
             return nil
         }
-        Logger.log("  Extracted plist and metadata for \(folderName): name=\(validatedName), version=\(appNewVersion ?? "N/A"), downloadURL=\(validatedDownloadURL), type=\(validatedType)", logType: logType)
+//        Logger.log("  Extracted plist and metadata for \(folderName): name=\(validatedName), version=\(appNewVersion ?? "N/A"), downloadURL=\(validatedDownloadURL), type=\(validatedType)", logType: logType)
         
         // calculate the file name
         var filename: String
@@ -246,22 +245,29 @@ struct MetadataLoader {
         
         switch deploymentArch {
         case .arm64:
-            fileArch = "arm64"
+            switch isDualArch {
+                case true:
+                fileArch = "arm64"
+            default:
+                fileArch = "universal"
+            }
         case .x86_64:
             fileArch = "x86_64"
         case .universal:
             fileArch = "universal"
         }
         
-        if deploymentType == .lob {
-            fileName = "\(title)-\(version).\(fileSuffix)"
-        } else  {
-            if isDualArch {
-                fileName = "\(title)-\(version)-\(fileArch).\(fileSuffix)"
-            } else {
-                fileName = "\(title)-\(version).\(fileSuffix)"
-            }
-        }
+        fileName = "\(title)-\(version)-\(fileArch).\(fileSuffix)"
+
+//        if deploymentType == .lob {
+//            fileName = "\(title)-\(version).\(fileSuffix)"
+//        } else  {
+//            if isDualArch {
+//                fileName = "\(title)-\(version)-\(fileArch).\(fileSuffix)"
+//            } else {
+//                fileName = "\(title)-\(version).\(fileSuffix)"
+//            }
+//        }
         return fileName
     }
 }
