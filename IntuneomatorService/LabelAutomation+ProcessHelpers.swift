@@ -9,50 +9,103 @@ import Foundation
 
 extension LabelAutomation {
 
-    // MARK: - Downloaded file cached
+    // MARK: - Downloaded Dual Arch
+    static func downloadArchives(
+        for processed: ProcessedAppResults,
+        folderName: String
+    ) async throws -> (URL, URL?) {
+        let primaryURL = processed.appDownloadURL
+        Logger.log("  Download URL: \(primaryURL)", logType: logType)
+
+        // always grab the universal/arm64 first
+        let universalURL = try await downloadFile(
+            for: folderName,
+            processedAppResults: processed
+        )
+
+        // if we need x86, do it here
+        let x86URL: URL?
+        if processed.appDeploymentArch == 2,
+           MetadataLoader.titleIsDualArch(forFolder: folderName)
+        {
+            Logger.log("Downloading x86 slice for dual-arch", logType: logType)
+            x86URL = try await downloadFile(
+                for: folderName,
+                processedAppResults: processed,
+                downloadArch: "x86"
+            )
+        } else {
+            x86URL = nil
+        }
+
+        return (universalURL, x86URL)
+    }
+
+    
+    static func apply(
+        _ processedFile: ProcessedFileResult,
+        to results: inout ProcessedAppResults
+    ) {
+        results.appLocalURL = processedFile.url.path
+        
+        if !processedFile.name.isEmpty {
+            results.appDisplayName = processedFile.name
+        }
+        if !processedFile.bundleID.isEmpty {
+            results.appBundleIdActual = processedFile.bundleID
+        }
+        if !processedFile.version.isEmpty {
+            results.appVersionActual = processedFile.version
+        }
+    }
+    
+    static func applyDownloadedFiles(
+        _ downloadedFileArm: URL,
+        _ downloadedFilex86: URL?,
+        to results: inout ProcessedAppResults
+    ) {
+        results.appLocalURL = downloadedFileArm.path
+        results.appLocalURLx86 = downloadedFilex86?.path ?? ""
+    }
+
+    
+    static func applyCached(
+        _ cacheURL: URL,
+        to results: inout ProcessedAppResults
+    ) {
+        Logger.log("Cached item found at \(cacheURL.path)", logType: logType)
+        results.appLocalURL = cacheURL.path
+        results.appBundleIdActual = results.appBundleIdExpected
+        results.appVersionActual = results.appVersionExpected
+    }
+
+    static func logProcessed(_ results: ProcessedAppResults) {
+        Logger.log("  Processed file ready at: \(results.appLocalURL)", logType: logType)
+        Logger.log("  Version: \(results.appVersionActual)", logType: logType)
+    }
+
+    // MARK: - Downloaded file cached ???
     // Check if the version already exists in cache
     static func isVersionCached(forProcessedResult results: ProcessedAppResults) -> URL? {
         
+        let labelName = results.appLabelName
+        let versionExpected = results.appVersionExpected
+        let fileName = results.appUploadFilename
+
+        Logger.log("Label Name: \(labelName)", logType: logType)
+        Logger.log("Version: \(versionExpected)", logType: logType)
+        Logger.log("File Name: \(fileName)", logType: logType)
+        
         let versionCheckPath: URL = AppConstants.intuneomatorCacheFolderURL
-            .appendingPathComponent(results.appLabelName)
-            .appendingPathComponent(results.appVersionExpected)
+            .appending(path: labelName, directoryHint: .isDirectory)
+            .appending(path: versionExpected, directoryHint: .isDirectory)
+            .appending(path: fileName, directoryHint: .notDirectory)
                 
-        let fileName: String
+        Logger.log("Version Check Path: \(versionCheckPath.path)")
         
-        let fileSuffix: String
-        if results.appDeploymentType == 0 {
-            fileSuffix = "dmg"
-        } else {
-            fileSuffix = "pkg"
+        if FileManager.default.fileExists(atPath: versionCheckPath.path) {
+            return versionCheckPath
         }
-        
-        let fileArch: String
-        if results.appDeploymentArch == 0 {
-            fileArch = "arm64"
-        } else if results.appDeploymentArch == 1 {
-            fileArch = "x86_64"
-        } else {
-            fileArch = "universal"
-        }
-        
-        if results.appDeploymentType == 2 {
-            fileName = "\(results.appDisplayName)-\(results.appVersionExpected).\(fileSuffix)"
-        } else  {
-            let dualArch = titleIsDualArch(forLabel: results.appLabelName, guid: results.appTrackingID)
-            if dualArch {
-                fileName = "\(results.appDisplayName)-\(results.appVersionExpected)-\(fileArch).\(fileSuffix)"
-            } else {
-                fileName = "\(results.appDisplayName)-\(results.appVersionExpected).\(fileSuffix)"
-            }
-        }
-        
-        let fullPath = versionCheckPath
-            .appendingPathComponent(fileName)
-        
-        if FileManager.default.fileExists(atPath: fullPath.path) {
-            return fullPath
-        }
-        
         return nil
     }
     
@@ -79,6 +132,7 @@ extension LabelAutomation {
     
     static func pollForIntuneUploadStatus(withID appTrackingID: String, processedAppResults: ProcessedAppResults, authToken: String) async -> (Bool, [FilteredIntuneAppInfo]){
         
+        
         // For check version in Intune
         var appInfo: [FilteredIntuneAppInfo] = []
 
@@ -89,12 +143,15 @@ extension LabelAutomation {
         var uploadSucceeded = false
         var currentAttempt = 0
 
+        Logger.log("Polling for Intune upload status...", logType: logType)
         do {
 
             while currentAttempt < maxPollAttempts && !uploadSucceeded {
                 appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: appTrackingID)
+                Logger.log("appInfo: \(appInfo)", logType: "debug")
                 uploadSucceeded = isVersionUploadedToIntune(appInfo: appInfo, version: processedAppResults.appVersionActual)
-                
+                Logger.log("uploadSucceeded: \(uploadSucceeded)", logType: "debug")
+
                 if uploadSucceeded {
                     Logger.log("Version \(processedAppResults.appVersionActual) was uploaded to Intune", logType: logType)
                     break
@@ -105,8 +162,8 @@ extension LabelAutomation {
                 }
             }
 
-            if !uploadSucceeded {
-                Logger.log("Version \(processedAppResults.appVersionActual) was NOT uploaded to Intune after polling", logType: logType)
+            if uploadSucceeded {
+                Logger.log("Version \(processedAppResults.appVersionActual) was uploaded to Intune after polling", logType: logType)
                 return (true, appInfo)
             }
 
@@ -124,20 +181,21 @@ extension LabelAutomation {
         do {
             let labelDisplayName = processedAppResults.appDisplayName
             let labelName = processedAppResults.appLabelName
-            let finalFilename = URL(string: processedAppResults.appLocalURL)?.lastPathComponent
+            let finalURL: String = processedAppResults.appLocalURL
+            let finalFilename = (finalURL as NSString).lastPathComponent
+
             // file size
             let fileIdentifier = processedAppResults.appBundleIdActual
             let fileVersionActual = processedAppResults.appVersionActual
             let fileVersionExpected = processedAppResults.appVersionExpected
             let labelTrackingID = processedAppResults.appTrackingID
-            let finalURL = processedAppResults.appLocalURL
 
             let fileAttributes = try FileManager.default.attributesOfItem(atPath: finalURL)
             let fileSizeBytes = fileAttributes[.size] as? Int64 ?? 0
             let fileSizeMB = Double(fileSizeBytes) / 1_048_576
                     
             // Write the upload info to the Upload log file
-            Logger.logNoDateStamp("\(labelDisplayName)\t\(labelName)\t\(finalFilename ?? "Unknown")\t\(String(format: "%.2f", fileSizeMB)) MB\t\(fileIdentifier)\t\(fileVersionActual)\t\(fileVersionExpected)\t\(labelTrackingID)\t\(finalURL)", logType: "Upload")
+            Logger.logNoDateStamp("\(labelDisplayName)\t\(labelName)\t\(finalFilename)\t\(String(format: "%.2f", fileSizeMB)) MB\t\(fileIdentifier)\t\(fileVersionActual)\t\(fileVersionExpected)\t\(labelTrackingID)\t\(finalURL)", logType: "Upload")
             
         } catch {
             Logger.log("Unable to get file size: \(error.localizedDescription)", logType: logType)
