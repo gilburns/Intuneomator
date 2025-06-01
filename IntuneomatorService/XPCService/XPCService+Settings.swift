@@ -66,8 +66,8 @@ extension XPCService {
         reply(enabled)
     }
 
-    func getTeamsNotificationsStyle(reply: @escaping (Bool) -> Void) {
-        let enabled = ConfigManager.readPlistValue(key: "TeamsNotificationsStyle") ?? false
+    func getTeamsNotificationsStyle(reply: @escaping (Int) -> Void) {
+        let enabled = ConfigManager.readPlistValue(key: "TeamsNotificationsStyle") ?? 0
         reply(enabled)
     }
 
@@ -188,7 +188,7 @@ extension XPCService {
         reply(success)
     }
 
-    func setTeamsNotificationsStyle(_ enabled: Bool, reply: @escaping (Bool) -> Void) {
+    func setTeamsNotificationsStyle(_ enabled: Int, reply: @escaping (Bool) -> Void) {
         let success = ConfigManager.writePlistValue(key: "TeamsNotificationsStyle", value: enabled)
         reply(success)
     }
