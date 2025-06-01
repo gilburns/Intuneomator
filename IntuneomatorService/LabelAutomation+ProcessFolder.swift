@@ -23,6 +23,7 @@ extension LabelAutomation {
         Logger.log("🚀 Start processing of \(folderName)", logType: "Automation")
         Logger.log("Start processing: \(folderName)", logType: logType)
 
+        // Update the label plist with latest info using the .sh file.
         let folderResults = InstallomatorLabelProcessor.runProcessLabelScript(for: folderName)
         
         if !folderResults {
@@ -59,7 +60,7 @@ extension LabelAutomation {
             return
         }
         
-        // MARK: - Check Intune with expected version
+        // MARK: - Check Intune with expected app version
         
         // appNewVersion has a known value.
         if processedAppResults.appVersionExpected != "" {
@@ -100,130 +101,134 @@ extension LabelAutomation {
             }
         }
         
-        // MARK: - Check cache for pre-existing download
+        // MARK: - Check cache or Download the file if not local
         
-        let cacheCheckURL = isVersionCached(forProcessedResult: processedAppResults)
-
-        // MARK: - Download the file
+        let cacheURLCheck = isVersionCached(forProcessedResult: processedAppResults)
         
-        if let cacheURL = cacheCheckURL {
-            Logger.log("Cached item found. No need to download", logType: logType)
-            Logger.log("Item is cached at: \(cacheURL.path)", logType: logType)
-            
-            processedAppResults.appLocalURL = cacheURL.path
-
-            let actualBundleID = processedAppResults.appBundleIdExpected
-            let actualVersion = processedAppResults.appVersionExpected
-            
-            processedAppResults.appBundleIdActual = actualBundleID
-            processedAppResults.appVersionActual = actualVersion
-            
-            Logger.log("  Processed file ready at: \(String(describing: processedAppResults.appLocalURL))", logType: logType)
-            Logger.log("  Version: \(String(describing: processedAppResults.appVersionActual))", logType: logType)
-            
+        if cacheURLCheck != nil {
+            let cacheURL: URL
+            cacheURL = cacheURLCheck!
+            // No download needed preocess to next step
+            applyCached(cacheURL, to: &processedAppResults)
+            Logger.log("  Used cache for \(folderName)", logType: logType)
         } else {
-            Logger.log("Cache miss. Downloading...", logType: logType)
-            
-            // Proceed with the download
+            // Download required before proceeding to next step
             do {
-                // Version needs to be downloaded and then uploaded to intune
-                let downloadURL = processedAppResults.appDownloadURL
-                
-                Logger.log("  Download URL: \(downloadURL)", logType: logType)
-                                
-                var downloadedFileURLx86 = URL(string: "ftp://")!
-
-                // Download the file
-                let downloadedFileURL = try await downloadFile(
-                    for: folderName,
-                    processedAppResults: processedAppResults
+                let (armURL, x86URL) = try await downloadArchives(
+                    for: processedAppResults,
+                    folderName: folderName
                 )
                 
-                // check for universal pkg
-                if processedAppResults.appDeploymentArch == 2 && MetadataLoader.titleIsDualArch(forFolder: folderName) {
-                    Logger.log("Downloading x86 version of the app", logType: logType)
-                    Logger.log("Deployment arch is \(processedAppResults.appDeploymentArch), and \(folderName) is dual arch", logType: logType)
-                    let downloadedFileURL = try await downloadFile(
-                        for: folderName,
-                        processedAppResults: processedAppResults,
-                        downloadArch: "x86"
-                    )
-                    downloadedFileURLx86 = downloadedFileURL
-                }
-                
-                processedAppResults.appDownloadURL = downloadURL
-                processedAppResults.appDownloadURLx86 = downloadedFileURLx86.path
-                
-                // MARK: - Process the downloaded file
-                
-                Logger.log("Downloaded file URL 1: \(downloadedFileURL)", logType: logType)
-                Logger.log("Downloaded file URL 2: \(downloadedFileURLx86)", logType: logType)
+                let downloadType: String = processedAppResults.appLabelType
+                let expectedTeamID: String = processedAppResults.appTeamID
+                let expectedBundleID: String = processedAppResults.appBundleIdExpected
 
-                // Process the downloaded file based on its type
-                let processedFileResult = try await processDownloadedFile(
-                    displayName: processedAppResults.appDisplayName,
-                    downloadURL: downloadedFileURL,
-                    downloadURLx86: downloadedFileURLx86,
-                    folderName: folderName,
-                    processedAppResults: processedAppResults
-                )
-                Logger.log ("  Processed file result: \(processedFileResult)", logType: logType)
-                
-                Logger.log ("  URL: \(processedFileResult.url)", logType: logType)
-                Logger.log ("  name: \(processedFileResult.name)", logType: logType)
-                Logger.log ("  bundleID: \(processedFileResult.bundleID)", logType: logType)
-                Logger.log ("  version: \(processedFileResult.version)", logType: logType)
-                
-                
-                processedAppResults.appLocalURL = processedFileResult.url.path
-                if processedFileResult.name != "" {
-                    processedAppResults.appDisplayName = processedFileResult.name
-                }
-                if processedFileResult.bundleID != "" {
-                    processedAppResults.appBundleIdActual = processedFileResult.bundleID
-                }
-                if processedFileResult.version != "" {
-                    processedAppResults.appVersionActual = processedFileResult.version
-                }
-                
-                
-                Logger.log("  Processed file ready at: \(String(describing: processedAppResults.appLocalURL))", logType: logType)
-                Logger.log("  Version: \(String(describing: processedAppResults.appVersionActual))", logType: logType)
-                
-                
-                // MARK: - Check download version against Intune versions
-                if processedAppResults.appVersionActual != processedAppResults.appVersionExpected || checkedIntune == false {
-                    Logger.log("  Version mismatch or Intune check not performed previously.", logType: logType)
-                    
-                    // Check Intune for an existing version
-                    Logger.log("  " + folderName + ": Fetching app info from Intune...", logType: logType)
-                    
-                    // Check if current actual version is already uploaded to Intune
-                    let versionExistsInIntune = isVersionUploadedToIntune(appInfo: appInfo, version: processedAppResults.appVersionActual)
-                    
-                    // Version is already in Intune. No need to continue
-                    if versionExistsInIntune {
-                        Logger.log("    ---", logType: logType)
-                        Logger.log("    Version \(processedAppResults.appVersionActual) is already uploaded to Intune", logType: logType)
-                                     
+                if x86URL == nil {
+                    Logger.log("Only ARM available for \(folderName)", logType: logType)
+
+                    let downloadURL: URL = armURL
+                    let fileUploadName: String = processedAppResults.appUploadFilename
+
+                    // New Processing
+                    switch downloadType.lowercased() {
+                    case "pkg", "pkginzip", "pkgindmg", "pkgindmginzip":
                         
-                        // Clean up the download before we bail
-                        let deleteFolder = cleanUpTmpFiles(forAppLabel: appLabelName)
-                        Logger.log("Folder cleanup : \(deleteFolder)", logType: logType)
+                        let (url, bundleID, version) = try await processPkgFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID)
+                        
+                        var localURL: URL!
+                        if let wrappedURL = url {
+                            localURL = wrappedURL
+                        }
+                        processedAppResults.appBundleIdActual = bundleID
+                        processedAppResults.appLocalURL = localURL.path
+                        processedAppResults.appVersionActual = version
+
+                    case "zip", "tbz", "dmg", "appindmginzip":
+                        let (url, filename, bundleID, version) = try await processAppFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, deploymentType: 0, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID)
+
+                        var localURL: URL!
+                        if let wrappedURL = url {
+                            localURL = wrappedURL
+                        }
+                        processedAppResults.appBundleIdActual = bundleID
+                        processedAppResults.appDisplayName = filename
+                        processedAppResults.appLocalURL = localURL.path
+                        processedAppResults.appVersionActual = version
+
+                    default:
+                        Logger.log("Unhandled download type: \(downloadType)", logType: logType)
+                        throw NSError(domain: "ProcessingError", code: 101, userInfo: [NSLocalizedDescriptionKey: "Unsupported file type: \(downloadType)"])
+                    }
+
+                    
+                } else {
+                    Logger.log("Both ARM and x86 available for \(folderName)", logType: logType)
+                    
+                    let downloadType: String = processedAppResults.appLabelType
+                    let downloadURL: URL = armURL
+                    let downloadURLx86_64: URL!
+                    if let wrappedURLx86_64: URL = x86URL {
+                        downloadURLx86_64 = wrappedURLx86_64
+                    } else {
                         return
                     }
+                    let fileUploadName: String = processedAppResults.appUploadFilename
+                    let expectedTeamID: String = processedAppResults.appTeamID
+                    let expectedBundleID: String = processedAppResults.appBundleIdExpected
                     
-                    checkedIntune = true
+                    let (url, appName, bundleID, version)  =  try await processDualAppFiles(downloadURL: downloadURL, downloadURLx86_64: downloadURLx86_64, folderName: folderName, downloadType: downloadType, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID)
                     
-                    Logger.log("  Version \(processedAppResults.appVersionActual) is not yet uploaded to Intune", logType: logType)
-                }
+                    var localURL: URL!
+                    if let wrappedURL = url {
+                        localURL = wrappedURL
+                    }
+                    
+                    processedAppResults.appBundleIdActual = bundleID
+                    processedAppResults.appDisplayName = appName
+                    processedAppResults.appLocalURL = localURL.path
+                    processedAppResults.appVersionActual = version
 
+                }
+                
             } catch {
-                Logger.log("❌ Processing failed: \(error.localizedDescription)", logType: logType)
+                Logger.log("Download failed: \(error.localizedDescription)", logType: logType)
+                return
             }
 
         }
+
+        Logger.log("Processed \(processedAppResults)", logType: logType)
+        // Process the file(s)
         
+        
+        
+        // MARK: - Check download version against Intune versions
+        if processedAppResults.appVersionActual != processedAppResults.appVersionExpected || checkedIntune == false {
+            Logger.log("  Version mismatch or Intune check not performed previously.", logType: logType)
+            
+            // Check Intune for an existing version
+            Logger.log("  " + folderName + ": Fetching app info from Intune...", logType: logType)
+            
+            // Check if current actual version is already uploaded to Intune
+            let versionExistsInIntune = isVersionUploadedToIntune(appInfo: appInfo, version: processedAppResults.appVersionActual)
+            
+            // Version is already in Intune. No need to continue
+            if versionExistsInIntune {
+                Logger.log("    ---", logType: logType)
+                Logger.log("    Version \(processedAppResults.appVersionActual) is already uploaded to Intune", logType: logType)
+                
+                
+                // Clean up the download before we bail
+                let deleteFolder = cleanUpTmpFiles(forAppLabel: appLabelName)
+                Logger.log("Folder cleanup : \(deleteFolder)", logType: logType)
+                return
+            }
+            
+            checkedIntune = true
+            
+            Logger.log("  Version \(processedAppResults.appVersionActual) is not yet uploaded to Intune", logType: logType)
+        }
+
         // MARK: - Upload to Intune
         // Store the newly created app in case we need the value later
         var newAppID: String = ""
@@ -258,10 +263,18 @@ extension LabelAutomation {
         var uploadSucceeded: Bool = false
         do {
             let (uploadResult, appInfoResult) = await pollForIntuneUploadStatus(withID: appTrackingID, processedAppResults: processedAppResults, authToken: authToken)
+            
             uploadSucceeded = uploadResult
             appInfo = appInfoResult
+            Logger.log("Upload Result: \(uploadResult)")
+            Logger.log("App Info Result: \(appInfoResult)")
         }
-        
+
+        Logger.log("App upload to Intune succeeded!")
+        Logger.log("uploaded app ID: \(newAppID)")
+        Logger.log("Upload Succeeded: \(uploadSucceeded)")
+        Logger.log("App Info: \(appInfo)")
+
         // clean up Intune for failed upload
         if uploadSucceeded == false {
             Logger.log("  " + folderName + ": App upload to Intune failed!", logType: logType)
