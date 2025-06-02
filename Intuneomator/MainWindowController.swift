@@ -53,7 +53,6 @@ class MainWindowController: NSWindowController, NSWindowDelegate {
             window.title = "Intuneomator \(formattedAppVersion())"
         }
 
-    
     }
 
     func windowWillClose(_ notification: Notification) {
