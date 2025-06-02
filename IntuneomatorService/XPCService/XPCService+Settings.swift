@@ -104,6 +104,10 @@ extension XPCService {
         reply(logSizeMax)
     }
     
+    func getIntuneomatorUpdateMode(reply: @escaping (Int) -> Void) {
+        let updateMode = ConfigManager.readPlistValue(key: "UpdateMode") ?? 0
+        reply(updateMode)
+    }
 
 
     func getLogFolderSize(completion: @escaping (Int64) -> Void) {
@@ -203,6 +207,10 @@ extension XPCService {
         reply(success)
     }
 
-    
+    func setIntuneomatorUpdateMode(_ updateMode: Int, reply: @escaping (Bool) -> Void) {
+        let success = ConfigManager.writePlistValue(key: "UpdateMode", value: updateMode)
+        reply(success)
+    }
+
 }
 
