@@ -75,7 +75,10 @@ extension XPCManager {
         sendRequest({ $0.setLogSizeMax(logSizeMax, reply: $1) }, completion: completion)
     }
 
-    
+    func setIntuneomatorUpdateMode(_ updateMode: Int, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.setIntuneomatorUpdateMode(updateMode, reply: $1) }, completion: completion)
+    }
+
     // MARK: - Get Methods
     func getFirstRunCompleted(completion: @escaping (Bool?) -> Void) {
         sendRequest({ $0.getFirstRunStatus(reply: $1) }, completion: completion)
@@ -161,6 +164,10 @@ extension XPCManager {
 
     func getLogSizeMax(completion: @escaping (Int?) -> Void) {
         sendRequest({ $0.getLogSizeMax(reply: $1) }, completion: completion)
+    }
+
+    func getIntuneomatorUpdateMode(completion: @escaping (Int?) -> Void) {
+        sendRequest({ $0.getIntuneomatorUpdateMode(reply: $1) }, completion: completion)
     }
 
 }
