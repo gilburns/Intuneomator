@@ -277,6 +277,11 @@ class MainViewController: NSViewController {
         }
     }
 
+    @IBAction func openCustomLabelsFolder(_ sender: Any) {
+        NSWorkspace.shared.open(AppConstants.installomatorCustomLabelsFolderURL)
+    }
+
+    
     @IBAction func openAppLogDirectory(_ sender: Any) {
         let logURL = AppConstants.intuneomatorLogApplicationURL
 
