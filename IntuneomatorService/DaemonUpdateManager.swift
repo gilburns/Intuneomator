@@ -38,6 +38,36 @@ class DaemonUpdateManager {
 
             if remoteVersion.compare(localVersion, options: .numeric) == .orderedDescending {
                 Logger.log("⬇️ New version available: \(remoteVersion)", logType: logType)
+                
+                // Check if we should self update or just send a teams notification
+                // 🔔 Teams Notification
+                let sendTeamNotification = ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") ?? false
+                let sendForUpdates = ConfigManager.readPlistValue(key: "TeamsNotificationsForUpdates") ?? false
+
+                let updateMode = ConfigManager.readPlistValue(key: "UpdateMode") ?? 0
+
+                if sendTeamNotification && sendForUpdates && updateMode == 1 {
+                    let url = ConfigManager.readPlistValue(key: "TeamsWebhookURL") ?? ""
+
+                    if url.isEmpty {
+                        Logger.log("No Teams Webhook URL set in Config. Not sending notification.")
+                    } else {
+                        let version = "unknown"
+                        if let plist = NSDictionary(contentsOfFile: "/Applications/Intuneomator.app/Contents/Info.plist"),
+                           let bundleVersion = plist["CFBundleShortVersionString"] as? String {
+                            Logger.log("Detected Intuneomator version: \(bundleVersion)")
+                            let teamsNotifier = TeamsNotifier(webhookURL: url)
+                            teamsNotifier.sendUpdateAvailableNotification(initialVersion: bundleVersion, updatedVersion: bundleVersion)
+                        } else {
+                            Logger.log("⚠️ Could not determine Intuneomator version.")
+                            let teamsNotifier = TeamsNotifier(webhookURL: url)
+                            teamsNotifier.sendUpdateAvailableNotification(initialVersion: "Unknown version", updatedVersion: version, errorMessage: "Unable to determine updated version.")
+                        }
+                    }
+                    exit(EXIT_SUCCESS)
+                }
+                
+                
                 downloadPkg { success in
                     if success {
                         validatePkgDownload { isValid in
