@@ -10,10 +10,7 @@ import Foundation
 @objc protocol XPCServiceProtocol {
     func beginOperation(identifier: String, timeout: TimeInterval, completion: @escaping (Bool) -> Void)
     func endOperation(identifier: String, completion: @escaping (Bool) -> Void)
-    
-    
-    func sendMessage(_ message: String, reply: @escaping (String) -> Void)
-    
+        
     func ping(completion: @escaping (Bool) -> Void)
     
     func getCertificate(reply: @escaping (Data?) -> Void)

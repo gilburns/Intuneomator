@@ -80,7 +80,6 @@ class MainViewController: NSViewController {
     func applicationWillTerminate(_ notification: Notification) {
         XPCManager.shared.endXPCServiceTransaction { success in
             if success ?? false {
-//                print("XPC service transaction ended")
             }
         }
         
@@ -89,14 +88,7 @@ class MainViewController: NSViewController {
     }
     
     // MARK: - Actions
-    @IBAction func sendMessageToDaemon(_ sender: Any) {
-        XPCManager.shared.sendMessageToDaemon(message: "Hello from GUI") { response in
-            DispatchQueue.main.async {
-//                print("GUI received: \(response ?? "")")
-            }
-        }
-    }
-    
+
     @IBAction func addRow(_ sender: Any) {
         presentSheet(withIdentifier: "LabelView")
     }

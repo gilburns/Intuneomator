@@ -47,12 +47,5 @@ class XPCService: NSObject, XPCServiceProtocol {
         completion(true)
     }
     
-    
-    func sendMessage(_ message: String, reply: @escaping (String) -> Void) {
-        Logger.log("Daemon received: \(message)", logType: logType)
-        reply("Daemon Response: Received '\(message)' at \(Date())")
-    }
-
-    
 }
 

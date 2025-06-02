@@ -62,11 +62,7 @@ class XPCManager {
     func checkXPCServiceRunning(completion: @escaping (Bool?) -> Void) {
         sendRequest({ $0.ping(completion: $1) }, completion: completion)
     }
-    
-    func sendMessageToDaemon(message: String, completion: @escaping (String?) -> Void) {
-        sendRequest({ $0.sendMessage(message, reply: $1) }, completion: completion)
-    }
-    
+        
 }
 
 
