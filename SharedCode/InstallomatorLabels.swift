@@ -45,7 +45,7 @@ class InstallomatorLabels {
             if currentVersionDate > localVersionDate {
                 return (false, "New version available: \(installomatorCurrentVersion)")
             } else {
-                return (true, "GitHub Version: \(installomatorLocalVersion)")
+                return (true, "\(installomatorLocalVersion)")
             }
         } catch {
             return (false, "Error: \(error.localizedDescription)")
@@ -56,7 +56,7 @@ class InstallomatorLabels {
         
         let installomatorLocalVersionPath = AppConstants.installomatorVersionFileURL.path
 
-        let installomatorLocalVersion: String
+        var installomatorLocalVersion: String
         do {
             if FileManager.default.fileExists(atPath: installomatorLocalVersionPath) {
                 installomatorLocalVersion = try String(contentsOfFile: installomatorLocalVersionPath).trimmingCharacters(in: .whitespacesAndNewlines)
@@ -70,10 +70,11 @@ class InstallomatorLabels {
             guard let localVersionDate = dateFormatter.date(from: installomatorLocalVersion) else {
                 return ""
             }
-            return installomatorLocalVersion
+            installomatorLocalVersion = "\(localVersionDate)"
         } catch {
             return ""
         }
+        return installomatorLocalVersion
     }
     
     static func compareInstallomatorVersion(completion: @escaping (Bool, String) -> Void) {
@@ -91,7 +92,7 @@ class InstallomatorLabels {
     }
 
     // Async version for CLI use
-    static func installInstallomatorLabelsAsync() async -> (Bool, String) {
+    static func installInstallomatorLabelsAsync(withUpdatingLabels: Bool = true) async -> (Bool, String) {
         let tempDir = AppConstants.intuneomatorTempFolderURL
             .appendingPathComponent("\(UUID().uuidString)")
 
@@ -132,6 +133,7 @@ class InstallomatorLabels {
             try FileManager.default.copyItem(atPath: sourceDirectory.path, toPath: destinationDirectory)
 
             let installomatorShPath = extractedDirURL.appendingPathComponent("Installomator.sh")
+            
             let versionContent: String
             if FileManager.default.fileExists(atPath: installomatorShPath.path) {
                 let shContent = try String(contentsOf: installomatorShPath)
@@ -151,45 +153,70 @@ class InstallomatorLabels {
 
             try FileManager.default.removeItem(atPath: tempDir.path)
 
-            try await updateInUseLabels()
+            if withUpdatingLabels {
+                _ = try await updateInUseLabels()
+            }
 
-            return (true, "Labels successfully updated to version \(versionContent)")
+            return (true, "\(versionContent)")
         } catch {
             return (false, "Error: \(error.localizedDescription)")
         }
     }
 
-    private static func updateInUseLabels() async throws {
+    static func updateInUseLabels() async throws -> [String] {
         let directoryContents = try FileManager.default.contentsOfDirectory(
             at: URL(fileURLWithPath: AppConstants.intuneomatorManagedTitlesFolderURL.path),
             includingPropertiesForKeys: nil
         )
         let subdirectories = directoryContents.filter { $0.hasDirectoryPath }
 
-        let labelSourceDirPath = AppConstants.installomatorLabelsFolderURL.path
-        let labelDestDirPath = AppConstants.intuneomatorManagedTitlesFolderURL.path
-
+        var updatedLabels: [String] = []
+        
         for subdir in subdirectories {
-            let labelName = subdir.lastPathComponent
-            let labelSourceFilePath = (labelSourceDirPath as NSString).appendingPathComponent("\(labelName).sh")
-            let labelDestinationFolderPath = (labelDestDirPath as NSString).appendingPathComponent(labelName)
-            let labelDestinationFilePath = (labelDestinationFolderPath as NSString).appendingPathComponent("\(labelName).sh")
+            
+            let folderName = subdir.lastPathComponent
 
+            guard folderName.components(separatedBy: "_").count == 2 else {
+                Logger.log ("  Skipping folder: \(folderName)", logType: "info")
+                return []
+            }
+            
             let fileManager = FileManager.default
-            let sourceExists = fileManager.fileExists(atPath: labelSourceFilePath)
-            let destinationExists = fileManager.fileExists(atPath: labelDestinationFilePath)
 
+            let labelName = folderName.components(separatedBy: "_").first ?? "Unknown"
+            
+            // Check to see if the label is using a custom one.
+            let labelCustomCheckURL = subdir
+                .appendingPathComponent(".custom")
+            
+            let labelSourceFileURL: URL
+            
+            if fileManager.fileExists(atPath: labelCustomCheckURL.path) {
+                labelSourceFileURL = AppConstants.installomatorCustomLabelsFolderURL
+                    .appendingPathComponent("\(labelName).sh")
+            } else {
+                labelSourceFileURL = AppConstants.installomatorLabelsFolderURL
+                    .appendingPathComponent("\(labelName).sh")
+            }
+            
+            let labelDestinationFileURL = subdir
+                .appendingPathComponent("\(labelName).sh")
+            
+            let sourceExists = fileManager.fileExists(atPath: labelSourceFileURL.path)
+            let destinationExists = fileManager.fileExists(atPath: labelDestinationFileURL.path)
+
+            
             if sourceExists && destinationExists {
-                let sourceContents = try String(contentsOfFile: labelSourceFilePath)
-                let destinationContents = try String(contentsOfFile: labelDestinationFilePath)
+                let sourceContents = try String(contentsOfFile: labelSourceFileURL.path)
+                let destinationContents = try String(contentsOfFile: labelDestinationFileURL.path)
 
                 if sourceContents != destinationContents {
-                    try fileManager.removeItem(atPath: labelDestinationFilePath)
-                    try sourceContents.write(toFile: labelDestinationFilePath, atomically: true, encoding: .utf8)
+                    try fileManager.removeItem(atPath: labelDestinationFileURL.path)
+                    try sourceContents.write(toFile: labelDestinationFileURL.path, atomically: true, encoding: .utf8)
+                    updatedLabels += [labelName]
                 }
-            } else if !sourceExists && destinationExists {
-                try fileManager.copyItem(atPath: labelDestinationFilePath, toPath: labelSourceFilePath)
             }
         }
+        return updatedLabels
     }
 }
