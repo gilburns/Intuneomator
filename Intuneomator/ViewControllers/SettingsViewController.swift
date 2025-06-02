@@ -963,7 +963,7 @@ class SettingsViewController: NSViewController {
 
         if settings.intuneomatorUpdateMode != buttonIntuneomatorUpdateMode.selectedTag() {
             
-            setLogSizeMax()
+            setIntuneomatorUpdateMode()
         }
 
     }
