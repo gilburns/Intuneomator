@@ -854,9 +854,9 @@ Gw
                                                                 </textFieldCell>
                                                             </textField>
                                                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="50C-wJ-pJ2">
-                                                                <rect key="frame" x="24" y="15" width="229" height="16"/>
+                                                                <rect key="frame" x="20" y="15" width="233" height="16"/>
                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                                                <textFieldCell key="cell" lineBreakMode="clipping" title="Delete oldest logs when size reaches" id="uri-vu-0h3">
+                                                                <textFieldCell key="cell" lineBreakMode="clipping" title="Delete oldest logs when size reaches:" id="uri-vu-0h3">
                                                                     <font key="font" metaFont="system"/>
                                                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -923,10 +923,13 @@ Gw
                                                                     <menu key="menu" id="buU-yb-jCK">
                                                                         <items>
                                                                             <menuItem title="Automatically keep Intuneomator up-to-date" state="on" id="uMv-1I-tOJ"/>
-                                                                            <menuItem title="Send Teams Notification when an update is available" id="zYV-Zc-qg4"/>
+                                                                            <menuItem title="Send Teams Notification when an update is available" tag="1" id="zYV-Zc-qg4"/>
                                                                         </items>
                                                                     </menu>
                                                                 </popUpButtonCell>
+                                                                <connections>
+                                                                    <action selector="buttonIntuneomatorUpdateModeClicked:" target="9UW-t9-eHm" id="U6Z-qa-GZI"/>
+                                                                </connections>
                                                             </popUpButton>
                                                         </subviews>
                                                     </view>
@@ -1223,6 +1226,7 @@ Gw
                     </view>
                     <connections>
                         <outlet property="buttonCancel" destination="hEm-rk-UFP" id="SNi-br-NwW"/>
+                        <outlet property="buttonIntuneomatorUpdateMode" destination="tkv-nq-Gmu" id="M8D-qc-9k4"/>
                         <outlet property="buttonSave" destination="w2e-VK-eKu" id="BwI-jw-Xdy"/>
                         <outlet property="buttonSendTeamsNotifications" destination="rCb-Js-SjM" id="Lpj-pj-C1E"/>
                         <outlet property="buttonSendTeamsNotificationsForCVEs" destination="Xjz-qt-k9v" id="87e-UM-fAo"/>
