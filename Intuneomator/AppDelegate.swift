@@ -46,6 +46,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         checkForFirstRun()
 
     }
+    
+    func applicationWillFinishLaunching(_ notification: Notification) {
+            NSWindow.allowsAutomaticWindowTabbing = false
+    }
+
 
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
