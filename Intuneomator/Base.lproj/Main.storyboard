@@ -671,6 +671,12 @@
                                                             <action selector="openIntuneomatorFolder:" target="Ady-hI-5gd" id="YFk-lu-soP"/>
                                                         </connections>
                                                     </menuItem>
+                                                    <menuItem title="Open Custom Labels Folder" id="iur-Ml-iyw">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="openCustomLabelsFolder:" target="Ady-hI-5gd" id="0cX-a9-IvS"/>
+                                                        </connections>
+                                                    </menuItem>
                                                     <menuItem title="Open Daemon Log Folder" id="HiN-Ev-2yy">
                                                         <modifierMask key="keyEquivalentModifierMask"/>
                                                         <connections>
@@ -919,7 +925,7 @@ Gw
                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                                 <popUpButtonCell key="cell" type="push" title="Automatically keep Intuneomator up-to-date" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="uMv-1I-tOJ" id="loi-dJ-bYn">
                                                                     <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
-                                                                    <font key="font" metaFont="menu"/>
+                                                                    <font key="font" metaFont="message"/>
                                                                     <menu key="menu" id="buU-yb-jCK">
                                                                         <items>
                                                                             <menuItem title="Automatically keep Intuneomator up-to-date" state="on" id="uMv-1I-tOJ"/>
@@ -1045,7 +1051,7 @@ Gw
                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                                 <popUpButtonCell key="cell" type="push" title="Send a notification for each software title update" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="lM1-pM-Nob" id="Poy-jI-RAx">
                                                                     <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
-                                                                    <font key="font" metaFont="menu"/>
+                                                                    <font key="font" metaFont="message"/>
                                                                     <menu key="menu" id="QWz-7n-Gxw">
                                                                         <items>
                                                                             <menuItem title="Send a notification for each software title update" state="on" id="lM1-pM-Nob"/>
@@ -1438,25 +1444,25 @@ Gw
                                 </textFieldCell>
                             </textField>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="O8V-jf-w3l">
-                                <rect key="frame" x="123" y="39" width="209" height="16"/>
+                                <rect key="frame" x="132" y="39" width="338" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" title="Label" id="xIH-jG-mos">
+                                <textFieldCell key="cell" lineBreakMode="clipping" id="xIH-jG-mos">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="8Fx-vg-49Q">
-                                <rect key="frame" x="30" y="17" width="304" height="16"/>
+                                <rect key="frame" x="132" y="17" width="338" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" title="Label" id="iYc-tE-uRc">
+                                <textFieldCell key="cell" lineBreakMode="clipping" id="iYc-tE-uRc">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JcT-Qd-oIB">
-                                <rect key="frame" x="250" y="16" width="82" height="16"/>
+                            <button hidden="YES" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JcT-Qd-oIB">
+                                <rect key="frame" x="181" y="61" width="82" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="Update Labels" bezelStyle="rounded" alignment="center" controlSize="mini" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="jEe-Gi-Wj0">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -1496,9 +1502,18 @@ Gw
                                 </connections>
                             </button>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hxm-rS-aOz">
-                                <rect key="frame" x="30" y="39" width="89" height="16"/>
+                                <rect key="frame" x="40" y="39" width="89" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Local Version:" id="a8u-op-lc5">
+                                    <font key="font" usesAppearanceFont="YES"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="J3T-JW-vDH">
+                                <rect key="frame" x="30" y="17" width="99" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="GitHub Version:" id="8nz-IE-ctA">
                                     <font key="font" usesAppearanceFont="YES"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -3727,16 +3742,16 @@ Gw
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <box title="Virtual Groups:" translatesAutoresizingMaskIntoConstraints="NO" id="cz8-lp-vOX">
-                                <rect key="frame" x="17" y="397" width="338" height="89"/>
+                                <rect key="frame" x="17" y="341" width="338" height="145"/>
                                 <view key="contentView" id="mfP-yc-Glp">
-                                    <rect key="frame" x="4" y="5" width="330" height="69"/>
+                                    <rect key="frame" x="4" y="5" width="330" height="125"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <stackView distribution="fill" orientation="horizontal" alignment="centerY" spacing="50" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="dAD-Kg-XUg">
-                                            <rect key="frame" x="41" y="30" width="248" height="19"/>
+                                            <rect key="frame" x="41" y="30" width="248" height="75"/>
                                             <subviews>
                                                 <button toolTip="All Devices is not an option for Available intent" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="b9J-ne-wCE">
-                                                    <rect key="frame" x="-3" y="-1.5" width="109" height="22"/>
+                                                    <rect key="frame" x="-3" y="26.5" width="109" height="22"/>
                                                     <buttonCell key="cell" type="check" title="All Devices" bezelStyle="regularSquare" imagePosition="left" controlSize="large" inset="2" id="vQv-u0-Uec">
                                                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                         <font key="font" metaFont="system" size="16"/>
@@ -3746,7 +3761,7 @@ Gw
                                                     </connections>
                                                 </button>
                                                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="q98-Vt-pfT" userLabel="All Users">
-                                                    <rect key="frame" x="153" y="-1.5" width="95" height="22"/>
+                                                    <rect key="frame" x="153" y="26.5" width="95" height="22"/>
                                                     <buttonCell key="cell" type="check" title="All Users" bezelStyle="regularSquare" imagePosition="left" controlSize="large" inset="2" id="ugl-NM-K2O">
                                                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                         <font key="font" metaFont="system" size="16"/>
@@ -3791,13 +3806,13 @@ Gw
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <scrollView autohidesScrollers="YES" horizontalLineScroll="17" horizontalPageScroll="10" verticalLineScroll="17" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Jfm-pY-6rB">
-                                            <rect key="frame" x="20" y="27" width="310" height="250"/>
+                                            <rect key="frame" x="20" y="27" width="310" height="194"/>
                                             <clipView key="contentView" id="qZF-J9-ywd">
-                                                <rect key="frame" x="1" y="1" width="308" height="248"/>
+                                                <rect key="frame" x="1" y="1" width="308" height="192"/>
                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                 <subviews>
                                                     <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnReordering="NO" multipleSelection="NO" emptySelection="NO" autosaveColumns="NO" typeSelect="NO" rowSizeStyle="automatic" headerView="4sa-Gq-N1J" viewBased="YES" id="ikr-2H-C7L">
-                                                        <rect key="frame" x="0.0" y="0.0" width="466" height="220"/>
+                                                        <rect key="frame" x="0.0" y="0.0" width="466" height="164"/>
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                         <size key="intercellSpacing" width="17" height="0.0"/>
                                                         <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -3904,7 +3919,7 @@ Gw
                                                 </subviews>
                                             </clipView>
                                             <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="Fha-0b-bPh">
-                                                <rect key="frame" x="1" y="233" width="308" height="16"/>
+                                                <rect key="frame" x="1" y="177" width="308" height="16"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                             </scroller>
                                             <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="pOP-XB-KaX">
@@ -3942,7 +3957,7 @@ DQ
                                 </connections>
                             </button>
                             <searchField wantsLayer="YES" focusRingType="none" verticalHuggingPriority="750" textCompletion="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qU7-5V-dOM">
-                                <rect key="frame" x="147" y="366" width="205" height="19"/>
+                                <rect key="frame" x="147" y="310" width="205" height="19"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="205" id="Bvu-ZM-lTq"/>
                                 </constraints>
