@@ -88,7 +88,6 @@ class MainViewController: NSViewController {
         
     }
     
-    
     // MARK: - Actions
     @IBAction func sendMessageToDaemon(_ sender: Any) {
         XPCManager.shared.sendMessageToDaemon(message: "Hello from GUI") { response in
