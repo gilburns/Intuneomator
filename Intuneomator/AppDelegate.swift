@@ -48,7 +48,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationWillFinishLaunching(_ notification: Notification) {
-            NSWindow.allowsAutomaticWindowTabbing = false
+        NSWindow.allowsAutomaticWindowTabbing = false
+        
+        if let mainMenu = NSApp .mainMenu {
+            DispatchQueue.main.async {
+                if let formatMenu = mainMenu.items.first(where: { $0.title == "Format"}) {
+                    mainMenu.removeItem(formatMenu);
+                }
+            }
+        }
     }
 
 
