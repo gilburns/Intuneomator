@@ -67,8 +67,8 @@ extension XPCService {
     }
 
     func getTeamsNotificationsStyle(reply: @escaping (Int) -> Void) {
-        let enabled = ConfigManager.readPlistValue(key: "TeamsNotificationsStyle") ?? 0
-        reply(enabled)
+        let style = ConfigManager.readPlistValue(key: "TeamsNotificationsStyle") ?? 0
+        reply(style)
     }
 
     func getCertThumbprint(reply: @escaping (String?) -> Void) {
