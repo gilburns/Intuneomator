@@ -50,7 +50,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = false
         
-        if let mainMenu = NSApp .mainMenu {
+        if let mainMenu = NSApp.mainMenu {
             DispatchQueue.main.async {
                 if let formatMenu = mainMenu.items.first(where: { $0.title == "Format"}) {
                     mainMenu.removeItem(formatMenu);
@@ -61,8 +61,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 
     func applicationWillTerminate(_ aNotification: Notification) {
-        // Insert code here to tear down your application
-        // Clean up any resources or save state if necessary
+
         if let windowController = NSApp.windows.first?.windowController as? MainWindowController,
            let accessory = windowController.window?.titlebarAccessoryViewControllers.first(where: { $0 is TitlebarAccessoryViewController }) as? TitlebarAccessoryViewController {
             accessory.applicationWillTerminate(aNotification)
@@ -160,27 +159,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
-    
-    // MARK: - Application Wide Actions
-    @IBAction func openScriptManagerWindowAppDelegate(_ sender: Any?) {
-        // Perform the action, e.g., notify MainViewController
-//        mainViewController?.openScriptManagerWindow(sender as Any)
-    }
-
-    @IBAction func openCustomAttributeManagerWindowAppDelegate(_ sender: Any?) {
-        // Perform the action, e.g., notify MainViewController
-//        mainViewController?.openCustomAttributeManagerWindow(sender as Any)
-    }
-
-    @IBAction func openAppCategoriesManagerWindowAppDelegate(_ sender: Any?) {
-        // Perform the action, e.g., notify MainViewController
-//        mainViewController?.openAppCategoriesManagerWindow(sender as Any)
-    }
-
-    @IBAction func openDiscoveredAppsWindowAppDelegate(_ sender: Any?) {
-        // Perform the action, e.g., notify MainViewController
-//        mainViewController?.openDiscoveredAppsManagerWindow(sender as Any)
-    }
-
-
 }
