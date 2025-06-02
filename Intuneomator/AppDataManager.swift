@@ -34,13 +34,6 @@ class AppDataManager {
         }
     }
     
-//    func fetchEntraFilters() async throws {
-//        XPCManager.shared.fetchAssignmentFiltersForMac { [weak self] filters in
-//            self?.entraFilters = filters ?? []
-//        }
-//    }
-
-    
     func fetchEntraFilters() async throws {
         try await withCheckedThrowingContinuation { continuation in
             XPCManager.shared.fetchAssignmentFiltersForMac { [weak self] filters in
