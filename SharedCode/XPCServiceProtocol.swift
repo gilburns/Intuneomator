@@ -116,7 +116,7 @@ import Foundation
     func setTeamsWebhookURL(_ url: String, reply: @escaping (Bool) -> Void)
     func setLogAgeMax(_ logAgeMax: Int, reply: @escaping (Bool) -> Void)
     func setLogSizeMax(_ logSizeMax: Int, reply: @escaping (Bool) -> Void)
-
+    func setIntuneomatorUpdateMode(_ updateMode: Int, reply: @escaping (Bool) -> Void)
     func setSecretExpirationDate(_ expirationDate: Date, reply: @escaping (Bool) -> Void)
 
     
@@ -139,6 +139,7 @@ import Foundation
     func getClientSecret(reply: @escaping (String?) -> Void)
     func getLogAgeMax(reply: @escaping (Int) -> Void)
     func getLogSizeMax(reply: @escaping (Int) -> Void)
+    func getIntuneomatorUpdateMode(reply: @escaping (Int) -> Void)
 
     func getSecretExpirationDate(reply: @escaping (Date?) -> Void)
     
