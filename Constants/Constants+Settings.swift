@@ -26,6 +26,7 @@ struct Settings: Codable {
     var teamsWebhookURL: String = ""
     var logAgeMax: String = ""
     var logSizeMax: String = ""
+    var intuneomatorUpdateMode: Int = 0
 
     init() {}
 
