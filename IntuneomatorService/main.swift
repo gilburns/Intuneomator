@@ -76,12 +76,12 @@ func printUsage() {
 }
 
 // MARK: - Label Update Teams Notifications
-func sendLabelUpdateTeamsNotifications(withPreviousVersion previousLabelsVersion: String, andCurrentVersion currentLabelsVersion: String, isSuccess: Bool) {
+func sendLabelUpdateTeamsNotifications(withPreviousVersion previousLabelsVersion: String, andCurrentVersion currentLabelsVersion: String, updatedLabels: [String], isSuccess: Bool) async {
     // 🔔 Teams Notification
     let logType: String = "LabelUpdate"
     
     let sendTeamNotification = ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") ?? false
-    let sendForUpdates = ConfigManager.readPlistValue(key: "TeamsNotificationsForLabelUpdates") == false
+    let sendForUpdates = ConfigManager.readPlistValue(key: "TeamsNotificationsForLabelUpdates") ?? false
     
     if sendTeamNotification && sendForUpdates {
         let url = ConfigManager.readPlistValue(key: "TeamsWebhookURL") ?? ""
@@ -91,7 +91,7 @@ func sendLabelUpdateTeamsNotifications(withPreviousVersion previousLabelsVersion
         } else {
             Logger.log("Labels versions: \(previousLabelsVersion) \(currentLabelsVersion)", logType: logType)
             let teamsNotifier = TeamsNotifier(webhookURL: url)
-            teamsNotifier.sendLabelUpdateNotification(initialVersion: previousLabelsVersion, updatedVersion: currentLabelsVersion, isSuccess: isSuccess)
+            await teamsNotifier.sendLabelUpdateNotification(initialVersion: previousLabelsVersion, updatedVersion: currentLabelsVersion, updatedLabels: updatedLabels, isSuccess: isSuccess)
         }
     }
 }
@@ -165,14 +165,19 @@ func labelUpdates() {
         }
         Logger.log("⬇️ Updating Installomator labels...", logType: "LabelUpdate")
 
-        let (success, updateMessage) = await InstallomatorLabels.installInstallomatorLabelsAsync()
+        let (success, updateMessage) = await InstallomatorLabels.installInstallomatorLabelsAsync(withUpdatingLabels: false)
         if success {
             Logger.log("✅ \(updateMessage)", logType: "LabelUpdate")
-            sendLabelUpdateTeamsNotifications(withPreviousVersion: localVersionString, andCurrentVersion: currentVersionString, isSuccess: success)
+            let updatedLabels: [String] = try await InstallomatorLabels.updateInUseLabels()
+            Logger.log("Local version: \(localVersionString)", logType: "LabelUpdate")
+            Logger.log("Current version: \(currentVersionString)", logType: "LabelUpdate")
+            Logger.log("Updated labels: \(updatedLabels)", logType: "LabelUpdate")
+
+            await sendLabelUpdateTeamsNotifications(withPreviousVersion: localVersionString, andCurrentVersion: currentVersionString, updatedLabels: updatedLabels, isSuccess: success)
             exit(EXIT_SUCCESS)
         } else {
             Logger.log("❌ \(updateMessage)", logType: "LabelUpdate")
-            sendLabelUpdateTeamsNotifications(withPreviousVersion: localVersionString, andCurrentVersion: currentVersionString, isSuccess: success)
+            await sendLabelUpdateTeamsNotifications(withPreviousVersion: localVersionString, andCurrentVersion: currentVersionString, updatedLabels: [], isSuccess: success)
             exit(EXIT_FAILURE)
         }
     }
