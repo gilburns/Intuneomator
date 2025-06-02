@@ -39,7 +39,7 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
     
     let taskMappings: [String: (label: String, argument: String, image: String, description: String)] = [
         "Automation": ("com.gilburns.intuneomator.automation", "intune-automation", "gearshape.arrow.trianglehead.2.clockwise.rotate.90", "This schedule controls the execution of automation tasks. It is recommended that you schedule this task to run once at least once a day."),
-        "Cleanup": ("com.gilburns.intuneomator.cachecleaner", "cache-cleanup", "arrow.down.app.fill", "This schedule controls the execution of the cache and log cleanup task. It is recommended that you schedule this task to run at least once a week."),
+        "Cleanup": ("com.gilburns.intuneomator.cachecleaner", "cache-cleanup", "arrow.up.trash.fill", "This schedule controls the execution of the cache and log cleanup task. It is recommended that you schedule this task to run at least once a week."),
         "Label Updater": ("com.gilburns.intuneomator.labelupdater", "label-update", "tag.square", "This schedule controls the execution of the Installomator label updater task. It is recommended that you schedule this task to run at least once a week."),
         "Updater": ("com.gilburns.intuneomator.updatecheck", "update-check", "bolt.badge.checkmark", "This schedule controls the execution of the Installomator self updater task. It is recommended that you schedule this task to run only once a week.")
     ]
@@ -144,7 +144,6 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
             XPCManager.shared.removeScheduledTask(label: taskLabel) { success, message in
                 DispatchQueue.main.async {
                     if success {
-//                        self.dismissSheet()
                         self.buttonSave.isEnabled = false
                     } else {
                         self.presentErrorAlert(message ?? "Failed to remove scheduled task.")
@@ -166,7 +165,6 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
             ) { success, message in
                 DispatchQueue.main.async {
                     if success {
-//                        self.dismissSheet()
                         self.buttonSave.isEnabled = false
                     } else {
                         self.presentErrorAlert(message ?? "Failed to save scheduled task.")
@@ -195,15 +193,6 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
     
     // MARK: - Helper functions
     
-    func encodeScheduledTimes(_ schedules: [ScheduledTime]) -> Data? {
-        do {
-            return try NSKeyedArchiver.archivedData(withRootObject: schedules, requiringSecureCoding: true)
-        } catch {
-            print("❌ Failed to encode schedules: \(error)")
-            return nil
-        }
-    }
-    
     func dismissSheet() {
         self.view.window?.sheetParent?.endSheet(self.view.window!)
     }
@@ -212,7 +201,16 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         let saveType = popupTaskType.titleOfSelectedItem ?? ""
         buttonSave.title = "Save Schedule for \(saveType)"
     }
-    
+
+    func encodeScheduledTimes(_ schedules: [ScheduledTime]) -> Data? {
+        do {
+            return try NSKeyedArchiver.archivedData(withRootObject: schedules, requiringSecureCoding: true)
+        } catch {
+            print("❌ Failed to encode schedules: \(error)")
+            return nil
+        }
+    }
+        
     func presentErrorAlert(_ message: String) {
         let alert = NSAlert()
         alert.messageText = "Error Saving Schedule"
@@ -228,12 +226,9 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
             taskArgument = mapping.argument
             taskImageName = mapping.image
             taskDescription = mapping.description
-//            print("taskLabel: \(taskLabel)")
-//            print("taskArgument: \(taskArgument)")
             
             labelTaskDescription.stringValue = taskDescription
             buttonImage.image = NSImage(systemSymbolName: taskImageName, accessibilityDescription: nil)
-
             
             loadScheduleFromPlist()
         }
