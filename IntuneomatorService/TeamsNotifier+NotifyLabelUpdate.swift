@@ -12,9 +12,12 @@ extension TeamsNotifier {
     func sendLabelUpdateNotification(
         initialVersion: String,
         updatedVersion: String,
+        updatedLabels: [String],
         isSuccess: Bool,
         errorMessage: String? = nil
-    ) {
+    ) async {
+        
+        Logger.log("Sending label update notification...", logType: "LabelUpdate")
         let title = "Intuneomator Service"
         let intuneomatorIconUrl: String = "https://icons.intuneomator.org/intuneomator.png"
         
@@ -22,7 +25,31 @@ extension TeamsNotifier {
             ["title": "Initial Version:", "value": initialVersion],
             ["title": "Updated Version:", "value": updatedVersion]
         ]
-                
+        
+        let labelUpdateCount = updatedLabels.count
+        let sortedLabelUpdates = updatedLabels.sorted(by: { $0 < $1 })
+//        let labelRows: [[String: Any]] = sortedLabelUpdates.map { label in
+//            return [
+//                "type": "ColumnSet",
+//                "columns": [
+//                    [
+//                        "type": "Column",
+//                        "width": "stretch",
+//                        "items": [
+//                            ["type": "TextBlock", "text": "**\(label)**", "wrap": true]
+//                        ]
+//                    ]
+//                ],
+//                "separator": true
+//            ]
+//        }
+        let labelTextBlock = [
+            "type": "TextBlock",
+            "text": sortedLabelUpdates.map { "• \($0)" }.joined(separator: "  \n"),
+            "wrap": true,
+            "spacing": "Small"
+        ] as [String : Any]
+        
         var bodyContent: [[String: Any]] = [
             [
                 "type": "ColumnSet",
@@ -101,14 +128,30 @@ extension TeamsNotifier {
             ]
         ]
         
-        // Add Daemon info
-        bodyContent.append([
-            "type": "TextBlock",
-            "text": "**Post Update Daemon Status:**",
-            "weight": "Bolder",
-            "size": "Medium",
-            "spacing": "Medium"
-        ])
+        
+        // Add Label info
+        if labelUpdateCount > 0 {
+            var labelUpdateStatusLabel: String = ""
+            
+            if labelUpdateCount == 1 {
+                labelUpdateStatusLabel = "\(labelUpdateCount) label was updated"
+            } else if labelUpdateCount > 1 {
+                labelUpdateStatusLabel = "\(labelUpdateCount) labels were updated"
+            } else {
+                labelUpdateStatusLabel = "No labels were updated"
+            }
+
+            bodyContent.append([
+                "type": "TextBlock",
+                "text": "**Label Files Updates (\(labelUpdateStatusLabel)):**",
+                "weight": "Bolder",
+                "size": "Medium",
+                "spacing": "Medium"
+            ])
+            bodyContent.append(labelTextBlock)
+//            bodyContent.append(contentsOf: labelRows)
+        }
+        
 
         // Add possible error info
         if !isSuccess, let errorMessage = errorMessage, !errorMessage.trimmingCharacters(in: .whitespaces).isEmpty {
