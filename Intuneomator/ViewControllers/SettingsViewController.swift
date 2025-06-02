@@ -38,6 +38,8 @@ class SettingsViewController: NSViewController {
     @IBOutlet weak var fieldLogsMaxAge: NSTextField!
     @IBOutlet weak var fieldLogsMaxSize: NSTextField!
 
+    @IBOutlet weak var buttonIntuneomatorUpdateMode: NSPopUpButton!
+    
     @IBOutlet weak var buttonTestConnection: NSButton!
     
     @IBOutlet weak var buttonSave: NSButton!
@@ -132,6 +134,10 @@ class SettingsViewController: NSViewController {
             self.buttonSendTeamsNotificationsForGroups.state = .off
         }
 
+        trackChanges()
+    }
+
+    @IBAction func buttonIntuneomatorUpdateModeClicked (_ sender: NSButton) {
         trackChanges()
     }
 
@@ -335,6 +341,8 @@ class SettingsViewController: NSViewController {
 
         checkFieldChange(fieldLogsMaxAge.stringValue, originalValue: settings.logAgeMax, control: fieldLogsMaxAge)
         checkFieldChange(fieldLogsMaxSize.stringValue, originalValue: settings.logSizeMax, control: fieldLogsMaxSize)
+
+        checkFieldChange(buttonIntuneomatorUpdateMode.selectedTag(), originalValue: settings.intuneomatorUpdateMode, control: buttonIntuneomatorUpdateMode)
 
         var authType: String? = "unknown"
         if radioButtonSecret.state == .on {
@@ -698,6 +706,16 @@ class SettingsViewController: NSViewController {
         }
     }
 
+    func getIntuneomatorUpdateMode() {
+        XPCManager.shared.getIntuneomatorUpdateMode { updateMode in
+            DispatchQueue.main.async {
+                let updateMode = updateMode ?? 0
+                self.buttonIntuneomatorUpdateMode.selectItem(withTag: updateMode)
+                self.settings.intuneomatorUpdateMode = updateMode
+            }
+        }
+    }
+
     
     // MARK: - Set Helpers
     
@@ -819,6 +837,14 @@ class SettingsViewController: NSViewController {
             Logger.logUser("Log max size updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
+    
+    private func setIntuneomatorUpdateMode() {
+        let selectedTag = (buttonIntuneomatorUpdateMode.selectedTag())
+        XPCManager.shared.setIntuneomatorUpdateMode(selectedTag) { success in
+            Logger.logUser("Intuneomator Update Mode updated: \(success == true ? "✅" : "❌")", logType: logType)
+        }
+    }
+
 
     // MARK: - Settings File Read and Write Functions
     private func populateFields() {
@@ -840,6 +866,7 @@ class SettingsViewController: NSViewController {
         getCertThumbprint()
         getLogAgeMax()
         getLogSizeMax()
+        getIntuneomatorUpdateMode()
     }
     
     private func saveSettingsFromFields() {
@@ -912,7 +939,7 @@ class SettingsViewController: NSViewController {
             setTeamsWebHookEnabledForUpdates()
         }
 
-        if settings.sendTeamsNotificationsStyle != (buttonSendTeamsNotificationsStyle.tag) {
+        if settings.sendTeamsNotificationsStyle != (buttonSendTeamsNotificationsStyle.selectedTag()) {
             
             setTeamsWebHookStyle()
         }
@@ -930,6 +957,11 @@ class SettingsViewController: NSViewController {
         }
 
         if settings.logSizeMax != fieldLogsMaxSize.stringValue.trimmingCharacters(in: .whitespacesAndNewlines) {
+            
+            setLogSizeMax()
+        }
+
+        if settings.intuneomatorUpdateMode != buttonIntuneomatorUpdateMode.selectedTag() {
             
             setLogSizeMax()
         }
