@@ -18,6 +18,12 @@ extension TeamsNotifier {
           return false
         }
 
+        guard ConfigManager.readPlistValue(key: "TeamsNotificationsStyle") == 0
+        else {
+            Logger.log("Individual notifications disabled", logType: TeamsNotifier.logType)
+          return false
+        }
+
         guard let urlString: String = ConfigManager.readPlistValue(key: "TeamsWebhookURL"),
               !urlString.isEmpty
         else {
@@ -89,7 +95,7 @@ extension TeamsNotifier {
         }
     }
     
-    private static let dateFormatter: DateFormatter = {
+    static let dateFormatter: DateFormatter = {
       let f = DateFormatter()
       f.dateStyle = .medium
       f.timeStyle = .short
