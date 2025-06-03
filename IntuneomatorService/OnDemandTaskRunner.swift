@@ -56,9 +56,9 @@ class OnDemandTaskRunner {
 
                 do {
                     Logger.log("Processing: \(folderName)", logType: logType)
-                    await LabelAutomation.processFolder(named: folderName)
+                    let processingResult = await LabelAutomation.processFolder(named: folderName)
+                    Logger.log("Finished: \(folderName): \(processingResult)", logType: logType)
                     try FileManager.default.removeItem(at: file)
-                    Logger.log("Finished: \(folderName)", logType: logType)
                 } catch {
                     Logger.log("Error processing \(folderName): \(error.localizedDescription)", logType: logType)
                 }
