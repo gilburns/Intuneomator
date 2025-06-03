@@ -22,8 +22,8 @@ extension TeamsNotifier {
     ) async {
         
         
-        let includeGroups = ConfigManager.readPlistValue(key: "TeamsNotificationsForGroups") == false
-        let includeCVEs = ConfigManager.readPlistValue(key: "TeamsNotificationsForCVEs") == false
+        let includeGroups = ConfigManager.readPlistValue(key: "TeamsNotificationsForGroups") ?? false
+        let includeCVEs = ConfigManager.readPlistValue(key: "TeamsNotificationsForCVEs") ?? false
 
                 
         var facts: [[String: String]] = [
