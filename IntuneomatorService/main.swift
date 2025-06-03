@@ -124,7 +124,7 @@ func processLabel(withParam folderName: String) {
 
     group.enter()
     Task {
-        await LabelAutomation.processFolder(named: folderName)
+        _ = await LabelAutomation.processFolder(named: folderName)
         group.leave()
     }
 
@@ -133,16 +133,11 @@ func processLabel(withParam folderName: String) {
 }
 
 
-func processLabelQuiet(withParam folderName: String) {
-    let group = DispatchGroup()
-
-    group.enter()
-    Task {
-        await LabelAutomation.processFolder(named: folderName)
-        group.leave()
-    }
-
-    group.wait()
+func processLabelQuiet(withParam folderName: String) async -> (String, Bool) {
+    
+    let (result, ok) = await LabelAutomation.processFolder(named: folderName)
+    return (result, ok)
+    
 }
 
 func labelUpdates() {
@@ -211,44 +206,88 @@ func runIntuneAutomation() {
 // full automation daemon
 func runIntuneAutomationQuiet() {
     
-    let logType = "Automation"
-    
-    Logger.log("-------------------------------------------------------------------------", logType: logType)
-    
-    Logger.log("Running Intune Automation...", logType: logType)
-    
-    let validFolders = LabelAutomation.scanAndValidateFolders()
-    
-    Logger.log("Found -\(validFolders.count)- Intuneomator folders to process.", logType: logType)
-    
-    for (index, folder) in validFolders.enumerated() {
-        Logger.log("Processing folder \(index+1)/\(validFolders.count): \(folder)", logType: logType)
+    let group = DispatchGroup()
+
+    group.enter()
+    Task {
+
+        let logType = "Automation"
+
+        Logger.log("-------------------------------------------------------------------------", logType: logType)
+        Logger.log("Running Intune Automation...", logType: logType)
+
+        let validFolders = LabelAutomation.scanAndValidateFolders()
+        Logger.log("Found -\(validFolders.count)- Intuneomator folders to process.", logType: logType)
+
+        // Collect results for each processed folder
+        var processingResults: [(folder: String, text: String, success: Bool)] = []
+
+        for (index, folder) in validFolders.enumerated() {
+            Logger.log("Processing folder \(index+1)/\(validFolders.count): \(folder)", logType: logType)
+            Logger.log("  Updating Installomator label data: \(folder)", logType: logType)
+
+            // Update label plist (process_label.sh)
+            processLabelScript(withParam: folder)
+            Logger.log("  Processing \(folder).", logType: logType)
+            
+            // Run the automation for folder and capture the result
+            let (text, success) = await processLabelQuiet(withParam: folder)
+            processingResults.append((folder: folder, text: text, success: success))
+        }
+
+        // Write results to a file
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss:SSS"
+
+        let currentDate = dateFormatter.string(from: Date())
+
+        let lines = processingResults.map { result in
+            return "\(result.success)\t\(result.folder)\t\(result.text)"
+        }
+        let fileContents = lines.joined(separator: "\n")
+        let fileURL = AppConstants.intuneomatorLogSystemURL
+            .appendingPathComponent("\(currentDate)_Automation_Run_Results.txt")
+        do {
+            try fileContents.write(to: fileURL, atomically: true, encoding: .utf8)
+            Logger.log("Wrote results to \(fileURL.path)", logType: "Automation Results")
+        } catch {
+            Logger.log("❌ Failed writing results file: \(error.localizedDescription)", logType: "Automation Results")
+        }
         
-        Logger.log("  Updating Installomator label data: \(folder)", logType: logType)
+        // After all folders are processed, send a Teams notification with the batch results
+        let sendTeamNotification = ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") ?? false
+        let teamsNotificationStyle: Int = ConfigManager.readPlistValue(key: "TeamsNotificationsStyle") ?? 0
+        
+        if sendTeamNotification && teamsNotificationStyle == 1 {
+            let url = ConfigManager.readPlistValue(key: "TeamsWebhookURL") ?? ""
+            if !url.isEmpty {
+                let teamsNotifier = TeamsNotifier(webhookURL: url)
+                await teamsNotifier.sendSingleSuccessNotification(processingResults: processingResults)
+            } else {
+                Logger.log("No Teams Webhook URL set in Config. Skipping batch notification.", logType: logType)
+            }
+        }
 
-        // Update label plist (process_label.sh)
-        processLabelScript(withParam: folder)
+        // Check for authentication expirations before exiting
+        guard let authMethod: String = ConfigManager.readPlistValue(key: "AuthMethod") else {
+            return
+        }
 
-        Logger.log("  Processing \(folder).", logType: logType)
-        // Run the automation for folder
-        processLabelQuiet(withParam: folder)
+        switch authMethod {
+        case "certificate":
+            let expirationChecker = ExpirationChecker()
+            expirationChecker.checkCertificateExpirationAndNotify()
+        case "secret":
+            let expirationChecker = ExpirationChecker()
+            expirationChecker.checkSecretExpirationAndNotify()
+        default:
+            Logger.log("Unsupported authMethod: \(authMethod)", logType: logType)
+        }
+
+        group.leave()
     }
-    
-    // Check for authentication expirations before exiting
-    guard let authMethod = ConfigManager.readPlistValue(key: "AuthMethod") as String? else {
-        return
-    }
-    
-    switch authMethod {
-    case "certificate":
-        let expirationChecker = ExpirationChecker()
-        expirationChecker.checkCertificateExpirationAndNotify()
-    case "secret":
-        let expirationChecker = ExpirationChecker()
-        expirationChecker.checkSecretExpirationAndNotify()
-    default:
-        Logger.log("Unsupported authMethod: \(authMethod)", logType: logType)
-    }
+
+    group.wait()
 
 }
 
@@ -284,8 +323,8 @@ func testFunction() {
     
 //    let group = DispatchGroup()
 //    group.enter()
-//    
-//        
+//
+//
 //    group.leave()
 //    group.wait()
 }
