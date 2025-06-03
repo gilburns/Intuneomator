@@ -183,7 +183,7 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
     @IBAction func taskTypeDidChange(_ sender: NSPopUpButton) {
         updateSaveButtonTitle()
         updateTaskSelection()
-        if sender.titleOfSelectedItem == "Cache Cleanup" {
+        if sender.titleOfSelectedItem == "Cleanup" {
             labelCacheCleanupRule.isHidden = false
         } else {
             labelCacheCleanupRule.isHidden = true
