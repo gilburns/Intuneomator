@@ -7,10 +7,15 @@
 
 import Foundation
 
+/// Handles first-time setup and initialization for the Intuneomator service
+/// Creates required directory structure, downloads Installomator labels, and configures Launch Daemons
 class FirstRun {
     
+    /// Log type identifier for logging operations
     static let logType = "FirstRun"
 
+    /// Performs first-run initialization if not already completed
+    /// Sets up folder structure, downloads labels, and configures scheduled tasks
     static func checkFirstRun() -> Void {
         
         if ConfigManager.readPlistValue(key: "FirstRunServiceCompleted") ?? false {
@@ -37,7 +42,10 @@ class FirstRun {
         }
     }
     
-// MARK: - Setup Folders
+    // MARK: - Setup Folders
+    
+    /// Creates the required directory structure for Intuneomator operations
+    /// Ensures all necessary folders exist with proper permissions
     static func setupSupportFolders() {
         Logger.log("Checking for and creating application support folders...", logType: logType)
         let folders = [
@@ -67,7 +75,10 @@ class FirstRun {
         }
     }
     
-// MARK: - Setup Installomator Labels
+    // MARK: - Setup Installomator Labels
+    
+    /// Downloads and installs Installomator labels from the official repository
+    /// Sets appropriate file permissions after successful download
     static func downloadInstallomatorLabels() {
         InstallomatorLabels.installInstallomatorLabels { success, message in
             DispatchQueue.main.async {
@@ -98,6 +109,8 @@ class FirstRun {
     }
     
     
+    /// Creates additional Launch Daemons for scheduled automation tasks
+    /// Configures daemons for automation, cache cleanup, label updates, and update checks
     static func setupOtherLaunchDaemons() {
         
         let scheduledDaemons: [(label: String, argument: String, weekday: Weekday?, hour: Int)] = [
