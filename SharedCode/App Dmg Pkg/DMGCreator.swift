@@ -7,13 +7,22 @@
 
 import Foundation
 
+/// Creates disk image (.dmg) files from macOS applications
+/// Supports processing .app bundles, .zip archives, and .tbz archives containing applications
+/// Generates compressed APFS disk images with embedded application metadata
 class DMGCreator {
 
+    /// Log type identifier for logging operations
     private let logType = "DMGCreator"
     
     // MARK: - Main Logic
 
-    // Process the input path and generate the DMG
+    /// Processes an input file (.app, .zip, or .tbz) and creates a compressed DMG
+    /// - Parameters:
+    ///   - inputPath: Path to the application bundle or archive containing an app
+    ///   - outputDirectory: Optional output directory (defaults to input file's directory)
+    /// - Returns: Tuple containing DMG path, app name, bundle ID, and version
+    /// - Throws: Various errors for invalid input, extraction failures, or DMG creation issues
     func processToDMG(inputPath: String, outputDirectory: String?) throws -> (dmgPath: String, appName: String, appID: String, appVersion: String) {
         
 //        Logger.log("processing \(inputPath)", logType: logType)
@@ -76,6 +85,7 @@ class DMGCreator {
     
     // MARK: - Helper Functions
 
+    /// Displays command-line usage information
     private func showUsage() {
         print("""
         Usage: intuneomator_dmg_tool <input path> <output directory>
@@ -86,6 +96,9 @@ class DMGCreator {
     }
 
 
+    /// Determines the architecture of a macOS application bundle
+    /// - Parameter appPath: Path to the .app bundle
+    /// - Returns: Architecture string ("universal", "arm64", "x86_64") or nil if undetermined
     func getAppArchitecture(appPath: String) -> String? {
         let infoPlistPath = appPath + "/Contents/Info.plist"
         let macOSPath = appPath + "/Contents/MacOS"
@@ -133,7 +146,11 @@ class DMGCreator {
         }
     }
     
-    // Helper function to run shell commands
+    /// Executes shell commands with error handling and logging
+    /// - Parameters:
+    ///   - command: Full path to the command executable
+    ///   - arguments: Array of command arguments
+    /// - Throws: NSError if command execution fails or returns non-zero exit status
     private func runShellCommand(_ command: String, arguments: [String]) throws {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: command)
@@ -161,7 +178,12 @@ class DMGCreator {
         }
     }
 
-    // Extract .zip or .tbz files
+    /// Extracts compressed archives (.zip or .tbz) and locates the contained .app bundle
+    /// - Parameters:
+    ///   - path: Path to the archive file
+    ///   - destination: Directory to extract the archive contents
+    /// - Returns: Path to the extracted .app bundle
+    /// - Throws: Errors for unsupported archive types, extraction failures, or missing .app
     private func extractArchive(atPath path: String, to destination: String) throws -> String {
         let fileExtension = (path as NSString).pathExtension
         if fileExtension == "zip" {
@@ -181,7 +203,10 @@ class DMGCreator {
         }
     }
 
-    // Get CFBundleShortVersionString from an .app
+    /// Extracts the version string from an application's Info.plist file
+    /// - Parameter appPath: Path to the .app bundle
+    /// - Returns: Version string from CFBundleShortVersionString
+    /// - Throws: Error if Info.plist cannot be read or version key is missing
     private func getAppVersion(fromApp appPath: String) throws -> String {
         let infoPlistPath = appPath + "/Contents/Info.plist"
         guard let infoPlist = NSDictionary(contentsOfFile: infoPlistPath),
@@ -191,7 +216,12 @@ class DMGCreator {
         return version
     }
 
-    // Create an APFS DMG containing the app
+    /// Creates a compressed APFS disk image containing the application bundle
+    /// Uses hdiutil to create a UDZO (compressed) format DMG with APFS filesystem
+    /// - Parameters:
+    ///   - appPath: Path to the .app bundle to include in the DMG
+    ///   - outputDirectory: Directory where the DMG file will be created
+    /// - Throws: Error if DMG creation fails
     private func createDMG(fromApp appPath: String, outputDirectory: String) throws {
         let appName = (appPath as NSString).lastPathComponent.replacingOccurrences(of: ".app", with: "")
         let appVersion = try getAppVersion(fromApp: appPath)
