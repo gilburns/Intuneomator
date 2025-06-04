@@ -7,10 +7,14 @@
 
 import Foundation
 
+/// Monitors and notifies about expiring certificates and client secrets
+/// Checks expiration dates against a configurable threshold and sends Teams notifications
 class ExpirationChecker {
     
+    /// Calendar instance for date calculations
     private let calendar = Calendar.current
     
+    /// Date formatter for displaying expiration and import dates in notifications
     private let dateFormatter: DateFormatter = {
         let df = DateFormatter()
         df.dateStyle = .medium
@@ -19,12 +23,17 @@ class ExpirationChecker {
         return df
     }()
     
+    /// Number of days before expiration to trigger notifications
     private let thresholdDays = 30
 
+    /// Log type identifier for logging operations
     private let logType = "ExpirationChecker"
 
     
     // MARK: - Check Certificate Expiration & Notify
+    
+    /// Checks if the configured certificate is approaching expiration and sends Teams notification if needed
+    /// Only sends notification if certificate expires within the threshold period and Teams notifications are enabled
     func checkCertificateExpirationAndNotify() {
 
         // Read saved certificate details
@@ -82,6 +91,8 @@ class ExpirationChecker {
     }
 
 
+    /// Checks if the configured client secret is approaching expiration and sends Teams notification if needed
+    /// Only sends notification if secret expires within the threshold period and Teams notifications are enabled
     func checkSecretExpirationAndNotify() {
 
         // Read saved secret details
