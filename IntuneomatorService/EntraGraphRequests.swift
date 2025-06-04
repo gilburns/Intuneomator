@@ -13,7 +13,7 @@ import CommonCrypto
 class EntraGraphRequests {
     
     /// Log type identifier for logging operations
-    private static let logType = "EntraGraphRequests"
+    static let logType = "EntraGraphRequests"
     
     /// Custom error types for Microsoft Graph API operations
     enum GraphAPIError: Error {
