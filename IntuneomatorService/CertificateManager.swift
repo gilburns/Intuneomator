@@ -9,10 +9,16 @@ import Foundation
 import Security
 import CommonCrypto
 
+/// Manages X.509 certificate operations including extraction, analysis, and storage
+/// Provides comprehensive certificate metadata extraction and keychain integration
 class CertificateManager {
     
+    /// Log type identifier for logging operations
     static let logType = "CertificateManager"
     
+    /// Retrieves the SHA-1 thumbprint of a certificate by its keychain label
+    /// - Parameter certificateLabel: The label used to identify the certificate in keychain
+    /// - Returns: Hexadecimal SHA-1 thumbprint string, or nil if certificate not found
     static func getCertificateThumbprint(certificateLabel: String) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassCertificate,
@@ -34,6 +40,10 @@ class CertificateManager {
         return digest.map { String(format: "%02X", $0) }.joined()
     }
     
+    /// Extracts comprehensive metadata from an X.509 certificate
+    /// Analyzes certificate properties to extract subject, issuer, expiration, key usage, and cryptographic details
+    /// - Parameter certificate: SecCertificate reference to analyze
+    /// - Returns: CertificateInfo structure containing all extracted metadata
     static func extractCertificateInfo(_ certificate: SecCertificate) -> CertificateInfo {
         // Extract subject name
         let subjectName = SecCertificateCopySubjectSummary(certificate) as String? ?? ""
@@ -177,7 +187,8 @@ class CertificateManager {
     }
     
     
-    // Helper for debug logging
+    /// Logs all certificate properties recursively for debugging purposes
+    /// - Parameter properties: Certificate properties dictionary from SecCertificateCopyValues
     static func logAllCertificateProperties(_ properties: [CFString: Any]) {
         Logger.log("=== Full Certificate Properties for Debugging ===", logType: logType)
         
@@ -211,7 +222,11 @@ class CertificateManager {
     }
     
     
-    // Primary method to extract public key info
+    /// Primary method for extracting public key algorithm and size from certificate properties
+    /// - Parameters:
+    ///   - properties: Certificate properties dictionary
+    ///   - algorithm: Inout parameter for detected algorithm (RSA, ECC, etc.)
+    ///   - keySize: Inout parameter for detected key size in bits
     static func extractPublicKeyInfo(from properties: [CFString: Any], algorithm: inout String?, keySize: inout Int?) {
         // Use the string OID for subject public key info: "1.2.840.113549.1.1.1" (RSA)
         //    let oidSubjectPublicKeyInfo = "1.2.840.113549.1.1" as CFString
@@ -251,7 +266,12 @@ class CertificateManager {
     }
     
     
-    // Alternative method for extraction
+    /// Alternative method for extracting public key information using OID analysis
+    /// - Parameters:
+    ///   - properties: Certificate properties dictionary
+    ///   - certificate: SecCertificate reference for raw data analysis
+    ///   - algorithm: Inout parameter for detected algorithm
+    ///   - keySize: Inout parameter for detected key size
     static func extractPublicKeyInfoAlternative(from properties: [CFString: Any], certificate: SecCertificate, algorithm: inout String?, keySize: inout Int?) {
         // Method 2: Check for specific algorithm OIDs
         // RSA: 1.2.840.113549.1.1.1
@@ -313,7 +333,11 @@ class CertificateManager {
         }
     }
     
-    // Helper to determine key size from key data
+    /// Determines cryptographic key size based on key data and algorithm type
+    /// - Parameters:
+    ///   - keyData: Raw key data from certificate
+    ///   - algorithm: Detected algorithm type
+    ///   - keySize: Inout parameter for calculated key size
     static func determineKeySize(from keyData: Data, algorithm: String?, keySize: inout Int?) {
         guard keySize == nil else { return }
         
@@ -344,7 +368,12 @@ class CertificateManager {
         }
     }
     
-    // Helper for direct certificate data analysis (last resort)
+    /// Analyzes raw certificate data using simplified ASN.1 pattern matching
+    /// Used as a fallback when standard property extraction fails
+    /// - Parameters:
+    ///   - data: Raw certificate data
+    ///   - algorithm: Inout parameter for detected algorithm
+    ///   - keySize: Inout parameter for estimated key size
     static func analyzeRawCertificateData(_ data: Data, algorithm: inout String?, keySize: inout Int?) {
         // Simplified ASN.1 analysis - would need a proper ASN.1 parser for production code
         // This is a simplified approach that works for common certificates
@@ -374,7 +403,9 @@ class CertificateManager {
         }
     }
     
-    // Enhanced function to extract key usage
+    /// Extracts X.509 key usage extension from certificate properties
+    /// - Parameter properties: Certificate properties dictionary
+    /// - Returns: Integer bitmask representing key usage flags, or nil if not found
     static func extractKeyUsage(from properties: [CFString: Any]) -> Int? {
         // Standard OID for key usage
 //        let keyUsageOID = "2.5.29.15" as CFString
@@ -449,7 +480,9 @@ class CertificateManager {
     
     
     
-    // Debug function to interpret key usage
+    /// Converts key usage bitmask to human-readable string representation
+    /// - Parameter usage: Key usage bitmask value
+    /// - Returns: Formatted string describing enabled key usage flags
     static func interpretKeyUsage(_ usage: Int) -> String {
         var usages: [String] = []
         
@@ -471,7 +504,10 @@ class CertificateManager {
     }
     
     
-    // MARK: - Save Plist Settings
+    // MARK: - Certificate Storage and Retrieval
+    
+    /// Saves certificate information to the configuration plist file
+    /// - Parameter certInfo: CertificateInfo structure to persist
     func saveCertificateInfoToPlist(_ certInfo: CertificateInfo) {
         var certDict: [String: Any] = [
             "SubjectName": certInfo.subjectName,
@@ -505,7 +541,8 @@ class CertificateManager {
     }
     
     
-    // MARK: - Load Cert Info
+    /// Loads previously saved certificate information from the configuration plist
+    /// - Returns: CertificateInfo structure if found and valid, nil otherwise
     func loadCertificateInfoFromPlist() -> CertificateInfo? {
     guard let plistDict: [String: Any] = ConfigManager.readPlistValue(key: "CertificateDetails") else {
         Logger.log("Certificate info plist not found or empty.", logType: CertificateManager.logType)
@@ -543,7 +580,9 @@ class CertificateManager {
     )
     }
     
-    // MARK: - Get Cert Thumbprint
+    /// Instance method to retrieve certificate thumbprint by label
+    /// - Parameter certificateLabel: The label used to identify the certificate in keychain
+    /// - Returns: Hexadecimal SHA-1 thumbprint string, or nil if certificate not found
     func getCertificateThumbprint(certificateLabel: String) -> String? {
         // Set up the query to find our certificate
         let query: [String: Any] = [
