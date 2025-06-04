@@ -2807,6 +2807,17 @@ Gw
                                                 <action selector="showHelpForInstallomatorType:" target="ReB-I2-ePG" id="GDh-E7-Ts6"/>
                                             </connections>
                                         </button>
+                                        <button toolTip="Preview Installomator Label" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zYf-2P-bnN">
+                                            <rect key="frame" x="20" y="138" width="24" height="19"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <buttonCell key="cell" type="roundRect" bezelStyle="roundedRect" image="eye" catalog="system" imagePosition="overlaps" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="RW6-Qb-Mkk">
+                                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="cellTitle"/>
+                                            </buttonCell>
+                                            <connections>
+                                                <action selector="previewLabelContents:" target="ReB-I2-ePG" id="9DU-IC-b7p"/>
+                                            </connections>
+                                        </button>
                                     </subviews>
                                 </view>
                             </box>
@@ -2949,17 +2960,6 @@ Gw
                                     </subviews>
                                 </view>
                             </box>
-                            <button toolTip="Preview Installomator Label" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zYf-2P-bnN">
-                                <rect key="frame" x="696" y="192" width="24" height="19"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
-                                <buttonCell key="cell" type="roundRect" bezelStyle="roundedRect" image="eye" catalog="system" imagePosition="overlaps" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="RW6-Qb-Mkk">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="cellTitle"/>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="previewLabelContents:" target="ReB-I2-ePG" id="9DU-IC-b7p"/>
-                                </connections>
-                            </button>
                         </subviews>
                     </view>
                     <connections>
