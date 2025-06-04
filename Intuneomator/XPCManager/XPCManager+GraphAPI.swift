@@ -1,5 +1,5 @@
 //
-//  XPCManager+EntraID.swift
+//  XPCManager+GraphAPI.swift
 //  Intuneomator
 //
 //  Created by Gil Burns on 5/4/25.
@@ -7,24 +7,38 @@
 
 import Foundation
 
+/// XPCManager extension for Microsoft Graph API data retrieval
+/// Provides GUI access to Microsoft Intune and Entra ID resources through the privileged service
+/// All operations require valid authentication credentials and appropriate permissions
 extension XPCManager {
     
-    // MARK: - Graph API
-    // Fetch Methods for Graph API
+    // MARK: - Microsoft Graph API Operations
 
+    /// Retrieves available mobile application categories from Microsoft Intune
+    /// Categories are used for organizing and classifying applications in the Intune console
+    /// - Parameter completion: Callback with array of category dictionaries or nil on failure
     func fetchMobileAppCategories(completion: @escaping ([[String: Any]]?) -> Void) {
         sendRequest({ $0.fetchMobileAppCategories(reply: $1) }, completion: completion)
     }
     
+    /// Fetches security-enabled groups from Microsoft Entra ID (Azure AD)
+    /// Groups are used for application assignment targeting and access control policies
+    /// - Parameter completion: Callback with array of group dictionaries or nil on failure
     func fetchEntraGroups(completion: @escaping ([[String: Any]]?) -> Void) {
         sendRequest({ $0.fetchEntraGroups(reply: $1) }, completion: completion)
     }
     
+    /// Retrieves macOS-specific assignment filters from Microsoft Intune
+    /// Filters enable conditional assignment based on device properties and attributes
+    /// - Parameter completion: Callback with array of filter dictionaries or nil on failure
     func fetchAssignmentFiltersForMac(completion: @escaping ([[String: Any]]?) -> Void) {
         sendRequest({ $0.fetchAssignmentFiltersForMac(reply: $1) }, completion: completion)
     }
     
     
+    /// Retrieves discovered macOS applications from Microsoft Intune device inventory
+    /// Provides insight into applications detected across managed devices for analysis
+    /// - Parameter completion: Callback with array of DetectedApp objects or nil on failure
     func fetchDiscoveredMacApps(completion: @escaping ([DetectedApp]?) -> Void) {
         sendRequest({ service, reply in
             service.fetchDiscoveredMacApps(reply: reply)
@@ -44,6 +58,11 @@ extension XPCManager {
     }
     
     
+    /// Fetches device information for a specific discovered application
+    /// Retrieves details about devices where the specified application is installed
+    /// - Parameters:
+    ///   - appID: Application identifier to search for
+    ///   - completion: Callback with array of DeviceInfo objects or nil on failure
     func fetchDevices(forAppID appID: String, completion: @escaping ([DeviceInfo]?) -> Void) {
         sendRequest({ service, reply in
             service.fetchDevices(forAppID: appID, reply: reply)
