@@ -7,16 +7,24 @@
 
 import Foundation
 
-// Swift Class for Sending Teams Workflow Notifications
+/// Sends adaptive card notifications to Microsoft Teams via webhook
+/// Creates formatted Teams messages for automation results, errors, and status updates
 class TeamsNotifier {
+    /// The Microsoft Teams webhook URL for sending notifications
     let webhookURL: String
     
+    /// Log type identifier for logging operations
     static let logType = "TeamsNotifier"
 
+    /// Initializes a Teams notifier with the specified webhook URL
+    /// - Parameter webhookURL: The Microsoft Teams webhook URL for sending notifications
     init(webhookURL: String) {
         self.webhookURL = webhookURL
     }
         
+    /// Sends an adaptive card notification to Microsoft Teams
+    /// Creates a properly formatted Teams message with the provided body content
+    /// - Parameter bodyContent: Array of adaptive card body elements to include in the notification
     func sendTeamsNotification(bodyContent: [[String: Any]]) {
         let payload: [String: Any] = [
             "type": "message",
