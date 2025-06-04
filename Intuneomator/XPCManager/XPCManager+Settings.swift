@@ -134,7 +134,7 @@ extension XPCManager {
     /// Sets the Teams notification style/format preference
     /// Controls the verbosity and formatting of Teams notification messages
     /// - Parameters:
-    ///   - enabled: Integer representing notification style (0: basic, 1: detailed)
+    ///   - enabled: Integer representing notification style (0: individual notifications, 1: single notification for all)
     ///   - completion: Callback with update success status or nil on XPC failure
     func setTeamsNotificationsStyle(_ enabled: Int, completion: @escaping (Bool?) -> Void) {
         sendRequest({ $0.setTeamsNotificationsStyle(enabled, reply: $1) }, completion: completion)
@@ -161,7 +161,7 @@ extension XPCManager {
     /// Configures the Intuneomator application update mode
     /// Controls whether application updates are handled automatically or manually
     /// - Parameters:
-    ///   - updateMode: Integer representing update preference (0: manual, 1: automatic)
+    ///   - updateMode: Integer representing update preference (0: automatic, 1: notify only)
     ///   - completion: Callback with update success status or nil on XPC failure
     func setIntuneomatorUpdateMode(_ updateMode: Int, completion: @escaping (Bool?) -> Void) {
         sendRequest({ $0.setIntuneomatorUpdateMode(updateMode, reply: $1) }, completion: completion)
@@ -254,7 +254,7 @@ extension XPCManager {
 
     /// Gets the configured Teams notification style/format preference
     /// Determines the verbosity and formatting of Teams notification messages
-    /// - Parameter completion: Callback with style integer (0: basic, 1: detailed) or nil on XPC failure
+    /// - Parameter completion: Callback with style integer (0: individual notifications, 1: single notification for all) or nil on XPC failure
     func getTeamsNotificationsStyle(completion: @escaping (Int?) -> Void) {
         sendRequest({ $0.getTeamsNotificationsStyle(reply: $1) }, completion: completion)
     }
@@ -319,7 +319,7 @@ extension XPCManager {
 
     /// Gets the configured Intuneomator application update mode
     /// Determines whether application updates are handled automatically or manually
-    /// - Parameter completion: Callback with update mode (0: manual, 1: automatic) or nil on XPC failure
+    /// - Parameter completion: Callback with update mode (0: automatic, 1: notify only) or nil on XPC failure
     func getIntuneomatorUpdateMode(completion: @escaping (Int?) -> Void) {
         sendRequest({ $0.getIntuneomatorUpdateMode(reply: $1) }, completion: completion)
     }
