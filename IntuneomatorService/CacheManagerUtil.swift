@@ -7,11 +7,15 @@
 
 import Foundation
 
+/// Manages cache cleanup operations for Intuneomator application downloads
+/// Removes orphaned cache folders and maintains version limits to control disk usage
 class CacheManagerUtil {
     
+    /// Log type identifier for logging operations
     static private let logType = "CacheCleaner"
     
-    /// Removes any cache folders that do not correspond to a managed title
+    /// Removes cache folders that no longer correspond to active managed titles
+    /// Compares cache folder names against managed titles and deletes unmatched entries
     static func removeOrphanedCaches() {
         let managedTitlesURL = AppConstants.intuneomatorManagedTitlesFolderURL
         let cacheFolderURL = AppConstants.intuneomatorCacheFolderURL
@@ -40,7 +44,8 @@ class CacheManagerUtil {
         }
     }
     
-    /// Keeps only the latest N versions of each valid title
+    /// Removes old cached versions, keeping only the most recent N versions per title
+    /// Uses numeric version comparison to determine which versions to retain
     static func trimOldVersions() {
         let cacheFolderURL = AppConstants.intuneomatorCacheFolderURL
         let versionsToKeep = ConfigManager.readPlistValue(key: "AppVersionsToKeep") ?? 2
@@ -68,7 +73,8 @@ class CacheManagerUtil {
         }
     }
     
-    /// Run full cleanup: orphaned folders first, then trim versions
+    /// Performs comprehensive cache cleanup including orphan removal and version trimming
+    /// Executes cleanup operations in optimal order for maximum effectiveness
     static func runCleanup() {
         Logger.log("🔍 Running orphaned cache cleanup...", logType: logType)
         removeOrphanedCaches()
@@ -78,6 +84,9 @@ class CacheManagerUtil {
     }
     
     
+    /// Calculates the total size of the cache directory in bytes
+    /// Recursively enumerates all files to compute accurate disk usage
+    /// - Returns: Total size in bytes, or 0 if calculation fails
     static func cacheFolderSizeInBytes() -> Int64 {
         let fileManager = FileManager.default
         let folderURL = AppConstants.intuneomatorCacheFolderURL
