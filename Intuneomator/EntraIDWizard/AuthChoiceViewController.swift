@@ -8,24 +8,43 @@
 import Cocoa
 import Security
 
-// This class is responsible for the configuration choice view in the wizard.
+/// Authentication method selection view controller for the Entra ID setup wizard
+/// Provides choice between certificate-based and secret-based authentication for Microsoft Graph API
+/// Handles P12 certificate import and client secret configuration with validation
+/// Implements WizardStepProtocol for integration with the multi-step wizard flow
 class AuthChoiceViewController: NSViewController, WizardStepProtocol {
-    var onCompletionStatusChanged: ((Bool) -> Void)?
-//    var isStepCompleted: Bool { return false } // ✅ Read-only, so always complete
     
+    // MARK: - WizardStepProtocol Properties
+    
+    /// Callback closure for notifying wizard of completion status changes
+    var onCompletionStatusChanged: ((Bool) -> Void)?
+    
+    /// Authentication readiness status tracking
     var hasPrivateKey: Bool?
     var hasSecretKey: Bool?
     
+    /// Log type identifier for logging operations
     private let logType = "Settings"
 
+    // MARK: - Interface Builder Outlets
+    
+    /// Radio button for selecting certificate-based authentication method
     @IBOutlet weak var radioButtonCertificate: NSButton!
+    
+    /// Radio button for selecting client secret-based authentication method
     @IBOutlet weak var radioButtonSecret: NSButton!
     
+    /// Button to initiate P12 certificate import process
     @IBOutlet weak var buttonImportCert: NSButton!
+    
+    /// Button to configure Entra ID client secret
     @IBOutlet weak var buttonSaveSecretKey: NSButton!
     
     
-    // MARK: - Lifecycle
+    // MARK: - View Lifecycle Methods
+    
+    /// Called after the view controller's view is loaded into memory
+    /// Initializes authentication method selection and checks existing credential status
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -33,20 +52,29 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         checkAuthSetupStatus(completion: self.inputChanged)
     }
     
-    
+    /// Called when the view controller's view appears on screen
+    /// Refreshes authentication status to reflect any changes from other views
     override func viewDidAppear() {
         super.viewDidAppear()
         checkAuthSetupStatus(completion: self.inputChanged)
     }
     
+    // MARK: - Factory Method
     
+    /// Factory method for creating an instance from the Wizard storyboard
+    /// Provides type-safe instantiation from storyboard with proper identifier
+    /// - Returns: Configured AuthChoiceViewController instance
     static func create() -> AuthChoiceViewController {
         let storyboard = NSStoryboard(name: "Wizard", bundle: nil)
         return storyboard.instantiateController(withIdentifier: "AuthChoiceViewController") as! AuthChoiceViewController
     }
     
     
+    // MARK: - XPC Service Status Methods
     
+    /// Synchronously checks if the XPC service is running and responsive
+    /// Uses semaphore to block until service responds or timeout occurs
+    /// - Returns: Boolean indicating XPC service availability
     func checkXPCServiceRunning() -> Bool {
         var isRunning = false
         let semaphore = DispatchSemaphore(value: 0)
@@ -62,7 +90,11 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         return isRunning
     }
 
-    // MARK: - Setup Status
+    // MARK: - Authentication Status Methods
+    
+    /// Asynchronously checks the availability of authentication credentials
+    /// Uses dispatch group to coordinate multiple XPC calls and update UI state
+    /// - Parameter completion: Callback executed after all authentication checks complete
     func checkAuthSetupStatus(completion: @escaping () -> Void) {
         let group = DispatchGroup()
 
@@ -92,25 +124,32 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         }
     }
     
-    
+    /// Checks if certificate-based authentication is configured and ready
+    /// - Parameter completion: Callback with boolean indicating private key availability
     func isPrivateKeyReady(completion: @escaping (Bool) -> Void) {
         XPCManager.shared.privateKeyExists { exists in
             completion(exists ?? false)
         }
     }
     
+    /// Checks if secret-based authentication is configured and ready
+    /// - Parameter completion: Callback with boolean indicating client secret availability
     func isSecretKeyReady(completion: @escaping (Bool) -> Void) {
         XPCManager.shared.entraIDSecretKeyExists { exists in
             completion(exists ?? false)
         }
     }
 
-    
+    /// Computed property indicating if the wizard step has been completed
+    /// Step is complete when either certificate or secret authentication is configured
     var isStepCompleted: Bool {
         return (hasPrivateKey ?? false) || (hasSecretKey ?? false)
     }
     
-    // MARK: Select Auth Method - If Configured
+    // MARK: - Authentication Method Configuration
+    
+    /// Retrieves and applies the currently configured authentication method
+    /// Updates UI controls and radio button selection based on stored preference
     func getAuthMethod() {
         #if DEBUG
         Logger.logUser("getAuthMethod", logType: logType)
@@ -127,14 +166,14 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
                 #endif
                 
                 switch authMethod?.capitalized ?? "Certificate" {
-                case "Certificate": // Certificate
+                case "Certificate": // Certificate-based authentication
                     #if DEBUG
                     Logger.logUser("Certificate", logType: logType)
                     #endif
                     self.buttonImportCert.isEnabled = true
                     self.buttonSaveSecretKey.isEnabled = false
                     self.radioButtonCertificate.performClick(self)
-                case "Secret": // Secret
+                case "Secret": // Client secret-based authentication
                     #if DEBUG
                     Logger.logUser("Secret", logType: logType)
                     #endif
@@ -147,7 +186,8 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
             }
         }
     }
-    
+    /// Handles authentication method selection changes and updates configuration
+    /// Persists the selected method via XPC and notifies wizard of completion status
     @objc func inputChanged() {
         var selectedMethod: String
         if radioButtonSecret.state == .on {
@@ -170,39 +210,46 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         #if DEBUG
         Logger.logUser("inputChanged -> isStepCompleted: \(completed)", logType: logType)
         #endif
-        onCompletionStatusChanged?(completed) // ✅ Notify `WelcomeWizardViewController`
+        onCompletionStatusChanged?(completed) // Notify wizard of completion status change
     }
 
     
-    // MARK: Actions
+    // MARK: - User Action Methods
     
+    /// Opens the certificate generation utility as a modal sheet
+    /// Provides access to the certificate creation workflow for users without existing certificates
+    /// - Parameter sender: The certificate generation button that triggered the action
     @IBAction func openCertificateGeneration(_ sender: Any) {
-        // Show Cert Generator
+        // Show Certificate Generator
         let storyboard = NSStoryboard(name: "CertificateGenerator", bundle: nil)
         guard let controller = storyboard.instantiateController(withIdentifier: "CertificateViewController") as? CertificateViewController else { return }
 
         presentAsSheet(controller)
     }
 
-    
+    /// Handles radio button selection for authentication method choice
+    /// Updates UI button states and persists the selected authentication method
+    /// - Parameter sender: The radio button that triggered the selection change
     @IBAction func radioButtonClicked(_ sender: NSButton) {
         switch sender.tag {
-        case 1: // Certificate
+        case 1: // Certificate-based authentication selected
             buttonImportCert.isEnabled = true
             buttonSaveSecretKey.isEnabled = false
             inputChanged()
-            //            settings.connectMethod = "Cert"
-        case 2: // Secret
+        case 2: // Client secret-based authentication selected
             buttonImportCert.isEnabled = false
             buttonSaveSecretKey.isEnabled = true
             inputChanged()
-            //            settings.connectMethod = "Secret"
         default:
             break
         }
     }
     
+    // MARK: - Certificate Import Methods
     
+    /// Initiates P12 certificate file selection and import process
+    /// Displays file picker for P12/PFX certificate files and handles selection
+    /// - Parameter sender: The import certificate button that triggered the action
     @IBAction func selectP12File(_ sender: Any) {
         let openPanel = NSOpenPanel()
         openPanel.allowedContentTypes = [ .p12 ]
@@ -219,6 +266,9 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         }
     }
     
+    /// Prompts user for P12 certificate file passphrase using secure input
+    /// Displays modal alert with secure text field for passphrase entry
+    /// - Parameter fileURL: URL of the selected P12 certificate file
     private func requestPassphrase(for fileURL: URL) {
         let fileExtension = fileURL.pathExtension
         
@@ -229,7 +279,7 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         alert.addButton(withTitle: "OK")
         alert.addButton(withTitle: "Cancel")
         
-        // Secure text field for passphrase
+        // Secure text field for passphrase input
         let secureTextField = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 250, height: 24))
         alert.accessoryView = secureTextField
         
@@ -240,8 +290,12 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         }
     }
     
+    /// Processes P12 certificate file import with provided passphrase
+    /// Reads certificate data and imports it via XPC service with user feedback
+    /// - Parameters:
+    ///   - fileURL: URL of the P12 certificate file to import
+    ///   - passphrase: Passphrase for decrypting the P12 certificate
     private func processP12File(fileURL: URL, passphrase: String) {
-        // Implement your logic for handling the p12 file and passphrase
         Logger.logUser("Selected file: \(fileURL.path)", logType: logType)
         Logger.logUser("Entered passphrase: \(passphrase)", logType: logType) // Remove this in production for security reasons
         
@@ -258,18 +312,21 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
                     } else {
                         Logger.logUser("Failed to import .p12.", logType: logType)
                         DispatchQueue.main.async {
-                            self.showAlert(title: "Success", message: "Import failed.")
+                            self.showAlert(title: "Failed", message: "Import failed.")
                         }
-
                     }
                 }
             }
         } catch {
             Logger.logUser("Failed to read .p12 file: \(error)", logType: logType)
         }
-        
     }
     
+    // MARK: - Client Secret Configuration Methods
+    
+    /// Initiates Entra ID client secret key input and validation process
+    /// Displays secure input dialog with validation and retry logic for empty input
+    /// - Parameter sender: The save secret key button that triggered the action
     @IBAction func requestEntraIDSecretKey(_ sender: Any) {
         var secretKey: String?
         
@@ -293,7 +350,7 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
             let enteredKey = secureTextField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
             
             if enteredKey.isEmpty {
-                // Show an error alert if the input is blank
+                // Show error alert for empty input and retry
                 let errorAlert = NSAlert()
                 errorAlert.messageText = "Invalid Input"
                 errorAlert.informativeText = "The Entra ID Secret Key cannot be empty. Please enter a valid key."
@@ -309,8 +366,10 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         handleEntraIDSecretKey(secretKey!)
     }
     
+    /// Processes and stores the validated Entra ID client secret with optional expiration notification
+    /// Imports secret via XPC service and offers expiration date configuration
+    /// - Parameter secretKey: The validated client secret string to import
     private func handleEntraIDSecretKey(_ secretKey: String) {
-        // Implement logic to store, validate, or use the secret key
         Logger.logUser("Entered Entra ID Secret Key: \(secretKey)", logType: logType) // Do NOT log in production
 
         Logger.logUser("Saving secret key...", logType: logType)
@@ -327,7 +386,7 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
                     alert.addButton(withTitle: "Yes")
                     alert.addButton(withTitle: "No")
 
-                    // Date picker accessory view for expiration date
+                    // Date picker for setting secret expiration notification
                     let datePicker = NSDatePicker(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
                     datePicker.datePickerStyle = .textFieldAndStepper
                     datePicker.datePickerElements = .yearMonthDay
@@ -358,16 +417,26 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         }
     }
 
+
+    // MARK: - Alert Helper Methods
     
-    // MARK: - Alerts
+    /// Displays styled alert dialog with custom title, message, and alert style
+    /// Currently contains placeholder implementation that needs completion
+    /// - Parameters:
+    ///   - title: Alert dialog title text
+    ///   - message: Alert dialog message text
+    ///   - style: NSAlert.Style for visual presentation
     private func showAlert(title: String, message: String, style: NSAlert.Style) {
-        
         DispatchQueue.main.async {
             self.showAlert(title: "Success", message: "Import succeeded.")
         }
-
     }
     
+    /// Displays simple informational alert dialog with title and message
+    /// Used for user feedback on import success/failure and configuration updates
+    /// - Parameters:
+    ///   - title: Alert dialog title text
+    ///   - message: Alert dialog message text
     func showAlert(title: String, message: String) {
         let alert = NSAlert()
         alert.messageText = title
@@ -375,6 +444,37 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         alert.alertStyle = .informational
         alert.addButton(withTitle: "OK")
         alert.runModal()
+    }
+    
+    
+    // MARK: - WizardStepProtocol Implementation
+    
+    /// Determines if the user can proceed from this wizard step
+    /// Step is complete when either certificate or secret authentication is configured
+    /// - Returns: Boolean indicating if authentication credentials are available
+    func canProceed() -> Bool {
+        return isStepCompleted
+    }
+    
+    /// Validates the current wizard step before proceeding
+    /// Ensures at least one authentication method has been properly configured
+    /// - Returns: Boolean indicating if step validation passed
+    func validateStep() -> Bool {
+        return isStepCompleted
+    }
+    
+    /// Provides the title for this wizard step for UI display
+    /// Used by the wizard controller for step navigation and progress indication
+    /// - Returns: Localized title string for the authentication choice step
+    func getStepTitle() -> String {
+        return "Authentication"
+    }
+    
+    /// Provides a description of this wizard step for UI display
+    /// Used by the wizard controller for step information and progress indication
+    /// - Returns: Localized description string explaining the authentication choice purpose
+    func getStepDescription() -> String {
+        return "Choose authentication method"
     }
 
 }
