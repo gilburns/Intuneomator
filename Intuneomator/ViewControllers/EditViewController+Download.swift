@@ -323,14 +323,8 @@ extension EditViewController {
         switch result {
         case .success(let items):
             guard !items.isEmpty else {
-                //                print("No valid items found")
-                cleanupAfterProcessing()
                 return
             }
-            
-            //            print("handleInspectionResult")
-            //            print("fileURL")
-            //            print(fileURL)
             
             // Always present the appropriate modal dialog
             presentPkgInspectorModal(
@@ -513,14 +507,9 @@ extension EditViewController {
         switch result {
         case .success(let items):
             guard !items.isEmpty else {
-                //                print("No valid items found")
                 cleanupAfterProcessing()
                 return
             }
-            
-            //            print("handleInspectionResult")
-            //            print("fileURL")
-            //            print(fileURL)
             
             // Always present the appropriate modal dialog
             presentAppInspectorModal(
@@ -532,7 +521,6 @@ extension EditViewController {
             )
             
         case .failure(let error):
-            //            print("Inspection failed: \(error)")
             cleanupAfterProcessing()
         }
     }
@@ -541,7 +529,6 @@ extension EditViewController {
     
     private func presentAppInspectorModal(appPath: URL, appID: String, appVersion: String, appMinOSVersion: String, signature: [String: Any]) {
         guard let appData = appData else {
-            //            print("Error: appData is missing.")
             return
         }
         
