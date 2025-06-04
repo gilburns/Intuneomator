@@ -13,8 +13,8 @@ struct AppConstants {
     /// Current process identifier for creating unique temporary folders
     static let currentPid: Int32 = ProcessInfo.processInfo.processIdentifier
     
-    /// Random GUID for creating unique temporary folders
-    static let randomGUID = UUID().uuidString
+    /// Random 8-character hex string for creating unique temporary folders
+    static let randomGUID = String(format: "%08X", arc4random())
 
     /// Main Intuneomator data directory in system Application Support
     /// Location: /Library/Application Support/Intuneomator
@@ -64,7 +64,7 @@ struct AppConstants {
     /// Unique temporary directory for the current process
     /// Location: /tmp/Intuneomator_{pid}_{guid8}
     static let intuneomatorTempFolderURL = FileManager.default.temporaryDirectory
-        .appendingPathComponent("Intuneomator_\(currentPid)_\((randomGUID)[(randomGUID).startIndex..<(randomGUID).index((randomGUID).startIndex, offsetBy: 8)])")
+        .appendingPathComponent("Intuneomator_\(currentPid)_\(randomGUID)")
     
     /// System-wide log directory for Intuneomator
     /// Location: /Library/Logs/Intuneomator
