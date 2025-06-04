@@ -7,12 +7,21 @@
 
 import Foundation
 
+/// Creates macOS installer packages (.pkg) from various application sources
+/// Supports processing .app bundles, .dmg files, .zip archives, and .tbz archives
+/// Generates distribution packages with proper installer configuration for system installation
 class PKGCreator {
 
+    /// Log type identifier for logging operations
     private let logType = "PKGCreator"
     
     // MARK: - Main Logic
     
+    /// Creates a macOS installer package from an application source
+    /// - Parameters:
+    ///   - inputPath: Path to the source (.app, .dmg, .zip, or .tbz)
+    ///   - outputDir: Optional output directory (defaults to input file's directory)
+    /// - Returns: Tuple containing package path, app name, bundle ID, and version, or nil on failure
     func createPackage(inputPath: String, outputDir: String?) -> (packagePath: String, appName: String, appID: String, appVersion: String)? {
         
         Logger.log("Input path: \(inputPath)", logType: logType)
@@ -136,6 +145,9 @@ class PKGCreator {
 
     // MARK: - Helper Functions
     
+    /// Determines the architecture of a macOS application bundle
+    /// - Parameter appPath: Path to the .app bundle
+    /// - Returns: Architecture string ("universal", "arm64", "x86_64") or nil if undetermined
     func getAppArchitecture(appPath: String) -> String? {
         let infoPlistPath = appPath + "/Contents/Info.plist"
         let macOSPath = appPath + "/Contents/MacOS"
@@ -184,6 +196,9 @@ class PKGCreator {
     }
 
     
+    /// Checks if a DMG file has a Software License Agreement (SLA)
+    /// - Parameter path: Path to the DMG file
+    /// - Returns: True if the DMG contains an SLA, false otherwise
     private func dmgHasSLA(at path: String) -> Bool {
         let process = Process()
         process.launchPath = "/usr/bin/hdiutil"
@@ -210,6 +225,9 @@ class PKGCreator {
     }
 
     
+    /// Mounts a DMG file and handles Software License Agreement if present
+    /// - Parameter path: Path to the DMG file to mount
+    /// - Returns: Mount point path if successful, nil otherwise
     private func mountDMG(at path: String) -> String? {
         let process = Process()
         process.launchPath = "/usr/bin/hdiutil"
@@ -272,6 +290,8 @@ class PKGCreator {
         return nil
     }
 
+    /// Unmounts a previously mounted DMG file
+    /// - Parameter mountPoint: The mount point path to unmount
     private func unmountDMG(at mountPoint: String) {
         let process = Process()
         process.launchPath = "/usr/bin/hdiutil"
@@ -292,6 +312,11 @@ class PKGCreator {
         }
     }
 
+    /// Extracts a ZIP archive to a temporary directory
+    /// - Parameters:
+    ///   - path: Path to the ZIP file
+    ///   - tempDir: Temporary directory for extraction
+    /// - Returns: Path to extracted contents or nil on failure
     private func extractZip(at path: String, to tempDir: String) -> String? {
         let fileManager = FileManager.default
         let destinationPath = "\(tempDir)/unzipped"
@@ -332,6 +357,11 @@ class PKGCreator {
         return destinationPath
     }
 
+    /// Extracts a TBZ (tar.bz2) archive to a temporary directory
+    /// - Parameters:
+    ///   - path: Path to the TBZ file
+    ///   - tempDir: Temporary directory for extraction
+    /// - Returns: Path to extracted contents or nil on failure
     private func extractTBZ(at path: String, to tempDir: String) -> String? {
         let fileManager = FileManager.default
         let destinationPath = "\(tempDir)/extracted"
@@ -370,6 +400,9 @@ class PKGCreator {
         return destinationPath
     }
 
+    /// Searches for a DMG file within a directory
+    /// - Parameter directory: Directory path to search
+    /// - Returns: Path to first DMG file found, or nil if none found
     private func findDMG(in directory: String) -> String? {
         let fileManager = FileManager.default
         guard let enumerator = fileManager.enumerator(atPath: directory) else { return nil }
@@ -382,6 +415,9 @@ class PKGCreator {
         return nil
     }
 
+    /// Searches for an application bundle within a directory
+    /// - Parameter directory: Directory path to search
+    /// - Returns: Path to first .app bundle found, or nil if none found
     private func findApp(in directory: String) -> String? {
         let fileManager = FileManager.default
         guard let enumerator = fileManager.enumerator(atPath: directory) else { return nil }
@@ -394,6 +430,9 @@ class PKGCreator {
         return nil
     }
 
+    /// Extracts metadata from an application's Info.plist file
+    /// - Parameter appPath: Path to the .app bundle
+    /// - Returns: Tuple with app name, bundle ID, version, and architecture, or nil on failure
     private func extractAppInfo(from appPath: String) -> (appName: String, appID: String, appVersion: String, appArch: String)? {
         let infoPlistPath = "\(appPath)/Contents/Info.plist"
         guard let plistData = NSDictionary(contentsOfFile: infoPlistPath),
@@ -416,6 +455,12 @@ class PKGCreator {
         return (appName, appID, appVersion, appArch)
     }
 
+    /// Prepares the package root directory structure for installer creation
+    /// Creates /Applications structure and copies the app bundle
+    /// - Parameters:
+    ///   - appPath: Path to the source .app bundle
+    ///   - tempDir: Temporary directory for package preparation
+    /// - Returns: Path to package root directory or nil on failure
     private func preparePackageRoot(appPath: String, tempDir: String) -> String? {
         let packageRoot = "\(tempDir)/root"
         let applicationsPath = "\(packageRoot)/Applications"
@@ -431,6 +476,12 @@ class PKGCreator {
         return packageRoot
     }
 
+    /// Analyzes the package structure and creates component plist
+    /// Uses pkgbuild --analyze to generate component configuration
+    /// - Parameters:
+    ///   - packageRoot: Path to the package root directory
+    ///   - tempDir: Temporary directory for plist creation
+    /// - Returns: Path to component plist file or nil on failure
     private func analyzeComponentPlist(for packageRoot: String, tempDir: String) -> String? {
         let componentPlistPath = "\(tempDir)/component.plist"
         let process = Process()
@@ -458,6 +509,10 @@ class PKGCreator {
         return componentPlistPath
     }
 
+    /// Modifies the component plist to set BundleIsRelocatable to false
+    /// Ensures the app installs to /Applications and cannot be relocated
+    /// - Parameter path: Path to the component plist file
+    /// - Returns: True if modification was successful, false otherwise
     private func modifyComponentPlist(at path: String) -> Bool {
         guard let plistData = NSMutableArray(contentsOfFile: path) else {
             Logger.log("Error: Unable to read component plist.", logType: logType)
@@ -471,6 +526,15 @@ class PKGCreator {
         return plistData.write(toFile: path, atomically: true)
     }
 
+    /// Creates a component package using pkgbuild
+    /// - Parameters:
+    ///   - packageRoot: Path to the package root directory
+    ///   - tempDir: Temporary directory for package creation
+    ///   - appName: Application name for package naming
+    ///   - appID: Bundle identifier for package identifier
+    ///   - appVersion: Version string for package versioning
+    ///   - componentPlistPath: Path to the component configuration plist
+    /// - Returns: Path to created component package or nil on failure
     private func createComponentPackage(from packageRoot: String, tempDir: String, appName: String, appID: String, appVersion: String, componentPlistPath: String) -> String? {
         let packagePath = "\(tempDir)/\(appName)-\(appVersion)-component.pkg"
         let process = Process()
@@ -504,6 +568,14 @@ class PKGCreator {
         return packagePath
     }
 
+    /// Creates and customizes distribution XML for the installer
+    /// Generates XML with title, domain restrictions, and installation options
+    /// - Parameters:
+    ///   - componentPackage: Path to the component package
+    ///   - tempDir: Temporary directory for XML creation
+    ///   - appName: Application name for installer title
+    ///   - appVersion: Version string for installer title
+    /// - Returns: Path to distribution XML file or nil on failure
     private func synthesizeDistributionXML(for componentPackage: String, tempDir: String, appName: String, appVersion: String) -> String? {
         let distributionXMLPath = "\(tempDir)/distribution.xml"
         let process = Process()
@@ -567,6 +639,15 @@ class PKGCreator {
         return distributionXMLPath
     }
 
+    /// Creates the final distribution package using productbuild
+    /// - Parameters:
+    ///   - distributionXML: Path to the distribution XML file
+    ///   - tempDir: Temporary directory containing component packages
+    ///   - appName: Application name for package naming
+    ///   - appVersion: Version string for package naming
+    ///   - appArch: Architecture string for package naming
+    ///   - outputDir: Output directory for the final package
+    /// - Returns: Path to created distribution package, or empty string on failure
     private func createDistributionPackage(with distributionXML: String, tempDir: String, appName: String, appVersion: String, appArch: String, outputDir: String) -> String {
         let outputPackagePath = "\(outputDir)/\(appName)-\(appVersion)-\(appArch).pkg"
         
