@@ -7,8 +7,18 @@
 
 import Foundation
 
+/// Manages macOS Launch Daemon configuration for scheduled automation tasks
+/// Creates, removes, and monitors Launch Daemon plist files with calendar-based scheduling
 class ScheduledTaskManager {
 
+    /// Configures a scheduled automation task using macOS Launch Daemon
+    /// Creates a plist file in /Library/LaunchDaemons with calendar-based scheduling
+    /// - Parameters:
+    ///   - label: Unique identifier for the launch daemon (reverse domain notation)
+    ///   - argument: Command line argument to pass to the IntuneomatorService binary
+    ///   - schedules: Array of schedule entries with optional weekday, hour, and minute
+    ///   - associatedBundleID: Bundle identifier for the associated application
+    ///   - completion: Callback with success status and optional message
     static func configureScheduledTask(
         label: String,
         argument: String,
@@ -65,6 +75,10 @@ class ScheduledTaskManager {
         }
     }
     
+    /// Removes a scheduled automation task by unloading and deleting its Launch Daemon plist
+    /// - Parameters:
+    ///   - label: Unique identifier of the launch daemon to remove
+    ///   - completion: Callback with success status and optional message
     static func removeScheduledTask(
         label: String,
         completion: @escaping (Bool, String?) -> Void
@@ -85,12 +99,19 @@ class ScheduledTaskManager {
         }
     }
     
+    /// Checks if a scheduled task exists by verifying the presence of its Launch Daemon plist file
+    /// - Parameter label: Unique identifier of the launch daemon to check
+    /// - Returns: True if the task plist file exists, false otherwise
     static func taskExists(label: String) -> Bool {
         let daemonPath = "/Library/LaunchDaemons/\(label).plist"
         return FileManager.default.fileExists(atPath: daemonPath)
     }
     
 
+    /// Executes a shell command and returns its output
+    /// - Parameter args: Array of command and arguments to execute
+    /// - Returns: Command output as a string
+    /// - Throws: Process execution errors
     @discardableResult
     private static func runShellCommand(_ args: [String]) throws -> String {
         let process = Process()
