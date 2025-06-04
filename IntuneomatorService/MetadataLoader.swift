@@ -238,6 +238,10 @@ struct MetadataLoader {
     
     static func finalFilename(forAppTitle title: String, version: String, deploymentType: DeploymentTypeTag, deploymentArch: DeploymentArchTag, isDualArch: Bool) throws -> String {
         
+        guard !version.isEmpty else {
+            return ""
+        }
+        
         let fileName: String
         
         let fileSuffix: String = (deploymentType == .dmg) ? "dmg" : "pkg"
@@ -259,15 +263,6 @@ struct MetadataLoader {
         
         fileName = "\(title)-\(version)-\(fileArch).\(fileSuffix)"
 
-//        if deploymentType == .lob {
-//            fileName = "\(title)-\(version).\(fileSuffix)"
-//        } else  {
-//            if isDualArch {
-//                fileName = "\(title)-\(version)-\(fileArch).\(fileSuffix)"
-//            } else {
-//                fileName = "\(title)-\(version).\(fileSuffix)"
-//            }
-//        }
         return fileName
     }
 }
