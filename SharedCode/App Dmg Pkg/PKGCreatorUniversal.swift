@@ -7,10 +7,21 @@
 
 import Foundation
 
+/// Creates universal macOS installer packages that intelligently install the correct architecture
+/// Combines separate ARM64 and x86_64 application bundles into a single installer package
+/// Uses JavaScript logic to detect system architecture and install the appropriate version
 class PKGCreatorUniversal {
     
+    /// Log type identifier for logging operations
     private let logType  = "PKGCreatorUniversal"
 
+    /// Creates a universal installer package from separate ARM64 and x86_64 application bundles
+    /// The resulting package automatically detects system architecture and installs the correct version
+    /// - Parameters:
+    ///   - inputPathArm64: Path to the ARM64 (Apple Silicon) .app bundle
+    ///   - inputPathx86_64: Path to the x86_64 (Intel) .app bundle
+    ///   - outputDir: Directory where the universal package will be created
+    /// - Returns: Tuple containing package path, app name, bundle ID, and version, or nil on failure
     func createUniversalPackage(inputPathArm64: String, inputPathx86_64: String, outputDir: String) -> (packagePath: String, appName: String, appID: String, appVersion: String)? {
 
         Logger.log("createUniversalPackage", logType: logType)
@@ -81,7 +92,7 @@ class PKGCreatorUniversal {
                             "--component-plist", componentPlistX86,
                             outputComponentX86])
 
-        // Write custom distribution.xml
+        // Write custom distribution.xml with architecture detection logic
         let xml = """
         <?xml version=\"1.0\" encoding=\"utf-8\"?>
         <installer-gui-script minSpecVersion=\"1\">
@@ -139,6 +150,10 @@ class PKGCreatorUniversal {
         }
     }
 
+    /// Modifies the component plist to set BundleIsRelocatable to false
+    /// Ensures the app installs to /Applications and cannot be relocated
+    /// - Parameter path: Path to the component plist file
+    /// - Returns: True if modification was successful, false otherwise
     private func modifyComponentPlist(at path: String) -> Bool {
         guard let plistData = NSMutableArray(contentsOfFile: path) else {
             Logger.log("Error: Unable to read component plist.", logType: logType)
@@ -153,6 +168,9 @@ class PKGCreatorUniversal {
     }
 
     
+    /// Extracts essential metadata from an application's Info.plist file
+    /// - Parameter appPath: Path to the .app bundle
+    /// - Returns: Tuple with app name, bundle ID, and version, or nil on failure
     private func extractAppInfo(from appPath: String) -> (appName: String, appID: String, appVersion: String)? {
         let infoPlistPath = "\(appPath)/Contents/Info.plist"
         guard let plistData = NSDictionary(contentsOfFile: infoPlistPath),
@@ -164,6 +182,9 @@ class PKGCreatorUniversal {
         return (appName, appID, appVersion)
     }
 
+    /// Executes a command-line process with arguments and logs output
+    /// - Parameter args: Array where first element is the command path and rest are arguments
+    /// - Returns: True if process completed successfully (exit code 0), false otherwise
     private func runProcess(_ args: [String]) -> Bool {
         let process = Process()
         process.launchPath = args[0]
