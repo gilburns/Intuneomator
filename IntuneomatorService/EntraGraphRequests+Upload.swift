@@ -9,9 +9,7 @@ import Foundation
 import CommonCrypto
 
 extension EntraGraphRequests {
-    
-    static let logType = "EntraGraphRequests"
-    
+        
     // MARK: - Intune Upload Functions
     static func uploadAppToIntune(authToken: String, app: ProcessedAppResults) async throws -> String {
         
