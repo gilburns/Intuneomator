@@ -8,37 +8,56 @@
 import Foundation
 import Cocoa
 
+/// Modal sheet view controller for managing application metadata across multiple tabbed interfaces
+/// Provides coordinated editing environment for app details, scripts, and group assignments
+/// Implements lazy loading and caching of tab view controllers for optimal performance
 class TabViewController: NSViewController {
 
+    // MARK: - Interface Builder Outlets
+    
+    /// Label displaying the name of the application being edited
     @IBOutlet weak var labelAppName: NSTextField!
     
+    /// Image view showing cloud upload status with visual indicators
     @IBOutlet weak var imageCloudStatus: NSImageView!
 
+    /// Main tab view container hosting Edit, Scripts, and Assignments tabs
     @IBOutlet var tabView: NSTabView!
     
+    /// Button to save changes across all tabs
     @IBOutlet weak var saveButton: NSButton!
+    
+    /// Button to cancel editing and dismiss the sheet
     @IBOutlet weak var cancelButton: NSButton!
     
-    
+    /// Label for custom Installomator label toggle functionality
     @IBOutlet weak var labelCustomLabel: NSTextField!
+    
+    /// Switch to toggle between standard and custom Installomator labels
     @IBOutlet weak var buttonCustomOnOff: NSSwitch!
     
-    // The data passed from the MainViewController
+    // MARK: - Data Properties
+    
+    /// Application metadata passed from the main view controller
     var appData: AppInfo?
 
-    // Names of the view controllers for each tab
+    /// Identifiers for dynamically loaded tab view controllers
     private let tabIdentifiers = [
         "EditView",
         "ScriptPrePostView",
         "GroupAssignmentsView"
     ]
 
+    /// Reference to the scripts tab for validation and conditional access
     private var secondTabItem: NSTabViewItem?
 
-    // Cache for loaded view controllers
+    /// Cache for instantiated view controllers to improve performance
     private var viewControllerCache: [String: NSViewController] = [:]
     
-    // MARK: - Lifecycle
+    // MARK: - View Lifecycle Methods
+    
+    /// Called after the view controller's view is loaded into memory
+    /// Initializes tab view, sets up delegate, and configures initial display
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -50,6 +69,8 @@ class TabViewController: NSViewController {
         secondTabItem = tabView.tabViewItems[1]
     }
 
+    /// Called when the view controller's view is about to appear
+    /// Loads initial tabs, restores window size, and updates cloud status
     override func viewWillAppear() {
         super.viewWillAppear()
         
@@ -58,57 +79,61 @@ class TabViewController: NSViewController {
             loadTabViewController(for: firstTab)
         }
 
-        // Preload the ScriptViewController
+        // Preload the ScriptViewController for validation
         if let scriptTab = tabView.tabViewItems.first(where: { $0.identifier as? String == "ScriptPrePostView" }) {
             loadTabViewController(for: scriptTab)
         }
 
-        // Load the saved size or use the default size
+        // Restore saved window size or apply default dimensions
         let defaultSize = NSSize(width: 820, height: 730)
         let savedSize = loadSavedSheetSize() ?? defaultSize
 
         if let window = view.window {
-            window.setContentSize(savedSize) // Apply the saved or default size
-            window.minSize = NSSize(width: 820, height: 730) // Set minimum size
-//            print("Applied window size: \(savedSize)")
+            window.setContentSize(savedSize)
+            window.minSize = NSSize(width: 820, height: 730)
         }
 
         setCloudStatusIcon()
     }
 
-    
-    // Save the sheet size when it changes
+    /// Called when the view controller's view has appeared on screen
+    /// Updates custom label status and saves current window size
     override func viewDidAppear() {
         super.viewDidAppear()
 
         checkCustomLabel()
         setToggleCustomButtonAvailability()
 
-        // Save the sheet size when the view is dismissed
+        // Save current window size for next session
         if let window = view.window {
             saveSheetSize(window.frame.size)
-//            print("Saved sheet size on dismiss: \(window.frame.size)")
         }
     }
     
+    /// Called when the view controller's view has disappeared from screen
+    /// Saves final window size to preserve user preferences
     override func viewDidDisappear() {
         super.viewDidDisappear()
 
         // Save the sheet size when the view is dismissed
         if let window = view.window {
             saveSheetSize(window.frame.size)
-//            print("Saved sheet size on dismiss: \(window.frame.size)")
         }
-        
     }
 
 
-    // MARK: - Save Actions
+    // MARK: - Save Action Methods
+    
+    /// Handles save button click to persist changes across all tabs
+    /// Triggers validation and saves metadata for all loaded view controllers
+    /// - Parameter sender: The save button that triggered the action
     @IBAction func saveAllTabs(_ sender: Any) {
         saveAllTabsData()
     }
     
-    
+    /// Coordinates saving across all cached tab view controllers
+    /// Validates script tabs before saving and notifies completion via notification
+    /// Dismisses the modal sheet after successful save operations
     func saveAllTabsData() {
         for (_, viewController) in viewControllerCache {
             if let scriptVC = viewController as? ScriptViewController {
@@ -119,16 +144,15 @@ class TabViewController: NSViewController {
                     print("Script tab has validation issues. Skipping script save.")
                 }
             } else if let saveableVC = viewController as? TabSaveable {
-                // Save other tabs
+                // Save other tabs that conform to TabSaveable protocol
                 saveableVC.saveMetadata()
             } else {
                 print("ViewController \(String(describing: viewController)) does not conform to TabSaveable.")
             }
         }
-//        print("All valid tabs saved.")
 
         DispatchQueue.main.async { [self] in
-            // Close the TabView sheet after saving
+            // Notify completion to refresh main view
             NotificationCenter.default.post(
                 name: .labelEditCompleted,
                 object: nil,
@@ -136,13 +160,11 @@ class TabViewController: NSViewController {
             )
         }
         dismiss(nil)
-//        print("All tabs saved and TabView sheet dismissed.")
     }
 
-    
+    /// Updates save button enabled state based on unsaved changes and script validation
+    /// Save button is enabled only when there are unsaved changes AND scripts are valid
     func updateSaveButtonState() {
-//        print("updateSaveButtonState called.")
-
         // Check for unsaved changes across all tabs
         let hasUnsavedChanges = viewControllerCache.values.contains { viewController in
             (viewController as? UnsavedChangesHandling)?.hasUnsavedChanges == true
@@ -151,17 +173,18 @@ class TabViewController: NSViewController {
         // Check if the Script tab is valid
         if let scriptVC = viewControllerCache["ScriptPrePostView"] as? ScriptViewController {
             let isScriptValid = scriptVC.isValid
-//            print("ScriptViewController found. isValid: \(isScriptValid)")
             saveButton.isEnabled = hasUnsavedChanges && isScriptValid
         } else {
-//            print("ScriptViewController not found in viewControllerCache.")
             saveButton.isEnabled = hasUnsavedChanges
         }
-
-//        print("Save button state updated: \(saveButton.isEnabled ? "Enabled" : "Disabled")")
     }
 
-    // MARK: - Toggle Custom
+    // MARK: - Custom Label Management Methods
+    
+    /// Handles custom Installomator label toggle switch changes
+    /// Switches between standard and custom label implementations via XPC service
+    /// Updates UI visual indicators and notifies other components of changes
+    /// - Parameter sender: The toggle switch that triggered the action
     @IBAction func toggleCustom(_ sender: NSButton) {
         let toggleState = (sender.state == .on)
         
@@ -172,12 +195,14 @@ class TabViewController: NSViewController {
         XPCManager.shared.toggleCustomLabel(directoryPath, toggleState) { success in
             if success! {
                 DispatchQueue.main.async {
-
+                    // Update visual indicators based on toggle state
                     if toggleState == true {
                         self.labelCustomLabel.textColor = .systemRed
                     } else {
                         self.labelCustomLabel.textColor = .lightGray
                     }
+                    
+                    // Notify other components of custom label state change
                     NotificationCenter.default.post(
                         name: .customLabelToggled,
                         object: nil,
@@ -187,10 +212,10 @@ class TabViewController: NSViewController {
                 Logger.logUser("Toggle Custom Label Failed: \(directoryPath)")
             }
         }
-        
-
     }
-    
+    /// Configures custom label toggle button availability and display text
+    /// Checks for existence of both standard and custom Installomator labels
+    /// Updates button state and label text based on label availability
     func setToggleCustomButtonAvailability() {
         let labelName = appData?.label ?? ""
         let labelGUID = appData?.guid ?? ""
@@ -213,6 +238,7 @@ class TabViewController: NSViewController {
         let standardLabelExists = FileManager.default.fileExists(atPath: standardLabelURL.path)
         let customLabelExists = FileManager.default.fileExists(atPath: customLabelURL.path)
                 
+        // Configure button and label based on available label types
         if standardLabelExists && customLabelExists {
             buttonCustomOnOff.isEnabled = true
             labelCustomLabel.stringValue = "Use Custom Label"
@@ -224,6 +250,7 @@ class TabViewController: NSViewController {
             labelCustomLabel.stringValue = "No Custom Label Available"
         }
         
+        // Set visual state based on current custom label usage
         if !isCustomLabelEnabled {
             buttonCustomOnOff.state = .off
             labelCustomLabel.textColor = .lightGray
@@ -234,9 +261,11 @@ class TabViewController: NSViewController {
     }
     
     
+    // MARK: - Cancel Action Methods
     
-    // MARK: - Cancel Button
-    
+    /// Handles cancel button click with unsaved changes validation
+    /// Prompts user to confirm if there are unsaved changes before dismissing
+    /// - Parameter sender: The cancel button that triggered the action
     @IBAction func cancelButtonClicked(_ sender: NSButton) {
         
         // Check for unsaved changes across all tabs
@@ -261,9 +290,13 @@ class TabViewController: NSViewController {
         }
     }
 
+    // MARK: - Alert Helper Methods
     
-    
-    // MARK: - Alert Helper:
+    /// Displays warning alert dialog with custom title and message
+    /// Used for error notifications and user feedback throughout the tab interface
+    /// - Parameters:
+    ///   - title: Alert dialog title text
+    ///   - message: Alert dialog message text
     func showAlert(withTitle title: String, message: String) {
         let alert = NSAlert()
         alert.alertStyle = .warning
@@ -274,29 +307,34 @@ class TabViewController: NSViewController {
     }
 
     
-    // MARK: - View Size Helpers
-    // Save the size to UserDefaults
+    // MARK: - Window Size Management Methods
+    
+    /// Saves the current sheet size to UserDefaults for persistence
+    /// Preserves user's preferred window dimensions across application sessions
+    /// - Parameter size: NSSize representing the current window dimensions
     private func saveSheetSize(_ size: NSSize) {
         let sizeDict = ["width": size.width, "height": size.height]
         UserDefaults.standard.set(sizeDict, forKey: "TabViewSheetSize")
-//        print("Saved sheet size: \(size)")
     }
 
-    // Load the size from UserDefaults
+    /// Loads the previously saved sheet size from UserDefaults
+    /// Returns nil if no saved size exists, triggering default size usage
+    /// - Returns: Optional NSSize with saved dimensions, or nil if not found
     private func loadSavedSheetSize() -> NSSize? {
         if let sizeDict = UserDefaults.standard.dictionary(forKey: "TabViewSheetSize") as? [String: CGFloat],
            let width = sizeDict["width"], let height = sizeDict["height"] {
-//            print("Loaded saved sheet size: \(NSSize(width: width, height: height))")
             return NSSize(width: width, height: height)
         }
-//        print("No saved size found, using default.")
         return nil
     }
 
     
-    // MARK: - Cloud Status Image
+    // MARK: - Cloud Status Icon Methods
+    
+    /// Creates and displays cloud status icon with upload count overlay
+    /// Reads upload count from .uploaded file and generates visual indicator
+    /// Green cloud with blue overlay indicates successful uploads, gray indicates no uploads
     private func setCloudStatusIcon() {
-        
         let baseURL = AppConstants.intuneomatorManagedTitlesFolderURL
         let folderURL = baseURL
             .appendingPathComponent("\(appData!.label)_\(appData!.guid)")
@@ -304,6 +342,8 @@ class TabViewController: NSViewController {
         var labelUploadCount: Int = 0
         var cloudImageIcon: NSImage?
         let labelUploadStateURL = folderURL.appendingPathComponent(".uploaded")
+        
+        // Read upload count from tracking file
         if FileManager.default.fileExists(atPath: labelUploadStateURL.path) {
             if let data = FileManager.default.contents(atPath: labelUploadStateURL.path),
                let countString = String(data: data, encoding: .utf8),
@@ -312,7 +352,7 @@ class TabViewController: NSViewController {
             }
         }
 
-        // Create an NSImage using SF Symbols with optional overlay
+        // Configure colors and symbols based on upload status
         let symbolName: String
         let symbolNumber: String
         var tintColor: NSColor
@@ -338,6 +378,7 @@ class TabViewController: NSViewController {
 
         let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .light)
 
+        // Compose layered icon with cloud base, status overlay, and count number
         if let tintedBase = tintedSymbolImage(named: "cloud", color: tintColor, size: baseSize, config: config),
            let tintedOverlay = tintedSymbolImage(named: symbolName, color: tintColorOverlay, size: overlaySize, config: config),
             let tintedNumber = tintedSymbolImage(named: symbolNumber, color: tintColorNumber, size: overlaySize, config: config) {
@@ -359,11 +400,16 @@ class TabViewController: NSViewController {
         }
 
         imageCloudStatus.image = cloudImageIcon
-        
     }
     
-    
-    // MARK: - Color Tint Symbols
+    /// Creates a tinted SF Symbol image with specified color and configuration
+    /// Used for generating colored icon elements in the cloud status display
+    /// - Parameters:
+    ///   - name: SF Symbol name to create
+    ///   - color: NSColor to apply as tint
+    ///   - size: Target size for the rendered image
+    ///   - config: Symbol configuration for weight and point size
+    /// - Returns: Tinted NSImage or nil if symbol creation fails
     func tintedSymbolImage(named name: String, color: NSColor, size: NSSize, config: NSImage.SymbolConfiguration) -> NSImage? {
         guard let baseImage = NSImage(systemSymbolName: name, accessibilityDescription: nil)?.withSymbolConfiguration(config) else {
             return nil
@@ -383,8 +429,10 @@ class TabViewController: NSViewController {
     }
 
     
-    // MARK: - Tabs Helpers
-    // Set up tabs
+    // MARK: - Tab Management Methods
+    
+    /// Configures the tab view with Edit, Scripts, and Assignments tabs
+    /// Creates tab view items with emoji titles and sets up lazy loading
     private func setupTabs() {
         tabView.tabViewItems.removeAll()
 
@@ -394,18 +442,9 @@ class TabViewController: NSViewController {
             ("GroupAssignmentsView", "🖥️ Assignments")
         ]
 
-//        let targetSize = NSSize(width: 24, height: 24) // Target size for tab icons
         for data in tabData {
             let tabViewItem = NSTabViewItem(identifier: data.identifier)
-            tabViewItem.label = data.title // Set the custom tab title
-            
-//            if let image = NSImage(named: data.imageName)?.resized(to: targetSize) {
-//                tabViewItem.image = image
-//                print("Loaded and resized image: \(data.imageName)")
-//            } else {
-//                print("Failed to load or resize image: \(data.imageName)")
-//            }
-
+            tabViewItem.label = data.title
             tabViewItem.view = nil // View will be loaded dynamically
             tabView.addTabViewItem(tabViewItem)
         }
@@ -414,16 +453,18 @@ class TabViewController: NSViewController {
         tabView.selectTabViewItem(at: 0)
     }
 
-    
+    /// Updates the Group Assignments view controller with current app data
+    /// Synchronizes package transformation state between tabs
     func updateGroupAssignmentsView() {
         // Ensure the GroupAssignmentsViewController is loaded
         if let groupVC = viewControllerCache["GroupAssignmentsView"] as? GroupAssignViewController {
             print("Updating GroupAssignmentsViewController with new transformToPkg state")
             groupVC.appData?.transformToPkg = appData?.transformToPkg ?? false
-//            groupVC.refreshUI()
         }
     }
     
+    /// Checks and updates custom label visual state based on file system markers
+    /// Sets button state and label color based on .custom file existence
     private func checkCustomLabel() {
         let labelFolder = "\(appData!.label)_\(appData!.guid)"
         
@@ -441,7 +482,10 @@ class TabViewController: NSViewController {
     }
 
 
-    // Load the view controller dynamically for the given tabViewItem
+    /// Dynamically loads and caches view controllers for tab view items
+    /// Implements lazy loading pattern to improve performance and memory usage
+    /// Configures view controllers with app data if they conform to Configurable protocol
+    /// - Parameter tabViewItem: The tab view item requiring a view controller
     private func loadTabViewController(for tabViewItem: NSTabViewItem) {
         guard let identifier = tabViewItem.identifier as? String else {
             print("TabViewItem identifier is missing")
@@ -450,48 +494,55 @@ class TabViewController: NSViewController {
 
         // Check if the view controller is already cached
         if let cachedVC = viewControllerCache[identifier] {
-//            print("Using cached view controller for \(identifier)")
             tabViewItem.view = cachedVC.view
             return
         }
 
-//        print("Loading new view controller for \(identifier)")
-
-        // Load the view controller dynamically
+        // Load the view controller dynamically from storyboard
         let storyboard = NSStoryboard(name: "Main", bundle: nil)
         guard let newViewController = storyboard.instantiateController(withIdentifier: identifier) as? NSViewController else {
             print("Failed to load view controller with identifier: \(identifier)")
             return
         }
 
-        // Pass the data and parent to the new view controller if it conforms to Configurable
+        // Configure view controller with app data if it supports configuration
         if let configurableVC = newViewController as? Configurable {
             if let appItemData = appData {
-                // Pass both the app data and the TabViewController
+                // Pass both the app data and the TabViewController reference
                 configurableVC.configure(with: appItemData, parent: self)
             } else {
                 print("No appItemData provided for \(identifier)")
             }
         }
 
-        // Cache and set the view
+        // Cache the view controller and set its view
         viewControllerCache[identifier] = newViewController
-//        print("ViewControllerCache updated with ViewController: \(identifier)")
-
         tabViewItem.view = newViewController.view
     }
 }
 
+// MARK: - NSTabViewDelegate Extension
+
+/// Extension implementing NSTabViewDelegate for handling tab selection events
+/// Manages dynamic loading and save button state updates during tab navigation
 extension TabViewController: NSTabViewDelegate {
     
+    /// Called when a tab is about to be selected
+    /// Triggers dynamic loading of the tab's view controller if not already cached
+    /// - Parameters:
+    ///   - tabView: The tab view managing the selection
+    ///   - tabViewItem: The tab view item about to be selected
     public func tabView(_ tabView: NSTabView, willSelect tabViewItem: NSTabViewItem?) {
         guard let tabViewItem = tabViewItem else { return }
-//        print("Will select tab with identifier: \(tabViewItem.identifier ?? "unknown")")
         loadTabViewController(for: tabViewItem)
     }
 
+    /// Called when a tab has been selected
+    /// Updates save button state based on the newly selected tab's status
+    /// - Parameters:
+    ///   - tabView: The tab view managing the selection
+    ///   - tabViewItem: The tab view item that was selected
     public func tabView(_ tabView: NSTabView, didSelect tabViewItem: NSTabViewItem?) {
-//        print("Did select tab with identifier: \(tabViewItem?.identifier ?? "unknown")")
         updateSaveButtonState()
     }
 }
