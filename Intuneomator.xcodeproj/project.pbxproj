@@ -48,15 +48,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		1B9DD8A12DDE176F005ECE05 /* Exceptions for "IntuneomatorService" folder in "IntuneomatorUpdater" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				ConfigManager.swift,
-				TeamsNotifier.swift,
-				"TeamsNotifier+NotifyUpdate.swift",
-			);
-			target = 1B9DD88C2DDD759C005ECE05 /* IntuneomatorUpdater */;
-		};
 		1B9DD8A42DDE1907005ECE05 /* Exceptions for "SharedCode" folder in "IntuneomatorUpdater" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -65,13 +56,6 @@
 				Logging.swift,
 			);
 			target = 1B9DD88C2DDD759C005ECE05 /* IntuneomatorUpdater */;
-		};
-		1B9DD9E62DE0EC0D005ECE05 /* Exceptions for "IntuneomatorService" folder in "Intuneomator" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				ConfigManager.swift,
-			);
-			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
 		};
 		1B9DDA432DE9F0A3005ECE05 /* Exceptions for "Constants" folder in "IntuneomatorService" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -118,7 +102,6 @@
 				Logging.swift,
 				LogManagerUtil.swift,
 				Weekday.swift,
-				XPCServiceProtocol.swift,
 			);
 			target = 1BB046652D81324E004B6F3E /* IntuneomatorService */;
 		};
@@ -149,15 +132,6 @@
 			path = Intuneomator;
 			sourceTree = "<group>";
 		};
-		1BB046672D81324E004B6F3E /* IntuneomatorService */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				1B9DD9E62DE0EC0D005ECE05 /* Exceptions for "IntuneomatorService" folder in "Intuneomator" target */,
-				1B9DD8A12DDE176F005ECE05 /* Exceptions for "IntuneomatorService" folder in "IntuneomatorUpdater" target */,
-			);
-			path = IntuneomatorService;
-			sourceTree = "<group>";
-		};
 		1BB0466D2D822AFF004B6F3E /* SharedCode */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -170,6 +144,11 @@
 		1BB046AC2D872F90004B6F3E /* LaunchDaemon */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = LaunchDaemon;
+			sourceTree = "<group>";
+		};
+		1BCDDB402DF10206004F7C25 /* IntuneomatorService */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = IntuneomatorService;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -215,7 +194,7 @@
 				1B9DD84F2DDCE006005ECE05 /* Package */,
 				1B2A4B9D2DD52F1800F85707 /* Config.xcconfig */,
 				1BB046522D81321F004B6F3E /* Intuneomator */,
-				1BB046672D81324E004B6F3E /* IntuneomatorService */,
+				1BCDDB402DF10206004F7C25 /* IntuneomatorService */,
 				1B9DD88E2DDD759C005ECE05 /* IntuneomatorUpdater */,
 				1BB0466D2D822AFF004B6F3E /* SharedCode */,
 				1B9DDA392DE9F085005ECE05 /* Constants */,
@@ -303,7 +282,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				1BB046672D81324E004B6F3E /* IntuneomatorService */,
+				1BCDDB402DF10206004F7C25 /* IntuneomatorService */,
 			);
 			name = IntuneomatorService;
 			packageProductDependencies = (

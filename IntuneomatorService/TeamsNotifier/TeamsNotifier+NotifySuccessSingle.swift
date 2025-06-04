@@ -10,24 +10,46 @@ import Foundation
 extension TeamsNotifier {
     
     func sendSingleSuccessNotification(
-        processingResults: [(String, String, Bool)]
+        processingResults: [(folder: String, displayName: String, text: String, newAppID: String, success: Bool)]
     ) async {
         let title = "Automation Results"
         let intuneomatorIconUrl = "https://icons.intuneomator.org/intuneomator.png"
         let time = "🕰️ \(TeamsNotifier.dateFormatter.string(from: Date()))"
+        let intuneAppLink = "https://intune.microsoft.com/#view/Microsoft_Intune_Apps/SettingsMenu/~/0/appId/"
+        
+        
+        var postiveResults: [(folder: String, displayName: String, text: String, newAppID: String, success: Bool)] = []
+        var negativeResults: [(folder: String, displayName: String, text: String, newAppID: String, success: Bool)] = []
+
+        
+        // Filter the results into success/fail for the Teams message.
+        for result in processingResults {
+            if result.success {
+                postiveResults.append(result)
+            } else {
+                negativeResults.append(result)
+            }
+        }
+
         
         // Build a markdown list, e.g.:
         // • ✅ MyFolder1 – All good
         // • ⚠️ MyFolder2 – Warning: minor issue
-        var markdownLines: [String] = []
-        for (folder, message, success) in processingResults {
-            let parts = folder.split(separator: "_")
-            guard let folderName = parts.first else { continue }
+        var positiveMarkdownLines: [String] = []
+        for (_, message, displayName, newAppID, success) in postiveResults {
             let prefix = success ? "✅" : "⚠️"
-            // You can optionally truncate or format `message` as needed
-            markdownLines.append("• \(prefix) **\(folderName)** – \(message)")
+
+            positiveMarkdownLines.append("• \(prefix) **\(displayName)** [Intune App Link:](\(intuneAppLink)\(newAppID)) – \(message)")
         }
-        let combinedList = markdownLines.joined(separator: "  \n")
+        let combinedPositiveList = positiveMarkdownLines.joined(separator: "  \n")
+
+        var negativeMarkdownLines: [String] = []
+        for (folder, message, displayName, _, success) in negativeResults {
+            let prefix = success ? "✅" : "⚠️"
+            
+            negativeMarkdownLines.append("• \(prefix) **\(displayName)** \(folder) – \(message)")
+        }
+        let combinedNegativeList = negativeMarkdownLines.joined(separator: "  \n")
 
         
         // ✅ Success Card Content (Image, Title, Separator, Details)
@@ -98,16 +120,29 @@ extension TeamsNotifier {
             ],
             [
                 "type": "TextBlock",
-                "text": "**Software Details:**",
+                "text": "**Success Details:**",
                 "weight": "Bolder",
                 "spacing": "Medium"
             ],
             [
                 "type": "TextBlock",
-                "text": "\(combinedList)",
+                "text": "\(combinedPositiveList)",
+                "wrap": true,
+                "spacing": "Small"
+            ],
+            [
+                "type": "TextBlock",
+                "text": "**Failure Details:**",
+                "weight": "Bolder",
+                "spacing": "Medium"
+            ],
+            [
+                "type": "TextBlock",
+                "text": "\(combinedNegativeList)",
                 "wrap": true,
                 "spacing": "Small"
             ]
+
         ]
                 
         Logger.log("Sending Teams Notification...", logType: TeamsNotifier.logType)

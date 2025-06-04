@@ -9,7 +9,7 @@ import Foundation
 
 extension LabelAutomation {
     
-    static func processPkgFile(downloadURL: URL, folderName: String, downloadType: String, fileUploadName: String, expectedTeamID: String, expectedBundleID: String) async throws -> (url: URL?, bundleID: String, version: String) {
+    static func processPkgFile(downloadURL: URL, folderName: String, downloadType: String, fileUploadName: String, expectedTeamID: String, expectedBundleID: String, expectedVersion: String) async throws -> (url: URL?, bundleID: String, version: String) {
         
         let pkgToProcessURL: URL
         
@@ -145,6 +145,12 @@ extension LabelAutomation {
                 }
             }
         }
+        
+        if downloadedVersion != expectedVersion {
+            
+            
+        }
+        
         
         // Create the final destination folder
         let finalDestinationFolder = downloadFolder

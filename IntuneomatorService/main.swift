@@ -133,10 +133,10 @@ func processLabel(withParam folderName: String) {
 }
 
 
-func processLabelQuiet(withParam folderName: String) async -> (String, Bool) {
+func processLabelQuiet(withParam folderName: String) async -> (String, String, String, Bool) {
     
-    let (result, ok) = await LabelAutomation.processFolder(named: folderName)
-    return (result, ok)
+    let (result, displayName, newAppID, ok) = await LabelAutomation.processFolder(named: folderName)
+    return (result, displayName, newAppID, ok)
     
 }
 
@@ -220,7 +220,8 @@ func runIntuneAutomationQuiet() {
         Logger.log("Found -\(validFolders.count)- Intuneomator folders to process.", logType: logType)
 
         // Collect results for each processed folder
-        var processingResults: [(folder: String, text: String, success: Bool)] = []
+        var processingResults: [(folder: String, displayName: String, text: String, newAppID: String, success: Bool)] = []
+        var filteredProcessingResults: [(folder: String, displayName: String, text: String, newAppID: String, success: Bool)] = []
 
         for (index, folder) in validFolders.enumerated() {
             Logger.log("Processing folder \(index+1)/\(validFolders.count): \(folder)", logType: logType)
@@ -231,11 +232,11 @@ func runIntuneAutomationQuiet() {
             Logger.log("  Processing \(folder).", logType: logType)
             
             // Run the automation for folder and capture the result
-            let (text, success) = await processLabelQuiet(withParam: folder)
-            processingResults.append((folder: folder, text: text, success: success))
+            let (text, displayName, newAppID, success) = await processLabelQuiet(withParam: folder)
+            processingResults.append((folder: folder, displayName: displayName, text: text, newAppID: newAppID, success: success))
         }
-
-        // Write results to a file
+        
+        // Write full results to a file
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss:SSS"
 
@@ -254,7 +255,15 @@ func runIntuneAutomationQuiet() {
             Logger.log("❌ Failed writing results file: \(error.localizedDescription)", logType: "Automation Results")
         }
         
-        // After all folders are processed, send a Teams notification with the batch results
+        // Filter the results for the Teams message.
+        for result in processingResults {
+            // Only include results where the message does not end with "already uploaded to Intune"
+            if !result.text.hasSuffix("already exists in Intune") {
+                filteredProcessingResults.append(result)
+            }
+        }
+
+        // Send a Teams notification with the filtered results
         let sendTeamNotification = ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") ?? false
         let teamsNotificationStyle: Int = ConfigManager.readPlistValue(key: "TeamsNotificationsStyle") ?? 0
         
@@ -262,7 +271,7 @@ func runIntuneAutomationQuiet() {
             let url = ConfigManager.readPlistValue(key: "TeamsWebhookURL") ?? ""
             if !url.isEmpty {
                 let teamsNotifier = TeamsNotifier(webhookURL: url)
-                await teamsNotifier.sendSingleSuccessNotification(processingResults: processingResults)
+                await teamsNotifier.sendSingleSuccessNotification(processingResults: filteredProcessingResults)
             } else {
                 Logger.log("No Teams Webhook URL set in Config. Skipping batch notification.", logType: logType)
             }
