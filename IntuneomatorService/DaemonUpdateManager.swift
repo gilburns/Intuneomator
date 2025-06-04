@@ -7,19 +7,36 @@
 
 import Foundation
 
+/// Manages automatic updates for the Intuneomator daemon service
+/// Handles version checking, package download, signature validation, and update installation
 class DaemonUpdateManager {
  
+    /// URL to fetch the latest version number from the server
     static let remoteVersionURL = URL(string: "https://intuneomator.org/downloads/latest-version.txt")!
+    
+    /// URL to download the update package from
     static let updatePkgURL = URL(string: "https://intuneomator.org/downloads/Intuneomator.pkg")!
+    
+    /// Path to the main Intuneomator application bundle
     static let guiAppBundlePath = "/Applications/Intuneomator.app"
+    
+    /// Path to the updater executable in the Application Support directory
     static let updaterPath = "/Library/Application Support/Intuneomator/IntuneomatorUpdater"
+    
+    /// Temporary path for the updater executable during update process
     static let tempUpdaterPath = "/tmp/IntuneomatorUpdater"
+    
+    /// Path where the downloaded update package is stored
     static let destinationPkgPath = "/Library/Application Support/Intuneomator/IntuneomatorUpdate.pkg"
+    
+    /// Expected Apple Developer Team ID for signature validation
     static let expectedTeamID = "G4MQ57TVLE"
     
+    /// Log type identifier for logging operations
     static let logType = "DaemonUpdateManager"
 
-    
+    /// Gets the currently installed version of Intuneomator
+    /// - Returns: Version string from the app's Info.plist, or "0.0.0" if not found
     static var localVersion: String {
         let infoPlistPath = "\(guiAppBundlePath)/Contents/Info.plist"
         guard let plist = NSDictionary(contentsOfFile: infoPlistPath),
@@ -29,6 +46,8 @@ class DaemonUpdateManager {
         return version
     }
     
+    /// Checks for available updates and performs the update if a newer version is found
+    /// Handles both automatic updates and Teams notification modes based on configuration
     static func checkAndPerformUpdateIfNeeded() {
         fetchRemoteVersion { remoteVersion in
             guard let remoteVersion = remoteVersion else {
@@ -90,6 +109,8 @@ class DaemonUpdateManager {
         }
     }
 
+    /// Validates the downloaded package signature against the expected Team ID
+    /// - Parameter completion: Callback with validation result (true if valid, false otherwise)
     static func validatePkgDownload(completion: @escaping (Bool) -> Void) {
         let pkgURL = destinationPkgPath
         var signatureResult: [String: Any] = [:]
@@ -125,6 +146,8 @@ class DaemonUpdateManager {
         return
     }
     
+    /// Fetches the latest version number from the remote server
+    /// - Parameter completion: Callback with the version string, or nil if fetch failed
     static func fetchRemoteVersion(completion: @escaping (String?) -> Void) {
         URLSession.shared.dataTask(with: remoteVersionURL) { data, _, _ in
             let version = data.flatMap { String(data: $0, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -132,6 +155,8 @@ class DaemonUpdateManager {
         }.resume()
     }
 
+    /// Downloads the update package from the remote server
+    /// - Parameter completion: Callback indicating download success (true) or failure (false)
     static func downloadPkg(completion: @escaping (Bool) -> Void) {
         let task = URLSession.shared.downloadTask(with: updatePkgURL) { tempURL, _, error in
             guard let tempURL = tempURL, error == nil else {
@@ -154,6 +179,8 @@ class DaemonUpdateManager {
         task.resume()
     }
 
+    /// Executes the updater process to install the downloaded package
+    /// Copies the updater to a temporary location and launches it with the current process ID
     static func runUpdater() {
         do {
             if FileManager.default.fileExists(atPath: tempUpdaterPath) {
