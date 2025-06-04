@@ -8,14 +8,21 @@
 import Foundation
 import CommonCrypto
 
+/// Handles Microsoft Entra ID authentication for accessing Microsoft Graph API
+/// Supports both certificate-based and client secret authentication methods with token caching
 class EntraAuthenticator {
     
     // MARK: - Token Cache
+    /// Cached access token to avoid unnecessary authentication requests
     private var cachedToken: String?
+    
+    /// Expiration date of the cached token
     private var tokenExpiration: Date?
     
+    /// Log type identifier for logging operations
     private let logType = "EntraAuthenticator"
     
+    /// Custom error types for Entra ID authentication operations
     enum EntraAuthError: Error, LocalizedError {
         case keychainError(OSStatus, String)
         case privateKeyNotFound(String)
@@ -43,6 +50,10 @@ class EntraAuthenticator {
     }
     
     // MARK: - Get Entra ID Token
+    
+    /// Retrieves a valid Entra ID access token, using cached token if available and not expired
+    /// - Returns: Valid access token for Microsoft Graph API
+    /// - Throws: EntraAuthError for various authentication failures
     func getEntraIDToken() async throws -> String {
         // Check if a valid token is cached
         if let token = cachedToken, let expiration = tokenExpiration, expiration > Date() {
@@ -90,6 +101,13 @@ class EntraAuthenticator {
     }
     
     // MARK: - Secret Key Based Auth
+    
+    /// Authenticates using client secret stored in keychain
+    /// - Parameters:
+    ///   - tenantId: Azure AD tenant identifier
+    ///   - clientId: Application (client) ID from Azure AD app registration
+    /// - Returns: Access token for Microsoft Graph API
+    /// - Throws: EntraAuthError for authentication failures
     func authenticateWithSecretKey(tenantId: String, clientId: String) async throws -> String {
         // Retrieve the secret key from the system keychain
         guard let secretKey = KeychainManager.retrieveEntraIDSecretKey() else {
@@ -148,6 +166,13 @@ class EntraAuthenticator {
     }
     
     // MARK: - Certificate Based Auth
+    
+    /// Authenticates using certificate-based authentication with JWT client assertion
+    /// - Parameters:
+    ///   - tenantId: Azure AD tenant identifier
+    ///   - clientId: Application (client) ID from Azure AD app registration
+    /// - Returns: Access token for Microsoft Graph API
+    /// - Throws: EntraAuthError for authentication failures
     func authenticateWithCertificate(tenantId: String, clientId: String) async throws -> String {
         
 //        Logger.log("authenticateWithCertificate():", logType: logType)
@@ -187,7 +212,13 @@ class EntraAuthenticator {
     }
     
     
-    // Helper function to create client assertion
+    /// Creates a JWT client assertion for certificate-based authentication
+    /// - Parameters:
+    ///   - clientId: Application (client) ID
+    ///   - tenantId: Azure AD tenant identifier
+    ///   - privateKey: Private key for signing the JWT
+    ///   - thumbprint: Certificate thumbprint for x5t header claim
+    /// - Returns: Signed JWT assertion string
     func createClientAssertion(clientId: String, tenantId: String, privateKey: SecKey, thumbprint: String) -> String {
         // Create JWT header
         let header = [
@@ -261,7 +292,13 @@ class EntraAuthenticator {
     }
     
     
-    // Function to request Microsoft Graph token
+    /// Requests an access token from Microsoft using the JWT client assertion
+    /// - Parameters:
+    ///   - clientId: Application (client) ID
+    ///   - tenantId: Azure AD tenant identifier
+    ///   - assertion: Signed JWT client assertion
+    /// - Returns: Access token for Microsoft Graph API
+    /// - Throws: EntraAuthError for request failures
     func requestMicrosoftGraphToken(clientId: String, tenantId: String, assertion: String) async throws -> String {
         // Create URL for token request
         let tokenUrl = URL(string: "https://login.microsoftonline.com/\(tenantId)/oauth2/v2.0/token")!
@@ -315,7 +352,11 @@ class EntraAuthenticator {
         }
     }
     
-// MARK: - Validate Credentials
+    // MARK: - Validate Credentials
+    
+    /// Validates that the configured credentials can successfully authenticate and have required permissions
+    /// - Returns: True if credentials are valid and have DeviceManagementApps.ReadWrite.All permission
+    /// - Throws: Various errors for validation failures
     func ValidateCredentials() async throws -> Bool {
         do {
             // Step 1: Authenticate and get the token
@@ -341,6 +382,9 @@ class EntraAuthenticator {
         }
     }
     
+    /// Tests the access token by making a request to Microsoft Graph API
+    /// - Parameter authToken: Access token to validate
+    /// - Throws: NSError if the token is invalid or API request fails
     private func validateGraphApiToken(authToken: String) async throws {
         let url = URL(string: "https://graph.microsoft.com/v1.0/deviceAppManagement/mobileApps")!
         var request = URLRequest(url: url)
@@ -358,6 +402,10 @@ class EntraAuthenticator {
     }
 
     
+    /// Decodes a JWT token to extract claims without signature verification
+    /// - Parameter token: JWT token string
+    /// - Returns: Dictionary containing JWT payload claims
+    /// - Throws: NSError for JWT parsing failures
     private func decodeJWT(_ token: String) throws -> [String: Any] {
         // Split the token into its parts (header, payload, signature)
         let parts = token.split(separator: ".")
@@ -388,6 +436,9 @@ class EntraAuthenticator {
 }
 
 extension String {
+    /// Converts a hexadecimal string to Base64URL-safe encoding
+    /// Used for converting certificate thumbprints to the x5t JWT header format
+    /// - Returns: Base64URL-encoded string
     func fromBase16ToBase64URLSafe() -> String {
         // Convert from hex string to data
         var data = Data()
