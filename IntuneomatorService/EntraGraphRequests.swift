@@ -8,9 +8,14 @@
 import Foundation
 import CommonCrypto
 
+/// Handles Microsoft Graph API requests for Intune mobile app management
+/// Provides methods for fetching app categories, assignment filters, managing app assignments, and app operations
 class EntraGraphRequests {
     
+    /// Log type identifier for logging operations
+    private static let logType = "EntraGraphRequests"
     
+    /// Custom error types for Microsoft Graph API operations
     enum GraphAPIError: Error {
         case invalidURL
         case requestFailed(Error)
@@ -24,7 +29,10 @@ class EntraGraphRequests {
     // MARK: - Fetch Mobile App Categories
     // https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappcategory-list?view=graph-rest-1.0&tabs=http
     
-    /// Fetches all mobile apps categories from Microsoft Graph.
+    /// Fetches all mobile app categories from Microsoft Graph API
+    /// - Parameter authToken: Valid access token for Microsoft Graph API
+    /// - Returns: Array of dictionaries containing category ID and display name, sorted alphabetically
+    /// - Throws: NSError for API failures or invalid response format
     static func fetchMobileAppCategories(authToken: String) async throws -> [[String: Any]] {
         let url = URL(string: "https://graph.microsoft.com/v1.0/deviceAppManagement/mobileAppCategories?$select=id,displayName")!
         
@@ -52,7 +60,10 @@ class EntraGraphRequests {
     // MARK: - Fetch device filters from Graph
     //https://learn.microsoft.com/en-us/graph/api/intune-policyset-deviceandappmanagementassignmentfilter-list?view=graph-rest-beta
     
-    /// Fetches all assignment filters from Microsoft Graph.
+    /// Fetches macOS assignment filters from Microsoft Graph API
+    /// - Parameter authToken: Valid access token for Microsoft Graph API
+    /// - Returns: Array of dictionaries containing filter ID, display name, and description
+    /// - Throws: GraphAPIError for decoding failures or invalid URL
     static func fetchMacAssignmentFiltersAsDictionaries(authToken: String) async throws -> [[String: Any]] {
         let urlString = "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters?$filter=platform eq 'macOS'&$select=id,displayName,description"
         guard let url = URL(string: urlString) else {
@@ -103,6 +114,13 @@ class EntraGraphRequests {
     
     
     // MARK: - Find Apps By Tracking ID
+    
+    /// Searches for macOS apps in Intune by tracking ID in the notes field
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - trackingID: Unique tracking identifier to search for in app notes
+    /// - Returns: Array of filtered app information matching the tracking ID
+    /// - Throws: GraphAPIError for various request and processing failures
     static func findAppsByTrackingID(authToken: String, trackingID: String) async throws -> [FilteredIntuneAppInfo] {
         // Format the URL with proper encoding for the filter parameter
         let baseURL = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps"
@@ -216,6 +234,15 @@ class EntraGraphRequests {
     
     
     // MARK: - Assign Groups to App
+    
+    /// Assigns Azure AD groups to an Intune mobile app with specified settings
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - appId: Unique identifier of the mobile app in Intune
+    ///   - appAssignments: Array of assignment configurations including groups, assignment types, and filters
+    ///   - appType: Type of the mobile app (e.g., macOSLobApp, macOSPkgApp)
+    ///   - installAsManaged: Whether to install the app as managed with uninstall on device removal
+    /// - Throws: GraphAPIError for encoding, API, or response failures
     static func assignGroupsToApp(authToken: String, appId: String, appAssignments: [[String: Any]], appType: String, installAsManaged: Bool) async throws {
         
         // Format the URL for the assignment endpoint
@@ -330,10 +357,14 @@ class EntraGraphRequests {
     }
     
     
+    /// Checks if the specified app type supports assignment filters
+    /// - Parameter appType: The mobile app type to check
+    /// - Returns: True if assignment filters are supported for this app type
     private static func appTypeSupportsAssignmentFilters(_ appType: String) -> Bool {
         return assignmentFilterSupportedAppTypes.contains(appType)
     }
     
+    /// Set of app types that support assignment filters in Microsoft Intune
     private static let assignmentFilterSupportedAppTypes: Set<String> = [
         "macOSLobApp" // Currently supported
         // If Microsoft adds support later:
@@ -341,6 +372,11 @@ class EntraGraphRequests {
         // "macOSDmgApp"
     ]
     
+    /// Applies assignment filter to a target object if filter is available and supported
+    /// - Parameters:
+    ///   - target: Target assignment object to modify
+    ///   - assignment: Assignment configuration containing filter information
+    ///   - appType: Type of mobile app to check filter support
     private static func applyFilterIfAvailable(to target: inout [String: Any], from assignment: [String: Any], appType: String) {
         if let filter = assignment["filter"] as? [String: Any],
            let filterId = filter["id"] as? String,
@@ -360,6 +396,12 @@ class EntraGraphRequests {
     
     
     // MARK: - Intune Remove All Groups assignments from an app
+    
+    /// Removes all group assignments from an Intune mobile app
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - appId: Unique identifier of the mobile app in Intune
+    /// - Throws: GraphAPIError for API failures or invalid responses
     static func removeAllAppAssignments(authToken: String, appId: String) async throws {
         // 1. Get current assignments
         let assignmentsURL = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appId)/assignments"
@@ -411,6 +453,13 @@ class EntraGraphRequests {
     
 
     // MARK: - Intune Update App Scripts
+    
+    /// Updates pre-install and post-install scripts for a macOS PKG app in Intune
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - app: Processed app results containing script content
+    ///   - appId: Unique identifier of the mobile app in Intune
+    /// - Throws: GraphAPIError for API failures, NSError for unsupported deployment types
     static func updateAppIntuneScripts(authToken: String, app: ProcessedAppResults!, appId: String) async throws {
         
         // GET Intune info for displayName and data.type
@@ -483,6 +532,12 @@ class EntraGraphRequests {
     }
 
     // MARK: - Intune Delete App Function
+    
+    /// Deletes a mobile app from Intune after removing all assignments
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - appId: Unique identifier of the mobile app to delete
+    /// - Throws: GraphAPIError for API failures or invalid responses
     static func deleteIntuneApp(authToken: String, appId: String) async throws {
         // First, get and remove all assignments
         try await removeAllAppAssignments(authToken: authToken, appId: appId)
@@ -513,8 +568,10 @@ class EntraGraphRequests {
 }
 
 
-// Helper extension for SHA-256 hashing
+/// Helper extension for SHA-256 hashing operations
 extension Data {
+    /// Computes SHA-256 hash of the data
+    /// - Returns: SHA-256 hash as Data, or nil if hashing fails
     func sha256() -> Data? {
         var hash = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
         self.withUnsafeBytes { buffer in
