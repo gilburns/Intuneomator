@@ -8,10 +8,16 @@
 import Foundation
 import CommonCrypto
 
+/// Manages secure storage and retrieval of certificates and secrets in the macOS keychain
+/// Handles P12 certificate import, private key access, and Entra ID secret management
 class KeychainManager {
     
+    /// Log type identifier for logging operations
     static private let logType = "KeychainManager"
     
+    /// Stores a secret key in the keychain (legacy method)
+    /// - Parameter secretKey: The secret key string to store
+    /// - Returns: True if storage was successful, false otherwise
     static func storeSecretKey(secretKey: String) -> Bool {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -26,6 +32,8 @@ class KeychainManager {
         return status == errSecSuccess
     }
 
+    /// Retrieves a secret key from the keychain (legacy method)
+    /// - Returns: The secret key string if found, nil otherwise
     static func retrieveSecretKey() -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -42,6 +50,10 @@ class KeychainManager {
     }
     
     // MARK: - Store and Retrieve Entra Secret Key
+    
+    /// Stores an Entra ID client secret in the system keychain with import date tracking
+    /// - Parameter secretKey: The Entra ID client secret to store
+    /// - Returns: True if storage was successful, false otherwise
     static func storeEntraIDSecretKeyInKeychain(secretKey: String) -> Bool {
         let keyLabel = "com.intuneomator.entrasecret"
         let secretData = secretKey.data(using: .utf8)!
@@ -81,6 +93,8 @@ class KeychainManager {
     }
 
 
+    /// Retrieves the stored Entra ID client secret from the keychain
+    /// - Returns: The Entra ID client secret if found, nil otherwise
     static func retrieveEntraIDSecretKey() -> String? {
         let keyLabel = "com.intuneomator.entrasecret"
         
@@ -106,6 +120,9 @@ class KeychainManager {
 
     
     // MARK: - Check if Entra ID Secret Key Exists
+    
+    /// Checks if an Entra ID secret key exists in the keychain without retrieving it
+    /// - Returns: True if the secret key exists, false otherwise
     static func entraIDSecretKeyExists() -> Bool {
         let keyLabel = "com.intuneomator.entrasecret"
         
@@ -121,15 +138,23 @@ class KeychainManager {
         return status == errSecSuccess
     }
     
-     static func entraIDSecretKeyExistsWithLogging() -> Bool {
-         let exists = entraIDSecretKeyExists()
-         Logger.log("Entra ID secret key exists: \(exists)", logType: logType)
-         return exists
-     }
+    /// Checks if an Entra ID secret key exists in the keychain with logging
+    /// - Returns: True if the secret key exists, false otherwise
+    static func entraIDSecretKeyExistsWithLogging() -> Bool {
+        let exists = entraIDSecretKeyExists()
+        Logger.log("Entra ID secret key exists: \(exists)", logType: logType)
+        return exists
+    }
 
     
     // MARK: - Import p12 via Security
-
+    
+    /// Imports a P12 certificate file into the system keychain
+    /// Extracts certificate information and stores it in the configuration plist
+    /// - Parameters:
+    ///   - p12Data: The P12 certificate file data
+    ///   - passphrase: The passphrase to decrypt the P12 file
+    /// - Returns: True if import was successful, false otherwise
     static func importP12CertificateToKeychain(p12Data: Data, passphrase: String) -> Bool {
         // First extract certificate info from the p12 before importing to keychain
         let importParams: [String: Any] = [kSecImportExportPassphrase as String: passphrase]
@@ -218,6 +243,10 @@ class KeychainManager {
     }
 
     // MARK: - Get Private Key Info
+    
+    /// Retrieves the private key from the keychain that matches the stored certificate info
+    /// Uses subject name and thumbprint to identify the correct certificate
+    /// - Returns: The private key if found and matching, nil otherwise
     static func getPrivateKeyFromKeychain() -> SecKey? {
         // Load saved certificate info from plist
         let certificateManager = CertificateManager()
@@ -288,6 +317,9 @@ class KeychainManager {
 
     
     // MARK: - Check if Matching Private Key Exists
+    
+    /// Checks if a private key exists in the keychain that matches the stored certificate info
+    /// - Returns: True if a matching private key exists, false otherwise
     static func privateKeyExists() -> Bool {
         let certificateManager = CertificateManager()
         guard let certInfo = certificateManager.loadCertificateInfoFromPlist(),
@@ -332,6 +364,8 @@ class KeychainManager {
     }
     
     
+    /// Checks if a private key exists in the keychain with logging
+    /// - Returns: True if a matching private key exists, false otherwise
     static func privateKeyExistsWithLogging() -> Bool {
         let exists = privateKeyExists()
         Logger.log("Private key exists: \(exists)", logType: logType)
@@ -341,6 +375,10 @@ class KeychainManager {
     
     
     // MARK: - Run Security Command
+    
+    /// Executes the macOS security command-line tool with specified arguments
+    /// - Parameter args: Array of arguments to pass to the security command
+    /// - Returns: Tuple containing success status and command output
     static func runSecurityCommand(args: [String]) -> (success: Bool, output: String) {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/security")
