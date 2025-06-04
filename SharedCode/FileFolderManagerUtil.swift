@@ -7,6 +7,8 @@
 
 import Foundation
 
+/// Utility class for managing file and folder operations including permissions and ownership
+/// Provides methods for creating directories, modifying permissions, and changing ownership
 class FileFolderManagerUtil {
     
     /// Creates a folder with specified permissions (default: 755)
@@ -23,7 +25,8 @@ class FileFolderManagerUtil {
         }
     }
 
-    /// Retrieves and prints the current permissions of a folder or file
+    /// Retrieves and prints the current POSIX permissions of a folder or file in octal format
+    /// - Parameter path: The file system path to check permissions for
     static func getPermissions(of path: String) {
         let fileManager = FileManager.default
         do {
@@ -37,7 +40,11 @@ class FileFolderManagerUtil {
         }
     }
     
-    /// Changes permissions for a file or folder
+    /// Changes POSIX permissions for a file or folder
+    /// - Parameters:
+    ///   - path: The file system path to modify
+    ///   - newPermissions: New permissions in octal format (e.g., 0o755)
+    /// - Returns: True if permissions were changed successfully, false otherwise
     static func changePermissions(
         at path: String,
         to newPermissions: Int
@@ -55,7 +62,15 @@ class FileFolderManagerUtil {
         }
     }
 
-    /// Recursively changes permissions for a folder and its contents, with filtering options
+    /// Recursively changes permissions for a folder and its contents with advanced filtering
+    /// Directories always get 755 permissions to maintain accessibility
+    /// - Parameters:
+    ///   - path: The root folder path to process recursively
+    ///   - newPermissions: New permissions in octal format for files
+    ///   - allowedExtensions: Optional array of file extensions to process (nil = all files)
+    ///   - excludeHiddenFiles: Whether to skip files starting with dot (.)
+    ///   - skipDirectories: Whether to skip processing directories
+    /// - Returns: True if operation completed successfully, false otherwise
     static func changePermissionsRecursively(
         at path: String,
         to newPermissions: Int,
@@ -98,7 +113,12 @@ class FileFolderManagerUtil {
         }
     }
     
-    /// Changes the owner and group of a folder or file
+    /// Changes the owner and group of a folder or file using the chown command
+    /// - Parameters:
+    ///   - path: The file system path to modify ownership for
+    ///   - owner: The new owner username
+    ///   - group: The new group name
+    /// - Returns: True if ownership was changed successfully, false otherwise
     static func changeOwnerAndGroup(at path: String, owner: String, group: String) -> Bool {
         let process = Process()
         process.launchPath = "/usr/sbin/chown"
@@ -127,6 +147,12 @@ class FileFolderManagerUtil {
     }
     
     /// Recursively changes owner and group for all files and directories inside a folder
+    /// Uses the chown -R command for efficient recursive ownership changes
+    /// - Parameters:
+    ///   - path: The root folder path to process recursively
+    ///   - owner: The new owner username
+    ///   - group: The new group name
+    /// - Returns: True if recursive ownership change completed successfully, false otherwise
     static func changeOwnerAndGroupRecursively(at path: String, owner: String, group: String) -> Bool {
         let process = Process()
         process.launchPath = "/usr/sbin/chown"
