@@ -12,8 +12,7 @@ struct AppConstants {
     static let currentPid: Int32 = ProcessInfo.processInfo.processIdentifier
     static let randomGUID = UUID().uuidString
 
-    static let intuneomatorFolderURL = URL(fileURLWithPath: "/Library")
-        .appendingPathComponent("Application Support")
+    static let intuneomatorFolderURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .localDomainMask).first!
         .appendingPathComponent("Intuneomator")
     
     static let intuneomatorCacheFolderURL = intuneomatorFolderURL
@@ -22,12 +21,10 @@ struct AppConstants {
     static let installomatorFolderURL = intuneomatorFolderURL
         .appendingPathComponent("Installomator")
 
-    static let installomatorLabelsFolderURL = intuneomatorFolderURL
-        .appendingPathComponent("Installomator")
+    static let installomatorLabelsFolderURL = installomatorFolderURL
         .appendingPathComponent("Labels")
 
-    static let installomatorCustomLabelsFolderURL = intuneomatorFolderURL
-        .appendingPathComponent("Installomator")
+    static let installomatorCustomLabelsFolderURL = installomatorFolderURL
         .appendingPathComponent("Custom")
 
     static let intuneomatorManagedTitlesFolderURL = intuneomatorFolderURL
@@ -39,19 +36,17 @@ struct AppConstants {
     static let intuneomatorServiceFileURL = intuneomatorFolderURL
         .appendingPathComponent("IntuneomatorService.plist")
 
-    static let installomatorVersionFileURL = intuneomatorFolderURL
-        .appendingPathComponent("Installomator")
+    static let installomatorVersionFileURL = installomatorFolderURL
         .appendingPathComponent("Version.txt")
     
     static let intuneomatorTempFolderURL = FileManager.default.temporaryDirectory
         .appendingPathComponent("Intuneomator_\(currentPid)_\((randomGUID)[(randomGUID).startIndex..<(randomGUID).index((randomGUID).startIndex, offsetBy: 8)])")
     
-    static let intuneomatorLogSystemURL = URL(fileURLWithPath: "/Library")
+    static let intuneomatorLogSystemURL = FileManager.default.urls(for: .libraryDirectory, in: .localDomainMask).first!
         .appendingPathComponent("Logs")
         .appendingPathComponent("Intuneomator")
 
-    static let intuneomatorLogApplicationURL = FileManager.default.homeDirectoryForCurrentUser
-        .appendingPathComponent("Library")
+    static let intuneomatorLogApplicationURL = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first!
         .appendingPathComponent("Logs")
         .appendingPathComponent("Intuneomator")
 
