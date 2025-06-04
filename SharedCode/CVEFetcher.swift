@@ -7,20 +7,41 @@
 
 import Foundation
 
+/// Fetches Common Vulnerabilities and Exposures (CVE) data from the NIST National Vulnerability Database
+/// Supports multiple search methods including CPE-based searches, keyword searches, and multi-CPE lookups
 class CVEFetcher {
+    /// URL session for making network requests
     private let session: URLSession
+    
+    /// Base URL for the NIST CVE API
     private let baseURL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+    
+    /// Base URL for the NIST CPE API
     private let cpeBaseURL = "https://services.nvd.nist.gov/rest/json/cpes/2.0"
+    
+    /// Optional API key for enhanced rate limits
     private let apiKey: String?
     
+    /// Log type identifier for logging operations
     let logType = "CVE"
     
+    /// Initializes a CVE fetcher with optional API key for enhanced rate limits
+    /// - Parameters:
+    ///   - session: URL session to use for requests (defaults to shared session)
+    ///   - apiKey: Optional NIST API key for higher rate limits
     init(session: URLSession = .shared, apiKey: String? = nil) {
         self.session = session
         self.apiKey = apiKey
     }
     
-    /// Main method to fetch CVEs
+    /// Main method to fetch CVEs using various search strategies
+    /// - Parameters:
+    ///   - product: Product name to search for
+    ///   - version: Optional specific version to search for
+    ///   - filter: Search filter strategy (application, OS, keyword, or multi-CPE)
+    ///   - daysBack: Number of days back to search (default 60)
+    ///   - maxResults: Maximum number of results to return (default 5)
+    ///   - completion: Callback with array of vulnerability entries or error
     func fetchCVEs(
         product: String,
         version: String? = nil,
@@ -99,7 +120,13 @@ class CVEFetcher {
         task.resume()
     }
     
-    /// Search for multiple CPEs and fetch CVEs for all of them
+    /// Searches for multiple Common Platform Enumeration (CPE) identifiers and fetches CVEs for all matches
+    /// This provides more comprehensive vulnerability coverage than single CPE searches
+    /// - Parameters:
+    ///   - applicationName: Name of the application to search CPEs for
+    ///   - daysBack: Number of days back to search for vulnerabilities
+    ///   - maxResults: Maximum number of results to return
+    ///   - completion: Callback with consolidated vulnerability results
     private func searchMultipleCPEsAndFetchCVEs(
         applicationName: String,
         daysBack: Int?,
@@ -132,7 +159,11 @@ class CVEFetcher {
         }
     }
     
-    /// Search CPE dictionary for multiple relevant CPEs
+    /// Searches the NIST CPE dictionary for multiple relevant CPE identifiers
+    /// Returns up to 3 CPEs: a wildcard version and 2 most recent specific versions
+    /// - Parameters:
+    ///   - applicationName: Name of the application to find CPEs for
+    ///   - completion: Callback with array of CPE identifier strings
     func searchMultipleCPEs(
         for applicationName: String,
         completion: @escaping (Result<[String], Error>) -> Void
@@ -235,7 +266,13 @@ class CVEFetcher {
         task.resume()
     }
     
-    /// Fetch CVEs for multiple CPE names and deduplicate
+    /// Fetches CVEs for multiple CPE identifiers concurrently and deduplicates results
+    /// Uses rate limiting to avoid overwhelming the NIST API
+    /// - Parameters:
+    ///   - cpeNames: Array of CPE identifier strings to search
+    ///   - daysBack: Number of days back to search for vulnerabilities
+    ///   - maxResults: Maximum number of final results to return
+    ///   - completion: Callback with deduplicated vulnerability results
     private func fetchCVEsForMultipleCPEs(
         _ cpeNames: [String],
         daysBack: Int?,
@@ -312,7 +349,12 @@ class CVEFetcher {
         }
     }
     
-    /// Fetch CVEs for a specific CPE name directly
+    /// Fetches CVEs for a single specific CPE identifier
+    /// - Parameters:
+    ///   - cpeName: Specific CPE identifier string to search
+    ///   - daysBack: Number of days back to search for vulnerabilities
+    ///   - maxResults: Maximum number of results to return
+    ///   - completion: Callback with vulnerability results for this CPE
     private func fetchCVEsForSpecificCPE(
         cpeName: String,
         daysBack: Int?,
@@ -365,7 +407,9 @@ class CVEFetcher {
         task.resume()
     }
     
-    /// Deduplicate CVEs by ID, keeping the most recently published
+    /// Removes duplicate CVE entries by ID, keeping the most recently published version
+    /// - Parameter cves: Array of vulnerability entries that may contain duplicates
+    /// - Returns: Array of unique vulnerability entries
     private func deduplicateCVEs(_ cves: [VulnerabilityEntry]) -> [VulnerabilityEntry] {
         var uniqueCVEs: [String: VulnerabilityEntry] = [:]
         
@@ -393,7 +437,12 @@ class CVEFetcher {
         return Array(uniqueCVEs.values)
     }
     
-    /// Handle CVE API response (shared by all fetch methods)
+    /// Processes API responses from NIST CVE endpoints with error handling
+    /// - Parameters:
+    ///   - data: Response data from the API
+    ///   - response: HTTP response object
+    ///   - error: Network error if any occurred
+    ///   - completion: Callback with parsed vulnerability results or error
     private func handleCVEResponse(
         data: Data?,
         response: URLResponse?,
@@ -433,6 +482,8 @@ class CVEFetcher {
         }
     }
     
+    /// Handles and logs CVE fetcher errors with descriptive messages
+    /// - Parameter error: The CVE fetcher error to handle
     func handleError(_ error: CVEFetcherError) {
         switch error {
         case .invalidURL:
@@ -450,7 +501,13 @@ class CVEFetcher {
         }
     }
     
-    /// Main convenience method
+    /// Convenience method for fetching CVEs for an application using multi-CPE search
+    /// This is the recommended method for comprehensive vulnerability discovery
+    /// - Parameters:
+    ///   - applicationName: Name of the application to search vulnerabilities for
+    ///   - daysBack: Number of days back to search (default 90)
+    ///   - maxResults: Maximum number of results to return (default 5)
+    ///   - completion: Callback with vulnerability results
     func fetchCVEsForApplication(
         _ applicationName: String,
         daysBack: Int? = 90,
@@ -467,7 +524,12 @@ class CVEFetcher {
         )
     }
     
-    /// Simple method - keyword search
+    /// Simple keyword-based CVE search (faster but less comprehensive than CPE search)
+    /// - Parameters:
+    ///   - applicationName: Name of the application to search for
+    ///   - daysBack: Number of days back to search (default 60)
+    ///   - maxResults: Maximum number of results to return (default 5)
+    ///   - completion: Callback with vulnerability results
     func fetchCVEsSimple(
         for applicationName: String,
         daysBack: Int? = 60,
@@ -486,7 +548,10 @@ class CVEFetcher {
         )
     }
     
-    /// Quick method for checking recent CVEs
+    /// Quick check for recent CVEs in the last 30 days (limited to 3 results)
+    /// - Parameters:
+    ///   - applicationName: Name of the application to check
+    ///   - completion: Callback with recent vulnerability results
     func checkRecentCVEs(
         for applicationName: String,
         completion: @escaping (Result<[VulnerabilityEntry], Error>) -> Void
