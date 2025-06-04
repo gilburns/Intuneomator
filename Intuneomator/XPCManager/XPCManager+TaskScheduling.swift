@@ -1,5 +1,5 @@
 //
-//  XPCManager+ScheduledTasks.swift.swift
+//  XPCManager+TaskScheduling.swift
 //  Intuneomator
 //
 //  Created by Gil Burns on 5/4/25.
@@ -7,7 +7,17 @@
 
 import Foundation
 
+/// XPCManager extension for Launch Daemon task scheduling operations
+/// Provides GUI access to create, modify, and remove scheduled automation tasks
+/// All scheduling operations create Launch Daemon plists for system-level execution
 extension XPCManager {
+    /// Creates or updates a scheduled Launch Daemon task with specified timing
+    /// Encodes schedule data and delegates to the privileged service for plist creation
+    /// - Parameters:
+    ///   - label: Unique identifier for the scheduled task
+    ///   - argument: Command line argument to pass to the task
+    ///   - schedules: Array of ScheduledTime objects defining when task runs
+    ///   - completion: Callback with success status and optional error message
     func createOrUpdateScheduledTask(
         label: String,
         argument: String,
@@ -50,6 +60,11 @@ extension XPCManager {
         )        
     }
     
+    /// Removes a scheduled Launch Daemon task and unloads it from the system
+    /// Delegates to the privileged service for secure daemon management
+    /// - Parameters:
+    ///   - label: Unique identifier of the task to remove
+    ///   - completion: Callback with success status and optional error message
     func removeScheduledTask(
         label: String,
         completion: @escaping (Bool, String?) -> Void
@@ -67,6 +82,10 @@ extension XPCManager {
         )
     }
     
+    /// Encodes ScheduledTime objects for secure XPC transmission
+    /// Uses NSKeyedArchiver with secure coding for safe data serialization
+    /// - Parameter schedules: Array of ScheduledTime objects to encode
+    /// - Returns: Encoded data suitable for XPC transmission or nil on failure
     func encodeScheduledTimes(_ schedules: [ScheduledTime]) -> Data? {
         do {
             return try NSKeyedArchiver.archivedData(withRootObject: schedules, requiringSecureCoding: true)
