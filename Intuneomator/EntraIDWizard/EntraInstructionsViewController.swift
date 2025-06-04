@@ -10,32 +10,52 @@ import Cocoa
 import Ink
 import PDFKit
 
-
+/// Wizard step for displaying Entra ID app registration instructions
+/// Renders markdown-based setup documentation in a web view with syntax highlighting
+/// Provides printing and PDF export capabilities for offline reference
+/// Implements WizardStepProtocol for integration with the multi-step wizard flow
 class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
+    // MARK: - WizardStepProtocol Properties
+    
+    /// Callback closure for notifying wizard of completion status changes
     var onCompletionStatusChanged: ((Bool) -> Void)?
-    var isStepCompleted: Bool { return true } // ✅ Read-only, so always complete
+    
+    /// Indicates if this step has been completed (always true for instructional step)
+    var isStepCompleted: Bool { return true } // Read-only step, so always complete
 
+    /// Log type identifier for logging operations
     private let logType = "Settings"
 
+    // MARK: - Interface Builder Outlets
+    
+    /// Web view for displaying markdown-rendered instructions with syntax highlighting
     @IBOutlet weak var webView: WKWebView!
 
     
+    /// Called after the view controller's view is loaded into memory
+    /// Configures web view navigation and loads markdown instructions
     override func viewDidLoad() {
         super.viewDidLoad()
         webView.navigationDelegate = self
         loadMarkdownInstructions()
-
     }
 
+    /// Factory method for creating an instance from the Wizard storyboard
+    /// Provides type-safe instantiation from storyboard with proper identifier
+    /// - Returns: Configured EntraInstructionsViewController instance
     static func create() -> EntraInstructionsViewController {
         let storyboard = NSStoryboard(name: "Wizard", bundle: nil)
         return storyboard.instantiateController(withIdentifier: "EntraInstructionsViewController") as! EntraInstructionsViewController
     }
     
     
-    // MARK: - Markdown Loading
+    // MARK: - Markdown Content Loading
+    
+    /// Loads and displays the Entra ID setup instructions from bundled markdown file
+    /// Converts markdown to styled HTML and loads it in the web view
     func loadMarkdownInstructions() {
         guard let filePath = Bundle.main.path(forResource: "entra-app-setup", ofType: "md") else {
+            Logger.logUser("Markdown file not found in bundle", logType: logType)
             return
         }
 
@@ -48,11 +68,15 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
         }
     }
 
+    /// Converts markdown content to styled HTML with syntax highlighting
+    /// Applies professional styling and includes external libraries for code highlighting
+    /// - Parameter markdown: Raw markdown string content
+    /// - Returns: Complete HTML document with embedded CSS and JavaScript
     func convertMarkdownToHTML(_ markdown: String) -> String {
         let parser = MarkdownParser()
         let htmlBody = parser.html(from: markdown)
 
-        // ✅ Inject CSS + JavaScript for Syntax Highlighting
+        // Create styled HTML with syntax highlighting and Apple system fonts
         let styledHTML = """
         <html>
         <head>
@@ -75,8 +99,11 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
     }
     
     
-    // MARK: - Printing
-
+    // MARK: - Printing Operations
+    
+    /// Handles print button action to generate and print instructions
+    /// Creates PDF from web view content and sends to system print dialog
+    /// - Parameter sender: The print button that triggered the action
     @IBAction func printInstructionsClicked(_ sender: NSButton) {
         webView.createPDF { [self] result in
             switch result {
@@ -88,16 +115,21 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
         }
     }
     
+    /// Configures and executes print operation for PDF data
+    /// Sets up proper page formatting and displays system print dialog
+    /// - Parameter pdfData: PDF data generated from web view content
     func printPDFData(_ pdfData: Data) {
         guard let pdfDocument = PDFDocument(data: pdfData) else {
             Logger.logUser("Error: Failed to create PDF document from data", logType: logType)
             return
         }
 
-        let pdfView = PDFView(frame: NSRect(x: 0, y: 0, width: 612, height: 792)) // Standard Letter size
+        // Create PDF view with standard Letter size dimensions
+        let pdfView = PDFView(frame: NSRect(x: 0, y: 0, width: 612, height: 792))
         pdfView.document = pdfDocument
-        pdfView.autoScales = true  // ✅ Ensures proper scaling and full content display
+        pdfView.autoScales = true  // Ensures proper scaling and full content display
 
+        // Configure print settings with appropriate margins and pagination
         let printInfo = NSPrintInfo.shared
         printInfo.horizontalPagination = .automatic
         printInfo.verticalPagination = .automatic
@@ -108,6 +140,7 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
         printInfo.leftMargin = 10
         printInfo.rightMargin = 10
 
+        // Execute print operation with user interaction
         let printOperation = NSPrintOperation(view: pdfView, printInfo: printInfo)
         printOperation.showsPrintPanel = true
         printOperation.showsProgressPanel = true
@@ -116,8 +149,11 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
     
     
     
-    // MARK: - Saving as PDF
-
+    // MARK: - PDF Export Operations
+    
+    /// Handles save button action to export instructions as PDF file
+    /// Displays save dialog and exports web view content to user-selected location
+    /// - Parameter sender: The save button that triggered the action
     @IBAction func saveInstructionsClicked(_ sender: NSButton) {
         let savePanel = NSSavePanel()
         savePanel.allowedContentTypes = [.pdf]
@@ -130,6 +166,9 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
         }
     }
         
+    /// Exports web view content to PDF file at specified URL
+    /// Requires macOS 12.0 or later for WKWebView PDF creation capabilities
+    /// - Parameter url: Destination URL for the exported PDF file
     func exportWebViewToPDF(to url: URL) {
         if #available(macOS 12.0, *) {
             webView.createPDF { [self] result in
@@ -150,15 +189,56 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
         }
     }
     
+    
+    // MARK: - WizardStepProtocol Implementation
+    
+    /// Determines if the user can proceed from this wizard step
+    /// Instructions step has no validation requirements, so always returns true
+    /// - Returns: Always true as instructions require no user input or validation
+    func canProceed() -> Bool {
+        return true
+    }
+    
+    /// Validates the current wizard step before proceeding
+    /// Instructions step has no validation requirements, so always returns true
+    /// - Returns: Always true as instructions have no validation logic
+    func validateStep() -> Bool {
+        return true
+    }
+    
+    /// Provides the title for this wizard step for UI display
+    /// Used by the wizard controller for step navigation and progress indication
+    /// - Returns: Localized title string for the Entra ID setup instructions step
+    func getStepTitle() -> String {
+        return "Entra ID Setup"
+    }
+    
+    /// Provides a description of this wizard step for UI display
+    /// Used by the wizard controller for step information and progress indication
+    /// - Returns: Localized description string explaining the instructions step purpose
+    func getStepDescription() -> String {
+        return "App registration instructions"
+    }
 }
 
+// MARK: - WKNavigationDelegate Extension
+
+/// Extension implementing WKNavigationDelegate for handling web view navigation
+/// Ensures external links open in system browser while allowing internal HTML navigation
 extension EntraInstructionsViewController: WKNavigationDelegate {
+    
+    /// Handles navigation policy decisions for web view requests
+    /// Opens external links in system browser while allowing internal content
+    /// - Parameters:
+    ///   - webView: The web view requesting navigation policy
+    ///   - navigationAction: Details about the requested navigation
+    ///   - decisionHandler: Completion handler with policy decision
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if let url = navigationAction.request.url, navigationAction.navigationType == .linkActivated {
-            NSWorkspace.shared.open(url) // ✅ Open in the external browser
-            decisionHandler(.cancel) // ✅ Prevent loading in WKWebView
+            NSWorkspace.shared.open(url) // Open external links in system browser
+            decisionHandler(.cancel) // Prevent loading in WKWebView
             return
         }
-        decisionHandler(.allow) // ✅ Allow other navigation (e.g., internal HTML)
+        decisionHandler(.allow) // Allow other navigation (internal HTML content)
     }
 }
