@@ -7,12 +7,21 @@
 
 import Foundation
 
+/// Monitors and processes on-demand automation tasks triggered by file creation
+/// Watches for .trigger files in the queue directory and processes corresponding managed title folders
 class OnDemandTaskRunner {
+    /// Time to wait between queue checks when no tasks are found
     static let idleWaitTime: TimeInterval = 5.0
+    
+    /// Maximum number of idle iterations before terminating (25 seconds total)
     static let maxIdleIterations = 5 // 5 * 5 = 25 seconds idle
     
+    /// Log type identifier for logging operations
     static let logType = "OnDemandTaskRunner"
 
+    /// Starts the on-demand task runner that monitors for trigger files and processes automation tasks
+    /// Runs continuously until no tasks are found for the maximum idle period
+    /// Processes .trigger files by running LabelAutomation on corresponding managed title folders
     static func start() async {
         let queueDirectory = AppConstants.intuneomatorOndemandTriggerURL
         let managedTitlesDirectory = AppConstants.intuneomatorManagedTitlesFolderURL
