@@ -7,7 +7,14 @@
 
 import Foundation
 
+/// Inspects macOS application bundles to extract metadata from Info.plist files
+/// Provides methods for extracting bundle identifiers, versions, and system requirements
 class AppInspector {
+    
+    /// Inspects an application bundle and extracts essential metadata
+    /// - Parameters:
+    ///   - location: URL path to the .app bundle to inspect
+    ///   - completion: Callback with result containing (bundleID, version, minOSVersion) or error
     func inspect(appAt location: URL, completion: @escaping (Result<(String, String, String), Error>) -> Void) {
         let infoPlistPath = location.appendingPathComponent("Contents/Info.plist")
         
@@ -37,11 +44,11 @@ class AppInspector {
     }
     
     
-    /// Inspects a `.app` file to extract the version for a specific package ID.
+    /// Extracts the version string from an application bundle with bundle ID validation
     /// - Parameters:
-    ///   - forBundleID: Expected ID of the `.app` file to inspect.
-    ///   - inAppAt: URL of the app bundle.
-    ///   - completion: A closure that returns the result containing the version string or an error.
+    ///   - expectedBundleID: Expected bundle identifier to validate against
+    ///   - location: URL path to the .app bundle to inspect
+    ///   - completion: Callback with version string if bundle ID matches, nil if no match, or error
     func getVersion(forBundleID expectedBundleID: String, inAppAt location: URL, completion: @escaping (Result<String?, Error>) -> Void) {
         // Reuse the existing inspect function to get the bundle ID and version
         inspect(appAt: location) { result in
