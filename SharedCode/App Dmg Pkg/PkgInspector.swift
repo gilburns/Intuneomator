@@ -7,11 +7,14 @@
 
 import Foundation
 
+/// Inspects macOS installer packages (.pkg) to extract metadata and bundle information
+/// Supports both distribution packages and component packages with comprehensive bundle analysis
 class PkgInspector {
-    /// Inspects a `.pkg` file to extract all `id` and `version` values from `Distribution` or `PackageInfo`.
+    
+    /// Inspects a package file and extracts all identifier and version pairs from metadata and bundles
     /// - Parameters:
-    ///   - pkgAt: The URL of the `.pkg` file to inspect.
-    ///   - completion: A closure that returns the result containing an array of `(id, version)` or an error.
+    ///   - location: URL path to the .pkg file to inspect
+    ///   - completion: Callback with array of (identifier, version) tuples or error
     func inspect(pkgAt location: URL, completion: @escaping (Result<[(String, String)], Error>) -> Void) {
         let tempDir = location.deletingLastPathComponent()
         let tempExpandedDir = tempDir
@@ -70,7 +73,9 @@ class PkgInspector {
         }
     }
     
-    /// Parses a `Distribution` XML file for `id` and `version`.
+    /// Parses a Distribution XML file to extract package references with IDs and versions
+    /// - Parameter xml: XML content of the Distribution file
+    /// - Returns: Array of (identifier, version) tuples from pkg-ref elements
     private func parseDistributionXML(_ xml: String) -> [(String, String)] {
         var items: [(String, String)] = []
         let regex = try! NSRegularExpression(pattern: #"<pkg-ref.*?id="(.*?)".*?version="(.*?)".*?>"#, options: [])
@@ -87,7 +92,9 @@ class PkgInspector {
         return items
     }
     
-    /// Parses a `PackageInfo` XML file for `id` and `version`.
+    /// Parses a PackageInfo XML file to extract package identifier and version
+    /// - Parameter xml: XML content of the PackageInfo file
+    /// - Returns: Array of (identifier, version) tuples from pkg-info elements
     private func parsePackageInfoXML(_ xml: String) -> [(String, String)] {
         var items: [(String, String)] = []
         let regex = try! NSRegularExpression(pattern: #"<pkg-info.*?identifier="(.*?)".*?version="(.*?)".*?>"#, options: [])
@@ -104,7 +111,9 @@ class PkgInspector {
         return items
     }
     
-    /// Recursively finds all `.app` and `.framework` bundles in a directory.
+    /// Recursively searches for application and framework bundles within a directory
+    /// - Parameter directory: Directory URL to search for bundles
+    /// - Returns: Array of URLs pointing to found .app and .framework bundles
     private func findBundles(in directory: URL) -> [URL] {
         let fileManager = FileManager.default
         var bundleURLs: [URL] = []
@@ -133,7 +142,10 @@ class PkgInspector {
         return bundleURLs
     }
     
-    /// Extracts bundle identifier and version from a bundle's Info.plist.
+    /// Extracts bundle identifier and version from an application or framework bundle
+    /// Handles both .app bundles and .framework bundles with their different Info.plist locations
+    /// - Parameter bundleURL: URL path to the bundle to inspect
+    /// - Returns: Tuple of (bundleIdentifier, version) or nil if extraction fails
     private func extractBundleInfo(from bundleURL: URL) -> (String, String)? {
         let fileManager = FileManager.default
         var infoPlistURL: URL?
@@ -190,11 +202,12 @@ class PkgInspector {
 }
 
 extension PkgInspector {
-    /// Inspects a `.pkg` file to extract the version for a specific package ID.
+    
+    /// Extracts the version for a specific package identifier from a .pkg file
     /// - Parameters:
-    ///   - pkgAt: The URL of the `.pkg` file to inspect.
-    ///   - packageID: The specific package ID to find.
-    ///   - completion: A closure that returns the result containing the version string or an error.
+    ///   - packageID: The specific package identifier to search for
+    ///   - location: URL path to the .pkg file to inspect
+    ///   - completion: Callback with version string if found, nil if not found, or error
     func getVersion(forPackageID packageID: String, inPkgAt location: URL, completion: @escaping (Result<String?, Error>) -> Void) {
         // Reuse the existing inspect function to get all ID/version pairs
         inspect(pkgAt: location) { result in
