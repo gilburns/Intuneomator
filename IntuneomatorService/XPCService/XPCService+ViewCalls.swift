@@ -7,9 +7,16 @@
 
 import Foundation
 
+/// XPCService extension for main application operations and view controller support
+/// Handles GUI application requests for label management, metadata operations, and content processing
+/// All operations are executed asynchronously with appropriate error handling and logging
 extension XPCService {
     
-    // MARK: - Main View Controller
+    // MARK: - Main Application Operations
+    
+    /// Scans and processes all managed Installomator label folders concurrently
+    /// Validates folder structure and executes label processing scripts for each managed title
+    /// - Parameter reply: Callback with overall success status of all label processing operations
     func scanAllManagedLabels(reply: @escaping (Bool) -> Void) {
         Task {
             do {
@@ -50,6 +57,12 @@ extension XPCService {
         }
     }
     
+    /// Updates metadata for a specific managed application label
+    /// Processes folder metadata and synchronizes with Microsoft Graph API
+    /// - Parameters:
+    ///   - labelFolderName: Name of the label folder to process
+    ///   - displayName: Human-readable display name for logging
+    ///   - reply: Callback with success message or nil on failure
     func updateAppMetadata(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void) {
         Task {
             do {
@@ -59,6 +72,12 @@ extension XPCService {
         }
     }
 
+    /// Updates pre/post-install scripts for a specific managed application label
+    /// Processes and uploads custom script content to Microsoft Intune
+    /// - Parameters:
+    ///   - labelFolderName: Name of the label folder to process
+    ///   - displayName: Human-readable display name for logging
+    ///   - reply: Callback with success message or nil on failure
     func updateAppScripts(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void) {
         Task {
             do {
@@ -68,6 +87,12 @@ extension XPCService {
         }
     }
 
+    /// Updates group assignments for a specific managed application label
+    /// Processes assignment configurations and applies them to Microsoft Intune
+    /// - Parameters:
+    ///   - labelFolderName: Name of the label folder to process
+    ///   - displayName: Human-readable display name for logging
+    ///   - reply: Callback with success message or nil on failure
     func updateAppAssignments(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void) {
         Task {
             do {
@@ -77,6 +102,12 @@ extension XPCService {
         }
     }
 
+    /// Removes all automation components from Microsoft Intune for a specific label
+    /// Deletes applications, scripts, and assignments associated with the managed title
+    /// - Parameters:
+    ///   - labelFolderName: Name of the label folder to remove from Intune
+    ///   - displayName: Human-readable display name for logging
+    ///   - reply: Callback with success message or nil on failure
     func deleteAutomationsFromIntune(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void) {
         Task {
             do {
@@ -87,6 +118,12 @@ extension XPCService {
     }
 
     
+    /// Triggers on-demand automation processing for a specific label
+    /// Creates trigger file for the Launch Daemon to process the specified label immediately
+    /// - Parameters:
+    ///   - labelFolderName: Name of the label folder to process
+    ///   - displayName: Human-readable display name for user feedback
+    ///   - reply: Callback with status message indicating queue status or result
     func onDemandLabelAutomation(_ labelFolderName: String, _ displayName: String, reply: @escaping (String?) -> Void) {
         let touchFileURL = AppConstants.intuneomatorOndemandTriggerURL
             .appendingPathComponent("\(labelFolderName).trigger")
@@ -106,6 +143,10 @@ extension XPCService {
     }
     
     
+    /// Verifies existence of managed applications in Microsoft Intune
+    /// Scans all managed label folders and checks if corresponding applications exist in Intune
+    /// Updates .uploaded status files based on current Intune state
+    /// - Parameter reply: Callback with overall success status of verification process
     func checkIntuneForAutomation(reply: @escaping (Bool) -> Void) {
         Task {
             let validFolders = scanAndValidateFolders()
@@ -158,8 +199,14 @@ extension XPCService {
         }
     }
     
-    // MARK: - New Mangeged Software Label
+    // MARK: - Label Content Management
 
+    /// Creates a new managed label folder with initial content and metadata
+    /// Downloads icon, generates metadata, and prepares label for automation processing
+    /// - Parameters:
+    ///   - labelName: Name of the Installomator label to create
+    ///   - source: Source type ("installomator" or "custom")
+    ///   - reply: Callback with new directory path or nil on failure
     func addNewLabelContent(_ labelName: String, _ source: String, reply: @escaping (String?) -> Void) {
         Task {
             let newGUID = UUID().uuidString
@@ -356,6 +403,11 @@ extension XPCService {
         }
     }
     
+    /// Removes a managed label folder and all associated content
+    /// Permanently deletes the label directory and all files within it
+    /// - Parameters:
+    ///   - labelDirectory: Full path to the label directory to remove
+    ///   - reply: Callback with success status of the removal operation
     func removeLabelContent(_ labelDirectory: String, reply: @escaping (Bool) -> Void) {
         let fileManager = FileManager.default
         do {
@@ -368,8 +420,13 @@ extension XPCService {
     }
 
     
-    // MARK: - Metadata about a label from plist
-    // 2. A fetch function that hits the server, decodes the plist, and returns your two strings
+    // MARK: - Label Information Retrieval
+    
+    /// Fetches label metadata from the Intuneomator server
+    /// Downloads and decodes plist information for application details and documentation
+    /// - Parameter labelName: Name of the label to fetch information for
+    /// - Returns: LabelPlistInfo containing app details, description, and URLs
+    /// - Throws: URLError if request fails or server returns invalid response
     func fetchLabelInfo(labelName: String) async throws -> LabelPlistInfo {
         // build URL
         guard let url = URL(string: "https://intuneomator.org/labels")?
@@ -392,6 +449,10 @@ extension XPCService {
     }
 
     // MARK: - Installomator Label Updates
+    
+    /// Downloads and updates Installomator labels from the official GitHub repository
+    /// Refreshes local label collection with latest versions and new applications
+    /// - Parameter reply: Callback with success status of the download operation
     func updateLabelsFromGitHub(reply: @escaping (Bool) -> Void) {
         InstallomatorLabels.installInstallomatorLabels { [self] success, message in
             if success {
@@ -403,11 +464,23 @@ extension XPCService {
         }
     }
         
-    // MARK: - TabView Actions
+    // MARK: - Label Configuration Operations
+    
+    /// Saves label content configuration (placeholder method)
+    /// - Parameters:
+    ///   - labelFolder: Target label folder name
+    ///   - content: Configuration data to save
+    ///   - reply: Callback with save operation success status
     func saveLabelContent(_ labelFolder: String, _ content: NSDictionary, reply: @escaping (Bool) -> Void) {
-
+        // Implementation placeholder
     }
     
+    /// Toggles between standard Installomator and custom label versions
+    /// Switches label script source and updates processing accordingly
+    /// - Parameters:
+    ///   - labelFolder: Name of the label folder to modify
+    ///   - toggle: True to enable custom label, false for standard Installomator
+    ///   - reply: Callback with success status of the toggle operation
     func toggleCustomLabel(_ labelFolder: String, _ toggle: Bool, reply: @escaping (Bool) -> Void) {
         
         let labelName = labelFolder.components(separatedBy: "_")[0]
@@ -465,7 +538,14 @@ extension XPCService {
     }
 
     
-    // MARK: - Label Edit Actions
+    // MARK: - Icon Management Operations
+    
+    /// Imports an icon file or extracts icon from application bundle for a label
+    /// Supports both image files and application bundle icon extraction
+    /// - Parameters:
+    ///   - iconPath: Path to image file or application bundle
+    ///   - labelFolder: Target label folder name
+    ///   - reply: Callback with import operation success status
     func importIconToLabel(_ iconPath: String, _ labelFolder: String, reply: @escaping (Bool) -> Void) {
         
         let labelFolderPath = AppConstants.intuneomatorManagedTitlesFolderURL
@@ -505,6 +585,11 @@ extension XPCService {
 
     
     
+    /// Applies a generic application icon to a label
+    /// Uses the default system application icon as fallback
+    /// - Parameters:
+    ///   - labelFolder: Target label folder name
+    ///   - reply: Callback with import operation success status
     func importGenericIconToLabel(_ labelFolder: String, reply: @escaping (Bool) -> Void) {
         
         let labelFolderPath = AppConstants.intuneomatorManagedTitlesFolderURL
@@ -535,8 +620,14 @@ extension XPCService {
     
     
     
-    // MARK: - Edit View Controller
+    // MARK: - Metadata Management
     
+    /// Saves application metadata configuration to JSON file
+    /// Stores detailed application information for Intune deployment
+    /// - Parameters:
+    ///   - metadata: JSON metadata string to save
+    ///   - labelFolder: Target label folder name
+    ///   - reply: Callback with save operation success status
     func saveMetadataForLabel(_ metadata: String, _ labelFolder: String, reply: @escaping (Bool) -> Void) {
         let basePath = AppConstants.intuneomatorManagedTitlesFolderURL
             .appendingPathComponent(labelFolder)
@@ -564,7 +655,14 @@ extension XPCService {
     
 
 
-    // MARK: - Script View Controller
+    // MARK: - Script Management
+    
+    /// Saves or removes pre-installation script for a label
+    /// Handles script content persistence and file permissions
+    /// - Parameters:
+    ///   - script: Script content (empty string removes the script)
+    ///   - labelFolder: Target label folder name
+    ///   - reply: Callback with save operation success status
     func savePreInstallScriptForLabel(_ script: String, _ labelFolder: String, reply: @escaping (Bool) -> Void) {
 
         // Define the folder and file path to save the assignments
@@ -605,6 +703,12 @@ extension XPCService {
     }
         
 
+    /// Saves or removes post-installation script for a label
+    /// Handles script content persistence and file permissions
+    /// - Parameters:
+    ///   - script: Script content (empty string removes the script)
+    ///   - labelFolder: Target label folder name
+    ///   - reply: Callback with save operation success status
     func savePostInstallScriptForLabel(_ script: String, _ labelFolder: String, reply: @escaping (Bool) -> Void) {
 
         // Define the folder and file path to save the assignments
@@ -646,8 +750,14 @@ extension XPCService {
     }
 
     
-    // MARK: - Group Assigment View Controller
+    // MARK: - Group Assignment Management
     
+    /// Saves group assignment configuration for a label
+    /// Stores targeting and deployment settings for Microsoft Intune groups
+    /// - Parameters:
+    ///   - groupAssignments: Array of group assignment dictionaries
+    ///   - labelFolder: Target label folder name
+    ///   - reply: Callback with save operation success status
     func saveGroupAssignmentsForLabel(_ groupAssignments: [[String : Any]], _ labelFolder: String, reply: @escaping (Bool) -> Void) {
         
         // Define the folder and file path to save the assignments
@@ -673,8 +783,11 @@ extension XPCService {
         }
     }
     
-    // MARK: - Discovered Applications
-
+    // MARK: - Application Discovery
+    
+    /// Retrieves discovered macOS applications from Microsoft Intune
+    /// Fetches detected applications across managed devices for analysis
+    /// - Parameter reply: Callback with encoded DetectedApp array data or nil on failure
     func fetchDiscoveredMacApps(reply: @escaping (Data?) -> Void) {
         Task {
             do {
@@ -698,6 +811,11 @@ extension XPCService {
     }
         
 
+    /// Fetches device information for a specific discovered application
+    /// Retrieves device details where the specified application is installed
+    /// - Parameters:
+    ///   - appID: Application identifier to search for
+    ///   - reply: Callback with encoded DeviceInfo array data or nil on failure
     func fetchDevices(forAppID appID: String, reply: @escaping (Data?) -> Void) {
         Task {
             do {
