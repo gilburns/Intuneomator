@@ -40,7 +40,7 @@ struct ProcessedAppResults {
     let appTrackingID: String
     var appVersionActual: String
     let appVersionExpected: String
-    let appUploadFilename: String
+    var appUploadFilename: String
 }
 
 extension ProcessedAppResults {
