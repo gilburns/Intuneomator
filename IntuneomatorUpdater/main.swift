@@ -5,26 +5,48 @@
 //  Created by Gil Burns on 5/20/25.
 //
 
+/// Secure updater utility for Intuneomator application
+/// Provides authenticated package installation with code signature verification
+/// Executed as a privileged helper tool to perform system-level update operations
+
 import Foundation
 import Security
 import Darwin
 
+// MARK: - Configuration Constants
+
+/// Expected Apple Developer Team ID for code signature validation
 let expectedTeamID = "G4MQ57TVLE"
+
+/// Expected parent process path for authorization verification
 let expectedParentPath = "/Library/Application Support/Intuneomator/IntuneomatorService"
+
+/// Location of the update package to install
 let pkgPath = "/Library/Application Support/Intuneomator/IntuneomatorUpdate.pkg"
+
+/// Target volume for package installation
 let targetVolume = "/"
 
-// Define the constant manually
+/// Maximum buffer size for process path information
 let PROC_PIDPATHINFO_MAXSIZE: Int32 = 4096
 
+/// Default Security Framework flags
 let kSecCSDefaultFlags = SecCSFlags(rawValue: 0)
 
+/// Logs messages to both console and application logging system
+/// Provides consistent logging format for update operations
+/// - Parameter message: Message to log
 func log(_ message: String) {
     print("[IntuneomatorUpdater] \(message)")
     Logger.log("\(message)", logType: "UpdateManager")
 }
 
-// MARK: - Parent Process Path Check
+// MARK: - Security Verification Functions
+
+/// Verifies that the parent process path matches expected location
+/// Provides additional security by validating the calling process location
+/// - Parameter expectedPath: Expected file system path of the parent process
+/// - Returns: True if parent process path matches expected location
 func verifyParentProcessPath(expectedPath: String) -> Bool {
     let parentPID = getppid()
 
@@ -38,7 +60,12 @@ func verifyParentProcessPath(expectedPath: String) -> Bool {
     return parentPath == expectedPath
 }
 
-// MARK: - Code Signature Check
+/// Verifies code signature and team identifier of a process
+/// Ensures only authorized processes can trigger updates through cryptographic validation
+/// - Parameters:
+///   - pid: Process identifier to verify
+///   - expectedTeamID: Expected Apple Developer Team ID
+/// - Returns: True if process signature is valid and team ID matches
 func verifySignature(ofPID pid: Int32, expectedTeamID: String) -> Bool {
     log("Verifying signature for PID: \(pid)")
 
@@ -85,7 +112,14 @@ func verifySignature(ofPID pid: Int32, expectedTeamID: String) -> Bool {
 }
 
 
-// MARK: - Install Package
+// MARK: - Package Installation
+
+/// Installs macOS package using system installer utility
+/// Executes privileged installation process and captures output for logging
+/// - Parameters:
+///   - path: File system path to the package file
+///   - target: Target volume for installation
+/// - Returns: True if installation completed successfully
 func installPackage(at path: String, target: String) -> Bool {
     let process = Process()
     process.executableURL = URL(fileURLWithPath: "/usr/sbin/installer")
@@ -111,7 +145,12 @@ func installPackage(at path: String, target: String) -> Bool {
     }
 }
 
-// MARK: - Check Daemon Loaded
+// MARK: - Launch Daemon Status Checking
+
+/// Checks the load status of a specific Launch Daemon
+/// Uses launchctl to determine if daemon is registered with the system
+/// - Parameter launchDaemonLabel: Launch Daemon identifier to check
+/// - Returns: DaemonLoadStatus indicating current daemon state
 func checkDaemonLoaded(_ launchDaemonLabel: String) -> DaemonLoadStatus {
     let task = Process()
     task.executableURL = URL(fileURLWithPath: "/bin/launchctl")
@@ -140,7 +179,9 @@ func checkDaemonLoaded(_ launchDaemonLabel: String) -> DaemonLoadStatus {
     }
 }
 
-// check both main daemons
+/// Checks status of primary Intuneomator Launch Daemons
+/// Verifies both on-demand and service daemons are properly configured
+/// - Returns: Tuple containing status of both primary daemons
 func checkIntuneomatorDaemons() -> (ondemand: DaemonLoadStatus, service: DaemonLoadStatus) {
     let ondemandStatus = checkDaemonLoaded("com.gilburns.intuneomator.ondemand")
     let serviceStatus = checkDaemonLoaded("com.gilburns.intuneomator.service")
@@ -148,12 +189,18 @@ func checkIntuneomatorDaemons() -> (ondemand: DaemonLoadStatus, service: DaemonL
     return (ondemand: ondemandStatus, service: serviceStatus)
 }
 
-// Helper function to get a simple boolean
+/// Simplified daemon status check returning boolean result
+/// Convenience function for quick daemon status verification
+/// - Parameter label: Launch Daemon identifier to check
+/// - Returns: True if daemon is loaded, false otherwise
 func isDaemonLoaded(_ label: String) -> Bool {
     return checkDaemonLoaded(label) == .loaded
 }
 
 
+/// Comprehensive check of all Intuneomator Launch Daemons
+/// Scans for plist files and determines load status for each daemon
+/// - Returns: Dictionary mapping daemon identifiers to their status descriptions
 func checkAllDaemons() -> [String: String] {
     let daemonList = [
         "com.gilburns.intuneomator.automation",
@@ -180,15 +227,17 @@ func checkAllDaemons() -> [String: String] {
 }
 
 
-// MARK: - Main Execution
+// MARK: - Main Execution Flow
 
 log("Starting update process")
 
+// Parent path verification disabled for current implementation
 //guard verifyParentProcessPath(expectedPath: expectedParentPath) else {
 //    log("❌ Unauthorized caller: unexpected parent path.")
 //    exit(EXIT_FAILURE)
 //}
 
+// Extract caller process ID from command line arguments
 var callerPID: Int32 = -1
 
 if let idx = CommandLine.arguments.firstIndex(of: "--caller-pid"),
@@ -210,19 +259,20 @@ guard FileManager.default.fileExists(atPath: pkgPath) else {
 log("✅ Caller verified, proceeding with installation.")
 
 
+// Capture initial version information for update tracking
 var initialVersion: String = "unknown"
 if let plist = NSDictionary(contentsOfFile: "/Applications/Intuneomator.app/Contents/Info.plist") {
    let bundleVersion = plist["CFBundleShortVersionString"] as? String
     initialVersion = bundleVersion ?? "unknown"
-    log("Installed Intuneomator inital version: \(initialVersion)")
+    log("Installed Intuneomator initial version: \(initialVersion)")
 } else {
     log("⚠️ Could not determine installed Intuneomator version.")
 }
 
-// Install the already downloaded pkg file
+// Execute package installation
 let success = installPackage(at: pkgPath, target: targetVolume)
 
-// 🧹 Cleanup
+// Clean up installer package file
 do {
     try FileManager.default.removeItem(atPath: pkgPath)
     log("🧹 Removed installer package at: \(pkgPath)")
@@ -231,10 +281,10 @@ do {
 }
 
 if success {
-    // 🔍 Check daemon status
+    // Verify daemon status after successful installation
     let allDaemons = checkAllDaemons()
 
-    // 🔔 Teams Notification
+    // Send Teams notification if configured
     let sendTeamNotification = ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") ?? false
     let sendForUpdates = ConfigManager.readPlistValue(key: "TeamsNotificationsForUpdates") ?? false
 
@@ -262,7 +312,7 @@ if success {
     exit(EXIT_SUCCESS)
 } else {
     log("❌ Update installation failed.")
-    // 🔔 Teams Notification for failure
+    // Send failure notification if Teams notifications are enabled
     let sendTeamNotification = ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") ?? false
 
     if sendTeamNotification {
@@ -299,11 +349,19 @@ if success {
 }
 
 
+// MARK: - Supporting Types
+
+/// Represents the load status of a Launch Daemon
+/// Provides clear status indication for daemon monitoring operations
 enum DaemonLoadStatus: Equatable {
+    /// Daemon is loaded and registered with launchd
     case loaded
+    /// Daemon is not loaded or not found
     case notLoaded
+    /// Error occurred while checking daemon status
     case error(String)
     
+    /// Human-readable description of daemon status
     var description: String {
         switch self {
         case .loaded:
