@@ -12,6 +12,18 @@ protocol GroupSelectViewControllerDelegate: AnyObject {
     func groupSelectViewController(_ controller: GroupSelectViewController, didSelectGroups groups: [[String: Any]], forAssignmentType type: String)
 }
 
+/// Sheet view controller for selecting Azure AD groups for application assignments
+/// Provides interface for selecting groups with include/exclude modes while preventing
+/// conflicts with existing assignments across different deployment types
+/// 
+/// **Key Features:**
+/// - Displays Azure AD security groups with search functionality
+/// - Supports virtual groups (All Users, All Devices) with mutual exclusion
+/// - Implements include/exclude assignment modes for precise targeting
+/// - Prevents conflicts by disabling groups assigned to other assignment types
+/// - Maintains assignment type restrictions (e.g., All Devices not available for Available assignments)
+/// - Handles existing assignment editing with proper state restoration
+/// - Provides clear visual feedback for group selection status
 class GroupSelectViewController: NSViewController, NSTableViewDelegate, NSTableViewDataSource {
     
     weak var delegate: GroupSelectViewControllerDelegate?
