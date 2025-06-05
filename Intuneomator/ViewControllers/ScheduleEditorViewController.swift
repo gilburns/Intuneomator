@@ -7,7 +7,17 @@
 
 import Cocoa
 
-
+/// Sheet view controller for editing Launch Daemon schedules for Intuneomator automation tasks
+/// Provides interface for configuring when automated tasks (automation, cleanup, label updates, updater)
+/// should run using macOS Launch Daemon scheduling system
+/// 
+/// **Key Features:**
+/// - Manages schedules for four task types: Automation, Cleanup, Label Updater, and Updater
+/// - Supports daily scheduling or specific weekday scheduling
+/// - Creates, updates, and removes Launch Daemon plist files via XPC service
+/// - Provides visual feedback for schedule changes and validation
+/// - Maintains persistent window size preferences
+/// - Real-time schedule conflict detection and validation
 class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
     
     // MARK: - IBOutlets
@@ -28,15 +38,24 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
     @IBOutlet weak var labelTaskDescription: NSTextField!
     
     // MARK: - Properties
+    
+    /// Launch Daemon label for the currently selected task type
     var taskLabel: String = ""
+    /// Command line argument passed to the automation service
     var taskArgument: String = ""
+    /// SF Symbol name for the task type icon
     var taskImageName: String = ""
+    /// Human-readable description of the selected task type
     var taskDescription: String = ""
+    /// Current schedule entries being edited
     var entries: [ScheduleEntry] = []
     
+    /// Original schedule entries loaded from plist for change tracking
     private var originalEntries: [ScheduleEntry] = []
+    /// Currently selected row index in the schedule table
     private var selectedRowIndex: Int?
     
+    /// Mapping of task types to their Launch Daemon configuration
     let taskMappings: [String: (label: String, argument: String, image: String, description: String)] = [
         "Automation": ("com.gilburns.intuneomator.automation", "intune-automation", "gearshape.arrow.trianglehead.2.clockwise.rotate.90", "This schedule controls the execution of automation tasks. It is recommended that you schedule this task to run once at least once a day."),
         "Cleanup": ("com.gilburns.intuneomator.cachecleaner", "cache-cleanup", "arrow.up.trash.fill", "This schedule controls the execution of the cache and log cleanup task. It is recommended that you schedule this task to run at least once a week."),
@@ -69,7 +88,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
     }
 
     
-    // Load the size from UserDefaults
+    /// Loads the saved sheet size from UserDefaults
+    /// - Returns: Saved size if found, nil to use default size
     private func loadSavedSheetSize() -> NSSize? {
         if let sizeDict = UserDefaults.standard.dictionary(forKey: "ScheduleEditorViewSheetSize") as? [String: CGFloat],
            let width = sizeDict["width"], let height = sizeDict["height"] {
@@ -79,6 +99,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
     }
 
     
+    /// Configures the initial user interface state
+    /// Sets up weekday popup, loads existing schedules, and initializes button states
     func setupUI() {
         // Populate weekday popup
         popupWeekday.removeAllItems()
@@ -94,6 +116,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         buttonDelete.isEnabled = false
     }
     
+    /// Retrieves and displays the number of app versions to keep for cleanup tasks
+    /// Shows cache cleanup rule information for the Cleanup task type
     func getAppsToKeep() {
         XPCManager.shared.getAppsToKeep { appsToKeep in
             DispatchQueue.main.async {
@@ -105,6 +129,9 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
 
     
     // MARK: - IBActions
+    
+    /// Adds a new schedule entry from the current picker values
+    /// Creates a new ScheduleEntry and adds it to the entries array
     @IBAction func buttonAddClicked(_ sender: Any) {
         let (hour, minute, weekday) = getPickerValues()
         let newEntry = ScheduleEntry(weekday: weekday, hour: hour, minute: minute)
@@ -113,6 +140,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         checkForChanges()
     }
     
+    /// Updates the selected schedule entry with current picker values
+    /// Modifies the existing entry at the selected index and clears selection
     @IBAction func buttonUpdateClicked(_ sender: Any) {
         guard let index = selectedRowIndex else { return }
         let (hour, minute, weekday) = getPickerValues()
@@ -124,6 +153,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         updateButtonStates()
     }
     
+    /// Deletes the selected schedule entry
+    /// Removes the entry from the array and clears the selection
     @IBAction func buttonDeleteClicked(_ sender: Any) {
         let selected = tableView.selectedRow
         guard selected >= 0 && selected < entries.count else { return }
@@ -136,6 +167,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         updateButtonStates()
     }
     
+    /// Saves the current schedule to Launch Daemon plist via XPC service
+    /// Creates, updates, or removes the Launch Daemon based on schedule entries
     @IBAction func buttonSaveClicked(_ sender: Any) {
         
         
@@ -175,11 +208,15 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
     }
     
     
+    /// Cancels schedule editing and dismisses the sheet
+    /// Discards any unsaved changes
     @IBAction func buttonCancelClicked(_ sender: Any) {
         dismissSheet()
     }
     
     
+    /// Handles task type selection changes
+    /// Updates UI elements and loads appropriate schedule when task type changes
     @IBAction func taskTypeDidChange(_ sender: NSPopUpButton) {
         updateSaveButtonTitle()
         updateTaskSelection()
@@ -193,15 +230,20 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
     
     // MARK: - Helper functions
     
+    /// Dismisses the schedule editor sheet
     func dismissSheet() {
         self.view.window?.sheetParent?.endSheet(self.view.window!)
     }
     
+    /// Updates the save button title to reflect the selected task type
     func updateSaveButtonTitle() {
         let saveType = popupTaskType.titleOfSelectedItem ?? ""
         buttonSave.title = "Save Schedule for \(saveType)"
     }
 
+    /// Encodes ScheduledTime objects for XPC transmission
+    /// - Parameter schedules: Array of ScheduledTime objects to encode
+    /// - Returns: Encoded data or nil if encoding fails
     func encodeScheduledTimes(_ schedules: [ScheduledTime]) -> Data? {
         do {
             return try NSKeyedArchiver.archivedData(withRootObject: schedules, requiringSecureCoding: true)
@@ -211,6 +253,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         }
     }
         
+    /// Presents an error alert with the specified message
+    /// - Parameter message: Error message to display
     func presentErrorAlert(_ message: String) {
         let alert = NSAlert()
         alert.messageText = "Error Saving Schedule"
@@ -219,6 +263,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         alert.runModal()
     }
 
+    /// Updates task properties based on the selected task type
+    /// Configures label, argument, image, and description for the selected task
     func updateTaskSelection() {
         let selectedTitle = popupTaskType.titleOfSelectedItem ?? ""
         if let mapping = taskMappings[selectedTitle] {
@@ -234,6 +280,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         }
     }
     
+    /// Checks if the current schedule differs from the original
+    /// Enables/disables the save button based on whether changes were made
     func checkForChanges() {
         let changed = entries.count != originalEntries.count ||
             !zip(entries, originalEntries).allSatisfy { $0.displayString() == $1.displayString() }
@@ -241,6 +289,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         buttonSave.isEnabled = changed
     }
     
+    /// Extracts time and weekday values from the UI pickers
+    /// - Returns: Tuple containing hour, minute, and optional weekday
     private func getPickerValues() -> (hour: Int, minute: Int, weekday: Weekday?) {
         let calendar = Calendar.current
         let selectedDate = timePicker.dateValue
@@ -252,6 +302,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
     }
     
     
+    /// Updates button enabled states based on table selection
+    /// Enables/disables Add, Update, and Delete buttons appropriately
     private func updateButtonStates() {
         let hasSelection = (selectedRowIndex != nil)
 
@@ -260,17 +312,30 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         buttonDelete.isEnabled = hasSelection
     }
     
-    // MARK: - Table View
+    // MARK: - Table View Data Source & Delegate
+    
+    /// Returns the number of schedule entries in the table
+    /// - Parameter tableView: The table view requesting the count
+    /// - Returns: Number of schedule entries
     func numberOfRows(in tableView: NSTableView) -> Int {
         return entries.count
     }
     
+    /// Provides the view for a specific table cell
+    /// - Parameters:
+    ///   - tableView: The table view requesting the cell view
+    ///   - tableColumn: The table column for the cell
+    ///   - row: The row index for the cell
+    /// - Returns: Configured table cell view
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier("ScheduleCell"), owner: self) as? NSTableCellView
         cell?.textField?.stringValue = entries[row].displayString()
         return cell
     }
     
+    /// Handles table view selection changes
+    /// Updates button states and populates pickers with selected entry values
+    /// - Parameter notification: Selection change notification
     func tableViewSelectionDidChange(_ notification: Notification) {
         let row = tableView.selectedRow
         let hasSelection = (row >= 0 && row < entries.count)
@@ -292,7 +357,10 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         }
     }
     
-    // MARK: - Load Existing Schedule
+    // MARK: - Schedule Persistence
+    
+    /// Loads existing schedule from Launch Daemon plist file
+    /// Parses the plist and populates the entries array with current schedule
     func loadScheduleFromPlist() {
         let path = "/Library/LaunchDaemons/\(taskLabel).plist"
         
