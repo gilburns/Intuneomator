@@ -8,46 +8,83 @@
 import Foundation
 import Cocoa
 
+/// View controller for managing Azure AD group assignments for application deployments
+/// Handles configuration of Required, Available, and Uninstall assignments with support
+/// for both virtual groups (All Users/All Devices) and real Azure AD security groups
+///
+/// **Key Features:**
+/// - Manages three assignment types: Required, Available, and Uninstall
+/// - Supports virtual groups (All Users, All Devices) and real Azure AD groups
+/// - Integrates with Microsoft Intune assignment filters for advanced targeting
+/// - Provides include/exclude assignment modes for granular control
+/// - Tracks unsaved changes with visual feedback
+/// - Validates assignment combinations to prevent conflicts
+/// - Handles assignment persistence through XPC service
 class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesHandling, NSTableViewDelegate, NSTableViewDataSource {
     
+    /// Table view displaying current group assignments (Required, Available, Uninstall).
+
     @IBOutlet weak var groupAssignmentsTableView: NSTableView!
     
     
+    /// Button to assign Azure AD groups to the “Required” assignment type.
     @IBOutlet weak var assignRequiredGroupButton: NSButton!
+
+    /// Button to assign Azure AD groups to the “Available” assignment type.
     @IBOutlet weak var assignAvailableGroupButton: NSButton!
+
+    /// Button to assign Azure AD groups to the “Uninstall” assignment type.
     @IBOutlet weak var assignUninstallGroupButton: NSButton!
-    
+
+    /// Button to assign a filter to the selected group assignment (only for LOB apps).
     @IBOutlet weak var assignFilterButton: NSButton!
-    
+
+    /// Label displaying status or informational messages about group assignments.
     @IBOutlet weak var statusLabel: NSTextField!
-    
+
+    /// Holds the current application’s metadata (label, GUID, etc.) for which assignments apply.
     var appData: AppInfo?
+
+    /// Reference to the parent TabViewController to notify about save button state.
     var parentTabViewController: TabViewController?
+
+    /// Flag indicating whether group assignments have been modified and not yet saved.
     var hasUnsavedChanges = false
         
+    /// Array of dictionaries representing current group assignments and their properties.
     var groupAssignments: [[String: Any]] = []
+
+    /// Array of dictionaries representing filter assignments associated with groups.
     var filterAssignments: [[String: Any]] = []
 
     // MARK: - Data Properties
-    // Setup Virtual Intune Groups
+    /// Predefined virtual groups for Intune assignment: “All Users” and “All Devices”.
     let virtualGroups: [[String: String]] = [
         ["displayName": "All Users", "id": "acacacac-9df4-4c7d-9d50-4ef0226f57a9", "description": "Assign to all users"],
         ["displayName": "All Devices", "id": "adadadad-808e-44e2-905a-0b7873a8a531", "description": "Assign to all devices"]
     ]
     
+    /// File URL for storing and loading the assignments.json file specific to this app.
     private var assignmentsFilePath: URL?
     
+    /// Serial queue to synchronize access to groupAssignments for thread safety.
     private let syncQueue = DispatchQueue(label: "com.intuneomator.groupAssign.syncQueue")
     
-    // Create a reusable HelpPopover instance
+    /// Reusable help popover for displaying contextual assistance.
     private let helpPopover = HelpPopover()
     
-    // table typing
+    /// Buffer to accumulate keyboard input for table row typing navigation.
     var searchBuffer: String = ""
+
+    /// Timer to reset `searchBuffer` after a short delay between keystrokes.
     var searchTimer: Timer?
     
     
     // MARK: - Configurable Protocol
+    /// Configures the view controller with `AppInfo` and parent TabViewController.
+    /// - Parameters:
+    ///   - data: Expected to be an `AppInfo` object containing label and GUID.
+    ///   - parent: Reference to the parent TabViewController for save state updates.
     func configure(with data: Any, parent: TabViewController) {
         guard let appData = data as? AppInfo else {
 //            print("Invalid data passed to GroupAssignViewController")
@@ -60,12 +97,16 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
         //        print("GroupAssignViewController configured with data: \(appData)")
     }
     
+    /// Marks that the assignments have been changed, setting `hasUnsavedChanges` and
+    /// notifying the parent to update the Save button.
     func markUnsavedChanges() {
         hasUnsavedChanges = true
         parentTabViewController?.updateSaveButtonState()
     }
     
     // MARK: - View Lifecycle
+    /// Lifecycle callback invoked when the view loads.
+    /// Sets up the assignments file path, table view delegate/data source, and loads existing assignments.
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -97,6 +138,8 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
         
     }
     
+    /// Lifecycle callback invoked after the view appears.
+    /// Updates visibility of filter and uninstall buttons based on current app type.
     override func viewDidAppear() {
         super.viewDidAppear()
         updateAssignFilterButtonVisibility()
@@ -104,11 +147,13 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     }
     
     
+    /// Toggles the filter assignment button visibility based on whether the app is a LOB app.
     private func updateAssignFilterButtonVisibility() {
         let appType = AppDataManager.shared.currentAppType
         assignFilterButton.isHidden = (appType != "macOSLobApp")
     }
 
+    /// Toggles the uninstall assignment button visibility based on app type (LOB vs. PKG vs. DMG).
     private func updateInstallTypeButtonVisibility() {
         let appType = AppDataManager.shared.currentAppType
         switch appType {
@@ -124,6 +169,8 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     }
 
     // MARK: - Actions
+    /// Handles Cancel button: if there are unsaved changes, prompts the user before dismissing.
+    /// - Parameter sender: The Cancel button that was clicked.
     @IBAction func cancelButtonClicked(_ sender: NSButton) {
         if hasUnsavedChanges {
             let alert = NSAlert()
@@ -144,6 +191,9 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     
     
     // MARK: - Group Selection Actions
+    /// Initiates group selection modal for Required, Available, or Uninstall assignments.
+    /// Determines the assignment type based on which button was clicked.
+    /// - Parameter sender: The assignment button clicked.
     @IBAction func selectGroupsForAssignment(_ sender: NSButton) {
         guard let appData = appData else {
 //            print("Error: appData is missing.")
@@ -178,6 +228,12 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
         
     }
     
+    /// Presents the `GroupSelectViewController` as a modal sheet for selecting groups.
+    /// - Parameters:
+    ///   - displayName: The human-readable name of the app for display in the modal.
+    ///   - assignmentType: One of "Required", "Available", or "Uninstall".
+    ///   - existingAssignments: Assignments already set for this type to be pre-selected.
+    ///   - excludedGroups: Assignments for other types to be excluded from selection.
     private func presentGroupSelectModal(displayName: String, assignmentType: String, existingAssignments: [[String: Any]] = [], excludedGroups: [[String: Any]] = []) {
         
         let storyboard = NSStoryboard(name: "Main", bundle: nil)
@@ -197,6 +253,8 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     
     
     // MARK: - Filter Selection Actions
+    /// Initiates filter selection modal for the selected group assignment.
+    /// - Parameter sender: The Filter button that was clicked.
     @IBAction func selectFilterForAssignment(_ sender: NSButton) {
         guard let appData = appData else {
 //            print("Error: appData is missing.")
@@ -219,7 +277,10 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
         
     }
 
-    
+    /// Presents the `FilterSelectViewController` as a modal sheet for selecting a filter.
+    /// - Parameters:
+    ///   - displayName: The human-readable name of the app for display in the modal.
+    ///   - assignment: The displayName of the selected group assignment to filter.
     private func presentFilterSelectModal(displayName: String, assignment: String) {
         let storyboard = NSStoryboard(name: "Main", bundle: nil)
         let filterSelectVC = storyboard.instantiateController(withIdentifier: "FilterSelectViewController") as! FilterSelectViewController
@@ -242,6 +303,8 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     
     
     // MARK: - Load data
+    /// Loads group assignments from the `assignments.json` file if it exists.
+    /// Parses the JSON array into `groupAssignments` and sorts them for display.
     private func loadAssignments() {
 //        print("loading assignments...")
 //        print("assignments file path: \(assignmentsFilePath?.path ?? "nil")")
@@ -268,6 +331,8 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     
     
     // MARK: - Help Buttons
+    /// Displays help popover explaining differences between Required and Available assignments.
+    /// - Parameter sender: The help button that was clicked.
     @IBAction func showHelpForAssignmentTypes(_ sender: NSButton) {
         // Create the full string
         let helpText = NSMutableAttributedString(string: """
@@ -308,6 +373,8 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     }
     
     
+    /// Displays help popover specifically for the Required assignment meaning.
+    /// - Parameter sender: The help button that was clicked.
     @IBAction func showHelpForRequiredAssignment(_ sender: NSButton) {
         // Create the full string
         let helpText = NSMutableAttributedString(string: "Required:\n\nMeans the app will automatically be installed on the selected devices.")
@@ -322,6 +389,8 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
         helpPopover.showHelp(anchorView: sender, helpText: helpText)
     }
     
+    /// Displays help popover specifically for the Available assignment meaning.
+    /// - Parameter sender: The help button that was clicked.
     @IBAction func showHelpForAvailableAssignment(_ sender: NSButton) {
         // Create the full string
         let helpText = NSMutableAttributedString(string: "Available:\n\nMeans the app will be accessible for users to install from the Company Portal, but they are not obligated to do so.")
@@ -338,6 +407,7 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     
     
     // MARK: - TableView Delegate & DataSource
+    /// NSTableViewDataSource: Returns the number of rows for the group assignments table.
     func numberOfRows(in tableView: NSTableView) -> Int {
         return syncQueue.sync {
             switch tableView {
@@ -349,6 +419,13 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
         }
     }
     
+    /// NSTableViewDelegate/DataSource: Provides the view for each cell in the group assignments table.
+    /// Configures columns: Assignment (with icon), Mode (Include/Exclude), Type (Required/Available/Uninstall), and Filter display.
+    /// - Parameters:
+    ///   - tableView: The table view requesting the cell.
+    ///   - tableColumn: The table column for which a cell view is needed.
+    ///   - row: The row index in `groupAssignments`.
+    /// - Returns: A configured `NSTableCellView` or nil if no view is available.
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let group = groupAssignments[row]
         
@@ -422,6 +499,9 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     }
     
     
+    /// NSTableViewDelegate: Called when the user changes the selection in the table.
+    /// Enables or disables the Assign Filter button based on whether a row is selected.
+    /// - Parameter notification: Notification containing the table view.
     func tableViewSelectionDidChange(_ notification: Notification) {
         guard let tableView = notification.object as? NSTableView else { return }
         
@@ -432,6 +512,8 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     
     
     // MARK: - Table Double Click
+    /// NSTableViewDelegate: Handles double-click on a table row to re-open the group select modal for that assignment.
+    /// - Parameter sender: The table view that was double-clicked.
     @objc func tableViewDoubleClicked(_ sender: Any) {
         let row = groupAssignmentsTableView.clickedRow
         guard row >= 0 && row < groupAssignments.count else { return }
@@ -448,6 +530,8 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     
     
     // MARK: - Table Sorting
+    /// Sorts `groupAssignments` first by assignment type order (Required, Available, Uninstall)
+    /// then alphabetically by displayName for consistent display.
     func sortGroupAssignments() {
         let assignmentOrder = ["Required", "Available", "Uninstall"]
         groupAssignments.sort {
@@ -467,6 +551,10 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     
     
     // MARK: - Alert Helper
+    /// Displays an NSAlert with a warning style and an OK button.
+    /// - Parameters:
+    ///   - title: The alert’s title text.
+    ///   - message: The alert’s informative message text.
     func showAlert(withTitle title: String, message: String) {
         let alert = NSAlert()
         alert.alertStyle = .warning
@@ -479,8 +567,11 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     
 }
 
+/// Conforms to `TabSaveable` to save group assignment metadata via XPC service.
 extension GroupAssignViewController: TabSaveable {
     
+    /// Implements saving of `groupAssignments` by calling the XPCManager to persist data.
+    /// - Uses `appData.label` and `appData.guid` to determine the file folder for assignments.
     func saveMetadata() {
         // Save logic for the Group Assignments tab
 //        print("Saving data for GroupAssignmentsView...")
@@ -512,7 +603,14 @@ extension GroupAssignViewController: TabSaveable {
     }
 }
 
+/// Conformance to `GroupSelectViewControllerDelegate` to receive selected groups.
 extension GroupAssignViewController: GroupSelectViewControllerDelegate {
+    /// Callback when user finishes selecting groups in the group picker modal.
+    /// Replaces existing assignments for the given `type` with the new `groups`, then reloads the table and marks unsaved changes.
+    /// - Parameters:
+    ///   - controller: The `GroupSelectViewController` instance.
+    ///   - groups: Array of selected group dictionaries.
+    ///   - type: The assignment type (Required, Available, Uninstall).
     func groupSelectViewController(_ controller: GroupSelectViewController, didSelectGroups groups: [[String: Any]], forAssignmentType type: String) {
         // Remove any existing assignments for this type
         groupAssignments = groupAssignments.filter { ($0["assignmentType"] as? String) != type }
@@ -531,8 +629,14 @@ extension GroupAssignViewController: GroupSelectViewControllerDelegate {
     }
 }
 
-
+/// Conformance to `FilterSelectViewControllerDelegate` to receive selected filters.
 extension GroupAssignViewController: FilterSelectViewControllerDelegate {
+    /// Callback when user finishes selecting a filter for a specific group.
+    /// Updates the `filter` field in the matching `groupAssignments` entry and reloads the table.
+    /// - Parameters:
+    ///   - controller: The `FilterSelectViewController` instance.
+    ///   - filter: Dictionary representing the chosen filter.
+    ///   - group: The displayName of the group for which the filter was selected.
     func filterSelectViewController(_ controller: FilterSelectViewController, didSelectFilter filter: [String: Any], forGroup group: String) {
         
         // Find the index of the group assignment matching the type
