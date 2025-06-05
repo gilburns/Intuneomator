@@ -1,3 +1,13 @@
+///
+///  EditViewController+LoadMetadata.swift
+///  Intuneomator
+///
+///  Extension for `EditViewController` to load application metadata.
+///  Handles reading the `metadata.json` file for a given label, decoding it into
+///  a `Metadata` object, populating UI fields, and setting default metadata values
+///  when no file is found.
+///
+
 //
 //  EditViewController+LoadMetadata.swift
 //  Intuneomator
@@ -8,9 +18,21 @@
 import Foundation
 import AppKit
 
+/// Extension for `EditViewController` that adds metadata loading functionality.
+/// Implements methods to read and decode metadata from disk and initialize default
+/// values for UI controls when no metadata file exists.
 extension EditViewController {
     
-    // MARK: - Load Metadata File - if present
+    /// Attempts to load metadata from `metadata.json` for the currently selected label.
+    ///
+    /// This method constructs the file path using `appData.label` and `appData.guid`,
+    /// reads the JSON data, decodes it into `appMetadata`, and populates the UI fields.
+    /// If loading or decoding fails (e.g., file not found), it calls
+    /// `setDefaultMetadataValues()` to initialize default UI values.
+    ///
+    /// After loading (or setting defaults), it extracts specific fields (developer,
+    /// information URL, notes, owner, and privacy information URL) to populate
+    /// both `lastMetadataPartial` and `currentMetadataPartial` for change tracking.
     func loadMetadata() {
         guard let labelName = appData?.label else {
             //            print("Label name is missing.")
@@ -61,6 +83,12 @@ extension EditViewController {
         
     }
     
+    /// Sets default metadata values for all relevant UI controls when no metadata file is found.
+    ///
+    /// Initializes text fields (publisher, Intune ID), radio buttons (version detection,
+    /// featured app, managed app), deployment type pulldown, and category selections.
+    /// It also constructs a `defaultMetadata` object to represent baseline metadata and
+    /// assigns it to `lastLoadedMetadata` for future comparison.
     private func setDefaultMetadataValues() {
         //        print("Setting default metadata values.")
         
