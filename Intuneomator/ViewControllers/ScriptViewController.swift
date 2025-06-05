@@ -9,6 +9,18 @@ import Foundation
 import Cocoa
 import UniformTypeIdentifiers
 
+/// View controller for editing pre-install and post-install scripts for PKG deployments
+/// Provides interface for creating and managing shell scripts that run before and after
+/// application installation in Microsoft Intune PKG-type deployments
+/// 
+/// **Key Features:**
+/// - Supports pre-install and post-install script editing for PKG deployments only
+/// - Validates script syntax (shebang requirement) and length limits (15,360 characters)
+/// - Provides script import functionality from external files
+/// - Shows real-time validation warnings and feedback
+/// - Implements custom tab interface with visual indicators for script presence
+/// - Handles deployment type restrictions (scripts unavailable for DMG and LOB apps)
+/// - Tracks unsaved changes with visual feedback
 class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, UnsavedChangesHandling {
     
     @IBOutlet weak var scriptsTabView: NSTabView!
@@ -22,20 +34,30 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
 
     @IBOutlet weak var prePostHelpButton: NSButton!
 
-    private var tabButtons: [NSButton] = [] // To keep track of buttons
+    /// Array of custom tab buttons for script selection
+    private var tabButtons: [NSButton] = []
 
+    /// Application data containing label and GUID information
     var appData: AppInfo?
+    /// Reference to parent tab view controller for save state management
     var parentTabViewController: TabViewController?
+    /// Flag indicating whether there are unsaved script changes
     var hasUnsavedChanges: Bool = false
 
-    // Saved Script States
+    /// Saved state of pre-install script for change detection
     var savedPreInstallScript: String = ""
+    /// Saved state of post-install script for change detection
     var savedPostInstallScript: String = ""
     
-    // Create a reusable HelpPopover instance
+    /// Reusable help popover instance for contextual assistance
     private let helpPopover = HelpPopover()
 
 // MARK: - Configuration
+    
+    /// Configures the script view controller with application data and parent reference
+    /// - Parameters:
+    ///   - data: AppInfo object containing application details
+    ///   - parent: Parent TabViewController for save state coordination
     func configure(with data: Any, parent: TabViewController) {
         guard let appData = data as? AppInfo else {
             print("Invalid data passed to ScriptViewController")
@@ -85,6 +107,8 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
         updatePlaceholders()
     }
     
+    /// Updates script availability based on current deployment type
+    /// Scripts are only supported for PKG deployments in Microsoft Intune
     private func updateScriptAvailability() {
         let appType = AppDataManager.shared.currentAppType
         
@@ -151,6 +175,8 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
 
 // MARK: - Script View Placeholders
     
+    /// Updates placeholder text in script editors based on deployment type
+    /// Shows appropriate guidance or restriction messages for each deployment type
     func updatePlaceholders() {
         
         let appType = AppDataManager.shared.currentAppType
@@ -187,6 +213,9 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
     
     
 // MARK: - Actions
+    
+    /// Imports a script file from the file system into the current script editor
+    /// Supports shell scripts, text files, Python scripts, and PowerShell scripts
     @IBAction func importScript(_ sender: Any) {
         // Determine the currently selected tab
         guard let selectedTab = scriptsTabView.selectedTabViewItem else { return }
@@ -246,6 +275,8 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
         
     }
     
+    /// Updates save button state based on script validation
+    /// Performs validation for shebang requirements and character limits
     private func updateSaveButtonState() {
         let maxScriptLength = 15360
 
@@ -298,6 +329,8 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
     }
     
     
+    /// Validates both pre-install and post-install scripts
+    /// - Returns: True if both scripts meet validation requirements (shebang and length)
     var isValid: Bool {
         let maxScriptLength = 15360
 
@@ -331,6 +364,9 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
     }
 
     
+    /// Handles text change notifications from script editors
+    /// Updates unsaved changes flag and triggers validation
+    /// - Parameter notification: Text change notification from NSTextView
     func textDidChange(_ notification: Notification) {
         let preInstallChanged = fieldPreInstallScript.string != savedPreInstallScript
         let postInstallChanged = fieldPostInstallScript.string != savedPostInstallScript
@@ -351,6 +387,8 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
     }
     
     
+    /// Loads existing script content from saved files
+    /// Reads pre-install and post-install scripts from the managed titles directory
     private func loadScriptFields() {
         guard let appData = appData else { return }
 
@@ -392,7 +430,10 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
 //    }
 
 
-    // MARK: - Custom TabView in Stackview
+    // MARK: - Custom Tab Interface
+    
+    /// Sets up custom tab buttons in the stack view
+    /// Creates buttons for pre-install and post-install script tabs with visual indicators
     private func setupCustomTabButtons() {
         
         var firstButton: NSButton?
@@ -434,6 +475,9 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
 
     }
 
+    /// Handles custom tab button clicks
+    /// Switches between pre-install and post-install script tabs
+    /// - Parameter sender: The tab button that was clicked
     @objc private func tabButtonClicked(_ sender: NSButton) {
         // Switch to the corresponding tab
         scriptsTabView.selectTabViewItem(at: sender.tag)
@@ -443,6 +487,9 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
     }
 
     
+    /// Updates visual states of custom tab buttons
+    /// Highlights selected tab and shows script file existence indicators
+    /// - Parameter selectedIndex: Index of the currently selected tab
     private func updateButtonStates(selectedIndex: Int) {
         for (index, button) in tabButtons.enumerated() {
             if index == selectedIndex {
@@ -473,7 +520,11 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
         }
     }
     
-    // MARK: - Help Buttons
+    // MARK: - Help Actions
+    
+    /// Shows contextual help for pre-install or post-install scripts
+    /// Displays different help content based on currently selected tab
+    /// - Parameter sender: Help button that triggered the action
     @IBAction func showHelpForPrePostScripts(_ sender: NSButton) {
         
         // Detemine Selected Tab
@@ -506,6 +557,9 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
         helpPopover.showHelp(anchorView: sender, helpText: helpText)
     }
 
+    /// Shows general help information about script requirements and limitations
+    /// Displays Microsoft Intune script prerequisites and character limits
+    /// - Parameter sender: Help button that triggered the action
     @IBAction func showHelpForScripts(_ sender: NSButton) {
         // Create the full string
         let helpText = NSMutableAttributedString(string: "For PKG type deployments, you can optionally configure a preinstall script and a post-install script to customize the app install.\n\n☞ Each pre-install or post-install script must be less than 15360 characters long.\n\n☞ The Microsoft Intune management agent for macOS version 2309.007 or greater is required to configure pre-install and post-install scripts for macOS PKG apps.\n\n☞ For more details on configuring pre-install and post-install scripts, refer to: Prerequisites of shell scripts.")
@@ -529,7 +583,11 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
     }
 }
 
+// MARK: - TabSaveable Protocol
+
 extension ScriptViewController: TabSaveable {
+    /// Saves both pre-install and post-install scripts via XPC service
+    /// Uses dispatch group to coordinate saving both scripts simultaneously
     func saveMetadata() {
         guard let appData = appData else { return }
 
