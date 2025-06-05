@@ -8,21 +8,36 @@
 import Foundation
 import Cocoa
 
+/// View controller for the About dialog window
+/// Displays application information, version details, and provides links to related projects
+/// 
+/// **Key Features:**
+/// - Displays clickable hyperlinks to Intuneomator and Installomator GitHub repositories
+/// - Shows help information about the Installomator project
+/// - Manages a fixed-size, non-resizable modal dialog window
 class AboutViewController: NSViewController, NSTextViewDelegate {
  
+    /// Button that opens the Intuneomator GitHub repository when clicked.
     @IBOutlet weak var aboutIntuneomatorButton: NSButton!
+    /// Button that closes the About dialog.
     @IBOutlet weak var okButton: NSButton!
 
+    /// Text view displaying a clickable hyperlink to the Installomator GitHub repository.
     @IBOutlet weak var installomatorLinkTextView: NSTextView!
+
+    /// Text view displaying a clickable hyperlink to the Intuneomator GitHub repository.
     @IBOutlet weak var intuneomatorLinkTextView: NSTextView!
 
+    /// Popover used to display contextual help information.
     private var popover: NSPopover!
     
-    // Create a reusable HelpPopover instance
+    /// Reusable HelpPopover instance for displaying detailed help within the About dialog.
     private let helpPopover = HelpPopover()
 
     
     // MARK: - View Lifecycle
+    /// Called after the view controller’s view has been loaded into memory.
+    /// Initializes hyperlinks for both Intuneomator and Installomator repositories.
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -32,6 +47,8 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
                 
     }
     
+    /// Called when the view has appeared on screen.
+    /// Disables window resizing by fixing the window’s size.
     override func viewDidAppear() {
         super.viewDidAppear()
 
@@ -44,6 +61,8 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
     }
 
     
+    /// Configures `intuneomatorLinkTextView` with an attributed string that
+    /// displays “Visit Intuneomator on GitHub” as a clickable hyperlink to the GitHub page.
     private func createIntuneomatorHyperlink() {
         let url = "https://github.com/gilburns/Intuneomator"
         let linkText = "Visit Intuneomator on GitHub"
@@ -66,6 +85,8 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
     }
 
     
+    /// Configures `installomatorLinkTextView` with an attributed string that
+    /// displays “Visit Installomator on GitHub” as a clickable hyperlink to the GitHub page.
     private func createInstallomatorHyperlink() {
         let url = "https://github.com/Installomator/Installomator"
         let linkText = "Visit Installomator on GitHub"
@@ -88,6 +109,14 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
     }
 
     
+    /// NSTextViewDelegate callback invoked when a hyperlink in either text view is clicked.
+    /// Opens the link in the default browser and closes the About dialog.
+    ///
+    /// - Parameters:
+    ///   - textView: The NSTextView where the link was clicked.
+    ///   - link: The URL object associated with the clicked text.
+    ///   - charIndex: The character index where the click occurred (unused).
+    /// - Returns: True if the link click was handled.
     func textView(_ textView: NSTextView, clickedOnLink link: Any, at charIndex: Int) -> Bool {
         print("Link clicked!")
         if let url = link as? URL {
@@ -102,10 +131,16 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
     
     // MARK: - Actions
     
+    /// IBAction for the Intuneomator button.
+    /// Opens the Installomator GitHub repository in the default browser.
     @IBAction func aboutIntuneomatorButtonAction(_ sender: Any?) {
         NSWorkspace.shared.open(URL(string: "https://github.com/Installomator/Installomator")!)
     }
     
+    /// IBAction for the Installomator help button.
+    /// Builds a detailed help message about Installomator and shows it in a popover anchored to the button.
+    /// 
+    /// - Parameter sender: The NSButton that triggered the help popover.
     @IBAction func installomatorHelpButtonClicked(_ sender: NSButton) {
         // Create the full string
         let helpText = NSMutableAttributedString(string: "Installomator is an open source project for macOS. At it's core, Installomator is an installation script to deploy software on Macs. The Installomator labels function as small code snippets to automatically find the latest version of a software title. Then download and install it. The project supports over 950 unique software titles.")
@@ -127,7 +162,5 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
         // Show the popover
         helpPopover.showHelp(anchorView: sender, helpText: helpText)
 
-    }
-        
-    
+    }    
 }
