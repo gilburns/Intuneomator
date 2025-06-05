@@ -1,3 +1,12 @@
+///
+///  EditViewController+MetadataSave.swift
+///  Intuneomator
+///
+///  Extension for `EditViewController` to handle saving metadata.
+///  Implements the `TabSaveable` protocol to serialize and save application metadata
+///  such as categories, descriptions, and other properties to the daemon.
+///
+  
 //
 //  EditViewController+MetadataSave.swift
 //  Intuneomator
@@ -7,9 +16,27 @@
 
 import Foundation
 
+/// Conforms `EditViewController` to `TabSaveable` by implementing the `saveMetadata` method.
+/// This extension handles gathering all fields from the UI, encoding them into JSON,
+/// and sending the data to the XPC manager to persist metadata for the selected label.
 
 extension EditViewController: TabSaveable {
-    // MARK: - Save Metadata
+    /// Collects metadata from various UI fields and partial metadata properties,
+    /// encodes them into a structured `Metadata` object, serializes it to JSON,
+    /// and invokes the XPC service to save the JSON string into the corresponding label folder.
+    ///
+    /// The metadata includes:
+    ///  - Categories (with display names and IDs)
+    ///  - Description text
+    ///  - Deployment architecture and type tags
+    ///  - Developer, information URL, notes, owner, privacy information URL
+    ///  - Publisher name and bundle identifier
+    ///  - Flags for version detection, featured app, and managed app
+    ///  - Minimum OS ID and display string
+    ///
+    /// All fields are gathered from `appData`, `currentMetadataPartial`, and UI controls.
+    /// Errors during encoding or string conversion are logged via `Logger.logUser`.
+    /// On successful save, a confirmation is logged; on failure, an error is logged.
     func saveMetadata() {
         // Save logic for the Edit tab
         //        print("Saving data for EditView...")
@@ -73,4 +100,3 @@ extension EditViewController: TabSaveable {
         }
     }
 }
-
