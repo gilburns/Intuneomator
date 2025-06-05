@@ -33,7 +33,7 @@ struct DetectedApp: Codable {
         self.installomatorLabel = "No match detected"
     }
     
-    // ✅ Manual initializer to allow object duplication
+    // Manual initializer to allow object duplication
     init(displayName: String?, id: String?, platform: String?, version: String?, publisher: String?, deviceCount: Int?, installomatorLabel: String) {
         self.displayName = displayName
         self.id = id
@@ -44,7 +44,7 @@ struct DetectedApp: Codable {
         self.installomatorLabel = installomatorLabel
     }
     
-    // ✅ Fix for the error: Explicitly create a copy with a new label
+    // Fix for the error: Explicitly create a copy with a new label
     func withLabel(_ label: String) -> DetectedApp {
         return DetectedApp(
             displayName: self.displayName,
