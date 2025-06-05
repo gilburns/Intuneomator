@@ -1,3 +1,13 @@
+///
+///  AppInspectorViewController.swift
+///  Intuneomator
+///
+///  Modal view controller for inspecting downloaded applications (DMG, PKG) and editing metadata.
+///  - Allows users to view and override detected metadata such as App ID, Version, Publisher, and Minimum OS.
+///  - Validates code signatures and team IDs.
+///  - Handles disk image mounting/unmounting and icon extraction.
+///
+  
 //
 //  AppInspectorViewController.swift
 //  Intuneomator
@@ -7,8 +17,15 @@
 
 import Cocoa
 
+/// Delegate protocol to notify when the app inspector finishes saving metadata.
+/// Provides optional overridden values for App ID, Version, Publisher, and Minimum OS.
 protocol AppInspectorDelegate: AnyObject {
     /// Called when the app inspector saves data.
+    /// - Parameters:
+    ///   - appID: The selected or overridden application bundle identifier.
+    ///   - appVersion: The selected or overridden application version string.
+    ///   - appPublisher: The selected or overridden publisher name.
+    ///   - appMinOSVersion: The selected or overridden minimum OS version string.
     func appInspectorDidSave(
         appID: String?,
         appVersion: String?,
@@ -17,40 +34,79 @@ protocol AppInspectorDelegate: AnyObject {
     )
 }
 
+/// `AppInspectorViewController` presents a sheet for inspecting downloaded application metadata.
+/// Users can override detected values, view code signature validation status, and save changes.
+///
+/// Modal view controller for inspecting and editing application metadata
+/// Handles inspection of downloaded applications (DMG, PKG) and allows users to override
+/// detected metadata such as app ID, version, publisher, and minimum OS requirements
+/// 
+/// **Key Features:**
+/// - Inspects application bundles for metadata and code signatures
+/// - Validates team IDs and certificate signatures
+/// - Allows selective override of detected app information
+/// - Handles disk image mounting/unmounting automatically
+/// - Extracts and saves application icons
+/// - Provides macOS version mapping for minimum OS requirements
 class AppInspectorViewController: NSViewController {
+    /// Text field displaying or editing the application bundle identifier (CFBundleIdentifier).
     @IBOutlet weak var appIDTextField: NSTextField!
+    /// Text field displaying or editing the application version (CFBundleShortVersionString).
     @IBOutlet weak var appVersionTextField: NSTextField!
+    /// Text field displaying or editing the detected application publisher (Developer ID).
     @IBOutlet weak var appPublisherTextField: NSTextField!
+    /// Text field displaying or editing the detected minimum OS requirement.
     @IBOutlet weak var appMinOSTextField: NSTextField!
 
+    /// Text field displaying the expected Apple Developer Team ID from configuration.
     @IBOutlet weak var appExpectedTeamField: NSTextField!
+    /// Text field displaying the team ID discovered from the application’s signature.
     @IBOutlet weak var appDiscoveredTeamField: NSTextField!
     
+    /// Checkbox to indicate whether to save and use the discovered application icon.
     @IBOutlet weak var useImageCheckbox: NSButton!
+    /// Checkbox to indicate whether to override the App ID with the detected value.
     @IBOutlet weak var useAppIDCheckbox: NSButton!
+    /// Checkbox to indicate whether to override the Publisher with the detected value.
     @IBOutlet weak var usePublisherCheckbox: NSButton!
+    /// Checkbox to indicate whether to override the Minimum OS version with the detected value.
     @IBOutlet weak var useMinOSCheckbox: NSButton!
 
+    /// Button displaying code signature validation status (green/red icon).
     @IBOutlet weak var appValidationButton: NSButton!
+    /// Button that displays the extracted application icon if available.
     @IBOutlet weak var appImageButton: NSButton!
+    /// Button to save any overrides and notify the delegate.
     @IBOutlet weak var saveButton: NSButton!
     
-    // Input data
+    /// File URL pointing to the downloaded application or mounted DMG being inspected.
     var appPath: URL!
+    /// The detected or prefilled application bundle identifier.
     var appID: String = ""
+    /// The detected or prefilled application version string.
     var appVersion: String = ""
+    /// The detected or prefilled minimum OS requirement string.
     var appMinOSVersion: String = ""
+    /// Dictionary containing signature inspection results (e.g., DeveloperID, DeveloperTeam, Accepted).
     var signature: [String: Any] = [:]
+    /// The expected Apple Developer Team ID used for code signature validation.
     var expectedTeamID: String = ""
+    /// The Installomator label name associated with this app being inspected.
     var label: String = ""
+    /// Unique GUID tracking identifier for this app/label instance.
     var itemGUID: String = ""
+    /// Path to the directory where title data and icons are stored.
     var directoryPath: String = ""
 
-    // Selected Icon Path for Saving
+    /// URL to the selected icon file to be saved if “Use Image” is checked.
     private var selectedIconPath: URL?
 
+    /// Delegate reference to inform when user saves overrides.
     weak var delegate: AppInspectorDelegate?
 
+    /// Lifecycle callback after view loads.
+    /// - Populates UI fields with initial data.
+    /// - Loads the application icon and updates checkbox states.
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -60,7 +116,9 @@ class AppInspectorViewController: NSViewController {
         updateCheckboxState()
     }
 
-    // MARK: - UI Setup
+    /// Populates all UI fields with input data and signature results.
+    /// - Sets text fields for App ID, Version, Publisher, Minimum OS, and team IDs.
+    /// - Updates the validation icon based on the “Accepted” signature flag.
     private func populateUI() {
         
         //debug logging
@@ -91,6 +149,9 @@ class AppInspectorViewController: NSViewController {
         }
     }
 
+    /// Updates checkbox states based on whether detected values exist.
+    /// - Turns off publisher/MinOS checkboxes if corresponding fields are empty.
+    /// - Turns off image checkbox if no valid icon is loaded.
     func updateCheckboxState() {
         if appPublisherTextField.stringValue.isEmpty {
             usePublisherCheckbox.state = .off
@@ -111,7 +172,10 @@ class AppInspectorViewController: NSViewController {
         }
     }
 
-    
+    /// Attempts to load the application icon from the file system.
+    /// - If successful, resizes to 512x512 and sets it on `appImageButton`.
+    /// - Stores the icon path in `selectedIconPath`.
+    /// - Clears the icon and path if loading fails.
     private func loadAndSetIcon() {
         guard let appPath = appPath, FileManager.default.fileExists(atPath: appPath.path) else {
             print("Error: appPath is invalid or does not exist.")
@@ -136,7 +200,10 @@ class AppInspectorViewController: NSViewController {
         updateCheckboxState()
     }
 
-    
+    /// Converts a raw minimum OS version string into a human-readable macOS name.
+    /// - Parameters:
+    ///   - versionString: Version string in “major.minor.patch” format.
+    /// - Returns: A display name such as “macOS Monterey 12.0”.
     func displayName(forMinimumOS versionString: String) -> String {
         // Define known macOS versions
         let versionMap: [(version: OperatingSystemVersion, displayName: String)] = [
@@ -169,6 +236,8 @@ class AppInspectorViewController: NSViewController {
         return versionMap.first!.displayName
     }
 
+    /// Compares two `OperatingSystemVersion` instances.
+    /// - Returns true if version `a` is greater than or equal to version `b`.
     func isVersion(_ a: OperatingSystemVersion, greaterThanOrEqualTo b: OperatingSystemVersion) -> Bool {
         if a.majorVersion != b.majorVersion {
             return a.majorVersion > b.majorVersion
@@ -179,8 +248,8 @@ class AppInspectorViewController: NSViewController {
         return a.patchVersion >= b.patchVersion
     }
     
-    // MARK: - Helper
-    
+    /// Unmounts the DMG if `appPath` points to a mounted volume.
+    /// - Runs `hdiutil detach` on the containing mount point.
     func unMountDiskImage() {
         // Unmount the DMG if needed
         if let appPath = appPath, appPath.path.contains("/mount/") {
@@ -199,6 +268,9 @@ class AppInspectorViewController: NSViewController {
     }
     
     
+    /// Returns the top-level temp folder URL for a given file URL under the Intuneomator temp directory.
+    /// - Strips “/var/” to “/private/var/” normalization.
+    /// - Returns nil if the file is not inside the temp folder.
     func workingFolderURL(for fileURL: URL) -> URL? {
         // Normalize both paths to use /private/var
         func normalizePath(_ path: String) -> String {
@@ -224,7 +296,12 @@ class AppInspectorViewController: NSViewController {
     }
     
     
-    // MARK: - Actions
+    /// Action handler for the Save button.
+    /// - If “Use Image” is checked, saves the selected icon to the temp folder and imports via XPC.
+    /// - Collects overridden values based on corresponding checkboxes.
+    /// - Unmounts DMG and cleans up temp working folder.
+    /// - Notifies the delegate with possibly nil values for overrides.
+    /// - Dismisses the inspector sheet.
     @IBAction func saveChanges(_ sender: NSButton) {
         
         // Save the image if the checkbox is checked
@@ -289,6 +366,9 @@ class AppInspectorViewController: NSViewController {
         dismiss(self)
     }
 
+    /// Action handler for the Cancel button.
+    /// - Unmounts DMG if mounted and cleans up temp working folder.
+    /// - Dismisses the inspector sheet without saving any changes.
     @IBAction func cancel(_ sender: NSButton) {
         
         print("Canceled")
