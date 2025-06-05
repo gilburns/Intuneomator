@@ -18,6 +18,18 @@ protocol PkgInspectorDelegate: AnyObject {
     )
 }
 
+/// Modal view controller for inspecting and editing PKG installer metadata
+/// Handles inspection of macOS installer packages (.pkg) and allows users to override
+/// detected metadata such as bundle identifier, version, publisher, and minimum OS requirements
+///
+/// **Key Features:**
+/// - Inspects PKG installer packages for embedded metadata and receipts
+/// - Validates code signatures and certificate information for packages
+/// - Allows selective override of detected package information
+/// - Extracts and displays installer icons from package contents
+/// - Provides macOS version mapping for minimum OS requirements
+/// - Handles package mounting/unmounting and temporary file cleanup
+/// - Supports both flat packages and bundle-style installer packages
 class PkgInspectorViewController: NSViewController {
     @IBOutlet weak var pkgIDPopupButton: NSPopUpButton!
     
@@ -113,6 +125,9 @@ class PkgInspectorViewController: NSViewController {
     }
     
     // MARK: - UI Setup
+    
+    /// Populates the user interface with detected package metadata
+    /// Updates text fields and controls with information extracted from the PKG file
     private func populateUI() {
         // Populate the package ID popup with IDs only
         let ids = pkgItems.map { $0.0 }
@@ -142,6 +157,8 @@ class PkgInspectorViewController: NSViewController {
     
     // MARK: - Buttons
     
+    /// Shows an image selector popover for choosing package icons
+    /// Displays available images found within the package contents
     @IBAction func showImageSelector(_ sender: NSButton) {
         
         if availableImages.isEmpty {
@@ -181,12 +198,16 @@ class PkgInspectorViewController: NSViewController {
     }
     
     
+    /// Handles package ID selection changes in the popup
+    /// Updates version and other metadata when a different package ID is selected
     @IBAction func pkgIDPopupChanged(_ sender: NSPopUpButton) {
         // Update version and icon when ID is changed
         updateVersionForSelectedID()
 
     }
     
+    /// Updates checkbox states based on available metadata
+    /// Automatically enables/disables override checkboxes based on whether data is present
     func updateCheckboxState() {
 
         if pkgPublisherTextField.stringValue.isEmpty {
@@ -208,6 +229,9 @@ class PkgInspectorViewController: NSViewController {
         }
     }
     
+    /// Converts a version string to a human-readable macOS version name
+    /// - Parameter versionString: Version string (e.g., "14.0")
+    /// - Returns: Human-readable version name (e.g., "macOS Sonoma 14.0")
     func displayName(forMinimumOS versionString: String) -> String {
         // Define known macOS versions
         let versionMap: [(version: OperatingSystemVersion, displayName: String)] = [
@@ -242,6 +266,11 @@ class PkgInspectorViewController: NSViewController {
         return versionMap.first!.displayName
     }
 
+    /// Recursively finds files with a specific extension in a folder
+    /// - Parameters:
+    ///   - folderURL: The folder to search in
+    ///   - ext: The file extension to search for
+    /// - Returns: Array of URLs matching the extension, sorted by path length
     private func findFiles(inFolder folderURL: URL, withExtension ext: String) throws -> [URL] {
         let fileManager = FileManager.default
         let enumerator = fileManager.enumerator(at: folderURL, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles])
@@ -271,6 +300,11 @@ class PkgInspectorViewController: NSViewController {
     }
 
     
+    /// Compares two operating system versions
+    /// - Parameters:
+    ///   - a: First version to compare
+    ///   - b: Second version to compare
+    /// - Returns: True if version a is greater than or equal to version b
     func isVersion(_ a: OperatingSystemVersion, greaterThanOrEqualTo b: OperatingSystemVersion) -> Bool {
         if a.majorVersion != b.majorVersion {
             return a.majorVersion > b.majorVersion
@@ -282,6 +316,8 @@ class PkgInspectorViewController: NSViewController {
     }
 
     
+    /// Updates the version field and minimum OS for the selected package ID
+    /// Automatically populates version information when a package ID is selected
     private func updateVersionForSelectedID() {
         guard let selectedID = pkgIDPopupButton.titleOfSelectedItem else { return }
         
@@ -298,6 +334,15 @@ class PkgInspectorViewController: NSViewController {
         
     }
     
+    /// Loads and sets the minimum supported macOS version for the given package ID.
+    /// - Parameter id: The package identifier whose metadata is being inspected.
+    ///
+    /// This function locates the expanded package folder, parses the Distribution or PackageInfo
+    /// XML to find the matching `<pkg-ref>` node for the selected ID and version, decodes the
+    /// percent-encoded payload folder name, drills into the payload to find an `.app` bundle,
+    /// reads its `Info.plist` for `LSMinimumSystemVersion`, converts it to a human-readable
+    /// display string, and updates the `pkgMinOSTextField`. If any step fails, it logs an error
+    /// and clears the minimum OS field.
     private func loadMinOSForSelectedPackage(id: String) {
         guard let pkgURL = pkgURL else {
             return
@@ -388,6 +433,15 @@ class PkgInspectorViewController: NSViewController {
         }
     }
 
+    /// Scans the expanded package contents for potential icon images.
+    /// - Returns: A dictionary mapping each found file URL to its corresponding `NSImage`.
+    ///
+    /// This method first locates the expanded package directory, then:
+    ///   1. Finds all `.app` bundles and extracts their application icons via `NSWorkspace`.
+    ///   2. Finds all `.icns` files, loads them as `NSImage`.
+    ///   3. Finds `.png` files that resemble icons (based on filename or resource path and a square size >= 64 px).
+    /// Each discovered image is resized to 512x512 and stored in the returned map. If any errors
+    /// occur during folder enumeration or image loading, it logs the error and skips that file.
     private func findAllImages() -> [URL: NSImage] {
         var imageMap = [URL: NSImage]()
         
@@ -608,6 +662,9 @@ class PkgInspectorViewController: NSViewController {
         }
     }
     
+    /// Determines the working folder URL for cleanup operations
+    /// - Parameter fileURL: The file URL to find the working folder for
+    /// - Returns: Working folder URL if found, nil otherwise
     func workingFolderURL(for fileURL: URL) -> URL? {
         // Normalize both paths to use /private/var
         func normalizePath(_ path: String) -> String {
@@ -634,6 +691,9 @@ class PkgInspectorViewController: NSViewController {
 
     
     // MARK: - Actions
+    
+    /// Saves user-selected metadata overrides and dismisses the modal
+    /// Processes selected checkboxes and saves any custom icon before notifying delegate
     @IBAction func saveChanges(_ sender: NSButton) {
         
         // Save the image if the checkbox is checked
@@ -701,6 +761,8 @@ class PkgInspectorViewController: NSViewController {
         dismiss(self)
     }
     
+    /// Cancels the inspection process and dismisses the modal
+    /// Performs cleanup operations before closing
     @IBAction func cancelButtonClicked(_ sender: NSButton) {
         
         // Unmount the DMG if needed
