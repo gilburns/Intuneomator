@@ -11,7 +11,7 @@ Intuneomator is a powerful macOS enterprise application that bridges the gap bet
 ## 🚀 Features
 
 ### **Automated Application Management**
-- **700+ Application Support**: Leverages Installomator's extensive label database
+- **900+ Application Support**: Leverages Installomator's extensive label database
 - **Multi-Architecture Support**: Handles ARM64, Intel, and Universal binaries seamlessly
 - **Flexible Deployment Types**: Supports DMG, PKG, and LOB (Line of Business) applications
 - **Intelligent Version Detection**: Automatic monitoring and update notifications
