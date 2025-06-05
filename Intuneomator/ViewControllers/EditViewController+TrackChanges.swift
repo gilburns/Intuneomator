@@ -1,3 +1,12 @@
+///
+///  EditViewController+TrackChanges.swift
+///  Intuneomator
+///
+///  Extension for `EditViewController` to track and highlight changes in the Edit View.
+///  Compares current UI data against loaded metadata and default values, highlighting fields
+///  with unsaved changes. Provides utility methods to clear and set highlights.
+///
+
 //
 //  EditViewController+TrackChanges.swift
 //  Intuneomator
@@ -8,9 +17,15 @@
 import Foundation
 import AppKit
 
+/// Extension adding change-tracking functionality to `EditViewController`.
+/// Monitors UI fields and metadata objects to detect modifications, highlights
+/// changed controls, and notifies the parent view to update save button state.
 extension EditViewController {
     
-    // MARK: - Track Changes in the GUI
+    /// Evaluates whether the current metadata in the UI differs from the last loaded metadata or defaults.
+    /// Builds a `currentMetadata` object from UI fields and partial metadata, compares it to `lastLoadedMetadata`.
+    /// If no previous metadata exists, highlights any non-default fields. If differences are found,
+    /// highlights individual fields that have changed. Updates `hasUnsavedChanges` and notifies parent.
     func trackChanges() {
         // Build the current metadata state from the UI
         
@@ -76,6 +91,9 @@ extension EditViewController {
     }
 
     
+    /// Highlights fields whose values differ from assumed default metadata values.
+    /// Examines each property in `currentMetadata` and applies a yellow background to any control
+    /// whose value is not the default. Marks `hasUnsavedChanges` if any highlights occur.
     private func highlightChangesAgainstDefaults(currentMetadata: Metadata) {
         hasUnsavedChanges = false // Reset state before comparing fields
 
@@ -147,6 +165,8 @@ extension EditViewController {
     }
 
 
+    /// Clears all highlight backgrounds and borders from tracked UI fields.
+    /// Resets any visual indicators of unsaved changes.
     private func clearFieldHighlights() {
 //        print("clearFieldHighlights ALL")
         clearHighlight(buttonSelectCategories)
@@ -165,6 +185,9 @@ extension EditViewController {
     }
 
     
+    /// Compares `currentMetadata` and `lastMetadata`, highlighting each UI field where values differ.
+    /// For each metadata property (publisher, bundle ID, categories, etc.), sets a yellow background
+    /// on the corresponding control if changed, or clears it if unchanged.
     func highlightChangedFields(currentMetadata: Metadata, lastMetadata: Metadata) {
         // Highlight informationUrl field if changed
 //        if currentMetadata.informationUrl != lastMetadata.informationUrl {
@@ -265,7 +288,8 @@ extension EditViewController {
 
     }
 
-    // Highlight a field
+    /// Applies a yellow background to the given control to indicate a changed state.
+    /// Supports `NSTextField` and `NSButton` types.
     private func highlightField(_ field: NSControl) {
         if let textField = field as? NSTextField {
             textField.backgroundColor = NSColor.systemYellow
@@ -275,7 +299,7 @@ extension EditViewController {
     }
 
 
-    // Clear field highlight
+    /// Removes background highlight or border color from the given control, returning it to default appearance.
     func clearHighlight(_ field: NSControl) {
         if let textField = field as? NSTextField {
             textField.layer?.borderColor = NSColor.clear.cgColor
@@ -285,6 +309,8 @@ extension EditViewController {
         }
     }
     
+    /// Adjusts the border of an `NSTextView`'s enclosing scroll view to the specified color.
+    /// Used to visually indicate changes in multiline text fields.
     func setTextViewBorder(field: NSTextView, color: NSColor) {
         guard let scrollView = field.enclosingScrollView else {
             #if DEBUG
@@ -299,30 +325,46 @@ extension EditViewController {
     }
 
 
-    // MARK: - Track Changes to fields
-
+    /// Called when the corresponding UI field value changes, triggering the change-tracking process.
+    /// Invokes `trackChanges()` to re-evaluate unsaved modifications.
+    /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
     @IBAction func fieldIntuneIdDidChange(_ sender: NSTextField) {
         trackChanges()
     }
 
+    /// Called when the corresponding UI field value changes, triggering the change-tracking process.
+    /// Invokes `trackChanges()` to re-evaluate unsaved modifications.
+    /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
     @IBAction func fieldInfoURLDidChange(_ sender: NSTextField) {
         trackChanges()
     }
 
+    /// Called when the corresponding UI field value changes, triggering the change-tracking process.
+    /// Invokes `trackChanges()` to re-evaluate unsaved modifications.
+    /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
     @IBAction func fieldPublisherDidChange(_ sender: NSTextField) {
         trackChanges()
     }
 
+    /// Called when the corresponding UI field value changes, triggering the change-tracking process.
+    /// Invokes `trackChanges()` to re-evaluate unsaved modifications.
+    /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
     @IBAction func buttonPopUpMinimumOsDidChange(_ sender: NSPopUpButton) {
         trackChanges()
     }
 
+    /// Called when the corresponding UI field value changes, triggering the change-tracking process.
+    /// Invokes `populateFieldsFromAppData()` and `trackChanges()` to update dependent fields and re-evaluate unsaved modifications.
+    /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
     @IBAction func buttonDeployAsArchDidChange(_ sender: NSPopUpButton) {
         populateFieldsFromAppData()
         trackChanges()
         
     }
 
+    /// Called when the corresponding UI field value changes, triggering the change-tracking process.
+    /// Updates UI elements and app type based on deployment type selection, then refreshes fields and tracks changes.
+    /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
     @IBAction func buttonDeploymentTypeDidChange(_ sender: NSPopUpButton) {
         
         if sender.selectedItem?.tag == 0 {
@@ -371,23 +413,37 @@ extension EditViewController {
         
     }
 
+    /// Called when the corresponding UI field value changes, triggering the change-tracking process.
+    /// Invokes `trackChanges()` to re-evaluate unsaved modifications.
+    /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
     @IBAction func radioButtonDidChange(_ sender: NSButton) {
         trackChanges()
     }
 
+    /// Called when the corresponding UI field value changes, triggering the change-tracking process.
+    /// Invokes `trackChanges()` to re-evaluate unsaved modifications.
+    /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
     @IBAction func fieldDescriptionDidChange(_ sender: NSTextView) {
         trackChanges()
     }
 
+    /// Called when the corresponding UI field value changes, triggering the change-tracking process.
+    /// Invokes `trackChanges()` to re-evaluate unsaved modifications.
+    /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
     @IBAction func buttonFeatureAppDidChange(_ sender: NSButton) {
         trackChanges()
     }
 
+    /// Called when the corresponding UI field value changes, triggering the change-tracking process.
+    /// Invokes `trackChanges()` to re-evaluate unsaved modifications.
+    /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
     @IBAction func buttonManagedAppDidChange(_ sender: NSButton) {
         trackChanges()
     }
 
     
+    /// Marks the view state as having unsaved changes.
+    /// Sets `hasUnsavedChanges = true` and notifies the parent TabViewController to update its save button.
     func markUnsavedChanges() {
         hasUnsavedChanges = true
         if let parentVC = parent as? TabViewController {
@@ -399,12 +455,15 @@ extension EditViewController {
         parentTabViewController?.updateSaveButtonState()
     }
 
+    /// Marks that changes have been saved.
+    /// Clears `hasUnsavedChanges` and updates the parent TabViewController to disable the save button.
     func markChangesSaved() {
         hasUnsavedChanges = false
         (parent as? TabViewController)?.updateSaveButtonState()
     }
 
-    // NSTextStorageDelegate method
+    /// NSTextStorageDelegate callback invoked after text editing in an `NSTextView`.
+    /// Triggers `trackChanges()` to detect modifications in text fields.
     func textStorage(_ textStorage: AppKit.NSTextStorage, didProcessEditing editedMask: AppKit.NSTextStorageEditActions, range editedRange: NSRange, changeInLength delta: Int) {
 
         // Trigger tracking changes
