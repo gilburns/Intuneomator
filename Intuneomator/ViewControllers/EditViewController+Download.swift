@@ -5,14 +5,31 @@
 //  Created by Gil Burns on 5/25/25.
 //
 
+///
+///  EditViewController+Download.swift
+///  Intuneomator
+///
+///  Extension for `EditViewController` to handle downloading and inspecting packages and apps.
+///  Provides methods to download files from a URL, track progress, process different archive types
+///  (pkg, zip, dmg, app), invoke inspectors for metadata extraction, and clean up temporary resources.
+///
+
 import Foundation
 import AppKit
 
 private let logType = "EditViewController"
 
+/// Adds download inspection functionality to `EditViewController`.
+/// Implements methods to initiate a download, handle URLSession delegate callbacks for progress and completion,
+/// process downloaded files based on type, and invoke inspection workflows for pkg and app metadata.
 extension EditViewController {
     
     // MARK: - Download Inspection
+    
+    /// Initiates download of the URL entered in `fieldDownloadURL` and prepares for inspection.
+    /// Validates the URL, creates a temporary unique folder, configures a URLSession with self as delegate,
+    /// disables UI controls, and shows a determinate progress bar for the download.
+    /// - Parameter sender: The control that triggered the download action.
     @IBAction func inspectDownload(_ sender: Any) {
         
         guard let downloadURL = URL(string: fieldDownloadURL.stringValue) else {
@@ -55,6 +72,10 @@ extension EditViewController {
     }
     
     
+    /// Presents a modal pop-up menu to allow the user to select a package ID-version pair.
+    /// If the `items` array is empty, displays an error alert. Otherwise, shows an NSAlert with
+    /// a NSPopUpButton listing choices. On selection, populates `fieldIntuneID` and `fieldIntuneVersion`.
+    /// - Parameter items: Array of strings formatted as "id - version" for user selection.
     private func presentMenu(items: [String]) {
         guard !items.isEmpty else {
             let alert = NSAlert()
@@ -96,6 +117,9 @@ extension EditViewController {
     }
     
     
+    /// Handles changes to the "Ignore Version" radio buttons.
+    /// Invokes `trackChanges()` after any selection to detect unsaved changes.
+    /// - Parameter sender: The radio button that was clicked.
     @IBAction func handleRadioSelection(_ sender: NSButton) {
         if sender == radioYes {
             //            print("Yes selected")
@@ -111,6 +135,11 @@ extension EditViewController {
     
     
     // MARK: - Download Inspection Processing Methods
+    
+    /// Processes the downloaded file based on the selected `fieldType`.
+    /// On the main thread, hides progress UI and restores button states, then dispatches
+    /// to specialized methods to handle pkg, pkgInZip, pkgInDmg, pkgInDmgInZip, or app types.
+    /// - Parameter location: The local file URL where the download was saved.
     private func processDownloadedFile(at location: URL) async {
         let fieldType = fieldType.stringValue.lowercased()
         
@@ -143,6 +172,12 @@ extension EditViewController {
         }
     }
     
+    
+    // MARK: - PKG Types
+    
+    /// Inspects a standalone .pkg file: verifies existence, performs signature inspection,
+    /// and invokes `PkgInspector` to extract metadata. On completion, calls `handleInspectionResultPkg`.
+    /// - Parameter location: File URL of the downloaded .pkg.
     // MARK: - PKG Types
     private func processPkg(at location: URL) async {
         var signatureResult: [String: Any] = [:]
@@ -177,6 +212,10 @@ extension EditViewController {
         }
     }
     
+    
+    /// Handles a .zip containing a .pkg: unzips to a temporary folder, locates the first .pkg,
+    /// and forwards it to `processPkg`. If any step fails, shows an error and cleans up.
+    /// - Parameter location: File URL of the downloaded zip archive.
     private func processPkgInZip(at location: URL) async {
         let tempDir = AppConstants.intuneomatorTempFolderURL
             .appendingPathComponent(UUID().uuidString)
@@ -223,6 +262,10 @@ extension EditViewController {
         }
     }
     
+
+    /// Handles a .dmg containing a .pkg: mounts the DMG (converting if SLA present),
+    /// searches for the .pkg, copies it to a temp directory, unmounts the image, and processes the pkg.
+    /// - Parameter location: File URL of the downloaded disk image.
     private func processPkgInDmg(at location: URL) async {
         let tempDir = location.deletingLastPathComponent()
         let mountPoint = tempDir.appendingPathComponent("mount")
@@ -282,6 +325,9 @@ extension EditViewController {
     }
     
     
+    /// Handles a .zip containing a .dmg: unzips to a temporary folder, finds the .dmg,
+    /// and delegates to `processPkgInDmg`.
+    /// - Parameter location: File URL of the downloaded zip archive.
     private func processPkgInDmgInZip(at location: URL) async {
         let tempDir = AppConstants.intuneomatorTempFolderURL
             .appendingPathComponent(UUID().uuidString)
@@ -318,7 +364,16 @@ extension EditViewController {
             cleanupAfterProcessing()
         }
     }
-    
+
+
+    /// Handles the result of pkg inspection.
+    /// On success with non-empty items, presents the `PkgInspectorViewController` modal
+    /// to let the user choose the correct ID-version. On failure, logs the error and cleans up.
+    /// - Parameters:
+    ///   - result: Result containing an array of (id, version) tuples or an error.
+    ///   - type: The type tag (e.g., "pkg").
+    ///   - signature: Dictionary with signature inspection information.
+    ///   - fileURL: File URL of the inspected pkg.
     private func handleInspectionResultPkg(_ result: Result<[(String, String)], Error>, type: String, signature: [String: Any], fileURL: URL) {
         switch result {
         case .success(let items):
@@ -337,7 +392,14 @@ extension EditViewController {
             cleanupAfterProcessing()
         }
     }
-    
+
+
+    /// Presents the `PkgInspectorViewController` as a sheet, passing in pkg metadata and signature.
+    /// Configures expectedTeamID, label, GUID, and directory path before showing.
+    /// - Parameters:
+    ///   - pkgItems: Array of (id, version) tuples from inspection.
+    ///   - signature: Signature inspection result dictionary.
+    ///   - pkgURL: File URL of the pkg to inspect.
     private func presentPkgInspectorModal(pkgItems: [(String, String)], signature: [String: Any], pkgURL: URL) {
         guard let appData = appData else {
             //            print("Error: appData is missing.")
@@ -360,9 +422,16 @@ extension EditViewController {
         // Show the modal
         presentAsSheet(pkgInspectorVC)
     }
-    
-    
+
+
     // MARK: - APP Types
+    
+    /// Processes downloaded app-type content based on `type` (dmg, appInDmgInZip, zip, tbz).
+    /// Delegates to specialized methods or throws an error for unsupported types.
+    /// - Parameters:
+    ///   - location: File URL of the downloaded resource.
+    ///   - type: Lowercased string indicating the content type.
+    ///   - inspector: `AppInspector` instance to extract app metadata.
     private func processAppType(location: URL, type: String, inspector: AppInspector) {
         let tempDir = URL(fileURLWithPath: location.deletingLastPathComponent().path)
         
@@ -383,7 +452,14 @@ extension EditViewController {
             cleanupAfterProcessing()
         }
     }
-    
+
+
+    /// Mounts a DMG, finds the contained .app bundle, inspects its signature,
+    /// invokes `AppInspector` to extract app ID, version, and minOS, and presents the modal.
+    /// - Parameters:
+    ///   - location: File URL of the DMG.
+    ///   - tempDir: Temporary directory URL for mounting and extraction.
+    ///   - inspector: `AppInspector` instance for metadata extraction.
     private func processDmg(at location: URL, tempDir: URL, inspector: AppInspector) throws {
         // Mount, find app, and inspect
         //        print("Processing dmg at \(location)")
@@ -433,7 +509,13 @@ extension EditViewController {
             }
         }
     }
-    
+
+
+    /// Unzips a dmg-in-zip archive, finds the DMG, and calls `processDmg` to handle the app.
+    /// - Parameters:
+    ///   - location: File URL of the zip containing a DMG.
+    ///   - tempDir: Temporary directory URL for extraction.
+    ///   - inspector: `AppInspector` instance.
     private func processAppInDmgInZip(at location: URL, tempDir: URL, inspector: AppInspector) throws {
         // Unzip and process
         let process = Process()
@@ -455,7 +537,14 @@ extension EditViewController {
         
         try processDmg(at: dmgPath, tempDir: tempDir, inspector: inspector)
     }
-    
+
+
+    /// Expands a compressed app archive (tar, zip, tbz), locates the .app bundle,
+    /// inspects its signature, uses `AppInspector` to extract metadata, and calls `handleInspectionResultApp`.
+    /// - Parameters:
+    ///   - location: File URL of the compressed app archive.
+    ///   - tempDir: Temporary directory URL for extraction.
+    ///   - inspector: `AppInspector` instance.
     private func processCompressedApp(at location: URL, tempDir: URL, inspector: AppInspector) throws {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
@@ -501,8 +590,16 @@ extension EditViewController {
             }
         }
     }
-    
-    
+
+
+    /// Handles the result of app inspection.
+    /// On success with non-empty items, presents the `AppInspectorViewController` modal
+    /// for the first (id, version, minOS) tuple. On failure or empty result, cleans up.
+    /// - Parameters:
+    ///   - result: Result containing array of (id, version, minOS) tuples or an error.
+    ///   - type: The type tag (e.g., "app").
+    ///   - signature: Signature inspection data.
+    ///   - fileURL: File URL of the inspected app bundle.
     private func handleInspectionResultApp(_ result: Result<[(String, String, String?)], Error>, type: String, signature: [String: Any], fileURL: URL) {
         switch result {
         case .success(let items):
@@ -524,9 +621,16 @@ extension EditViewController {
             cleanupAfterProcessing()
         }
     }
-    
-    
-    
+
+
+    /// Presents the `AppInspectorViewController` as a sheet, passing in app metadata and signature.
+    /// Configures expectedTeamID, label, GUID, and directory path before showing.
+    /// - Parameters:
+    ///   - appPath: File URL of the .app bundle.
+    ///   - appID: String of the app bundle identifier.
+    ///   - appVersion: String of the app version.
+    ///   - appMinOSVersion: Minimum OS version string.
+    ///   - signature: Dictionary of signature inspection data.
     private func presentAppInspectorModal(appPath: URL, appID: String, appVersion: String, appMinOSVersion: String, signature: [String: Any]) {
         guard let appData = appData else {
             return
@@ -553,6 +657,11 @@ extension EditViewController {
     
     
     // MARK: - DMG SLA
+    
+    /// Checks if a DMG includes a Software License Agreement (SLA).
+    /// Runs `hdiutil imageinfo -plist` and parses the `Software License Agreement` property.
+    /// - Parameter path: File system path of the DMG.
+    /// - Returns: `true` if the DMG contains an SLA, `false` otherwise.
     private func dmgHasSLA(at path: String) -> Bool {
         let process = Process()
         process.launchPath = "/usr/bin/hdiutil"
@@ -579,6 +688,10 @@ extension EditViewController {
     }
     
     
+    /// Converts a DMG with an SLA to a read/write format using `hdiutil convert`.
+    /// Writes to a temporary location and replaces the original DMG upon success.
+    /// - Parameter path: File system path of the DMG with SLA.
+    /// - Returns: `true` if conversion succeeded, `false` on error.
     func convertDmgWithSLA(at path: String) async -> Bool {
         let fileName = URL(fileURLWithPath: path).lastPathComponent
         let tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory())
@@ -630,6 +743,9 @@ extension EditViewController {
     
     
     // MARK: - Cleanup After Download Processing
+    
+    /// Resets the progress UI and hides the progress bar after download or inspection steps.
+    /// Invoked when processing completes or errors occur.
     func cleanupAfterProcessing() {
         DispatchQueue.main.async {
             self.progPkgInspect.isIndeterminate = false
@@ -639,9 +755,18 @@ extension EditViewController {
             //            self.setFinalDownloadSize()
         }
     }
-    
+
+
     // MARK: - URLSessionDownloadDelegate Methods
-    // Update progress bar as data is written
+    
+    /// URLSessionDownloadDelegate callback to update download progress.
+    /// Calculates fraction complete and updates the determinate progress bar and `fieldDownloadSize` text.
+    /// - Parameters:
+    ///   - session: The URLSession instance.
+    ///   - downloadTask: The download task reporting progress.
+    ///   - bytesWritten: Number of bytes written since last callback.
+    ///   - totalBytesWritten: Total bytes written so far.
+    ///   - totalBytesExpectedToWrite: Total bytes expected for the download.
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
         guard totalBytesExpectedToWrite > 0 else { return } // Avoid division by zero
         
@@ -668,8 +793,15 @@ extension EditViewController {
             }
         }
     }
-    
-    // Handle download completion
+
+
+    /// URLSessionDownloadDelegate callback invoked when download finishes.
+    /// Validates the HTTP response, converts progress bar to indeterminate, determines file name
+    /// from headers or URL, moves the file to the unique temp folder, and calls `processDownloadedFile`.
+    /// - Parameters:
+    ///   - session: The URLSession instance.
+    ///   - downloadTask: The completed download task.
+    ///   - location: Temporary file URL of the downloaded data.
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         // Check the HTTP response for success
         if let response = downloadTask.response as? HTTPURLResponse, !(200...299).contains(response.statusCode) {
@@ -728,8 +860,15 @@ extension EditViewController {
             }
         }
     }
-    
-    // Handle errors
+
+
+    /// URLSessionDownloadDelegate callback invoked when download finishes.
+    /// Validates the HTTP response, converts progress bar to indeterminate, determines file name
+    /// from headers or URL, moves the file to the unique temp folder, and calls `processDownloadedFile`.
+    /// - Parameters:
+    ///   - session: The URLSession instance.
+    ///   - downloadTask: The completed download task.
+    ///   - location: Temporary file URL of the downloaded data.
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         if let error = error {
             DispatchQueue.main.async {
