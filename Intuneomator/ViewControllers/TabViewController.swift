@@ -8,6 +8,16 @@
 import Foundation
 import Cocoa
 
+
+protocol TabSaveable {
+    func saveMetadata()
+}
+
+protocol UnsavedChangesHandling {
+    var hasUnsavedChanges: Bool { get }
+}
+
+
 /// Modal sheet view controller for managing application metadata across multiple tabbed interfaces
 /// Provides coordinated editing environment for app details, scripts, and group assignments
 /// Implements lazy loading and caching of tab view controllers for optimal performance
