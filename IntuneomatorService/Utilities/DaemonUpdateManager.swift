@@ -35,15 +35,16 @@ class DaemonUpdateManager {
     /// Log type identifier for logging operations
     static let logType = "DaemonUpdateManager"
 
-    /// Gets the currently installed version of Intuneomator
-    /// - Returns: Version string from the app's Info.plist, or "0.0.0" if not found
-    static var localVersion: String {
+    /// Gets the combined local version (CFBundleShortVersionString.CFBundleVersion)
+    /// - Returns: Version string from the app's Info.plist, or "0.0.0.0" if not found
+    static var localCombinedVersion: String {
         let infoPlistPath = "\(guiAppBundlePath)/Contents/Info.plist"
         guard let plist = NSDictionary(contentsOfFile: infoPlistPath),
-              let version = plist["CFBundleShortVersionString"] as? String else {
-            return "0.0.0"
+              let version = plist["CFBundleShortVersionString"] as? String,
+              let build = plist["CFBundleVersion"] as? String else {
+            return "0.0.0.0"
         }
-        return version
+        return "\(version).\(build)"
     }
     
     /// Checks for available updates and performs the update if a newer version is found
@@ -55,7 +56,7 @@ class DaemonUpdateManager {
                 exit(EXIT_FAILURE)
             }
 
-            if remoteVersion.compare(localVersion, options: .numeric) == .orderedDescending {
+            if remoteVersion.compare(localCombinedVersion, options: .numeric) == .orderedDescending {
                 Logger.log("⬇️ New version available: \(remoteVersion)", logType: logType)
                 
                 // Check if we should self update or just send a teams notification
