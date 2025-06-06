@@ -405,7 +405,7 @@ class MainViewController: NSViewController {
         let info = Bundle.main.infoDictionary
         let shortVersion = info?["CFBundleShortVersionString"] as? String ?? "Unknown"
         let buildNumber  = info?["CFBundleVersion"]            as? String ?? "?"
-        return "v\(shortVersion) (build \(buildNumber))"
+        return "v\(shortVersion).\(buildNumber)"
     }
     
     
