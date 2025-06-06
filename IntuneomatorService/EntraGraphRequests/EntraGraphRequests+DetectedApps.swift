@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CommonCrypto
 
 // MARK: - Detected Applications Extension
 
