@@ -1,5 +1,5 @@
 //
-//  TeamsNotifier+NotifyUpdate.swift
+//  TeamsNotifier+NotifyUpdateAvailable.swift
 //  Intuneomator
 //
 //  Created by Gil Burns on 2/19/25.
@@ -7,22 +7,36 @@
 
 import Foundation
 
+// MARK: - Update Availability Notification Extension
+
+/// Extension for sending Microsoft Teams notifications about available Intuneomator service updates
+/// Provides proactive notifications when new service versions are detected but not yet installed
 extension TeamsNotifier {
     
+    /// Sends a Microsoft Teams notification alerting administrators about available service updates
+    /// Creates an informational adaptive card showing current and available version information
+    /// - Parameters:
+    ///   - initialVersion: The currently installed version number
+    ///   - updatedVersion: The newly available version number for update
+    ///   - errorMessage: Optional error message if update detection encountered issues
     func sendUpdateAvailableNotification(
         initialVersion: String,
         updatedVersion: String,
         errorMessage: String? = nil
     ) {
+        // Configure notification branding and metadata
         let title = "Intuneomator Service"
         let intuneomatorIconUrl: String = "https://icons.intuneomator.org/intuneomator.png"
         
+        // Create version comparison facts for the adaptive card
         let versionFacts: [[String: String]] = [
-            ["title": "Initial Version:", "value": initialVersion],
-            ["title": "Updated Version:", "value": updatedVersion]
+            ["title": "Current Version:", "value": initialVersion],
+            ["title": "Available Version:", "value": updatedVersion]
         ]
                 
+        // Build adaptive card body content with header and version information
         var bodyContent: [[String: Any]] = [
+            // Header row with icon, spacer, and update availability indicator
             [
                 "type": "ColumnSet",
                 "columns": [
@@ -59,6 +73,7 @@ extension TeamsNotifier {
                     ]
                 ]
             ],
+            // Main title
             [
                 "type": "TextBlock",
                 "text": "**\(title)**",
@@ -66,6 +81,7 @@ extension TeamsNotifier {
                 "spacing": "None",
                 "size": "Large"
             ],
+            // Update availability description
             [
                 "type": "TextBlock",
                 "text": "Intuneomator service has an available update.",
@@ -73,6 +89,7 @@ extension TeamsNotifier {
                 "spacing": "Small",
                 "size": "Small"
             ],
+            // Section separator
             [
                 "type": "TextBlock",
                 "text": "---",
@@ -80,6 +97,7 @@ extension TeamsNotifier {
                 "spacing": "Medium",
                 "separator": true
             ],
+            // Version information section header
             [
                 "type": "TextBlock",
                 "text": "**Version Information:**",
@@ -87,10 +105,12 @@ extension TeamsNotifier {
                 "size": "Medium",
                 "spacing": "Medium"
             ],
+            // Version facts display
             [
                 "type": "FactSet",
                 "facts": versionFacts
             ],
+            // Section separator
             [
                 "type": "TextBlock",
                 "text": "---",
@@ -100,7 +120,7 @@ extension TeamsNotifier {
             ]
         ]
         
-        // Add possible error info
+        // Add error information section if update detection encountered issues
         if let errorMessage = errorMessage, !errorMessage.trimmingCharacters(in: .whitespaces).isEmpty {
             bodyContent.append([
                 "type": "TextBlock",
@@ -127,7 +147,7 @@ extension TeamsNotifier {
             ])
         }
 
-        // Send Teams Notification
+        // Send the constructed adaptive card notification to Microsoft Teams
         self.sendTeamsNotification(bodyContent: bodyContent)
 
     }
