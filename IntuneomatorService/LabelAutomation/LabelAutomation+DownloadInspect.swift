@@ -101,12 +101,16 @@ extension LabelAutomation {
             }
             
         default:
+            // Handle unsupported file types
             Logger.log("Unsupported file type: \(inspectionType)", logType: logType)
+            Logger.log("Supported types: 'pkg' (installer packages) and 'app' (application bundles)", logType: logType)
             return false
             
         }
+        
+        // All signature validations passed successfully
+        Logger.log("✅ Signature inspection completed successfully for \(inspectionType)", logType: logType)
         return true
     }
-    
 
 }
