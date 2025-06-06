@@ -7,8 +7,24 @@
 
 import Foundation
 
+// MARK: - Success Notification Extension
+
+/// Extension for sending Microsoft Teams notifications about successful application deployments
+/// Provides comprehensive deployment reporting with metadata, group assignments, and CVE information
 extension TeamsNotifier {
     
+    /// Sends a detailed Microsoft Teams notification for successful application deployment
+    /// Creates an adaptive card with comprehensive deployment information, optional group assignments, and CVE data
+    /// - Parameters:
+    ///   - title: The application display name
+    ///   - version: The deployed application version
+    ///   - size: The file size of the deployed application
+    ///   - time: The deployment completion timestamp
+    ///   - imageURL: The URL for the application icon to display
+    ///   - deploymentType: Optional deployment type (LOB, MSI, etc.)
+    ///   - architecture: Optional architecture information (Universal, ARM64, x86_64)
+    ///   - releaseNotesURL: Optional URL to application release notes or update details
+    ///   - assignedGroups: Array of group assignment information for the deployed application
     func sendSuccessNotification(
         title: String,
         version: String,
@@ -21,17 +37,18 @@ extension TeamsNotifier {
         assignedGroups: [[String : Any]]
     ) async {
         
-        
+        // Read configuration settings for optional notification content
         let includeGroups = ConfigManager.readPlistValue(key: "TeamsNotificationsForGroups") ?? false
         let includeCVEs = ConfigManager.readPlistValue(key: "TeamsNotificationsForCVEs") ?? false
 
-                
+        // Build core application facts for the adaptive card
         var facts: [[String: String]] = [
             ["title": "Version:", "value": version],
             ["title": "Size:", "value": size],
             ["title": "Time:", "value": time]
         ]
         
+        // Add optional deployment metadata if provided
         if let deploymentType = deploymentType {
             facts.append(["title": "Deployment Type:", "value": deploymentType])
         }
@@ -42,8 +59,9 @@ extension TeamsNotifier {
             facts.append(["title": "Release Notes:", "value": "[Update Details](\(releaseNotesURL))"])
         }
         
-        // ✅ Success Card Content (Image, Title, Separator, Details)
+        // Build adaptive card body content with header, application icon, and success indicator
         var bodyContent: [[String: Any]] = [
+            // Header row with application icon, spacer, and success status indicator
             [
                 "type": "ColumnSet",
                 "columns": [
@@ -80,6 +98,7 @@ extension TeamsNotifier {
                     ]
                 ]
             ],
+            // Application title
             [
                 "type": "TextBlock",
                 "text": "**\(title)**",
@@ -87,6 +106,7 @@ extension TeamsNotifier {
                 "spacing": "None",
                 "size": "Large"
             ],
+            // Deployment update description
             [
                 "type": "TextBlock",
                 "text": "Intuneomator deployment update",
@@ -94,6 +114,7 @@ extension TeamsNotifier {
                 "spacing": "Small",
                 "size": "Small"
             ],
+            // Section separator
             [
                 "type": "TextBlock",
                 "text": "---",
@@ -101,46 +122,50 @@ extension TeamsNotifier {
                 "spacing": "Medium",
                 "separator": true
             ],
+            // Software details section header
             [
                 "type": "TextBlock",
                 "text": "**Software Details:**",
                 "weight": "Bolder",
                 "spacing": "Medium"
             ],
+            // Application metadata facts display
             [
                 "type": "FactSet",
                 "facts": facts
             ]
         ]
         
+        // Add group assignment information if configured to include groups
         if includeGroups {
-            // ✅ Add Assignment Groups for Success
             let groupInfoBlocks = formatAssignedGroups(assignedGroups)
             bodyContent.append(contentsOf: groupInfoBlocks)
         }
         
+        // Add CVE (Common Vulnerabilities and Exposures) information if configured
         if includeCVEs {
-            // Fetch CVEs and send notification when complete
             Logger.log("Loading CVEs for \(title)...", logType: TeamsNotifier.logType)
             let fetcher = CVEFetcher()
             
+            // Fetch CVE data asynchronously and send notification when complete
             fetcher.fetchCVEsSimple(for: title) { [self] result in
-                // Add CVE sections to bodyContent
                 switch result {
                 case .success(let cves):
+                    // Add CVE information sections to the notification body
                     let cveSections = createCVESections(cves)
                     bodyContent.append(contentsOf: cveSections)
                     Logger.log("CVE fetch complete. Found \(cves.count) CVEs", logType: TeamsNotifier.logType)
                 case .failure(let error):
                     Logger.log("Error fetching CVEs: \(error)", logType: TeamsNotifier.logType)
-                    // Continue without CVE data
+                    // Continue without CVE data if fetch fails
                 }
                 
-                // Send Teams Notification
+                // Send the constructed adaptive card notification to Microsoft Teams
                 Logger.log("Sending Teams Notification...", logType: TeamsNotifier.logType)
                 self.sendTeamsNotification(bodyContent: bodyContent)
             }
         } else {
+            // Send notification immediately without CVE data
             Logger.log("Sending Teams Notification...", logType: TeamsNotifier.logType)
             sendTeamsNotification(bodyContent: bodyContent)
         }
