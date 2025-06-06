@@ -124,7 +124,7 @@ extension EditViewController {
         do {
             try pngData.write(to: URL(fileURLWithPath: path))
         } catch {
-            Logger.logUser("Failed to save icon: \(error)")
+            Logger.logApp("Failed to save icon: \(error)")
         }
     }
     

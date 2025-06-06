@@ -84,13 +84,13 @@ class TeamsNotificationsViewController: NSViewController, WizardStepProtocol {
     /// Updates notification enabled status and toggles webhook URL field accessibility
     /// - Parameter sender: The checkbox button that triggered the action
     @IBAction func buttonSendTeamsMessageClicked (_ sender: NSButton) {
-        Logger.logUser("Send Teams Notifications button clicked", logType: logType)
-        Logger.logUser("Button state: \(sender.state)", logType: logType)
+        Logger.logApp("Send Teams Notifications button clicked", logType: logType)
+        Logger.logApp("Button state: \(sender.state)", logType: logType)
         fieldTeamsWebhookURL.isEnabled = sender.state == .on
         
         let isEnabled = sender.state == .on
         XPCManager.shared.setTeamsNotificationsEnabled(isEnabled) { [self] success in
-            Logger.logUser("Teams notifications updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.logApp("Teams notifications updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
 
@@ -100,7 +100,7 @@ class TeamsNotificationsViewController: NSViewController, WizardStepProtocol {
     @IBAction func webhookURLChanged(_ sender: NSTextField) {
         let urlString = sender.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         XPCManager.shared.setTeamsWebhookURL(urlString) { [self] success in
-            Logger.logUser("Webhook URL updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.logApp("Webhook URL updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
     }
 

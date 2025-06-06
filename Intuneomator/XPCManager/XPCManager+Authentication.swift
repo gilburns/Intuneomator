@@ -60,11 +60,11 @@ extension XPCManager {
 /*
  
  XPCManager.shared.privateKeyExists { exists in
-     Logger.logUser("Private key exists: \(exists ?? false)")
+     Logger.logApp("Private key exists: \(exists ?? false)")
  }
 
  XPCManager.shared.entraIDSecretKeyExists { exists in
-     Logger.logUser("Entra ID secret key exists: \(exists ?? false)")
+     Logger.logApp("Entra ID secret key exists: \(exists ?? false)")
  }
 
  */

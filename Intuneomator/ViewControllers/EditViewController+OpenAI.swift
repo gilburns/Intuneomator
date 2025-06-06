@@ -13,7 +13,7 @@ extension EditViewController {
     @IBAction func fetchAIResponse(_ sender: Any) {
         let softwareTitle = fieldName.stringValue
         guard !softwareTitle.isEmpty else {
-            Logger.logUser("Software title is empty.")
+            Logger.logApp("Software title is empty.")
             return
         }
         

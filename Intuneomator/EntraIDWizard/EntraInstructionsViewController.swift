@@ -55,7 +55,7 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
     /// Converts markdown to styled HTML and loads it in the web view
     func loadMarkdownInstructions() {
         guard let filePath = Bundle.main.path(forResource: "entra-app-setup", ofType: "md") else {
-            Logger.logUser("Markdown file not found in bundle", logType: logType)
+            Logger.logApp("Markdown file not found in bundle", logType: logType)
             return
         }
 
@@ -64,7 +64,7 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
             let htmlText = convertMarkdownToHTML(markdownText)
             webView.loadHTMLString(htmlText, baseURL: nil)
         } catch {
-            Logger.logUser("Failed to load Markdown file.", logType: logType)
+            Logger.logApp("Failed to load Markdown file.", logType: logType)
         }
     }
 
@@ -110,7 +110,7 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
             case .success(let pdfData):
                 self.printPDFData(pdfData)
             case .failure(let error):
-                Logger.logUser("Failed to create PDF for printing: \(error.localizedDescription)", logType: logType)
+                Logger.logApp("Failed to create PDF for printing: \(error.localizedDescription)", logType: logType)
             }
         }
     }
@@ -120,7 +120,7 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
     /// - Parameter pdfData: PDF data generated from web view content
     func printPDFData(_ pdfData: Data) {
         guard let pdfDocument = PDFDocument(data: pdfData) else {
-            Logger.logUser("Error: Failed to create PDF document from data", logType: logType)
+            Logger.logApp("Error: Failed to create PDF document from data", logType: logType)
             return
         }
 
@@ -176,16 +176,16 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
                 case .success(let data):
                     do {
                         try data.write(to: url)
-                        Logger.logUser("PDF successfully saved at: \(url)", logType: logType)
+                        Logger.logApp("PDF successfully saved at: \(url)", logType: logType)
                     } catch {
-                        Logger.logUser("Failed to save PDF: \(error)", logType: logType)
+                        Logger.logApp("Failed to save PDF: \(error)", logType: logType)
                     }
                 case .failure(let error):
-                    Logger.logUser("Failed to create PDF: \(error.localizedDescription)", logType: logType)
+                    Logger.logApp("Failed to create PDF: \(error.localizedDescription)", logType: logType)
                 }
             }
         } else {
-            Logger.logUser("PDF export is only supported on macOS 12 or later.", logType: logType)
+            Logger.logApp("PDF export is only supported on macOS 12 or later.", logType: logType)
         }
     }
     

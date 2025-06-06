@@ -64,7 +64,7 @@ class XPCManager {
     func sendRequest<T>(_ request: @escaping (XPCServiceProtocol, @escaping (T?) -> Void) -> Void, completion: @escaping (T?) -> Void) {
         requestQueue.async { [weak self] in
             guard let service = self?.connection?.remoteObjectProxyWithErrorHandler({ error in
-                Logger.logUser("XPCManager: XPC connection error: \(error)")
+                Logger.logApp("XPCManager: XPC connection error: \(error)")
                 completion(nil)
             }) as? XPCServiceProtocol else {
                 completion(nil)
@@ -131,23 +131,23 @@ class XPCManager {
  @IBAction func saveSecretKeyButtonClicked(_ sender: Any) {
      let secretKeyText = secretKeyTextField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
      if secretKeyText.isEmpty {
-         Logger.logUser("Please enter a secret key.")
+         Logger.logApp("Please enter a secret key.")
          return
      }
      
-     Logger.logUser("Saving secret key...")
+     Logger.logApp("Saving secret key...")
      XPCManager.shared.importEntraIDSecretKey(secretKey: secretKeyText) { success in
          if success ?? false {
-             Logger.logUser("Successfully imported Entra ID secret key.")
+             Logger.logApp("Successfully imported Entra ID secret key.")
          } else {
-             Logger.logUser("Failed to import Entra ID secret key.")
+             Logger.logApp("Failed to import Entra ID secret key.")
          }
      }
  }
  
  @IBAction func chooseP12FileButtonClicked(_ sender: Any) {
      guard let passphrase = p12PasscodeTextField?.stringValue.trimmingCharacters(in: .whitespacesAndNewlines), !passphrase.isEmpty else {
-         Logger.logUser("Passcode is required.")
+         Logger.logApp("Passcode is required.")
          return
      }
      
@@ -167,14 +167,14 @@ class XPCManager {
              XPCManager.shared.importP12Certificate(p12Data: p12Data, passphrase: p12PasscodeTextField.stringValue) { success in
                  DispatchQueue.main.async {
                      if success ?? false {
-                         Logger.logUser("Successfully imported .p12 into the daemon.")
+                         Logger.logApp("Successfully imported .p12 into the daemon.")
                      } else {
-                         Logger.logUser("Failed to import .p12.")
+                         Logger.logApp("Failed to import .p12.")
                      }
                  }
              }
          } catch {
-             Logger.logUser("Failed to read .p12 file: \(error)")
+             Logger.logApp("Failed to read .p12 file: \(error)")
          }
      }
  }
@@ -183,39 +183,39 @@ class XPCManager {
      let selectedMethod = sender.selectedItem?.title.lowercased() ?? "certificate"
      XPCManager.shared.setAuthMethod(selectedMethod) { success in
          if success ?? false {
-             Logger.logUser("Successfully updated auth method to: \(selectedMethod)")
+             Logger.logApp("Successfully updated auth method to: \(selectedMethod)")
          } else {
-             Logger.logUser("Failed to update auth method.")
+             Logger.logApp("Failed to update auth method.")
          }
      }
  }
  
  @IBAction func tenantIDChanged(_ sender: NSTextField) {
      guard let tenantIDString = tenantIdTextField?.stringValue.trimmingCharacters(in: .whitespacesAndNewlines), !tenantIDString.isEmpty else {
-         Logger.logUser("Tenant ID is required.")
+         Logger.logApp("Tenant ID is required.")
          return
      }
-     Logger.logUser("Tenant ID changed to: \(tenantIDString)")
+     Logger.logApp("Tenant ID changed to: \(tenantIDString)")
      XPCManager.shared.setTenantID(tenantIDString) { success in
          if success ?? false {
-             Logger.logUser("Successfully updated tenant ID to: \(tenantIDString)")
+             Logger.logApp("Successfully updated tenant ID to: \(tenantIDString)")
          } else {
-             Logger.logUser("Failed to update tenant ID.")
+             Logger.logApp("Failed to update tenant ID.")
          }
      }
  }
  
  @IBAction func appIDChanged(_ sender: NSTextField) {
      guard let appIDString = appIdTextField?.stringValue.trimmingCharacters(in: .whitespacesAndNewlines), !appIDString.isEmpty else {
-         Logger.logUser("App ID is required.")
+         Logger.logApp("App ID is required.")
          return
      }
-     Logger.logUser("App ID changed to: \(appIDString)")
+     Logger.logApp("App ID changed to: \(appIDString)")
      XPCManager.shared.setApplicationID(appIDString) { success in
          if success ?? false {
-             Logger.logUser("Successfully updated app ID to: \(appIDString)")
+             Logger.logApp("Successfully updated app ID to: \(appIDString)")
          } else {
-             Logger.logUser("Failed to update app ID.")
+             Logger.logApp("Failed to update app ID.")
          }
      }
  }

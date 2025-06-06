@@ -102,7 +102,7 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         XPCManager.shared.privateKeyExists { [self] exists in
             self.hasPrivateKey = exists ?? false
             #if DEBUG
-            Logger.logUser("privateKeyExists returned: \(self.hasPrivateKey!)", logType: logType)
+            Logger.logApp("privateKeyExists returned: \(self.hasPrivateKey!)", logType: logType)
             #endif
             group.leave()
         }
@@ -111,14 +111,14 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         XPCManager.shared.entraIDSecretKeyExists { [self] exists in
             self.hasSecretKey = exists ?? false
             #if DEBUG
-            Logger.logUser("entraIDSecretKeyExists returned: \(self.hasSecretKey!)", logType: logType)
+            Logger.logApp("entraIDSecretKeyExists returned: \(self.hasSecretKey!)", logType: logType)
             #endif
             group.leave()
         }
 
         group.notify(queue: .main) { [self] in
             #if DEBUG
-            Logger.logUser("Auth setup check completed. hasPrivateKey: \(self.hasPrivateKey!), hasSecretKey: \(self.hasSecretKey!)", logType: logType)
+            Logger.logApp("Auth setup check completed. hasPrivateKey: \(self.hasPrivateKey!), hasSecretKey: \(self.hasSecretKey!)", logType: logType)
             #endif
             completion()
         }
@@ -152,30 +152,30 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
     /// Updates UI controls and radio button selection based on stored preference
     func getAuthMethod() {
         #if DEBUG
-        Logger.logUser("getAuthMethod", logType: logType)
+        Logger.logApp("getAuthMethod", logType: logType)
         #endif
         XPCManager.shared.getAuthMethod { authMethod in
             DispatchQueue.main.async { [self] in
                 
                 #if DEBUG
                 if let method = authMethod {
-                    Logger.logUser(method.capitalized, logType: logType)
+                    Logger.logApp(method.capitalized, logType: logType)
                 } else {
-                    Logger.logUser("authMethod is nil", logType: logType)
+                    Logger.logApp("authMethod is nil", logType: logType)
                 }
                 #endif
                 
                 switch authMethod?.capitalized ?? "Certificate" {
                 case "Certificate": // Certificate-based authentication
                     #if DEBUG
-                    Logger.logUser("Certificate", logType: logType)
+                    Logger.logApp("Certificate", logType: logType)
                     #endif
                     self.buttonImportCert.isEnabled = true
                     self.buttonSaveSecretKey.isEnabled = false
                     self.radioButtonCertificate.performClick(self)
                 case "Secret": // Client secret-based authentication
                     #if DEBUG
-                    Logger.logUser("Secret", logType: logType)
+                    Logger.logApp("Secret", logType: logType)
                     #endif
                     self.buttonImportCert.isEnabled = false
                     self.buttonSaveSecretKey.isEnabled = true
@@ -199,16 +199,16 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
         XPCManager.shared.setAuthMethod(selectedMethod) { [self] success in
             #if DEBUG
             if success ?? false {
-                Logger.logUser("Successfully updated auth method to: \(selectedMethod)", logType: logType)
+                Logger.logApp("Successfully updated auth method to: \(selectedMethod)", logType: logType)
             } else {
-                Logger.logUser("Failed to update auth method.", logType: logType)
+                Logger.logApp("Failed to update auth method.", logType: logType)
             }
             #endif
         }
         
         let completed = isStepCompleted
         #if DEBUG
-        Logger.logUser("inputChanged -> isStepCompleted: \(completed)", logType: logType)
+        Logger.logApp("inputChanged -> isStepCompleted: \(completed)", logType: logType)
         #endif
         onCompletionStatusChanged?(completed) // Notify wizard of completion status change
     }
@@ -296,21 +296,21 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
     ///   - fileURL: URL of the P12 certificate file to import
     ///   - passphrase: Passphrase for decrypting the P12 certificate
     private func processP12File(fileURL: URL, passphrase: String) {
-        Logger.logUser("Selected file: \(fileURL.path)", logType: logType)
-        Logger.logUser("Entered passphrase: \(passphrase)", logType: logType) // Remove this in production for security reasons
+        Logger.logApp("Selected file: \(fileURL.path)", logType: logType)
+        Logger.logApp("Entered passphrase: \(passphrase)", logType: logType) // Remove this in production for security reasons
         
         do {
             let p12Data = try Data(contentsOf: fileURL)
             XPCManager.shared.importP12Certificate(p12Data: p12Data, passphrase: passphrase) { success in
                 DispatchQueue.main.async { [self] in
                     if success ?? false {
-                        Logger.logUser("Successfully imported .p12 into the daemon.", logType: logType)
+                        Logger.logApp("Successfully imported .p12 into the daemon.", logType: logType)
                         DispatchQueue.main.async {
                             self.showAlert(title: "Success", message: "Import was successful.")
                         }
                         self.onCompletionStatusChanged?(true)
                     } else {
-                        Logger.logUser("Failed to import .p12.", logType: logType)
+                        Logger.logApp("Failed to import .p12.", logType: logType)
                         DispatchQueue.main.async {
                             self.showAlert(title: "Failed", message: "Import failed.")
                         }
@@ -318,7 +318,7 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
                 }
             }
         } catch {
-            Logger.logUser("Failed to read .p12 file: \(error)", logType: logType)
+            Logger.logApp("Failed to read .p12 file: \(error)", logType: logType)
         }
     }
     
@@ -370,12 +370,12 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
     /// Imports secret via XPC service and offers expiration date configuration
     /// - Parameter secretKey: The validated client secret string to import
     private func handleEntraIDSecretKey(_ secretKey: String) {
-        Logger.logUser("Entered Entra ID Secret Key: \(secretKey)", logType: logType) // Do NOT log in production
+        Logger.logApp("Entered Entra ID Secret Key: \(secretKey)", logType: logType) // Do NOT log in production
 
-        Logger.logUser("Saving secret key...", logType: logType)
+        Logger.logApp("Saving secret key...", logType: logType)
         XPCManager.shared.importEntraIDSecretKey(secretKey: secretKey) { [self] success in
             if success ?? false {
-                Logger.logUser("Successfully imported Entra ID secret key.", logType: logType)
+                Logger.logApp("Successfully imported Entra ID secret key.", logType: logType)
                 DispatchQueue.main.async {
                     self.onCompletionStatusChanged?(true)
 
@@ -409,7 +409,7 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
                     }
                 }
             } else {
-                Logger.logUser("Failed to import Entra ID secret key.", logType: logType)
+                Logger.logApp("Failed to import Entra ID secret key.", logType: logType)
                 DispatchQueue.main.async {
                     self.showAlert(title: "Failed", message: "Import failed.")
                 }

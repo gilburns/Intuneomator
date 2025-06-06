@@ -166,11 +166,11 @@ class WelcomeWizardViewController: NSViewController, NSTableViewDelegate, NSTabl
     /// Completes the wizard setup process and transitions to main application
     /// Marks first run as completed, shows main window, and closes wizard
     func finalizeSetup() {
-        Logger.logUser("Wizard completed. Processing configuration...", logType: logType)
+        Logger.logApp("Wizard completed. Processing configuration...", logType: logType)
         
         // Update first run completion status via XPC
         XPCManager.shared.setFirstRunCompleted(true) { [self] success in
-            Logger.logUser("First run updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.logApp("First run updated: \(success == true ? "✅" : "❌")", logType: logType)
         }
 
         // Show main application window
@@ -197,7 +197,7 @@ class WelcomeWizardViewController: NSViewController, NSTableViewDelegate, NSTabl
             window.delegate = mainWindowController // Ensure delegate is properly set
             window.makeKeyAndOrderFront(nil)
         } else {
-            Logger.logUser("Error: mainWindowController has no window.", logType: logType)
+            Logger.logApp("Error: mainWindowController has no window.", logType: logType)
         }
     }
 

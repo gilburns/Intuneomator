@@ -87,16 +87,16 @@ extension EditViewController: TabSaveable {
             if let jsonString = String(data: jsonData, encoding: .utf8) {
                 XPCManager.shared.saveMetadataForLabel(jsonString, labelFolder) { reply in
                     if reply == true {
-                        Logger.logUser("Saved metadata for \(labelFolder)")
+                        Logger.logApp("Saved metadata for \(labelFolder)")
                     } else {
-                        Logger.logUser("Failed to save metadata for \(labelFolder)")
+                        Logger.logApp("Failed to save metadata for \(labelFolder)")
                     }
                 }
             } else {
-                Logger.logUser("Failed to convert metadata JSON data to string.")
+                Logger.logApp("Failed to convert metadata JSON data to string.")
             }
         } catch {
-            Logger.logUser("Error encoding metadata: \(error)")
+            Logger.logApp("Error encoding metadata: \(error)")
         }
     }
 }

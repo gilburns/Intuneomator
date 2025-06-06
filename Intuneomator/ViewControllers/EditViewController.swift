@@ -156,7 +156,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     ///   - parent: The parent `TabViewController` to which this controller belongs.
     func configure(with data: Any, parent: TabViewController) {
         guard let appData = data as? AppInfo else {
-            Logger.logUser("Invalid data passed to EditViewController")
+            Logger.logApp("Invalid data passed to EditViewController")
             return
         }
         self.appData = appData

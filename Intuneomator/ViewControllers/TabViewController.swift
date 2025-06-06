@@ -219,7 +219,7 @@ class TabViewController: NSViewController {
                         userInfo: nil)
                 }
             } else {
-                Logger.logUser("Toggle Custom Label Failed: \(directoryPath)")
+                Logger.logApp("Toggle Custom Label Failed: \(directoryPath)")
             }
         }
     }

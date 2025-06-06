@@ -101,7 +101,7 @@ class MainViewController: NSViewController {
         let itemToRemove = filteredAppData[selectedRow]
         let itemName = itemToRemove.name
         let itemLabel = itemToRemove.label
-        Logger.logUser("Button clicked to delete '\(itemName)' directory.")
+        Logger.logApp("Button clicked to delete '\(itemName)' directory.")
 
         // Create a confirmation dialog
         let alert = NSAlert()
@@ -115,16 +115,16 @@ class MainViewController: NSViewController {
         let response = alert.runModal()
         if response == .alertFirstButtonReturn {
             // User confirmed deletion
-            Logger.logUser("User confirmed deletion of '\(itemName)' directory.")
+            Logger.logApp("User confirmed deletion of '\(itemName)' directory.")
             // Remove the directory associated with the item
             let directoryPath = (AppConstants.intuneomatorManagedTitlesFolderURL.path as NSString).appendingPathComponent("\(itemToRemove.label)_\(itemToRemove.guid)")
 
             
             XPCManager.shared.removeLabelContent(directoryPath) { success in
                 if success! {
-//                    Logger.logUser("Deleted directory: \(directoryPath)")
+//                    Logger.logApp("Deleted directory: \(directoryPath)")
                 } else {
-                    Logger.logUser("Failed to delete directory: \(directoryPath)")
+                    Logger.logApp("Failed to delete directory: \(directoryPath)")
                     return
                 }
             }
@@ -145,7 +145,7 @@ class MainViewController: NSViewController {
             removeButton.isEnabled = false
         } else {
             // User canceled deletion
-            Logger.logUser("User canceled deletion")
+            Logger.logApp("User canceled deletion")
         }
         refreshUI()
     }
@@ -294,7 +294,7 @@ class MainViewController: NSViewController {
         XPCManager.shared.checkIntuneForAutomation() { success in
             if let success = success {
                 if success {
-                    Logger.logUser("Scan completed successfully.", logType: logType)
+                    Logger.logApp("Scan completed successfully.", logType: logType)
                     DispatchQueue.main.async {
                     }
                 }
@@ -502,7 +502,7 @@ class MainViewController: NSViewController {
                 XPCManager.shared.scanAllInstallomatorManagedLabels() { success in
                     if let success = success {
                         if success {
-//                            Logger.logUser("Scan completed successfully.", logType: logType)
+//                            Logger.logApp("Scan completed successfully.", logType: logType)
                             DispatchQueue.main.async {
                                 self.progressSpinner.stopAnimation(self)
                                 self.statusLabel.isHidden = true
@@ -1087,7 +1087,7 @@ extension MainViewController: NSMenuDelegate {
 
         } else {
             // User canceled update
-            Logger.logUser("User canceled")
+            Logger.logApp("User canceled")
         }
     }
 
@@ -1129,7 +1129,7 @@ extension MainViewController: NSMenuDelegate {
 
         } else {
             // User canceled update
-            Logger.logUser("User canceled")
+            Logger.logApp("User canceled")
         }
     }
 
@@ -1171,7 +1171,7 @@ extension MainViewController: NSMenuDelegate {
 
         } else {
             // User canceled update
-            Logger.logUser("User canceled")
+            Logger.logApp("User canceled")
         }
     }
 
@@ -1207,7 +1207,7 @@ extension MainViewController: NSMenuDelegate {
             confirmAlert.addButton(withTitle: "Cancel")
             let confirmResponse = confirmAlert.runModal()
             guard confirmResponse == .alertFirstButtonReturn else {
-                Logger.logUser("User canceled full delete")
+                Logger.logApp("User canceled full delete")
                 return
             }
 
@@ -1226,7 +1226,7 @@ extension MainViewController: NSMenuDelegate {
 
         } else {
             // User canceled update
-            Logger.logUser("User canceled")
+            Logger.logApp("User canceled")
         }
     }
 
@@ -1267,7 +1267,7 @@ extension MainViewController: NSMenuDelegate {
             }
         } else {
             // User canceled update
-            Logger.logUser("User canceled automation run")
+            Logger.logApp("User canceled automation run")
         }
     }
 

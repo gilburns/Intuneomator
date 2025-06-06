@@ -62,9 +62,9 @@ class MainWindowController: NSWindowController, NSWindowDelegate {
         
         do {
             try FileManager.default.removeItem(atPath: AppConstants.intuneomatorTempFolderURL.path)
-//            Logger.logUser("Deleted directory: \(AppConstants.intuneomatorTempFolderURL.path)")
+//            Logger.logApp("Deleted directory: \(AppConstants.intuneomatorTempFolderURL.path)")
         } catch {
-            Logger.logUser("Failed to delete directory: \(error)")
+            Logger.logApp("Failed to delete directory: \(error)")
         }
 
     }

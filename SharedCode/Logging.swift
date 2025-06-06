@@ -69,7 +69,7 @@ class Logger {
     /// - Parameters:
     ///   - message: The message to log
     ///   - logType: Category for organizing logs (default: "General")
-    static func logUser(_ message: String, logType: String = "General") {
+    static func logApp(_ message: String, logType: String = "General") {
         writeLog(message: message, logType: logType, toUserDirectory: true, includeDateInFilename: true)
     }
     
@@ -163,7 +163,7 @@ class Logger {
  Logger.log("Application started.")
  Logger.log("Update completed successfully.", logType: "Updates")
  Logger.log("An error occurred in the update process.", logType: "Errors")
- Logger.logUser("User-specific action performed.", logType: "UserActions")
+ Logger.logApp("User-specific action performed.", logType: "UserActions")
  Logger.logNoDateStamp("Continuous log entry", logType: "Download")
  
 */

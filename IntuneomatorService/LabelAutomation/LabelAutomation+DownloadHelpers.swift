@@ -193,9 +193,9 @@ extension LabelAutomation {
             if dmgHasSLA(at: dmgURL.path) {
                 let success = await convertDmgWithSLA(at: dmgURL.path)
                 if success {
-                Logger.logUser("Successfully converted dmg with SLA", logType: logType)
+                Logger.logApp("Successfully converted dmg with SLA", logType: logType)
                 } else {
-                    Logger.logUser("Failed to convert dmg with SLA", logType: logType)
+                    Logger.logApp("Failed to convert dmg with SLA", logType: logType)
                     throw NSError(domain: "EditViewController", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert dmg containing pkg"])
                 }
             }
@@ -296,7 +296,7 @@ extension LabelAutomation {
         do {
             try process.run()
         } catch {
-            Logger.logUser("Error: Could not launch hdiutil: \(error)", logType: logType)
+            Logger.logApp("Error: Could not launch hdiutil: \(error)", logType: logType)
             return false
         }
 
@@ -309,13 +309,13 @@ extension LabelAutomation {
 
         // Verify conversion completed successfully
         guard process.terminationStatus == 0 else {
-            Logger.logUser("Error: hdiutil failed to convert DMG with SLA.", logType: logType)
+            Logger.logApp("Error: hdiutil failed to convert DMG with SLA.", logType: logType)
             return false
         }
 
         // Verify converted file was created
         guard FileManager.default.fileExists(atPath: tempFileURL.path) else {
-            Logger.logUser("Error: Converted file not found at expected location.", logType: logType)
+            Logger.logApp("Error: Converted file not found at expected location.", logType: logType)
             return false
         }
 
@@ -324,7 +324,7 @@ extension LabelAutomation {
             try FileManager.default.removeItem(atPath: path)
             try FileManager.default.moveItem(atPath: tempFileURL.path, toPath: path)
         } catch {
-            Logger.logUser("Failed to finalize converted DMG: \(error)", logType: logType)
+            Logger.logApp("Failed to finalize converted DMG: \(error)", logType: logType)
             return false
         }
 

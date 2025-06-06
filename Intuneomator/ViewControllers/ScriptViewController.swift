@@ -600,9 +600,9 @@ extension ScriptViewController: TabSaveable {
         group.enter()
         XPCManager.shared.savePreInstallScriptToLabel(preInstallContents, labelFolder) { reply in
             if reply == true {
-                Logger.logUser("Saved preinstall script: \(labelFolder)")
+                Logger.logApp("Saved preinstall script: \(labelFolder)")
             } else {
-                Logger.logUser("Failed to save preinstall script.")
+                Logger.logApp("Failed to save preinstall script.")
             }
             group.leave()
         }
@@ -610,15 +610,15 @@ extension ScriptViewController: TabSaveable {
         group.enter()
         XPCManager.shared.savePostInstallScriptToLabel(postInstallContents, labelFolder) { reply in
             if reply == true {
-                Logger.logUser("Saved postinstall script: \(labelFolder)")
+                Logger.logApp("Saved postinstall script: \(labelFolder)")
             } else {
-                Logger.logUser("Failed to save postinstall script.")
+                Logger.logApp("Failed to save postinstall script.")
             }
             group.leave()
         }
 
         group.notify(queue: .main) {
-            Logger.logUser("Scripts both saved successfully.")
+            Logger.logApp("Scripts both saved successfully.")
             // Sheet dismissal is handled by the parent view once all tabs complete saving.
         }
     }
