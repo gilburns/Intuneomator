@@ -31,7 +31,6 @@ struct Category: Codable, Equatable {
     var id: String
 }
 
-
 // Struct to store downloaded file info
 struct DownloadedFile {
     let filePath: String
