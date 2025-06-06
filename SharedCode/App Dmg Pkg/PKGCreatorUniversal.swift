@@ -21,7 +21,6 @@ class PKGCreatorUniversal {
     /// - Returns: Tuple containing package path, app name, bundle ID, and version, or nil on failure
     func createUniversalPackage(inputPathArm64: String, inputPathx86_64: String, outputDir: String) -> (packagePath: String, appName: String, appID: String, appVersion: String)? {
 
-        log("createUniversalPackage")
         let fileManager = FileManager.default
         let tempDir = "\(NSTemporaryDirectory())/universal-temp-\(UUID().uuidString)"
         let rootArm = "\(tempDir)/root_arm"
