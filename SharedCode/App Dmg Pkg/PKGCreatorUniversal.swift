@@ -12,9 +12,6 @@ import Foundation
 /// Uses JavaScript logic to detect system architecture and install the appropriate version
 class PKGCreatorUniversal {
     
-    /// Log type identifier for logging operations
-    private let logType  = "PKGCreatorUniversal"
-
     /// Creates a universal installer package from separate ARM64 and x86_64 application bundles
     /// The resulting package automatically detects system architecture and installs the correct version
     /// - Parameters:
@@ -24,12 +21,12 @@ class PKGCreatorUniversal {
     /// - Returns: Tuple containing package path, app name, bundle ID, and version, or nil on failure
     func createUniversalPackage(inputPathArm64: String, inputPathx86_64: String, outputDir: String) -> (packagePath: String, appName: String, appID: String, appVersion: String)? {
 
-        Logger.log("createUniversalPackage", logType: logType)
+        log("createUniversalPackage")
         let fileManager = FileManager.default
         let tempDir = "\(NSTemporaryDirectory())/universal-temp-\(UUID().uuidString)"
         let rootArm = "\(tempDir)/root_arm"
-        let appsArm = "\(rootArm)/Applications"
         let rootX86 = "\(tempDir)/root_x86"
+        let appsArm = "\(rootArm)/Applications"
         let appsX86 = "\(rootX86)/Applications"
         let componentPlistArm = "\(tempDir)/component_arm.plist"
         let componentPlistX86 = "\(tempDir)/component_x86.plist"
@@ -38,16 +35,11 @@ class PKGCreatorUniversal {
         let distributionXML = "\(tempDir)/distribution.xml"
         let finalPackagePath: String
         
-        Logger.log("Temp dir created: \(tempDir)", logType: logType)
-        Logger.log("Output dir created: \(outputDir)", logType: logType)
-        Logger.log("Input arm64: \(inputPathArm64)", logType: logType)
-        Logger.log("Input x86_64: \(inputPathx86_64)", logType: logType)
-
         do {
             try fileManager.createDirectory(atPath: appsArm, withIntermediateDirectories: true)
             try fileManager.createDirectory(atPath: appsX86, withIntermediateDirectories: true)
         } catch {
-            Logger.log("Error: Failed to create temp root directories - \(error)", logType: logType)
+            log("Error: Failed to create temp root directories - \(error)")
             return nil
         }
 
@@ -60,15 +52,30 @@ class PKGCreatorUniversal {
             try fileManager.copyItem(atPath: inputPathArm64, toPath: destArm)
             try fileManager.copyItem(atPath: inputPathx86_64, toPath: destX86)
         } catch {
-            Logger.log("Error copying app bundles - \(error)", logType: logType)
+            log("Error copying app bundles - \(error)")
             return nil
         }
 
-        guard let appInfo = extractAppInfo(from: destArm) else {
-            Logger.log("Error reading Info.plist from ARM app", logType: logType)
+        guard let appInfoArm = extractAppInfo(from: destArm) else {
+            log("Error reading Info.plist from ARM app")
             return nil
         }
 
+        guard let appInfox86 = extractAppInfo(from: destX86) else {
+            log("Error reading Info.plist from X86_64 app")
+            return nil
+        }
+
+        if appInfoArm.appID != appInfox86.appID {
+            log("App IDs do not match! Aborting...")
+            return nil
+        }
+        
+        if appInfoArm.appVersion != appInfox86.appVersion {
+            log("App versions do not match! Aborting...")
+            return nil
+        }
+        
         // Analyze both component packages
         let _ = runProcess(["/usr/bin/pkgbuild", "--analyze", "--root", rootArm, componentPlistArm])
         let _ = runProcess(["/usr/bin/pkgbuild", "--analyze", "--root", rootX86, componentPlistX86])
@@ -80,15 +87,15 @@ class PKGCreatorUniversal {
         // Build both component packages
         let _ = runProcess(["/usr/bin/pkgbuild",
                             "--root", rootArm,
-                            "--identifier", "\(appInfo.appID)",
-                            "--version", appInfo.appVersion,
+                            "--identifier", "\(appInfoArm.appID)",
+                            "--version", appInfoArm.appVersion,
                             "--component-plist", componentPlistArm,
                             outputComponentArm])
 
         let _ = runProcess(["/usr/bin/pkgbuild",
                             "--root", rootX86,
-                            "--identifier", "\(appInfo.appID)",
-                            "--version", appInfo.appVersion,
+                            "--identifier", "\(appInfox86.appID)",
+                            "--version", appInfox86.appVersion,
                             "--component-plist", componentPlistX86,
                             outputComponentX86])
 
@@ -96,9 +103,9 @@ class PKGCreatorUniversal {
         let xml = """
         <?xml version=\"1.0\" encoding=\"utf-8\"?>
         <installer-gui-script minSpecVersion=\"1\">
-            <title>\(appInfo.appName)-\(appInfo.appVersion)</title>
-            <pkg-ref id=\"\(appInfo.appID)-arm\"/>
-            <pkg-ref id=\"\(appInfo.appID)-x86\"/>
+            <title>\(appInfoArm.appName)-\(appInfoArm.appVersion)</title>
+            <pkg-ref id=\"\(appInfoArm.appID)-arm\"/>
+            <pkg-ref id=\"\(appInfox86.appID)-x86\"/>
             <options customize=\"allow\" require-scripts=\"false\" rootVolumeOnly=\"true\" hostArchitectures=\"x86_64,arm64\"/>
             <script>
             <![CDATA[
@@ -112,30 +119,30 @@ class PKGCreatorUniversal {
             </script>
             <choices-outline>
                 <line choice=\"default\">
-                    <line choice=\"\(appInfo.appID)-arm\"/>
-                    <line choice=\"\(appInfo.appID)-x86\"/>
+                    <line choice=\"\(appInfoArm.appID)-arm\"/>
+                    <line choice=\"\(appInfox86.appID)-x86\"/>
                 </line>
             </choices-outline>
-            <choice id=\"default\" title=\"\(appInfo.appName)-\(appInfo.appVersion)\"/>
-            <choice id=\"\(appInfo.appID)-arm\" title=\"\(appInfo.appName) ARM\" visible=\"true\" enabled=\"is_arm()\" selected=\"is_arm()\">
-                <pkg-ref id=\"\(appInfo.appID)-arm\"/>
+            <choice id=\"default\" title=\"\(appInfoArm.appName)-\(appInfoArm.appVersion)\"/>
+            <choice id=\"\(appInfoArm.appID)-arm\" title=\"\(appInfoArm.appName) ARM\" visible=\"true\" enabled=\"is_arm()\" selected=\"is_arm()\">
+                <pkg-ref id=\"\(appInfoArm.appID)-arm\"/>
             </choice>
-            <pkg-ref id=\"\(appInfo.appID)-arm\" version=\"\(appInfo.appVersion)\" onConclusion=\"none\">component-arm.pkg</pkg-ref>
-            <choice id=\"\(appInfo.appID)-x86\" title=\"\(appInfo.appName) x86\" visible=\"true\" enabled=\"! is_arm()\" selected=\"! is_arm()\">
-                <pkg-ref id=\"\(appInfo.appID)-x86\"/>
+            <pkg-ref id=\"\(appInfoArm.appID)-arm\" version=\"\(appInfoArm.appVersion)\" onConclusion=\"none\">component-arm.pkg</pkg-ref>
+            <choice id=\"\(appInfox86.appID)-x86\" title=\"\(appInfox86.appName) x86\" visible=\"true\" enabled=\"! is_arm()\" selected=\"! is_arm()\">
+                <pkg-ref id=\"\(appInfox86.appID)-x86\"/>
             </choice>
-            <pkg-ref id=\"\(appInfo.appID)-x86\" version=\"\(appInfo.appVersion)\" onConclusion=\"none\">component-x86.pkg</pkg-ref>
+            <pkg-ref id=\"\(appInfox86.appID)-x86\" version=\"\(appInfox86.appVersion)\" onConclusion=\"none\">component-x86.pkg</pkg-ref>
         </installer-gui-script>
         """
 
         do {
             try xml.write(toFile: distributionXML, atomically: true, encoding: .utf8)
         } catch {
-            Logger.log("Failed to write distribution.xml - \(error)", logType: logType)
+            log("Failed to write distribution.xml - \(error)")
             return nil
         }
 
-        finalPackagePath = "\(outputDir)/\(appInfo.appName)-\(appInfo.appVersion)-universal.pkg"
+        finalPackagePath = "\(outputDir)/\(appInfoArm.appName)-\(appInfoArm.appVersion)-universal.pkg"
 
         let _ = runProcess(["/usr/bin/productbuild",
                             "--distribution", distributionXML,
@@ -143,9 +150,9 @@ class PKGCreatorUniversal {
                             finalPackagePath])
 
         if fileManager.fileExists(atPath: finalPackagePath) {
-            return (finalPackagePath, appInfo.appName, appInfo.appID, appInfo.appVersion)
+            return (finalPackagePath, appInfoArm.appName, appInfoArm.appID, appInfoArm.appVersion)
         } else {
-            Logger.log("Universal package creation failed.", logType: logType)
+            log("Universal package creation failed.")
             return nil
         }
     }
@@ -156,7 +163,7 @@ class PKGCreatorUniversal {
     /// - Returns: True if modification was successful, false otherwise
     private func modifyComponentPlist(at path: String) -> Bool {
         guard let plistData = NSMutableArray(contentsOfFile: path) else {
-            Logger.log("Error: Unable to read component plist.", logType: logType)
+            log("Error: Unable to read component plist.")
             return false
         }
         
@@ -200,10 +207,20 @@ class PKGCreatorUniversal {
         let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
         let output = String(data: outputData, encoding: .utf8) ?? ""
         
-        Logger.log("Command output: \(output)", logType: logType)
+        log("Command output: \(output)")
 
         return process.terminationStatus == 0
     }
+    
+    // MARK: - Helper Functions
+    
+    /// Logs messages to console
+    /// Provides consistent logging format for update operations
+    /// - Parameter message: Message to log
+    func log(_ message: String) {
+        print("[PKGCreator] \(message)")
+    }
+
 }
 
 
@@ -215,10 +232,10 @@ class PKGCreatorUniversal {
  
  let creator = PKGCreatorUniversal()
  if let result = creator.createUniversalPackage(inputPathArm64: pathToArmApp, inputPathx86_64: pathToX86App, outputDir: outputPath) {
-     print("✅ Created: \(result.packagePath)")
-     print("📦 App: \(result.appName), ID: \(result.appID), Version: \(result.appVersion)")
+     print("Created: \(result.packagePath)")
+     print("App: \(result.appName), ID: \(result.appID), Version: \(result.appVersion)")
  } else {
-     print("❌ Universal package creation failed.")
+     print("Universal package creation failed.")
  }
  
  
