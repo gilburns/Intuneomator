@@ -7,21 +7,40 @@
 
 import Foundation
 
-/// Model for a detected app
+// MARK: - Detected Application Data Structures
+
+/// Model representing an application detected in Microsoft Intune
+/// Used for discovering apps installed across managed devices and mapping them to Installomator labels
 struct DetectedApp: Codable {
+    /// Display name of the detected application
     let displayName: String?
-    let id: String?
-    let platform: String?
-    let version: String?
-    let publisher: String?
-    let deviceCount: Int?
-    var installomatorLabel: String // This is manually assigned, not from JSON
     
+    /// Unique identifier for the detected app in Intune
+    let id: String?
+    
+    /// Platform where app is installed (e.g., "macOS", "Windows")
+    let platform: String?
+    
+    /// Version string of the detected application
+    let version: String?
+    
+    /// Publisher/vendor of the application
+    let publisher: String?
+    
+    /// Number of devices where this app is installed
+    let deviceCount: Int?
+    
+    /// Manually assigned Installomator label for automation
+    /// Not part of Microsoft Graph API response - assigned during processing
+    var installomatorLabel: String
+    
+    /// Coding keys for JSON serialization (excludes installomatorLabel)
     enum CodingKeys: String, CodingKey {
         case displayName, id, platform, version, publisher, deviceCount
     }
     
-    // Custom decoder for JSON
+    /// Custom decoder for Microsoft Graph API JSON response
+    /// Initializes installomatorLabel with default value since it's not in API response
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
@@ -33,7 +52,8 @@ struct DetectedApp: Codable {
         self.installomatorLabel = "No match detected"
     }
     
-    // Manual initializer to allow object duplication
+    /// Manual initializer for programmatic creation
+    /// Used when creating DetectedApp instances with all properties including label
     init(displayName: String?, id: String?, platform: String?, version: String?, publisher: String?, deviceCount: Int?, installomatorLabel: String) {
         self.displayName = displayName
         self.id = id
@@ -44,7 +64,10 @@ struct DetectedApp: Codable {
         self.installomatorLabel = installomatorLabel
     }
     
-    // Fix for the error: Explicitly create a copy with a new label
+    /// Creates a copy of the DetectedApp with a new Installomator label
+    /// Used for generating multiple app entries with different label mappings
+    /// - Parameter label: New Installomator label to assign
+    /// - Returns: New DetectedApp instance with updated label
     func withLabel(_ label: String) -> DetectedApp {
         return DetectedApp(
             displayName: self.displayName,
@@ -53,23 +76,34 @@ struct DetectedApp: Codable {
             version: self.version,
             publisher: self.publisher,
             deviceCount: self.deviceCount,
-            installomatorLabel: label  // Assign a unique label per row
+            installomatorLabel: label
         )
     }
 }
 
+/// Device information structure for Intune managed devices
+/// Used when querying device details associated with detected applications
 struct DeviceInfo: Codable {
+    /// Human-readable device name
     let deviceName: String
+    
+    /// Unique device identifier in Intune
     let id: String
+    
+    /// Primary user email address associated with the device
     let emailAddress: String
 }
 
-
-/// Model for Graph API response
+/// Microsoft Graph API response wrapper for detected applications
+/// Handles paginated responses from the Graph API endpoints
 struct GraphResponseDetectedApp: Decodable {
+    /// Array of detected applications from current page
     let value: [DetectedApp]
+    
+    /// URL for next page of results (if pagination is needed)
     let nextLink: String?
     
+    /// Maps OData response format to Swift property names
     enum CodingKeys: String, CodingKey {
         case value
         case nextLink = "@odata.nextLink"
