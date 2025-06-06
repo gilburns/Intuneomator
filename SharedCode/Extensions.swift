@@ -96,14 +96,6 @@ extension NSImage {
     }
 }
 
-protocol TabSaveable {
-    func saveMetadata()
-}
-
-protocol UnsavedChangesHandling {
-    var hasUnsavedChanges: Bool { get }
-}
-
 
 // MARK: - Import File Type .p12
 extension UTType {
