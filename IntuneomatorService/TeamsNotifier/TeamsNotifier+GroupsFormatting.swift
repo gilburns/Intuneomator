@@ -7,8 +7,28 @@
 
 import Foundation
 
+/// Extension for TeamsNotifier that formats assigned group information for Microsoft Teams notifications.
+/// This module handles the formatting of Microsoft Intune group assignment data into structured text blocks
+/// for Teams notifications using Adaptive Cards format.
 extension TeamsNotifier {
     
+    /// Formats Microsoft Intune group assignment data into structured text blocks for Teams notifications.
+    /// 
+    /// Takes an array of group dictionaries and formats them into Teams-displayable text blocks using Adaptive Cards format.
+    /// Groups assignments by type (Required, Available, Uninstall) in a specific order, handles both regular and virtual 
+    /// groups with appropriate labeling, and includes filter information when present.
+    /// 
+    /// - Parameter assignedGroups: Array of group dictionaries containing assignment information
+    /// - Returns: Array of text block dictionaries compatible with Microsoft Teams Adaptive Cards
+    /// 
+    /// **Data Processing:**
+    /// - Groups by `assignmentType` field
+    /// - Displays group count and appropriate singular/plural labeling  
+    /// - Formats group mode, display name, and virtual group indicators
+    /// - Handles optional filter information with mode and display name
+    /// 
+    /// **Output Format:** Returns formatted Adaptive Card text blocks with proper hierarchy and styling,
+    /// including separators, headers, and bulleted group entries.
     func formatAssignedGroups(_ assignedGroups: [[String: Any]]) -> [[String: Any]] {
         guard !assignedGroups.isEmpty else {
             return []
