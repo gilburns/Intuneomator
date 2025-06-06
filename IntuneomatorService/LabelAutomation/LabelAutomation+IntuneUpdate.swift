@@ -7,20 +7,27 @@
 
 import Foundation
 
+// MARK: - Intune Application Update Extension
+
+/// Extension for handling selective updates of automated applications in Microsoft Intune
+/// Provides granular update functionality for metadata, scripts, and assignments without full re-upload
 extension LabelAutomation {
   
-    // MARK: - UPDATE METADATA ONLY FOR FOLDER
+    // MARK: - Metadata Update Operations
+    
+    /// Updates only the metadata for existing Intune applications matching an Installomator label
+    /// Refreshes application information, descriptions, icons, categories, and system requirements
+    /// - Parameter folderName: The Installomator label folder name to process for metadata updates
     static func processFolderMetadata(named folderName: String) async {
-        // Variables to track label processing
+        // Variables to track label processing results
         var processedAppResults: ProcessedAppResults?
-
-        // For check version in Intune
         var appInfo: [FilteredIntuneAppInfo]
 
         Logger.log("--------------------------------------------------------", logType: logType)
         Logger.log("🚀 Start metadata update of \(folderName)", logType: logType)
         Logger.log("Start metadata update of: \(folderName)", logType: logType)
 
+        // Step 1: Process Installomator label to extract current application metadata
         let folderResults = InstallomatorLabelProcessor.runProcessLabelScript(for: folderName)
         
         if !folderResults {
@@ -28,59 +35,56 @@ extension LabelAutomation {
             return
         }
                 
-        // Get the Processed App Results starter for this folder
+        // Step 2: Extract processed application data for metadata updates
         processedAppResults = extractDataForProcessedAppResults(from: folderName)
         
         Logger.log("  Extracted ProcessedAppResults data for \(processedAppResults?.appDisplayName ?? "Unknown")", logType: logType)
-        
         Logger.log("  Label: \(String(describing: processedAppResults?.appLabelName))", logType: logType)
         Logger.log("  Tracking ID: \(String(describing: processedAppResults?.appTrackingID))", logType: logType)
         Logger.log("  Version to check: \(String(describing: processedAppResults?.appVersionExpected))", logType: logType)
         
+        // Validate that tracking ID exists for Intune lookup
         guard let trackingID = processedAppResults?.appTrackingID else {
             Logger.log("Tracking ID is missing", logType: logType)
             return
         }
         
-        // MARK: - Check Intune for any versions
-        
-        // Check Intune for an existing versions
+        // Step 3: Search Intune for applications with matching tracking ID
         Logger.log("  " + folderName + ": Fetching app info from Intune...", logType: logType)
         
         do {
             let entraAuthenticator = EntraAuthenticator()
             let authToken = try await entraAuthenticator.getEntraIDToken()
             
+            // Find all applications in Intune that match this tracking ID
             appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: trackingID)
             
             Logger.log("    Found \(appInfo.count) apps matching tracking ID \(trackingID)", logType: logType)
             
+            // Step 4: Update metadata for each matching application
             for app in appInfo {
                 Logger.log("    ---", logType: logType)
                 Logger.log("    App: \(app.displayName)", logType: logType)
                 Logger.log("    Ver: \(app.primaryBundleVersion)", logType: logType)
                 Logger.log("     ID: \(app.id)", logType: logType)
                 
-                
-                // MARK: - Upload metadata to Intune
+                // Update application metadata and category assignments
                 do {
-                    
                     let entraAuthenticator = EntraAuthenticator()
                     let authToken = try await entraAuthenticator.getEntraIDToken()
                     
-                    // Call the update function
+                    // Update comprehensive application metadata (descriptions, icons, etc.)
                     try await EntraGraphRequests.updateAppIntuneMetadata(authToken: authToken, app: processedAppResults!, appId: app.id)
                     
-                    // Remove all categories
+                    // Clear existing category assignments before reassigning
                     try await EntraGraphRequests.removeAllCategoriesFromIntuneApp(authToken: authToken, appID: app.id)
                     
-                    // Assign the categories to the app
+                    // Apply updated category assignments for Company Portal organization
                     try await EntraGraphRequests.assignCategoriesToIntuneApp(
                         authToken: authToken,
                         appID: app.id,
                         categories: processedAppResults?.appCategories ?? []
                     )
-
                     
                 } catch {
                     Logger.log("Error updating \(processedAppResults?.appDisplayName ?? "unknown") with AppID \(app.id) metadata in Intune: \(error.localizedDescription)", logType: logType)
@@ -93,18 +97,21 @@ extension LabelAutomation {
         }
     }
 
-    // MARK: - UPDATE SCRIPTS ONLY FOR FOLDER
+    // MARK: - Scripts Update Operations
+    
+    /// Updates only the pre/post-install scripts for existing Intune PKG applications matching an Installomator label
+    /// Refreshes script content for PKG applications without affecting other metadata or file content
+    /// - Parameter folderName: The Installomator label folder name to process for script updates
     static func processFolderScripts(named folderName: String) async {
-        // Variables to track label processing
+        // Variables to track label processing results  
         var processedAppResults: ProcessedAppResults?
-
-        // For check version in Intune
         var appInfo: [FilteredIntuneAppInfo]
 
         Logger.log("--------------------------------------------------------", logType: logType)
         Logger.log("🚀 Start scripts update of \(folderName)", logType: logType)
         Logger.log("Start scripts update of: \(folderName)", logType: logType)
 
+        // Step 1: Process Installomator label to extract current script content
         let folderResults = InstallomatorLabelProcessor.runProcessLabelScript(for: folderName)
         
         if !folderResults {
@@ -112,13 +119,13 @@ extension LabelAutomation {
             return
         }
                 
-        // Get the Processed App Results starter for this folder
+        // Step 2: Extract processed application data for script updates
         processedAppResults = extractDataForProcessedAppResults(from: folderName)
         
         Logger.log("  Extracted ProcessedAppResults data for \(processedAppResults?.appDisplayName ?? "Unknown")", logType: logType)
-        
         Logger.log("  Label: \(String(describing: processedAppResults?.appLabelName))", logType: logType)
         
+        // Validate that tracking ID exists for Intune lookup
         guard let trackingID = processedAppResults?.appTrackingID else {
             Logger.log("Tracking ID is missing", logType: logType)
             return
@@ -126,32 +133,31 @@ extension LabelAutomation {
         Logger.log("  Tracking ID: \(trackingID)", logType: logType)
 
 
-        // MARK: - Check Intune for any versions
-        
-        // Check Intune for an existing versions
+        // Step 3: Search Intune for PKG applications with matching tracking ID
         Logger.log("  " + folderName + ": Fetching app info from Intune...", logType: logType)
         
         do {
             let entraAuthenticator = EntraAuthenticator()
             let authToken = try await entraAuthenticator.getEntraIDToken()
             
+            // Find all applications in Intune that match this tracking ID
             appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: trackingID)
             
             Logger.log("    Found \(appInfo.count) apps matching tracking ID \(trackingID)", logType: logType)
             
+            // Step 4: Update scripts for each matching PKG application
             for app in appInfo {
                 Logger.log("    ---", logType: logType)
                 Logger.log("    App: \(app.displayName)", logType: logType)
                 Logger.log("    Ver: \(app.primaryBundleVersion)", logType: logType)
                 Logger.log("     ID: \(app.id)", logType: logType)
                 
-                // MARK: - Upload scripts to Intune
+                // Update pre/post-install scripts for PKG applications
                 do {
-                    
                     let entraAuthenticator = EntraAuthenticator()
                     let authToken = try await entraAuthenticator.getEntraIDToken()
                     
-                    // Call the update function
+                    // Update script content (Base64 encoded for secure transmission)
                     try await EntraGraphRequests.updateAppIntuneScripts(authToken: authToken, app: processedAppResults!, appId: app.id)
                     
                 } catch {
@@ -166,18 +172,21 @@ extension LabelAutomation {
     }
 
     
-    // MARK: - UPDATE ASSIGNMENTS ONLY FOR FOLDER
+    // MARK: - Assignment Update Operations
+    
+    /// Updates only the group assignments for existing Intune applications matching an Installomator label
+    /// Refreshes deployment targeting and category assignments without affecting application content or metadata
+    /// - Parameter folderName: The Installomator label folder name to process for assignment updates
     static func processFolderAssignments(named folderName: String) async {
-        // Variables to track label processing
+        // Variables to track label processing results
         var processedAppResults: ProcessedAppResults?
-
-        // For check version in Intune
         var appInfo: [FilteredIntuneAppInfo]
 
         Logger.log("--------------------------------------------------------", logType: logType)
         Logger.log("🚀 Start assignment update of \(folderName)", logType: logType)
         Logger.log("Start assignment update of: \(folderName)", logType: logType)
 
+        // Step 1: Process Installomator label to extract current assignment configuration
         let folderResults = InstallomatorLabelProcessor.runProcessLabelScript(for: folderName)
         
         if !folderResults {
@@ -185,13 +194,13 @@ extension LabelAutomation {
             return
         }
                 
-        // Get the Processed App Results starter for this folder
+        // Step 2: Extract processed application data for assignment updates
         processedAppResults = extractDataForProcessedAppResults(from: folderName)
         
         Logger.log("  Extracted ProcessedAppResults data for \(processedAppResults?.appDisplayName ?? "Unknown")", logType: logType)
-        
         Logger.log("  Label: \(String(describing: processedAppResults?.appLabelName))", logType: logType)
         
+        // Validate that tracking ID exists for Intune lookup
         guard let trackingID = processedAppResults?.appTrackingID else {
             Logger.log("Tracking ID is missing", logType: logType)
             return
@@ -199,33 +208,32 @@ extension LabelAutomation {
         Logger.log("  Tracking ID: \(trackingID)", logType: logType)
 
 
-        // MARK: - Check Intune for any versions
-        
-        // Check Intune for an existing versions
+        // Step 3: Search Intune for applications with matching tracking ID
         Logger.log("  " + folderName + ": Fetching app info from Intune...", logType: logType)
         
         do {
             let entraAuthenticator = EntraAuthenticator()
             let authToken = try await entraAuthenticator.getEntraIDToken()
             
+            // Find all applications in Intune that match this tracking ID
             appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: trackingID)
             
             Logger.log("    Found \(appInfo.count) apps matching tracking ID \(trackingID)", logType: logType)
             
+            // Step 4: Update assignments for each matching application
             for app in appInfo {
                 Logger.log("    ---", logType: logType)
                 Logger.log("    App: \(app.displayName)", logType: logType)
                 Logger.log("    Ver: \(app.primaryBundleVersion)", logType: logType)
                 Logger.log("     ID: \(app.id)", logType: logType)
                 
-                
-                // MARK: - Update group assignments in Intune
+                // Update group assignments only for applications that currently have assignments
                 if app.isAssigned {
                     do {
-                                            
-                        // Remove all existing assignments
+                        // Clear all existing group assignments before reassigning
                         try await EntraGraphRequests.removeAllAppAssignments(authToken: authToken, appId: app.id)
                         
+                        // Determine the appropriate Intune application type for assignment API
                         let intuneAppType: String
                         switch processedAppResults?.appDeploymentType {
                             case 0:
@@ -238,9 +246,16 @@ extension LabelAutomation {
                             intuneAppType = "macOSLobApp"
                         }
                         
-                        // Assign the groups to the app
-                        try await EntraGraphRequests.assignGroupsToApp(authToken: authToken, appId: app.id, appAssignments: processedAppResults?.appAssignments ?? [], appType: intuneAppType, installAsManaged: false)
+                        // Apply updated group assignments for deployment targeting
+                        try await EntraGraphRequests.assignGroupsToApp(
+                            authToken: authToken, 
+                            appId: app.id, 
+                            appAssignments: processedAppResults?.appAssignments ?? [], 
+                            appType: intuneAppType, 
+                            installAsManaged: false
+                        )
 
+                        // Apply updated category assignments for Company Portal organization
                         try await EntraGraphRequests.assignCategoriesToIntuneApp(
                             authToken: authToken,
                             appID: app.id,
