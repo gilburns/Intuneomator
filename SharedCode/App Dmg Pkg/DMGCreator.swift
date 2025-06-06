@@ -11,9 +11,6 @@ import Foundation
 /// Supports processing .app bundles, .zip archives, and .tbz archives containing applications
 /// Generates compressed APFS disk images with embedded application metadata
 class DMGCreator {
-
-    /// Log type identifier for logging operations
-    private let logType = "DMGCreator"
     
     // MARK: - Main Logic
 
@@ -25,9 +22,6 @@ class DMGCreator {
     /// - Throws: Various errors for invalid input, extraction failures, or DMG creation issues
     func processToDMG(inputPath: String, outputDirectory: String?) throws -> (dmgPath: String, appName: String, appID: String, appVersion: String) {
         
-//        Logger.log("processing \(inputPath)", logType: logType)
-//        Logger.log("Output \(String(describing: outputDirectory))", logType: logType)
-
         let tempDir = NSTemporaryDirectory() + UUID().uuidString
         
         defer {
@@ -35,7 +29,7 @@ class DMGCreator {
             do {
                 try FileManager.default.removeItem(atPath: tempDir)
             } catch {
-                Logger.log("Warning: Failed to clean up temporary directory: \(error.localizedDescription)", logType: logType)
+                log("Warning: Failed to clean up temporary directory: \(error.localizedDescription)")
             }
         }
         
@@ -61,14 +55,12 @@ class DMGCreator {
             throw NSError(domain: "AppInfoError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Could not retrieve app bundle identifier"])
         }
 
-        let appArch: String = getAppArchitecture(appPath: appPath) ?? "unknown"
-
-//        Logger.log("appName \(appName)", logType: logType)
-//        Logger.log("appID \(appID)", logType: logType)
-//        Logger.log("appVersion \(appVersion)", logType: logType)
-//        Logger.log("appArch \(appArch)", logType: logType)
-
+        let appArch: String = getAppArchitecture(appPath: appPath)
         
+        guard appArch != "unknown" else {
+            throw NSError(domain: "AppInfoError", code: 3, userInfo: [NSLocalizedDescriptionKey: "Could not determine app architecture"])
+        }
+
         // Determine output directory
         let outputDir = outputDirectory ?? (inputPath as NSString).deletingLastPathComponent
         let dmgPath = (outputDir as NSString).appendingPathComponent("\(appName)-\(appVersion)-\(appArch).dmg")
@@ -77,7 +69,7 @@ class DMGCreator {
         do {
             try createDMG(fromApp: appPath, outputDirectory: outputDir)
         } catch {
-            Logger.log("Failed to create DMG: \(error.localizedDescription)", logType: logType)
+            log("Failed to create DMG: \(error.localizedDescription)")
         }
         return (dmgPath: dmgPath, appName: appName, appID: appID, appVersion: appVersion)
     }
@@ -95,11 +87,17 @@ class DMGCreator {
         exit(1)
     }
 
+    /// Logs messages to console
+    /// Provides consistent logging format for update operations
+    /// - Parameter message: Message to log
+    func log(_ message: String) {
+        print("[DMGCreator] \(message)")
+    }
 
     /// Determines the architecture of a macOS application bundle
     /// - Parameter appPath: Path to the .app bundle
-    /// - Returns: Architecture string ("universal", "arm64", "x86_64") or nil if undetermined
-    func getAppArchitecture(appPath: String) -> String? {
+    /// - Returns: Architecture string ("universal", "arm64", "x86_64") or "unknown" if undetermined
+    func getAppArchitecture(appPath: String) -> String {
         let infoPlistPath = appPath + "/Contents/Info.plist"
         let macOSPath = appPath + "/Contents/MacOS"
         
@@ -108,8 +106,8 @@ class DMGCreator {
               let plist = try? PropertyListSerialization.propertyList(from: plistData, options: [], format: nil),
               let plistDict = plist as? [String: Any],
               let executableName = plistDict["CFBundleExecutable"] as? String else {
-            print("Unable to read Info.plist or CFBundleExecutable key.")
-            return nil
+            log("Unable to read Info.plist or CFBundleExecutable key.")
+            return "unknown"
         }
         
         let fullExecutablePath = "\(macOSPath)/\(executableName)"
@@ -124,15 +122,15 @@ class DMGCreator {
         do {
             try process.run()
         } catch {
-            print("Failed to run file command: \(error)")
-            return nil
+            log("Failed to run file command: \(error)")
+            return "unknown"
         }
         
         process.waitUntilExit()
         
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         guard let output = String(data: data, encoding: .utf8) else {
-            return nil
+            return "unknown"
         }
         
         if output.contains("arm64") && output.contains("x86_64") {
@@ -142,7 +140,7 @@ class DMGCreator {
         } else if output.contains("x86_64") {
             return "x86_64"
         } else {
-            return nil
+            return "unknown"
         }
     }
     
@@ -165,11 +163,11 @@ class DMGCreator {
             process.waitUntilExit()
             
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
-//            let output = String(data: outputData, encoding: .utf8) ?? ""
+            let output = String(data: outputData, encoding: .utf8) ?? ""
             
-//            Logger.log("Command output: \(output)", logType: logType)
+            log("Command output: \(output)")
         } catch {
-            Logger.log("Error running command: \(error)", logType: logType)
+            log("Error running command: \(error)")
             throw NSError(domain: "ShellCommandError", code: Int(process.terminationStatus), userInfo: nil)
         }
         
@@ -226,7 +224,8 @@ class DMGCreator {
         let appName = (appPath as NSString).lastPathComponent.replacingOccurrences(of: ".app", with: "")
         let appVersion = try getAppVersion(fromApp: appPath)
         let appArch = getAppArchitecture(appPath: appPath)
-        let outputDMGPath = (outputDirectory as NSString).appendingPathComponent("\(appName)-\(appVersion)-\(appArch ?? "unknown").dmg")
+        let outputDMGPath = (outputDirectory as NSString)
+            .appendingPathComponent("\(appName)-\(appVersion)-\(appArch).dmg")
         
         if FileManager.default.fileExists(atPath: outputDMGPath) {
             try FileManager.default.removeItem(atPath: outputDMGPath)
@@ -243,9 +242,9 @@ class DMGCreator {
                 "-anyowners",
                 outputDMGPath
             ])
-//            Logger.log("DMG created successfully at \(outputDMGPath)", logType: logType)
+            log("DMG created successfully at \(outputDMGPath)")
         } catch {
-            Logger.log("Error creating DMG: \(error)", logType: logType)
+            log("Error creating DMG: \(error)")
             return
         }
     }
