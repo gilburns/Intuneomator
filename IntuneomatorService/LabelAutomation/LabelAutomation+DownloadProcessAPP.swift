@@ -188,7 +188,7 @@ extension LabelAutomation {
         } else {
             Logger.log("Standard single arch pkg creation", logType: logType)
             let pkgCreator = PKGCreator()
-            if let (outputURLResult, outputAppNameResult, outputAppBundleIDResult, outputAppVersionResult) = pkgCreator.createPackage(inputPath: appFile.path, outputDir: finalDestinationFolder.path) {
+            if let (outputURLResult, outputAppNameResult, outputAppBundleIDResult, outputAppVersionResult) = await pkgCreator.createPackage(inputPath: appFile.path, outputDir: finalDestinationFolder.path) {
                 Logger.log("  Package creation succeeded.", logType: logType)
                 outputURL = URL(string: outputURLResult)
                 outputAppName = outputAppNameResult
