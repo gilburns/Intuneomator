@@ -262,8 +262,9 @@ log("✅ Caller verified, proceeding with installation.")
 // Capture initial version information for update tracking
 var initialVersion: String = "unknown"
 if let plist = NSDictionary(contentsOfFile: "/Applications/Intuneomator.app/Contents/Info.plist") {
-   let bundleVersion = plist["CFBundleShortVersionString"] as? String
-    initialVersion = bundleVersion ?? "unknown"
+    let shortVersion = plist["CFBundleShortVersionString"] as? String ?? "0.0.0"
+    let buildVersion = plist["CFBundleVersion"] as? String ?? "0"
+    initialVersion = "\(shortVersion).\(buildVersion)"
     log("Installed Intuneomator initial version: \(initialVersion)")
 } else {
     log("⚠️ Could not determine installed Intuneomator version.")
@@ -294,16 +295,18 @@ if success {
         if url.isEmpty {
             log("No Teams Webhook URL set in Config. Not sending notification.")
         } else {
-            let version = "unknown"
-            if let plist = NSDictionary(contentsOfFile: "/Applications/Intuneomator.app/Contents/Info.plist"),
-               let bundleVersion = plist["CFBundleShortVersionString"] as? String {
-                log("Detected Intuneomator version: \(bundleVersion)")
+            var updatedVersion = "unknown"
+            if let plist = NSDictionary(contentsOfFile: "/Applications/Intuneomator.app/Contents/Info.plist") {
+                let shortVersion = plist["CFBundleShortVersionString"] as? String ?? "0.0.0"
+                let buildVersion = plist["CFBundleVersion"] as? String ?? "0"
+                updatedVersion = "\(shortVersion).\(buildVersion)"
+                log("Detected Intuneomator version: \(updatedVersion)")
                 let teamsNotifier = TeamsNotifier(webhookURL: url)
-                teamsNotifier.sendUpdateNotification(initialVersion: initialVersion, updatedVersion: bundleVersion, daemonStatus: allDaemons, isSuccess: success)
+                teamsNotifier.sendUpdateNotification(initialVersion: initialVersion, updatedVersion: updatedVersion, daemonStatus: allDaemons, isSuccess: success)
             } else {
                 log("⚠️ Could not determine Intuneomator version.")
                 let teamsNotifier = TeamsNotifier(webhookURL: url)
-                teamsNotifier.sendUpdateNotification(initialVersion: initialVersion, updatedVersion: version, daemonStatus: allDaemons, isSuccess: success, errorMessage: "Unable to determine updated version.")
+                teamsNotifier.sendUpdateNotification(initialVersion: initialVersion, updatedVersion: updatedVersion, daemonStatus: allDaemons, isSuccess: success, errorMessage: "Unable to determine updated version.")
             }
         }
     }
@@ -321,14 +324,16 @@ if success {
         if url.isEmpty {
             log("No Teams Webhook URL set in Config. Not sending failure notification.")
         } else {
-            let version = "unknown"
-            if let plist = NSDictionary(contentsOfFile: "/Applications/Intuneomator.app/Contents/Info.plist"),
-               let bundleVersion = plist["CFBundleShortVersionString"] as? String {
-                log("Detected Intuneomator version: \(bundleVersion)")
+            var updatedVersion = "unknown"
+            if let plist = NSDictionary(contentsOfFile: "/Applications/Intuneomator.app/Contents/Info.plist") {
+                let shortVersion = plist["CFBundleShortVersionString"] as? String ?? "0.0.0"
+                let buildVersion = plist["CFBundleVersion"] as? String ?? "0"
+                updatedVersion = "\(shortVersion).\(buildVersion)"
+                log("Detected Intuneomator version: \(updatedVersion)")
                 let teamsNotifier = TeamsNotifier(webhookURL: url)
                 teamsNotifier.sendUpdateNotification(
                     initialVersion: initialVersion,
-                    updatedVersion: bundleVersion,
+                    updatedVersion: updatedVersion,
                     daemonStatus: ["Daemons": "Unknown"],
                     isSuccess: false,
                     errorMessage: "Update installation failed unexpectedly."
@@ -337,7 +342,7 @@ if success {
                 let teamsNotifier = TeamsNotifier(webhookURL: url)
                 teamsNotifier.sendUpdateNotification(
                     initialVersion: initialVersion,
-                    updatedVersion: version,
+                    updatedVersion: updatedVersion,
                     daemonStatus: ["Daemons": "Unknown"],
                     isSuccess: false,
                     errorMessage: "Update installation failed and version could not be determined."
