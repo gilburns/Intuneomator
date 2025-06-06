@@ -19,7 +19,7 @@ class PKGCreator {
     ///   - inputPath: Path to the source (.app, .dmg, .zip, or .tbz)
     ///   - outputDir: Optional output directory (defaults to input file's directory)
     /// - Returns: Tuple containing package path, app name, bundle ID, and version, or nil on failure
-    func createPackage(inputPath: String, outputDir: String?) -> (packagePath: String, appName: String, appID: String, appVersion: String)? {
+    func createPackage(inputPath: String, outputDir: String?) async -> (packagePath: String, appName: String, appID: String, appVersion: String)? {
         
         let fileManager = FileManager.default
         let outputDirectory = outputDir ?? (inputPath as NSString).deletingLastPathComponent
@@ -51,7 +51,7 @@ class PKGCreator {
         }
 
         if inputPath.hasSuffix(".dmg") {
-            guard let mountedPoint = mountDMG(at: inputPath) else {
+            guard let mountedPoint = await mountDMG(at: inputPath) else {
                 log("Error: Failed to mount .dmg file.")
                 return nil
             }
@@ -68,7 +68,7 @@ class PKGCreator {
                 return nil
             }
             if let foundDMG = findDMG(in: unzippedPath) {
-                guard let mountedPoint = mountDMG(at: foundDMG) else {
+                guard let mountedPoint = await mountDMG(at: foundDMG) else {
                     log("Error: Failed to mount .dmg found in .zip.")
                     return nil
                 }
@@ -224,11 +224,62 @@ class PKGCreator {
         return hasSLA
     }
 
-    
+    /// Converts a DMG with an SLA to a read/write format using `hdiutil convert`.
+    /// Writes to a temporary location and replaces the original DMG upon success.
+    /// - Parameter path: File system path of the DMG with SLA.
+    /// - Returns: `true` if conversion succeeded, `false` on error.
+    func convertDmgWithSLA(at path: String) async -> Bool {
+        let fileName = URL(fileURLWithPath: path).lastPathComponent
+        let tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory())
+        let tempFileURL = tempDirectoryURL.appendingPathComponent(fileName)
+        
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil")
+        process.arguments = ["convert", "-format", "UDRW", "-o", tempFileURL.path, path]
+        
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        
+        do {
+            try process.run()
+        } catch {
+            log("Error: Could not launch hdiutil: \(error)")
+            return false
+        }
+        
+        // Wait asynchronously for the process to finish
+        await withCheckedContinuation { continuation in
+            process.terminationHandler = { _ in
+                continuation.resume()
+            }
+        }
+        
+        guard process.terminationStatus == 0 else {
+            log("Error: hdiutil failed to convert DMG with SLA.")
+            return false
+        }
+        
+        guard FileManager.default.fileExists(atPath: tempFileURL.path) else {
+            log("Error: Converted file not found at expected location.")
+            return false
+        }
+        
+        do {
+            try FileManager.default.removeItem(atPath: path)
+            try FileManager.default.moveItem(atPath: tempFileURL.path, toPath: path)
+        } catch {
+            log("Failed to finalize converted DMG: \(error)")
+            return false
+        }
+        
+        return true
+    }
+
     /// Mounts a DMG file and handles Software License Agreement if present
     /// - Parameter path: Path to the DMG file to mount
     /// - Returns: Mount point path if successful, nil otherwise
-    private func mountDMG(at path: String) -> String? {
+    private func mountDMG(at path: String) async -> String? {
         let process = Process()
         process.launchPath = "/usr/bin/hdiutil"
         process.arguments = ["attach", path, "-plist", "-mountrandom", "/private/tmp", "-nobrowse"]
@@ -249,22 +300,18 @@ class PKGCreator {
             return nil
         }
 
-        // If SLA, agree and quit pager, else just close input
+        // Convert the DMG first if it has a Software License Agreement
         if dmgHasSLA(at: path) {
-            let handle = inputPipe.fileHandleForWriting
-            DispatchQueue.global().async {
-                // Agree to license
-                handle.write(Data("Y\n".utf8))
-                // Short pause to allow paging
-                Thread.sleep(forTimeInterval: 0.1)
-                // Quit the license viewer
-                handle.write(Data("q\n".utf8))
-                handle.closeFile()
+            let success = await convertDmgWithSLA(at: path)
+            if success {
+                log("Successfully converted dmg with SLA")
+            } else {
+                log("Failed to convert dmg with SLA")
+                return nil
             }
-        } else {
-            inputPipe.fileHandleForWriting.closeFile()
         }
 
+        inputPipe.fileHandleForWriting.closeFile()
         process.waitUntilExit()
 
         guard process.terminationStatus == 0 else {
