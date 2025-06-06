@@ -32,7 +32,6 @@ enum AutomationCheck {
 
         let parts = folderName.split(separator: "_")
         guard parts.count == 2 else {
-            Logger.log("❌ Invalid directory format for folder: \(folderName)", logType: logType)
             return false
         }
         let name = String(parts[0])
