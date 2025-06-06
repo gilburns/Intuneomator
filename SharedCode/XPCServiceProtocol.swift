@@ -29,13 +29,13 @@ import Foundation
     /// Tests connectivity to the XPC service
     /// - Parameter completion: Callback indicating if service is responsive
     func ping(completion: @escaping (Bool) -> Void)
+        
+    // MARK: - Entra Authentication Settings
     
     /// Retrieves the current certificate data
     /// - Parameter reply: Callback with certificate data or nil if not found
     func getCertificate(reply: @escaping (Data?) -> Void)
-    
-    // MARK: - Entra Authentication Settings
-    
+
     /// Imports a P12 certificate file into the system keychain for certificate-based authentication
     /// - Parameters:
     ///   - p12Data: The P12 certificate file data
@@ -162,8 +162,6 @@ import Foundation
     ///   - labelFolder: Target label folder name
     ///   - reply: Callback indicating if save was successful
     func saveMetadataForLabel(_ labelMetadata: String, _ labelFolder: String, reply: @escaping (Bool) -> Void)
-
-    
     
     // MARK: - Script Management
     
