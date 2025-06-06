@@ -70,7 +70,7 @@ class LabelAutomation {
     }
 
     static func getAppArchitecture(at appURL: URL) throws -> AppArchitecture {
-        // 1. Load Info.plist to get the executable name
+        // Load Info.plist to get the executable name
         let infoPlistURL = appURL.appendingPathComponent("Contents/Info.plist")
         let plistData = try Data(contentsOf: infoPlistURL)
         guard
@@ -80,13 +80,13 @@ class LabelAutomation {
             return .unknown
         }
 
-        // 2. Point to the actual binary
+        // Point to the actual binary
         let binaryURL = appURL
             .appendingPathComponent("Contents")
             .appendingPathComponent("MacOS")
             .appendingPathComponent(execName)
 
-        // 3. Call `/usr/bin/file` on that binary
+        // Call `/usr/bin/file` on that binary
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/file")
         process.arguments = ["-bL", binaryURL.path] // -b for brief, -L to follow symlinks
@@ -101,7 +101,7 @@ class LabelAutomation {
             return .unknown
         }
 
-        // 4. Inspect the output
+        // Inspect the output
         let hasARM = output.contains("arm64")
         let hasX86 = output.contains("x86_64")
 
