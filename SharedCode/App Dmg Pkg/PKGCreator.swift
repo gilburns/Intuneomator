@@ -11,9 +11,6 @@ import Foundation
 /// Supports processing .app bundles, .dmg files, .zip archives, and .tbz archives
 /// Generates distribution packages with proper installer configuration for system installation
 class PKGCreator {
-
-    /// Log type identifier for logging operations
-    private let logType = "PKGCreator"
     
     // MARK: - Main Logic
     
@@ -23,10 +20,6 @@ class PKGCreator {
     ///   - outputDir: Optional output directory (defaults to input file's directory)
     /// - Returns: Tuple containing package path, app name, bundle ID, and version, or nil on failure
     func createPackage(inputPath: String, outputDir: String?) -> (packagePath: String, appName: String, appID: String, appVersion: String)? {
-        
-        Logger.log("Input path: \(inputPath)", logType: logType)
-        Logger.log("Output directory: \(String(describing: outputDir))", logType: logType)
-        
         
         let fileManager = FileManager.default
         let outputDirectory = outputDir ?? (inputPath as NSString).deletingLastPathComponent
@@ -59,56 +52,56 @@ class PKGCreator {
 
         if inputPath.hasSuffix(".dmg") {
             guard let mountedPoint = mountDMG(at: inputPath) else {
-                Logger.log("Error: Failed to mount .dmg file.", logType: logType)
+                log("Error: Failed to mount .dmg file.")
                 return nil
             }
             mountPoint = mountedPoint
 
             guard let foundApp = findApp(in: mountedPoint) else {
-                Logger.log("Error: Unable to locate .app in .dmg.", logType: logType)
+                log("Error: Unable to locate .app in .dmg.")
                 return nil
             }
             appPath = foundApp
         } else if inputPath.hasSuffix(".zip") {
             guard let unzippedPath = extractZip(at: inputPath, to: NSTemporaryDirectory()) else {
-                Logger.log("Error: Unable to extract .zip.", logType: logType)
+                log("Error: Unable to extract .zip.")
                 return nil
             }
             if let foundDMG = findDMG(in: unzippedPath) {
                 guard let mountedPoint = mountDMG(at: foundDMG) else {
-                    Logger.log("Error: Failed to mount .dmg found in .zip.", logType: logType)
+                    log("Error: Failed to mount .dmg found in .zip.")
                     return nil
                 }
                 mountPoint = mountedPoint
 
                 guard let foundApp = findApp(in: mountedPoint) else {
-                    Logger.log("Error: Unable to locate .app in .dmg found in .zip.", logType: logType)
+                    log("Error: Unable to locate .app in .dmg found in .zip.")
                     return nil
                 }
                 appPath = foundApp
             } else if let foundApp = findApp(in: unzippedPath) {
                 appPath = foundApp
             } else {
-                Logger.log("Error: No .app or .dmg found in .zip.", logType: logType)
+                log("Error: No .app or .dmg found in .zip.")
                 return nil
             }
         } else if inputPath.hasSuffix(".tbz") {
             guard let extractedPath = extractTBZ(at: inputPath, to: NSTemporaryDirectory()),
                   let foundApp = findApp(in: extractedPath) else {
-                Logger.log("Error: Unable to locate .app in .tbz.", logType: logType)
+                log("Error: Unable to locate .app in .tbz.")
                 return nil
             }
             appPath = foundApp
         } else if inputPath.hasSuffix(".app") {
             appPath = inputPath
         } else {
-            Logger.log("Error: Input file must be a .app, .dmg, .zip, or .tbz.", logType: logType)
+            log("Error: Input file must be a .app, .dmg, .zip, or .tbz.")
             return nil
         }
 
         guard let appPath = appPath,
               let appInfo = extractAppInfo(from: appPath) else {
-            Logger.log("Error: Failed to process app.", logType: logType)
+            log("Error: Failed to process app.")
             return nil
         }
 
@@ -116,7 +109,7 @@ class PKGCreator {
             tempDir = "\(NSTemporaryDirectory())/temp-\(UUID().uuidString)"
             try fileManager.createDirectory(atPath: tempDir!, withIntermediateDirectories: true)
         } catch {
-            Logger.log("Error: Failed to create temporary directory - \(error)", logType: logType)
+            log("Error: Failed to create temporary directory - \(error)")
             return nil
         }
 
@@ -145,10 +138,17 @@ class PKGCreator {
 
     // MARK: - Helper Functions
     
+    /// Logs messages to console
+    /// Provides consistent logging format for update operations
+    /// - Parameter message: Message to log
+    func log(_ message: String) {
+        print("[PKGCreator] \(message)")
+    }
+
     /// Determines the architecture of a macOS application bundle
     /// - Parameter appPath: Path to the .app bundle
-    /// - Returns: Architecture string ("universal", "arm64", "x86_64") or nil if undetermined
-    func getAppArchitecture(appPath: String) -> String? {
+    /// - Returns: Architecture string ("universal", "arm64", "x86_64") or "unknown" if undetermined
+    func getAppArchitecture(appPath: String) -> String {
         let infoPlistPath = appPath + "/Contents/Info.plist"
         let macOSPath = appPath + "/Contents/MacOS"
         
@@ -157,8 +157,8 @@ class PKGCreator {
               let plist = try? PropertyListSerialization.propertyList(from: plistData, options: [], format: nil),
               let plistDict = plist as? [String: Any],
               let executableName = plistDict["CFBundleExecutable"] as? String else {
-            print("Unable to read Info.plist or CFBundleExecutable key.")
-            return nil
+            log("Unable to read Info.plist or CFBundleExecutable key.")
+            return "unknown"
         }
         
         let fullExecutablePath = "\(macOSPath)/\(executableName)"
@@ -173,15 +173,15 @@ class PKGCreator {
         do {
             try process.run()
         } catch {
-            print("Failed to run file command: \(error)")
-            return nil
+            log("Failed to run file command: \(error)")
+            return "unknown"
         }
         
         process.waitUntilExit()
         
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         guard let output = String(data: data, encoding: .utf8) else {
-            return nil
+            return "unknown"
         }
         
         if output.contains("arm64") && output.contains("x86_64") {
@@ -191,7 +191,7 @@ class PKGCreator {
         } else if output.contains("x86_64") {
             return "x86_64"
         } else {
-            return nil
+            return "unknown"
         }
     }
 
@@ -210,7 +210,7 @@ class PKGCreator {
         process.waitUntilExit()
 
         guard process.terminationStatus == 0 else {
-            Logger.log("Error: Failed to check for SLA in DMG.", logType: logType)
+            log("Error: Failed to check for SLA in DMG.")
             return false
         }
 
@@ -245,7 +245,7 @@ class PKGCreator {
         do {
             try process.run()
         } catch {
-            Logger.log("Error: Failed to launch hdiutil: \(error)", logType: logType)
+            log("Error: Failed to launch hdiutil: \(error)")
             return nil
         }
 
@@ -269,14 +269,14 @@ class PKGCreator {
 
         guard process.terminationStatus == 0 else {
             let errorOutput = String(data: errorPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? "Unknown error"
-            Logger.log("Error: Failed to mount .dmg file. \(errorOutput)", logType: logType)
+            log("Error: Failed to mount .dmg file. \(errorOutput)")
             return nil
         }
 
         let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
         guard let plist = try? PropertyListSerialization.propertyList(from: outputData, options: [], format: nil) as? [String: Any],
               let systemEntities = plist["system-entities"] as? [[String: Any]] else {
-            Logger.log("Error: Failed to parse hdiutil output.", logType: logType)
+            log("Error: Failed to parse hdiutil output.")
             return nil
         }
 
@@ -286,7 +286,7 @@ class PKGCreator {
             }
         }
 
-        Logger.log("Error: No mount point found.", logType: logType)
+        log("Error: No mount point found.")
         return nil
     }
 
@@ -308,7 +308,7 @@ class PKGCreator {
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
 
-            Logger.log("unmountDMG Command output: \(output)", logType: logType)
+            log("unmountDMG Command output: \(output)")
         }
     }
 
@@ -343,15 +343,15 @@ class PKGCreator {
                 let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
                 let output = String(data: outputData, encoding: .utf8) ?? ""
 
-                Logger.log("extractZip Command output: \(output)", logType: logType)
+                log("extractZip Command output: \(output)")
             }
             
             guard process.terminationStatus == 0 else {
-                Logger.log("Error: Failed to extract .zip file.", logType: logType)
+                log("Error: Failed to extract .zip file.")
                 return nil
             }
         } catch {
-            Logger.log("Error: Failed to prepare extraction directory - \(error)", logType: logType)
+            log("Error: Failed to prepare extraction directory - \(error)")
             return nil
         }
         return destinationPath
@@ -386,15 +386,15 @@ class PKGCreator {
                 let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
                 let output = String(data: outputData, encoding: .utf8) ?? ""
 
-                Logger.log("extractTBZ Command output: \(output)", logType: logType)
+                log("extractTBZ Command output: \(output)")
             }
 
             guard process.terminationStatus == 0 else {
-                Logger.log("Error: Failed to extract .tbz file.", logType: logType)
+                log("Error: Failed to extract .tbz file.")
                 return nil
             }
         } catch {
-            Logger.log("Error: Failed to prepare extraction directory - \(error)", logType: logType)
+            log("Error: Failed to prepare extraction directory - \(error)")
             return nil
         }
         return destinationPath
@@ -439,18 +439,11 @@ class PKGCreator {
               let appID = plistData["CFBundleIdentifier"] as? String,
               let appVersion = plistData["CFBundleShortVersionString"] as? String,
               let appName = plistData["CFBundleName"] as? String else {
-            Logger.log("Error: Unable to read Info.plist from \(appPath).", logType: logType)
+            log("Error: Unable to read Info.plist from \(appPath).")
             return nil
         }
         
-        
-        let appArch: String = getAppArchitecture(appPath: appPath) ?? "unknown"
-
-        Logger.log("appName \(appName)", logType: logType)
-        Logger.log("appID \(appID)", logType: logType)
-        Logger.log("appVersion \(appVersion)", logType: logType)
-        Logger.log("appArch \(appArch)", logType: logType)
-
+        let appArch: String = getAppArchitecture(appPath: appPath)
         
         return (appName, appID, appVersion, appArch)
     }
@@ -470,7 +463,7 @@ class PKGCreator {
             let destinationPath = "\(applicationsPath)/\((appPath as NSString).lastPathComponent)"
             try fileManager.copyItem(atPath: appPath, toPath: destinationPath)
         } catch {
-            Logger.log("Error: Failed to prepare package root - \(error)", logType: logType)
+            log("Error: Failed to prepare package root - \(error)")
             return nil
         }
         return packageRoot
@@ -499,11 +492,11 @@ class PKGCreator {
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
 
-            Logger.log("analyzeComponentPlist Command output: \(output)", logType: logType)
+            log("analyzeComponentPlist Command output: \(output)")
         }
         
         guard process.terminationStatus == 0 else {
-            Logger.log("Error: Failed to analyze component plist.", logType: logType)
+            log("Error: Failed to analyze component plist.")
             return nil
         }
         return componentPlistPath
@@ -515,7 +508,7 @@ class PKGCreator {
     /// - Returns: True if modification was successful, false otherwise
     private func modifyComponentPlist(at path: String) -> Bool {
         guard let plistData = NSMutableArray(contentsOfFile: path) else {
-            Logger.log("Error: Unable to read component plist.", logType: logType)
+            log("Error: Unable to read component plist.")
             return false
         }
         
@@ -558,11 +551,11 @@ class PKGCreator {
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
 
-            Logger.log("createComponentPackage Command output: \(output)", logType: logType)
+            log("createComponentPackage Command output: \(output)")
         }
         
         guard process.terminationStatus == 0 else {
-            Logger.log("Error: Failed to create component package.", logType: logType)
+            log("Error: Failed to create component package.")
             return nil
         }
         return packagePath
@@ -593,11 +586,11 @@ class PKGCreator {
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
 
-            Logger.log("synthesizeDistributionXML Command output: \(output)", logType: logType)
+            log("synthesizeDistributionXML Command output: \(output)")
         }
 
         guard process.terminationStatus == 0 else {
-            Logger.log("Error: Failed to synthesize distribution.xml.", logType: logType)
+            log("Error: Failed to synthesize distribution.xml.")
             return nil
         }
 
@@ -632,7 +625,7 @@ class PKGCreator {
             // Write the modified content back to the file
             try xmlContent.write(toFile: distributionXMLPath, atomically: true, encoding: .utf8)
         } catch {
-            Logger.log("Error: Failed to modify distribution.xml - \(error)", logType: logType)
+            log("Error: Failed to modify distribution.xml - \(error)")
             return nil
         }
 
@@ -674,14 +667,14 @@ class PKGCreator {
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
 
-            Logger.log("createDistributionPackage Command output: \(output)", logType: logType)
+            log("createDistributionPackage Command output: \(output)")
         }
         
         if process.terminationStatus == 0 {
-            Logger.log("Distribution package created successfully at \(outputPackagePath)", logType: logType)
+            log("Distribution package created successfully at \(outputPackagePath)")
             return outputPackagePath
         } else {
-            Logger.log("Error: Failed to create distribution package.", logType: logType)
+            log("Error: Failed to create distribution package.")
             return ""
         }
     }
