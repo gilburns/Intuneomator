@@ -24,7 +24,6 @@ func startSpinner(message: String = "Processing") -> () -> Void {
     let spinnerQueue = DispatchQueue(label: "spinner.queue")
 
     spinnerQueue.async {
-//        let spinnerChars = ["|/-\\", "/-\\|", "-\\|/", "\\|/-"]
         let spinnerChars = [
             "🁢-----------",
             "-🁢----------",
@@ -51,7 +50,9 @@ func startSpinner(message: String = "Processing") -> () -> Void {
 
     // Return a closure that stops the spinner
     return {
-        print("\r\rDone!", terminator: ""); isSpinning = false
+        isSpinning = false
+        print("\r\rDone!", terminator: "")
+        fflush(stdout)
     }
 }
 
@@ -163,7 +164,14 @@ func labelUpdates() {
         let (success, updateMessage) = await InstallomatorLabels.installInstallomatorLabelsAsync(withUpdatingLabels: false)
         if success {
             Logger.log("✅ \(updateMessage)", logType: "LabelUpdate")
-            let updatedLabels: [String] = try await InstallomatorLabels.updateInUseLabels()
+            let updatedLabels: [String]
+            do {
+                updatedLabels = try await InstallomatorLabels.updateInUseLabels()
+            } catch {
+                Logger.log("❌ Failed to get updated labels: \(error.localizedDescription)", logType: "LabelUpdate")
+                await sendLabelUpdateTeamsNotifications(withPreviousVersion: localVersionString, andCurrentVersion: currentVersionString, updatedLabels: [], isSuccess: false)
+                exit(EXIT_FAILURE)
+            }
             Logger.log("Local version: \(localVersionString)", logType: "LabelUpdate")
             Logger.log("Current version: \(currentVersionString)", logType: "LabelUpdate")
             Logger.log("Updated labels: \(updatedLabels)", logType: "LabelUpdate")
@@ -321,21 +329,15 @@ func checkForUpdates() {
     group.enter()
     Task {
         DaemonUpdateManager.checkAndPerformUpdateIfNeeded()
+        group.leave()
     }
 
     group.wait()
-
 }
 
 func testFunction() {
     print("Test function called")
-    
-//    let group = DispatchGroup()
-//    group.enter()
-//
-//
-//    group.leave()
-//    group.wait()
+    // Implementation placeholder for testing purposes
 }
 
 
@@ -350,6 +352,7 @@ func login() {
         do {
             isValid = try await EntraAuthenticator().ValidateCredentials()
         } catch {
+            Logger.log("❌ Credential validation error: \(error.localizedDescription)", logType: "Authentication")
             isValid = false
         }
         stopSpinner()
@@ -393,7 +396,7 @@ func handleCommandLineArguments() {
         if arguments.count > 2 {
             processLabelScript(withParam: arguments[2])
         } else {
-            print("Error: task2 requires a parameter")
+            print("Error: process-label-script requires a folder name parameter")
             exit(1)
         }
 
@@ -402,7 +405,7 @@ func handleCommandLineArguments() {
         if arguments.count > 2 {
             processLabel(withParam: arguments[2])
         } else {
-            print("Error: task2 requires a parameter")
+            print("Error: process-label requires a folder name parameter")
             exit(1)
         }
 
