@@ -64,6 +64,8 @@ class TabViewController: NSViewController {
     /// Cache for instantiated view controllers to improve performance
     private var viewControllerCache: [String: NSViewController] = [:]
     
+    private var keyMonitor: Any?
+    
     // MARK: - View Lifecycle Methods
     
     /// Called after the view controller's view is loaded into memory
@@ -110,6 +112,7 @@ class TabViewController: NSViewController {
     /// Updates custom label status and saves current window size
     override func viewDidAppear() {
         super.viewDidAppear()
+        self.view.window?.makeFirstResponder(self)
 
         checkCustomLabel()
         setToggleCustomButtonAvailability()
@@ -118,6 +121,31 @@ class TabViewController: NSViewController {
         if let window = view.window {
             saveSheetSize(window.frame.size)
         }
+        
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self = self else { return event }
+
+            if event.modifierFlags.contains(.command),
+               let chars = event.charactersIgnoringModifiers {
+                switch chars {
+                case "1":
+                    self.tabView.selectTabViewItem(at: 0)
+                    return nil
+                case "2":
+                    self.tabView.selectTabViewItem(at: 1)
+                    return nil
+                case "3":
+                    self.tabView.selectTabViewItem(at: 2)
+                    return nil
+                default:
+                    break
+                }
+            }
+
+            return event
+        }
+
+        
     }
     
     /// Called when the view controller's view has disappeared from screen
@@ -129,8 +157,35 @@ class TabViewController: NSViewController {
         if let window = view.window {
             saveSheetSize(window.frame.size)
         }
+        
+        if let monitor = keyMonitor {
+            NSEvent.removeMonitor(monitor)
+            keyMonitor = nil
+        }
+
     }
 
+    
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        guard event.modifierFlags.contains(.command),
+              let characters = event.charactersIgnoringModifiers else {
+            return super.performKeyEquivalent(with: event)
+        }
+
+        switch characters {
+        case "1":
+            tabView.selectTabViewItem(at: 0)
+            return true
+        case "2":
+            tabView.selectTabViewItem(at: 1)
+            return true
+        case "3":
+            tabView.selectTabViewItem(at: 2)
+            return true
+        default:
+            return super.performKeyEquivalent(with: event)
+        }
+    }
 
     // MARK: - Save Action Methods
     
