@@ -1,21 +1,4 @@
 //
-///
-///  DiscoveredAppsViewController.swift
-///  Intuneomator
-///
-///  View controller for discovering and automating applications detected in Microsoft Intune.
-///  Fetches applications discovered on managed devices and matches them with available Installomator labels
-///  for automated packaging and deployment.
-///
-///  **Key Features:**
-///  - Fetches discovered macOS applications from Microsoft Intune
-///  - Matches discovered apps with 700+ Installomator labels
-///  - Provides filtering for apps with available automation labels
-///  - Supports search functionality across app names and labels
-///  - Enables automated label creation and preview functionality
-///  - Shows device lists for selected applications
-///  - Handles duplicate label entries for apps with multiple matching labels
-///
 //  DiscoveredAppsViewController.swift
 //  Intuneomator
 //
@@ -24,12 +7,25 @@
 
 import Cocoa
 
-/// `DiscoveredAppsViewController` manages the UI for displaying discovered macOS applications
-/// and their matching Installomator labels. It handles fetching app data, filtering/search,
-/// automating labels, previewing scripts, and viewing devices.
+/**
+ View controller for discovering and automating applications detected in Microsoft Intune.
+ 
+ This controller fetches applications discovered on managed devices and matches them with
+ available Installomator labels for automated packaging and deployment.
+ 
+ **Key Features:**
+ - Fetches discovered macOS applications from Microsoft Intune
+ - Matches discovered apps with 700+ Installomator labels
+ - Provides filtering for apps with available automation labels
+ - Supports search functionality across app names and labels
+ - Enables automated label creation and preview functionality
+ - Shows device lists for selected applications
+ - Handles duplicate label entries for apps with multiple matching labels
+ */
 class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, NSSearchFieldDelegate {
 
-
+    // MARK: - UI Outlets
+    
     /// Table view displaying the list of discovered applications.
     @IBOutlet weak var tableView: NSTableView!
 
@@ -54,23 +50,25 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
     /// Progress indicator shown while fetching discovered apps.
     @IBOutlet weak var progressIndicator: NSProgressIndicator!
 
-
-    /// Array of all discovered applications retrieved from Intune.
+    // MARK: - Properties
+    
+    /// Array of all discovered applications retrieved from Intune
     var allApps: [DetectedApp] = []
-    /// Array of applications after applying filter and duplication logic.
+    
+    /// Array of applications after applying filter and duplication logic
     var filteredApps: [DetectedApp] = []
-    /// Dictionary mapping application names to arrays of matching Installomator label names.
-    var installomatorMappings: [String: [String]] = [:] // Maps app names to multiple labels
-
-    /// Stores the initial count of filtered apps before duplicates are generated.
+    
+    /// Dictionary mapping application names to arrays of matching Installomator label names
+    var installomatorMappings: [String: [String]] = [:]
+    
+    /// Stores the initial count of filtered apps before duplicates are generated
     var initialFilteredAppsCount: Int = 0
-
-    /// HelpPopover for displaying contextual help in this view.
+    
+    /// HelpPopover for displaying contextual help in this view
     private let helpPopover = HelpPopover()
 
+    // MARK: - View Lifecycle
     
-    /// Called after the view has been loaded.
-    /// - Initializes Installomator label mappings and configures table view behaviors.
     override func viewDidLoad() {
         super.viewDidLoad()
         loadInstallomatorLabels()
@@ -85,11 +83,8 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
         
         tableView.target = self
         tableView.doubleAction = #selector(handleTableViewDoubleClick(_:))
-
     }
 
-    /// Called when the view appears onscreen.
-    /// - Starts the progress indicator and triggers fetching of discovered apps if needed.
     override func viewDidAppear() {
         super.viewDidAppear()
         progressIndicator.startAnimation(nil)
@@ -101,12 +96,13 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
             }
         }
     }
-    /// Fetches detected macOS applications from Intune via XPC and updates the table.
-    /// - Retrieves apps asynchronously, applies filters, updates counts, and reloads the table.
+    
+    // MARK: - Data Fetching & Processing
+    
+    /// Fetches detected macOS applications from Intune via XPC and updates the table
     func fetchDetectedApps() {
         Task {
             do {
-                
                 XPCManager.shared.fetchDiscoveredMacApps { apps in
                     DispatchQueue.main.async {
                         if let apps = apps {
@@ -114,16 +110,13 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
                                 self.allApps = apps
                                 self.filteredApps = apps
                                 
-                                self.applyFilter() // ✅ First, apply filtering and duplication logic
-                                
-                                self.initialFilteredAppsCount = self.filteredApps.count // ✅ Store count after duplicates are created
-//                                print("✅ Initial filtered apps count set to: \(self.initialFilteredAppsCount)")
+                                self.applyFilter()
+                                self.initialFilteredAppsCount = self.filteredApps.count
                                 
                                 self.tableView?.reloadData()
-                                self.updateLabelShowCount() // ✅ Update the label count
+                                self.updateLabelShowCount()
                                 self.progressIndicator.stopAnimation(nil)
                             }
-                            
                         } else {
                             // handle error
                         }
@@ -133,8 +126,7 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
         }
     }
     
-    /// Reads all Installomator label scripts from disk to build mappings of app names to label names.
-    /// - Parses script files to extract `name` and `appName` fields for matching.
+    /// Reads all Installomator label scripts from disk to build mappings of app names to label names
     func loadInstallomatorLabels() {
         let labelDirectory = URL(fileURLWithPath: AppConstants.installomatorLabelsFolderURL.path)
 
@@ -148,7 +140,7 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
 
                 if let nameMatch = extractValue(from: content, using: #"name="([^"]+)""#) {
                     if installomatorMappings[nameMatch] == nil {
-                        installomatorMappings[nameMatch] = []  // ✅ Ensure it's an array
+                        installomatorMappings[nameMatch] = []
                     }
                     installomatorMappings[nameMatch]?.append(labelName)
                 }
@@ -156,21 +148,19 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
                 if let appNameMatch = extractValue(from: content, using: #"appName="([^"]+)""#) {
                     let appNameWithoutExtension = appNameMatch.replacingOccurrences(of: ".app", with: "")
                     if installomatorMappings[appNameWithoutExtension] == nil {
-                        installomatorMappings[appNameWithoutExtension] = []  // ✅ Ensure it's an array
+                        installomatorMappings[appNameWithoutExtension] = []
                     }
                     installomatorMappings[appNameWithoutExtension]?.append(labelName)
                 }
             }
         } catch {
-//            print("❌ Error reading Installomator labels: \(error)")
+            // Handle error silently
         }
     }
     
-    /// Extracts a value from the given text using a regular expression pattern.
-    /// - Parameters:
-    ///   - text: The source string to search.
-    ///   - pattern: The regular expression with a capture group for the desired value.
-    /// - Returns: The first captured substring, or nil if no match is found.
+    // MARK: - Helper Methods
+    
+    /// Extracts a value from the given text using a regular expression pattern
     private func extractValue(from text: String, using pattern: String) -> String? {
         do {
             let regex = try NSRegularExpression(pattern: pattern, options: [])
@@ -181,27 +171,19 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
                 return String(text[range])
             }
         } catch {
-//            print("Regex error: \(error)")
+            // Handle regex error silently
         }
         return nil
     }
     
-    /// Returns matching Installomator label names for the given application name.
-    /// - Parameter appName: The application display name.
-    /// - Returns: Array of label names, or ["No match detected"] if none found.
+    /// Returns matching Installomator label names for the given application name
     func getInstallomatorMatches(for appName: String?) -> [String] {
         guard let appName = appName else { return [] }
-
         let matches = installomatorMappings[appName] ?? []
-
-//        print("🔍 Matches for \(appName): \(matches)") // Debugging output
-
         return matches.isEmpty ? ["No match detected"] : matches
     }
     
-    /// Applies filtering and duplication logic to `allApps` based on the checkbox and search query.
-    /// - Duplicates rows for apps with multiple labels, then filters by search text.
-    /// - Updates `filteredApps` and the count label, then reloads the table view.
+    /// Applies filtering and duplication logic to `allApps` based on the checkbox and search query
     func applyFilter() {
         buttonAutomateLabel.isEnabled = false
         buttonPreviewLabel.isEnabled = false
@@ -215,14 +197,12 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
             let matchingLabels = getInstallomatorMatches(for: app.displayName)
 
             if shouldFilterMatches {
-                // ✅ Only add apps that have at least one matching Installomator label
                 if !matchingLabels.isEmpty && !matchingLabels.contains("No match detected") {
                     for label in matchingLabels {
                         tempFilteredApps.append(app.withLabel(label))
                     }
                 }
             } else {
-                // ✅ Keep all apps, but still duplicate rows for multiple labels
                 if matchingLabels.isEmpty {
                     tempFilteredApps.append(app.withLabel("No match detected"))
                 } else {
@@ -233,9 +213,7 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
             }
         }
 
-//        print("🛠 Final filtered apps count: \(tempFilteredApps.count) (should be higher if multiple labels exist)")
-
-        // ✅ Apply search filter after checkbox filtering
+        // Apply search filter after checkbox filtering
         if !searchQuery.isEmpty {
             tempFilteredApps = tempFilteredApps.filter { app in
                 let displayName = app.displayName?.lowercased() ?? ""
@@ -249,19 +227,16 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
         tableView.reloadData()
     }
     
-    /// Updates the `labelShowCount` text with the number of visible rows and initial count.
+    /// Updates the `labelShowCount` text with the number of visible rows and initial count
     func updateLabelShowCount() {
         labelShowCount.stringValue = "\(filteredApps.count) of \(initialFilteredAppsCount)"
     }
     
     // MARK: - Actions
-
-    /// Initiates automation for the selected label.
-    /// - Sends the label name to the XPC service for adding to managed titles.
-    /// - Displays a success dialog upon completion.
+    
+    /// Initiates automation for the selected label
     @IBAction func saveNewContent(_ sender: NSButton) {
         guard tableView.selectedRow >= 0 else {
-//            print("❌ No row selected.")
             return
         }
         progressIndicator.startAnimation(nil)
@@ -269,35 +244,26 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
         let selectedApp = filteredApps[tableView.selectedRow]
         let labelName = selectedApp.installomatorLabel
         
-        // Send the new content to the XPC service
         XPCManager.shared.addNewLabel(labelName, "installomator") { dirPath in
             DispatchQueue.main.async {
                 if dirPath != nil {
-                    // stop the progress indicator
                     self.progressIndicator.stopAnimation(nil)
                     
-                    // Notify MainViewController of the new directory
                     NotificationCenter.default.post(
                         name: .newDirectoryAdded,
                         object: nil,
                         userInfo: ["directoryPath": dirPath!]
                     )
-
                 } else {
-                    // stop the progress indicator
                     self.progressIndicator.stopAnimation(nil)
-//                    print("Failed to update label content")
                 }
             }
         }
 
         showSuccessDialog(message: "Label \(labelName) successfully automated!\n\nComplete the setup in the Main window.")
-
     }
-
     
-    /// Shows a popover containing the selected label’s script contents.
-    /// - Reads the `.sh` file for the label and displays its contents.
+    /// Shows a popover containing the selected label's script contents
     @IBAction func previewLabelContents(_ sender: NSButton) {
         guard tableView.selectedRow >= 0 else { return }
 
@@ -309,12 +275,11 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
             let labelContents = try String(contentsOfFile: labelPath, encoding: .utf8)
             showPopover(with: labelContents, atRow: tableView.selectedRow)
         } catch {
-//            print("❌ Failed to read label file \(labelName).sh: \(error)")
+            // Handle error silently
         }
     }
     
-    /// Fetches and displays a sheet of devices where the selected app is detected.
-    /// - Uses XPC to retrieve a list of `DeviceInfo` for the given app ID.
+    /// Fetches and displays a sheet of devices where the selected app is detected
     @IBAction func viewDevicesForSelectedApp(_ sender: NSButton) {
         guard tableView.selectedRow >= 0 else { return }
 
@@ -330,7 +295,7 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
                     DispatchQueue.main.async {
                         if let devices = devices {
                             DispatchQueue.main.async {
-                                self.showDevicesSheet(for: selectedApp.displayName ?? "Unknown App", devices: devices)
+                                self.showDevicesSheet(for: selectedApp.displayName ?? "Unknown App", labelName: selectedApp.installomatorLabel, devices: devices)
                             }
                         } else {
                             // show an error or empty state
@@ -341,7 +306,21 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
         }
     }
     
-    /// Displays an informational success alert with the given message.
+    @IBAction func searchFieldChanged(_ sender: NSSearchField) {
+        applyFilter()
+    }
+    
+    @IBAction func toggleFilterMatchedApps(_ sender: NSButton) {
+        applyFilter()
+    }
+    
+    @objc private func handleTableViewDoubleClick(_ sender: Any?) {
+        guard tableView.selectedRow >= 0 else { return }
+        viewDevicesForSelectedApp(buttonViewDevices)
+    }
+    
+    // MARK: - Dialog Methods
+    
     func showSuccessDialog(message: String) {
         let alert = NSAlert()
         alert.messageText = "Success"
@@ -351,7 +330,6 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
         alert.runModal()
     }
     
-    /// Displays a critical error alert with the given message.
     func showErrorDialog(message: String) {
         let alert = NSAlert()
         alert.messageText = "Error"
@@ -361,30 +339,22 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
         alert.runModal()
     }
     
-    /// Presents a sheet showing the list of devices for the specified application.
-    /// - Parameters:
-    ///   - appName: The name of the application.
-    ///   - devices: Array of `DeviceInfo` objects to display.
-    func showDevicesSheet(for appName: String, devices: [DeviceInfo]) {
+    func showDevicesSheet(for appName: String, labelName appLabelName: String, devices: [DeviceInfo]) {
         let storyboard = NSStoryboard(name: "Main", bundle: nil)
         guard let sheetController = storyboard.instantiateController(withIdentifier: "DevicesSheetViewController") as? DevicesSheetViewController else {
-//            print("❌ Failed to instantiate DevicesSheetViewController")
             return
         }
         
         sheetController.appName = appName
         sheetController.devices = devices
+        sheetController.appLabelName = appLabelName
 
         self.presentAsSheet(sheetController)
     }
     
-    /// Displays a transient popover showing the provided text at the specified table row.
-    /// - Parameters:
-    ///   - text: The content to display inside the popover.
-    ///   - row: The table row index to anchor the popover.
     func showPopover(with text: String, atRow row: Int) {
         let popover = NSPopover()
-        popover.behavior = .transient // Dismisses when clicking outside
+        popover.behavior = .transient
 
         let popoverVC = NSViewController()
         
@@ -394,65 +364,27 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
         scrollView.hasHorizontalScroller = true
 
         // Create the text view with padding
-        let textView = NSTextView(frame: NSRect(x: 15, y: 15, width: 500, height: 350)) // Extra space for padding
+        let textView = NSTextView(frame: NSRect(x: 15, y: 15, width: 500, height: 350))
         textView.isEditable = false
         textView.string = text
-        textView.textContainerInset = NSSize(width: 15, height: 15) // ✅ Adds padding inside the text area
+        textView.textContainerInset = NSSize(width: 15, height: 15)
 
-        // Assign text view to scroll view
         scrollView.documentView = textView
-
-        // Assign scroll view to popover
         popoverVC.view = scrollView
         popover.contentViewController = popoverVC
         popover.contentSize = scrollView.frame.size
 
-        // Determine row view to anchor the popover to
         if let rowView = tableView.rowView(atRow: row, makeIfNecessary: false) {
             popover.show(relativeTo: rowView.bounds, of: rowView, preferredEdge: .maxY)
         }
     }
     
-    /// Called when the search field value changes.
-    /// - Applies the filter to update displayed rows.
-    @IBAction func searchFieldChanged(_ sender: NSSearchField) {
-        applyFilter()
-    }
+    // MARK: - NSTableView DataSource & Delegate
     
-    /// Called when the “Filter Matched” checkbox state changes.
-    /// - Reapplies the filter to show only apps with matching labels if checked.
-    @IBAction func toggleFilterMatchedApps(_ sender: NSButton) {
-        applyFilter()
-    }
-    
-    /// Handles double-click events on the table view.
-    /// - When a row is double-clicked, performs the default action of viewing devices for that app.
-    @objc private func handleTableViewDoubleClick(_ sender: Any?) {
-        guard tableView.selectedRow >= 0 else { return }
-        
-        // Get the current event to check for modifier keys
-//        if let event = NSApp.currentEvent {
-//            if event.modifierFlags.contains(.shift) {
-//                editPrePostScripts(self)
-//            } else if event.modifierFlags.contains(.option) {
-//                editGroupAssignments(self)
-//            } else {
-//                editAppItem(self)
-//            }
-//        }
-        
-        viewDevicesForSelectedApp(buttonViewDevices)
-    }
-    
-    // MARK: - NSTableView DataSource & Delegate Methods
-
-    /// NSTableViewDataSource: Returns the number of rows (apps) to display.
     func numberOfRows(in tableView: NSTableView) -> Int {
         return filteredApps.count
     }
     
-    /// NSTableViewDelegate/DataSource: Provides a configured cell view for each column and row.
-    /// - Populates columns: displayName, version, publisher, deviceCount, and installomatorLabel.
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         guard let columnIdentifier = tableColumn?.identifier.rawValue else { return nil }
         let app = filteredApps[row]
@@ -468,7 +400,7 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
                 case "deviceCount":
                     cell.textField?.stringValue = "\(app.deviceCount ?? 0)"
                 case "installomatorLabel":
-                cell.textField?.stringValue = app.installomatorLabel // Now uses the label from `DetectedApp`
+                cell.textField?.stringValue = app.installomatorLabel
                 default:
                     break
             }
@@ -477,8 +409,6 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
         return nil
     }
     
-    /// NSTableViewDelegate: Called when the selected table row changes.
-    /// - Enables or disables action buttons based on whether the selected app has a matching label.
     func tableViewSelectionDidChange(_ notification: Notification) {
         guard tableView.selectedRow >= 0 else {
             buttonAutomateLabel.isEnabled = false
@@ -488,9 +418,7 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
         }
 
         let selectedApp = filteredApps[tableView.selectedRow]
-
         let match = selectedApp.installomatorLabel
-
         let isMatchingLabel = (match != "No match detected")
 
         buttonAutomateLabel.isEnabled = isMatchingLabel
@@ -498,8 +426,6 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
         buttonViewDevices.isEnabled = true
     }
     
-    /// NSTableViewDelegate: Called when sort descriptors change.
-    /// - Sorts `filteredApps` based on the selected column key and reloads the table.
     func tableView(_ tableView: NSTableView, sortDescriptorsDidChange oldDescriptors: [NSSortDescriptor]) {
         guard let sortDescriptor = tableView.sortDescriptors.first else { return }
 
@@ -515,11 +441,6 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
         tableView.reloadData()
     }
     
-    /// Returns a sortable string for the given app based on the specified key.
-    /// - Used to compare values when sorting the table.
-    /// - Parameters:
-    ///   - app: The `DetectedApp` object.
-    ///   - key: The column identifier key to sort by.
     private func getSortableValue(for app: DetectedApp, key: String) -> String {
         switch key {
         case "displayName":
@@ -529,12 +450,11 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
         case "publisher":
             return app.publisher ?? ""
         case "deviceCount":
-            return String(app.deviceCount ?? 0) // Convert to String for consistent sorting
+            return String(app.deviceCount ?? 0)
         case "installomatorLabel":
-            return app.installomatorLabel // Now directly accessing the stored label
+            return app.installomatorLabel
         default:
             return ""
         }
     }
-    
 }
