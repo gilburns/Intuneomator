@@ -35,15 +35,22 @@ class DevicesSheetViewController: NSViewController, NSTableViewDelegate, NSTable
     
     /// Button to initiate exporting the current device list to a CSV file.
     @IBOutlet weak var buttonExportCSV: NSButton!
+    
+    /// Image view to present the potential icon of the application
+    @IBOutlet weak var appIconImageView: NSImageView!
 
     
     /// The application name used to set the sheet title and CSV file default name.
     var appName: String = ""
     
+    /// The application label used to set the sheet icon.
+    var appLabelName: String = ""
+    
     /// Array of `DeviceInfo` objects representing devices where the app is installed.
     var devices: [DeviceInfo] = []
     
     
+    // MARK: - Lifecycle
     /// Called after the view has loaded into memory.
     /// - Configures the table view’s delegate and data source.
     /// - Sets the application name field and reloads the table data.
@@ -52,6 +59,9 @@ class DevicesSheetViewController: NSViewController, NSTableViewDelegate, NSTable
         tableView.delegate = self
         tableView.dataSource = self
         appNameField.stringValue = appName
+        if appLabelName != "No match detected" || appLabelName != "" {
+            fetchAppIcon(for: appLabelName)
+        }
         tableView.reloadData()
     }
 
@@ -83,6 +93,26 @@ class DevicesSheetViewController: NSViewController, NSTableViewDelegate, NSTable
     }
 
     
+    private func fetchAppIcon(for labelName: String) {
+        guard labelName != "No match detected" else { return }
+
+        let urlString = "https://icons.intuneomator.org/\(labelName).png"
+        guard let iconURL = URL(string: urlString) else { return }
+
+        let task = URLSession.shared.dataTask(with: iconURL) { [weak self] data, response, error in
+            guard let self = self else { return }
+            guard let data = data, error == nil, let image = NSImage(data: data) else {
+                return
+            }
+
+            DispatchQueue.main.async {
+                self.appIconImageView.image = image
+            }
+        }
+        task.resume()
+    }
+    
+    // MARK: - Tableview
     /// NSTableViewDataSource: Returns the number of rows to display, based on the `devices` array count.
     /// - Parameter tableView: The table view requesting the row count.
     /// - Returns: The total number of devices.
@@ -123,6 +153,7 @@ class DevicesSheetViewController: NSViewController, NSTableViewDelegate, NSTable
         return nil
     }
     
+    // MARK: - Actions
     /// IBAction to dismiss the sheet view.
     /// - Parameter sender: The button that triggered the dismissal.
     @IBAction func dismissSheet(_ sender: NSButton) {
@@ -136,6 +167,7 @@ class DevicesSheetViewController: NSViewController, NSTableViewDelegate, NSTable
     }
 
     
+    // MARK: - Export
     /// Gathers device data and prompts the user to choose a file location for CSV export.
     /// - Constructs a CSV string with headers and each device’s properties.
     /// - Writes the CSV content to the selected file URL, showing an alert on success or error.
