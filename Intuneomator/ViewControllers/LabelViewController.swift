@@ -27,6 +27,9 @@ class LabelViewController: NSViewController {
     /// Scroll view containing the `labelTableView`.
     @IBOutlet weak var labelScrollView: NSScrollView!
     
+    /// Image view to display the application icon associated with the label
+    @IBOutlet weak var labelIcon: NSImageView!
+    
     /// Search field for filtering labels by name.
     @IBOutlet weak var labelSearchField: NSSearchField!
     
@@ -265,6 +268,27 @@ class LabelViewController: NSViewController {
         }
     }
     
+    private func fetchAppIcon(for labelName: String) {
+        guard labelName != "No match detected" else { return }
+
+        let urlString = "https://icons.intuneomator.org/\(labelName).png"
+        guard let iconURL = URL(string: urlString) else { return }
+
+        let task = URLSession.shared.dataTask(with: iconURL) { [weak self] data, response, error in
+            guard let self = self else { return }
+            guard let data = data, error == nil, let image = NSImage(data: data) else {
+                // Optionally log error or provide fallback icon
+                return
+            }
+
+            DispatchQueue.main.async {
+                self.labelIcon.image = image
+            }
+        }
+        task.resume()
+    }
+
+    
     // MARK: - Helpers
     /// Updates the `labelCount` text field to reflect the number of visible vs. total labels.
     private func setLabelCount() {
@@ -346,6 +370,7 @@ extension LabelViewController: NSTableViewDataSource, NSTableViewDelegate {
             buttonAddLabel.isEnabled = false
             warningLabel.isHidden = true // Ensure the warning label is hidden when no row is selected
             buttonShowHelpAppNewVersionMissing.isHidden = true
+            labelIcon.image = nil
             return
         }
 
@@ -358,6 +383,11 @@ extension LabelViewController: NSTableViewDataSource, NSTableViewDelegate {
         let labelName = (selectedItem.label as NSString).deletingPathExtension
         let folderPath = AppConstants.intuneomatorManagedTitlesFolderURL.path
         let fileManager = FileManager.default
+        
+        // Load the remote Application icon for the selected label
+        if labelName != "" {
+            fetchAppIcon(for: labelName)
+        }
 
         do {
             // Search the managed titles folder for any existing directories matching this label name.
