@@ -314,13 +314,14 @@ Continued use of this software is an a agreement to the software license terms.<
                                 </connections>
                             </button>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="G3Y-hw-O61">
-                                <rect key="frame" x="40" y="124" width="442" height="126"/>
+                                <rect key="frame" x="40" y="117" width="442" height="140"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" controlSize="small" id="tQ3-qG-hYQ">
                                     <font key="font" metaFont="smallSystem"/>
                                     <string key="title">Certificate can be used to prove the client identity to the Authorization server. The idea of certificate is based on asymmetric cryptography, which utilize public and private key pair. 
 
 Intuneomator can generate a key pair for you, or you can provide your own. Import it here.
+
 
 The Public certificate key should be uploaded to Entra ID under the Intuneomator app registration, while the Private will need to be available for application to use.</string>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -369,7 +370,7 @@ The Public certificate key should be uploaded to Entra ID under the Intuneomator
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="kFF-Tf-5Cu">
-                                <rect key="frame" x="365" y="161" width="116" height="16"/>
+                                <rect key="frame" x="365" y="180" width="116" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="Generate a Certificate" bezelStyle="rounded" alignment="center" controlSize="mini" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="oak-Ip-YmF">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
