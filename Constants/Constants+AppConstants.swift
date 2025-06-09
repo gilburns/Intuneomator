@@ -46,10 +46,15 @@ struct AppConstants {
     static let intuneomatorManagedTitlesFolderURL = intuneomatorFolderURL
         .appendingPathComponent("ManagedTitles")
 
-    /// File used to trigger on-demand automation tasks
+    /// Directory used to trigger on-demand automation tasks
     /// Location: /Library/Application Support/Intuneomator/ondemandQueue
     static let intuneomatorOndemandTriggerURL = intuneomatorFolderURL
         .appendingPathComponent("ondemandQueue")
+
+    /// Directory used to store on-going automation download and upload statistics
+    /// Location: /Library/Application Support/Intuneomator/Stats
+    static let intuneomatorUpDownStatsURL = intuneomatorFolderURL
+        .appendingPathComponent("Stats")
 
     /// Configuration file for the Intuneomator service
     /// Location: /Library/Application Support/Intuneomator/IntuneomatorService.plist
