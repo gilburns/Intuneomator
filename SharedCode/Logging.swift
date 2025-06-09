@@ -46,6 +46,13 @@ class Logger {
         return userLogPath
     }()
     
+    /// Intuneomator log directory for Download and Upload tracking (uses AppConstants for consistency)
+    static var logDirectoryStats: URL = {
+        let statsLogPath = AppConstants.intuneomatorUpDownStatsURL
+        ensureDirectoryExists(at: statsLogPath)
+        return statsLogPath
+    }()
+    
     // MARK: - Public Logging Methods
     
     /// Logs a message to the system log directory with date-based file naming
@@ -88,7 +95,12 @@ class Logger {
         includeDateInFilename: Bool
     ) {
         loggingQueue.async {
-            let logDirectory = toUserDirectory ? logDirectoryUser : self.logDirectory
+            var logDirectory: URL
+            if logType == "Download" || logType == "Upload" {
+                logDirectory = logDirectoryStats
+            } else {
+                logDirectory = toUserDirectory ? logDirectoryUser : self.logDirectory
+            }
             let timestamp = timestampFormatter.string(from: Date())
             let logMessage = "[\(timestamp)] \(message)\n"
             
