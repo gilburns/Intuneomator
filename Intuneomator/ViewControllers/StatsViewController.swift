@@ -83,7 +83,7 @@ class StatsViewController: NSViewController {
     /// Provides direct access to detailed download activity records
     /// - Parameter sender: The button or control that triggered the action
     @IBAction func openDownloadLogFile(_ sender: Any?) {
-        let logFileURL = AppConstants.intuneomatorLogSystemURL
+        let logFileURL = AppConstants.intuneomatorUpDownStatsURL
             .appendingPathComponent("Intuneomator_Download.txt")
         NSWorkspace.shared.open(logFileURL)
     }
@@ -92,7 +92,7 @@ class StatsViewController: NSViewController {
     /// Provides direct access to detailed upload activity records
     /// - Parameter sender: The button or control that triggered the action
     @IBAction func openUploadLogFile(_ sender: Any?) {
-        let logFileURL = AppConstants.intuneomatorLogSystemURL
+        let logFileURL = AppConstants.intuneomatorUpDownStatsURL
             .appendingPathComponent("Intuneomator_Upload.txt")
         NSWorkspace.shared.open(logFileURL)
     }
@@ -182,7 +182,7 @@ class StatsViewController: NSViewController {
     /// - Parameter logName: Name of the log file to analyze ("Intuneomator_Download" or "Intuneomator_Upload")
     /// - Returns: Total transfer size in megabytes as Double
     func totalTransferSizeMB(forLogfile logName: String) -> Double {
-        let logFileURL = AppConstants.intuneomatorLogSystemURL.appendingPathComponent("\(logName).txt")
+        let logFileURL = AppConstants.intuneomatorUpDownStatsURL.appendingPathComponent("\(logName).txt")
                 
         let sizePosition: Int
         
