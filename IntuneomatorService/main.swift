@@ -266,7 +266,7 @@ func runIntuneAutomationQuiet() {
         // Filter the results for the Teams message.
         for result in processingResults {
             // Only include results where the message does not end with "already uploaded to Intune"
-            if !result.text.hasSuffix("already exists in Intune") {
+            if !result.text.hasSuffix("already uploaded to Intune") {
                 filteredProcessingResults.append(result)
             }
         }
