@@ -161,12 +161,10 @@ extension TeamsNotifier {
                 }
                 
                 // Send the constructed adaptive card notification to Microsoft Teams
-                Logger.log("Sending Teams Notification...", logType: TeamsNotifier.logType)
                 self.sendTeamsNotification(bodyContent: bodyContent)
             }
         } else {
             // Send notification immediately without CVE data
-            Logger.log("Sending Teams Notification...", logType: TeamsNotifier.logType)
             sendTeamsNotification(bodyContent: bodyContent)
         }
     }
