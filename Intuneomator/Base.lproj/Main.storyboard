@@ -981,7 +981,7 @@ Gw
                                                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Qhj-KN-3Yp">
                                                                 <rect key="frame" x="44" y="134" width="329" height="18"/>
                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                                                <buttonCell key="cell" type="check" title="Include Groups Assignment details in notifications" bezelStyle="regularSquare" imagePosition="left" inset="2" id="F8e-PQ-WH2">
+                                                                <buttonCell key="cell" type="check" title="Include Groups Assignment details in notifications" bezelStyle="regularSquare" imagePosition="left" enabled="NO" inset="2" id="F8e-PQ-WH2">
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
@@ -992,7 +992,7 @@ Gw
                                                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Xjz-qt-k9v">
                                                                 <rect key="frame" x="44" y="112" width="314" height="18"/>
                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                                                <buttonCell key="cell" type="check" title="Include CVE Vulnerability details in notifications" bezelStyle="regularSquare" imagePosition="left" inset="2" id="wX4-8m-Omz">
+                                                                <buttonCell key="cell" type="check" title="Include CVE Vulnerability details in notifications" bezelStyle="regularSquare" imagePosition="left" enabled="NO" inset="2" id="wX4-8m-Omz">
                                                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                                     <font key="font" metaFont="system"/>
                                                                 </buttonCell>
