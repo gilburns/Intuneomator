@@ -163,7 +163,6 @@ extension TeamsNotifier {
         ]
                 
         // Send the constructed adaptive card notification to Microsoft Teams
-        Logger.log("Sending Teams Notification...", logType: TeamsNotifier.logType)
         sendTeamsNotification(bodyContent: bodyContent)
 
     }
