@@ -51,14 +51,12 @@ extension TeamsNotifier {
         // Validate Teams notifications are enabled in configuration
         guard ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") == true
         else {
-            Logger.log("Notifications disabled", logType: TeamsNotifier.logType)
           return false
         }
 
         // Check if individual notifications are enabled (style 0)
         guard ConfigManager.readPlistValue(key: "TeamsNotificationsStyle") == 0
         else {
-            Logger.log("Individual notifications disabled", logType: TeamsNotifier.logType)
           return false
         }
 
@@ -66,7 +64,6 @@ extension TeamsNotifier {
         guard let urlString: String = ConfigManager.readPlistValue(key: "TeamsWebhookURL"),
               !urlString.isEmpty
         else {
-            Logger.log("No Teams Webhook URL set. Skipping.", logType: TeamsNotifier.logType)
           return false
         }
         
