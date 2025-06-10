@@ -246,7 +246,7 @@ func runIntuneAutomationQuiet() {
         
         // Write full results to a file
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss:SSS"
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
 
         let currentDate = dateFormatter.string(from: Date())
 
