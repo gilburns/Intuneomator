@@ -125,9 +125,22 @@ extension LabelAutomation {
     /// - Returns: URL of cached file if found, nil if not cached
     static func isVersionCached(forProcessedResult results: ProcessedAppResults) -> URL? {
         
+        
         let labelName = results.appLabelName
         let versionExpected = results.appVersionExpected
         let fileName = results.appUploadFilename
+        
+        if labelName == "" {
+            return nil
+        }
+
+        if versionExpected == "" {
+            return nil
+        }
+
+        if fileName == "" {
+            return nil
+        }
 
         Logger.log("Label Name: \(labelName)", logType: logType)
         Logger.log("Version: \(versionExpected)", logType: logType)
