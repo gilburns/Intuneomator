@@ -40,12 +40,12 @@ extension TeamsNotifier {
 
         
         // Build markdown-formatted lists for successful deployments with direct app links
-        // Format: • ✅ AppName [Intune App Link:](url) – Status message
+        // Format: • ✅ AppName [Intune Link:](url) – Status message
         var positiveMarkdownLines: [String] = []
         for (_, message, displayName, newAppID, success) in postiveResults {
             let prefix = success ? "✅" : "⚠️"
 
-            positiveMarkdownLines.append("• \(prefix) **\(displayName)** [Intune App Link:](\(intuneAppLink)\(newAppID)) – \(message)")
+            positiveMarkdownLines.append("• \(prefix) **\(displayName)** [Intune Link:](\(intuneAppLink)\(newAppID)) – \(message)")
         }
         let combinedPositiveList = positiveMarkdownLines.joined(separator: "  \n")
 
