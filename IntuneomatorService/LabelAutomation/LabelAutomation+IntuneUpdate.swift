@@ -20,12 +20,11 @@ extension LabelAutomation {
     /// - Parameter folderName: The Installomator label folder name to process for metadata updates
     static func processFolderMetadata(named folderName: String) async {
         // Variables to track label processing results
-        var processedAppResults: ProcessedAppResults?
+        var wrappedProcessedAppResults: ProcessedAppResults?
         var appInfo: [FilteredIntuneAppInfo]
 
         Logger.log("--------------------------------------------------------", logType: logType)
         Logger.log("🚀 Start metadata update of \(folderName)", logType: logType)
-        Logger.log("Start metadata update of: \(folderName)", logType: logType)
 
         // Step 1: Process Installomator label to extract current application metadata
         let folderResults = InstallomatorLabelProcessor.runProcessLabelScript(for: folderName)
@@ -36,18 +35,19 @@ extension LabelAutomation {
         }
                 
         // Step 2: Extract processed application data for metadata updates
-        processedAppResults = extractDataForProcessedAppResults(from: folderName)
+        wrappedProcessedAppResults = extractDataForProcessedAppResults(from: folderName)
         
-        Logger.log("  Extracted ProcessedAppResults data for \(processedAppResults?.appDisplayName ?? "Unknown")", logType: logType)
-        Logger.log("  Label: \(String(describing: processedAppResults?.appLabelName))", logType: logType)
-        Logger.log("  Tracking ID: \(String(describing: processedAppResults?.appTrackingID))", logType: logType)
-        Logger.log("  Version to check: \(String(describing: processedAppResults?.appVersionExpected))", logType: logType)
-        
-        // Validate that tracking ID exists for Intune lookup
-        guard let trackingID = processedAppResults?.appTrackingID else {
-            Logger.log("Tracking ID is missing", logType: logType)
+        guard let processedAppResults = wrappedProcessedAppResults else {
+            Logger.log("  Failed to extract ProcessedAppResults data for \(folderName)", logType: logType)
             return
         }
+        
+        Logger.log("  Extracted ProcessedAppResults data for \(processedAppResults.appDisplayName)", logType: logType)
+        Logger.log("  Label: \(processedAppResults.appLabelName)", logType: logType)
+        Logger.log("  Tracking ID: \(processedAppResults.appTrackingID)", logType: logType)
+        Logger.log("  Version to check: \(processedAppResults.appVersionExpected)", logType: logType)
+        
+        let trackingID = processedAppResults.appTrackingID
         
         // Step 3: Search Intune for applications with matching tracking ID
         Logger.log("  " + folderName + ": Fetching app info from Intune...", logType: logType)
@@ -74,7 +74,7 @@ extension LabelAutomation {
                     let authToken = try await entraAuthenticator.getEntraIDToken()
                     
                     // Update comprehensive application metadata (descriptions, icons, etc.)
-                    try await EntraGraphRequests.updateAppIntuneMetadata(authToken: authToken, app: processedAppResults!, appId: app.id)
+                    try await EntraGraphRequests.updateAppIntuneMetadata(authToken: authToken, app: processedAppResults, appId: app.id)
                     
                     // Clear existing category assignments before reassigning
                     try await EntraGraphRequests.removeAllCategoriesFromIntuneApp(authToken: authToken, appID: app.id)
@@ -83,11 +83,11 @@ extension LabelAutomation {
                     try await EntraGraphRequests.assignCategoriesToIntuneApp(
                         authToken: authToken,
                         appID: app.id,
-                        categories: processedAppResults?.appCategories ?? []
+                        categories: processedAppResults.appCategories
                     )
                     
                 } catch {
-                    Logger.log("Error updating \(processedAppResults?.appDisplayName ?? "unknown") with AppID \(app.id) metadata in Intune: \(error.localizedDescription)", logType: logType)
+                    Logger.log("Error updating \(processedAppResults.appDisplayName) with AppID \(app.id) metadata in Intune: \(error.localizedDescription)", logType: logType)
                 }
             }
             
@@ -104,12 +104,11 @@ extension LabelAutomation {
     /// - Parameter folderName: The Installomator label folder name to process for script updates
     static func processFolderScripts(named folderName: String) async {
         // Variables to track label processing results  
-        var processedAppResults: ProcessedAppResults?
+        var wrappedProcessedAppResults: ProcessedAppResults?
         var appInfo: [FilteredIntuneAppInfo]
 
         Logger.log("--------------------------------------------------------", logType: logType)
         Logger.log("🚀 Start scripts update of \(folderName)", logType: logType)
-        Logger.log("Start scripts update of: \(folderName)", logType: logType)
 
         // Step 1: Process Installomator label to extract current script content
         let folderResults = InstallomatorLabelProcessor.runProcessLabelScript(for: folderName)
@@ -120,16 +119,17 @@ extension LabelAutomation {
         }
                 
         // Step 2: Extract processed application data for script updates
-        processedAppResults = extractDataForProcessedAppResults(from: folderName)
+        wrappedProcessedAppResults = extractDataForProcessedAppResults(from: folderName)
         
-        Logger.log("  Extracted ProcessedAppResults data for \(processedAppResults?.appDisplayName ?? "Unknown")", logType: logType)
-        Logger.log("  Label: \(String(describing: processedAppResults?.appLabelName))", logType: logType)
-        
-        // Validate that tracking ID exists for Intune lookup
-        guard let trackingID = processedAppResults?.appTrackingID else {
-            Logger.log("Tracking ID is missing", logType: logType)
+        guard let processedAppResults = wrappedProcessedAppResults else {
+            Logger.log("  Failed to extract ProcessedAppResults data for \(folderName)", logType: logType)
             return
         }
+        
+        Logger.log("  Extracted ProcessedAppResults data for \(processedAppResults.appDisplayName)", logType: logType)
+        Logger.log("  Label: \(String(describing: processedAppResults.appLabelName))", logType: logType)
+        
+        let trackingID = processedAppResults.appTrackingID
         Logger.log("  Tracking ID: \(trackingID)", logType: logType)
 
 
@@ -158,10 +158,10 @@ extension LabelAutomation {
                     let authToken = try await entraAuthenticator.getEntraIDToken()
                     
                     // Update script content (Base64 encoded for secure transmission)
-                    try await EntraGraphRequests.updateAppIntuneScripts(authToken: authToken, app: processedAppResults!, appId: app.id)
+                    try await EntraGraphRequests.updateAppIntuneScripts(authToken: authToken, app: processedAppResults, appId: app.id)
                     
                 } catch {
-                    Logger.log("Error updating \(processedAppResults?.appDisplayName ?? "unknown") with AppID \(app.id) scripts in Intune: \(error.localizedDescription)", logType: logType)
+                    Logger.log("Error updating \(processedAppResults.appDisplayName) with AppID \(app.id) scripts in Intune: \(error.localizedDescription)", logType: logType)
                 }
             }
             
@@ -179,12 +179,11 @@ extension LabelAutomation {
     /// - Parameter folderName: The Installomator label folder name to process for assignment updates
     static func processFolderAssignments(named folderName: String) async {
         // Variables to track label processing results
-        var processedAppResults: ProcessedAppResults?
+        var wrapedProcessedAppResults: ProcessedAppResults?
         var appInfo: [FilteredIntuneAppInfo]
 
         Logger.log("--------------------------------------------------------", logType: logType)
         Logger.log("🚀 Start assignment update of \(folderName)", logType: logType)
-        Logger.log("Start assignment update of: \(folderName)", logType: logType)
 
         // Step 1: Process Installomator label to extract current assignment configuration
         let folderResults = InstallomatorLabelProcessor.runProcessLabelScript(for: folderName)
@@ -195,16 +194,17 @@ extension LabelAutomation {
         }
                 
         // Step 2: Extract processed application data for assignment updates
-        processedAppResults = extractDataForProcessedAppResults(from: folderName)
+        wrapedProcessedAppResults = extractDataForProcessedAppResults(from: folderName)
         
-        Logger.log("  Extracted ProcessedAppResults data for \(processedAppResults?.appDisplayName ?? "Unknown")", logType: logType)
-        Logger.log("  Label: \(String(describing: processedAppResults?.appLabelName))", logType: logType)
-        
-        // Validate that tracking ID exists for Intune lookup
-        guard let trackingID = processedAppResults?.appTrackingID else {
-            Logger.log("Tracking ID is missing", logType: logType)
+        guard let processedAppResults = wrapedProcessedAppResults else {
+            Logger.log("  Failed to extract ProcessedAppResults data for \(folderName)", logType: logType)
             return
         }
+        
+        Logger.log("  Extracted ProcessedAppResults data for \(processedAppResults.appDisplayName)", logType: logType)
+        Logger.log("  Label: \(String(describing: processedAppResults.appLabelName))", logType: logType)
+        
+        let trackingID = processedAppResults.appTrackingID
         Logger.log("  Tracking ID: \(trackingID)", logType: logType)
 
 
@@ -235,7 +235,7 @@ extension LabelAutomation {
                         
                         // Determine the appropriate Intune application type for assignment API
                         let intuneAppType: String
-                        switch processedAppResults?.appDeploymentType {
+                        switch processedAppResults.appDeploymentType {
                             case 0:
                             intuneAppType = "macOSDmgApp"
                         case 1:
@@ -250,7 +250,7 @@ extension LabelAutomation {
                         try await EntraGraphRequests.assignGroupsToApp(
                             authToken: authToken, 
                             appId: app.id, 
-                            appAssignments: processedAppResults?.appAssignments ?? [], 
+                            appAssignments: processedAppResults.appAssignments, 
                             appType: intuneAppType, 
                             installAsManaged: false
                         )
@@ -259,11 +259,11 @@ extension LabelAutomation {
                         try await EntraGraphRequests.assignCategoriesToIntuneApp(
                             authToken: authToken,
                             appID: app.id,
-                            categories: processedAppResults?.appCategories ?? []
+                            categories: processedAppResults.appCategories
                         )
                         
                     } catch {
-                        Logger.log("Error updating \(processedAppResults?.appDisplayName ?? "unknown") with AppID \(app.id) assignment in Intune: \(error.localizedDescription)", logType: logType)
+                        Logger.log("Error updating \(processedAppResults.appDisplayName) with AppID \(app.id) assignment in Intune: \(error.localizedDescription)", logType: logType)
                     }
                 }
             }
