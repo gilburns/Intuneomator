@@ -20,12 +20,11 @@ extension LabelAutomation {
     /// - Parameter folderName: The Installomator label folder name to process for removal
     static func deleteAutomationsFromIntune(named folderName: String) async {
         // Variables to track label processing results
-        var processedAppResults: ProcessedAppResults?
+        var wrappedProcessedAppResults: ProcessedAppResults?
         var appInfo: [FilteredIntuneAppInfo]
 
         Logger.log("--------------------------------------------------------", logType: logType)
         Logger.log("🚀 Start removal of Intune automations for: \(folderName)", logType: "Automation")
-        Logger.log("Start removal of Intune automations for: \(folderName)", logType: logType)
 
         // Step 1: Process Installomator label to extract application metadata
         let folderResults = InstallomatorLabelProcessor.runProcessLabelScript(for: folderName)
@@ -36,18 +35,19 @@ extension LabelAutomation {
         }
                 
         // Step 2: Extract processed application data for tracking ID lookup
-        processedAppResults = extractDataForProcessedAppResults(from: folderName)
+        wrappedProcessedAppResults = extractDataForProcessedAppResults(from: folderName)
         
-        Logger.log("  Extracted ProcessedAppResults data for \(processedAppResults?.appDisplayName ?? "Unknown")", logType: logType)
-        Logger.log("  Label: \(String(describing: processedAppResults?.appLabelName))", logType: logType)
-        Logger.log("  Tracking ID: \(String(describing: processedAppResults?.appTrackingID))", logType: logType)
-        Logger.log("  Version to check: \(String(describing: processedAppResults?.appVersionExpected))", logType: logType)
-        
-        // Validate that tracking ID exists for Intune lookup
-        guard let trackingID = processedAppResults?.appTrackingID else {
-            Logger.log("Tracking ID is missing", logType: logType)
+        guard let processedAppResults = wrappedProcessedAppResults else {
+            Logger.log("  Failed to extract ProcessedAppResults data for \(folderName)", logType: logType)
             return
         }
+        
+        Logger.log("  Extracted ProcessedAppResults data for \(processedAppResults.appDisplayName)", logType: logType)
+        Logger.log("  Label: \(processedAppResults.appLabelName)", logType: logType)
+        Logger.log("  Tracking ID: \(processedAppResults.appTrackingID)", logType: logType)
+        Logger.log("  Version to check: \(processedAppResults.appVersionExpected)", logType: logType)
+        
+        let trackingID = processedAppResults.appTrackingID
         
         // Step 3: Search Intune for applications with matching tracking ID
         Logger.log("  " + folderName + ": Fetching app info from Intune...", logType: logType)
@@ -77,12 +77,12 @@ extension LabelAutomation {
                     try await EntraGraphRequests.deleteIntuneApp(authToken: authToken, appId: app.id)
                     
                 } catch {
-                    Logger.log("Error removing \(processedAppResults?.appDisplayName ?? "unknown") item with AppID \(app.id) from Intune: \(error.localizedDescription)", logType: logType)
+                    Logger.log("Error removing \(processedAppResults.appDisplayName) item with AppID \(app.id) from Intune: \(error.localizedDescription)", logType: logType)
                 }
             }
             
             // Step 5: Clean up local automation tracking files
-            let labelFolderName = "\(processedAppResults?.appLabelName ?? "Unknown")_\(processedAppResults?.appTrackingID ?? "Unknown")"
+            let labelFolderName = "\(processedAppResults.appLabelName)_\(processedAppResults.appTrackingID)"
             let labelFolderURL = AppConstants.intuneomatorManagedTitlesFolderURL.appendingPathComponent(labelFolderName)
             
             // Remove the .uploaded touch file to reset automation state
