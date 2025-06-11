@@ -296,6 +296,20 @@ class AppInspectorViewController: NSViewController {
     }
     
     
+    /**
+     * Opens the temporary files folder in Finder.
+     *
+     * This folder contains temporary downloads and intermediate files
+     * created during inspection processing.
+     *
+     * - Parameter sender: The UI control that triggered this action
+     */
+    @IBAction func openTempFolder(_ sender: Any) {
+        let appFolderURL = appPath.deletingLastPathComponent()
+        NSWorkspace.shared.open(appFolderURL)
+    }
+
+    
     /// Action handler for the Save button.
     /// - If “Use Image” is checked, saves the selected icon to the temp folder and imports via XPC.
     /// - Collects overridden values based on corresponding checkboxes.
@@ -355,7 +369,6 @@ class AppInspectorViewController: NSViewController {
         
         // Clean up working folder
         if let workingFolder = workingFolderURL(for: appPath) {
-            print("Working folder: \(workingFolder.path)")
             try? FileManager.default.removeItem(at: workingFolder)
         }
         
@@ -380,7 +393,6 @@ class AppInspectorViewController: NSViewController {
         
         // Clean up working folder
         if let workingFolder = workingFolderURL(for: appPath) {
-            print("Working folder: \(workingFolder.path)")
             try? FileManager.default.removeItem(at: workingFolder)
         }
         
