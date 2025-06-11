@@ -692,6 +692,20 @@ class PkgInspectorViewController: NSViewController {
     
     // MARK: - Actions
     
+    /**
+     * Opens the temporary files folder in Finder.
+     *
+     * This folder contains temporary downloads and intermediate files
+     * created during inspection processing.
+     *
+     * - Parameter sender: The UI control that triggered this action
+     */
+    @IBAction func openTempFolder(_ sender: Any) {
+        let pkgFolderURL = pkgURL.deletingLastPathComponent()
+        NSWorkspace.shared.open(pkgFolderURL)
+    }
+
+    
     /// Saves user-selected metadata overrides and dismisses the modal
     /// Processes selected checkboxes and saves any custom icon before notifying delegate
     @IBAction func saveChanges(_ sender: NSButton) {
@@ -751,7 +765,6 @@ class PkgInspectorViewController: NSViewController {
         
         // Clean up working folder
         if let workingFolder = workingFolderURL(for: pkgURL) {
-            print("Working folder: \(workingFolder.path)")
             try? FileManager.default.removeItem(at: workingFolder)
         }
 
@@ -770,7 +783,6 @@ class PkgInspectorViewController: NSViewController {
         
         // Clean up working folder
         if let workingFolder = workingFolderURL(for: pkgURL) {
-            print("Working folder: \(workingFolder.path)")
             try? FileManager.default.removeItem(at: workingFolder)
         }
 
