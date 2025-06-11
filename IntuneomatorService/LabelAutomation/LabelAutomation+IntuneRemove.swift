@@ -37,7 +37,7 @@ extension LabelAutomation {
         // Step 2: Extract processed application data for tracking ID lookup
         wrappedProcessedAppResults = extractDataForProcessedAppResults(from: folderName)
         
-        guard let processedAppResults = wrappedProcessedAppResults else {
+        guard var processedAppResults = wrappedProcessedAppResults else {
             Logger.log("  Failed to extract ProcessedAppResults data for \(folderName)", logType: logType)
             return
         }
