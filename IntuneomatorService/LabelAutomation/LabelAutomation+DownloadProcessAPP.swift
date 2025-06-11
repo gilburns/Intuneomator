@@ -9,7 +9,7 @@ import Foundation
 
 extension LabelAutomation {
     
-    static func processAppFile(downloadURL: URL, folderName: String, downloadType: String, deploymentType: Int, fileUploadName: String, expectedTeamID: String, expectedBundleID: String) async throws -> (url: URL?, appName: String, appBundleID: String, appVersion: String) {
+    static func processAppFile(downloadURL: URL, folderName: String, downloadType: String, deploymentType: Int, fileUploadName: String, expectedTeamID: String, expectedBundleID: String, expectedVersion: String) async throws -> (url: URL?, appName: String, appBundleID: String, appVersion: String) {
         
         Logger.log("Processing App Download URL type: \(downloadType) - \(downloadURL)", logType: logType)
         
@@ -166,6 +166,8 @@ extension LabelAutomation {
             .appendingPathComponent(downloadedVersion)
         
         try FileManager.default.createDirectory(at: finalDestinationFolder, withIntermediateDirectories: true)
+        
+        Logger.log("Deplyment type: \(deploymentType)")
         
         // Create DMG for same app for Intune use
         if deploymentType == 0 {
