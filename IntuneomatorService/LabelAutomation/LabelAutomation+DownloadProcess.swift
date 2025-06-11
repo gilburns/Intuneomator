@@ -40,9 +40,25 @@ extension LabelAutomation {
         case "pkg", "pkginzip", "pkgindmg", "pkgindmginzip":
             let (url, bundleID, version) = try await processPkgFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID, expectedVersion: expectedVersion)
             
-            outputURL = url
-            outputAppBundleID = bundleID
-            outputAppVersion = version
+            
+            if url == nil {
+                return (nil, "", "")
+            } else {
+                outputURL = url
+            }
+
+            if version.isEmpty {
+                outputAppVersion = expectedVersion
+            } else {
+                outputAppVersion = version
+            }
+            
+            if bundleID.isEmpty {
+                outputAppBundleID = expectedBundleID
+            } else {
+                outputAppBundleID = bundleID
+            }
+            
             
         case "zip", "tbz", "dmg", "appindmginzip":
             let (url, filename, bundleID, version) = try await processAppFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, deploymentType: 0, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID, expectedVersion: expectedVersion)
