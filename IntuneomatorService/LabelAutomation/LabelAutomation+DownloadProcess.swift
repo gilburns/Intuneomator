@@ -11,7 +11,7 @@ extension LabelAutomation {
     
     
     // MARK: - Process Downloaded File
-    static func processDownloadedFile(downloadURL: URL, folderName: String, downloadType: String, fileUploadName: String, expectedTeamID: String, expectedBundleID: String) async throws -> (url: URL?, bundleID: String, version: String) {
+    static func processDownloadedFile(downloadURL: URL, folderName: String, downloadType: String, fileUploadName: String, expectedTeamID: String, expectedBundleID: String, expectedVersion: String) async throws -> (url: URL?, bundleID: String, version: String) {
         
         Logger.log("Processing downloaded file...", logType: logType)
         Logger.log("  Download URL: \(downloadURL.absoluteString)", logType: logType)
@@ -38,10 +38,20 @@ extension LabelAutomation {
         // New Processing
         switch downloadType.lowercased() {
         case "pkg", "pkginzip", "pkgindmg", "pkgindmginzip":
-            let (url, bundleID, version) = try await processPkgFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID)
+            let (url, bundleID, version) = try await processPkgFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID, expectedVersion: expectedVersion)
+            
+            outputURL = url
+            outputAppBundleID = bundleID
+            outputAppVersion = version
             
         case "zip", "tbz", "dmg", "appindmginzip":
-            let (url, filename, bundleID, version) = try await processAppFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, deploymentType: 0, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID)
+            let (url, filename, bundleID, version) = try await processAppFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, deploymentType: 0, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID, expectedVersion: expectedVersion)
+            
+            outputURL = url
+            outputFileName = filename
+            outputAppBundleID = bundleID
+            outputAppVersion = version
+
             
         default:
             Logger.log("Unhandled download type: \(downloadType)", logType: logType)
