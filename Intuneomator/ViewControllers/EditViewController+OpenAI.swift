@@ -51,7 +51,6 @@ extension EditViewController {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: parameters, options: [])
             request.httpBody = jsonData
-//            print("Request payload: \(String(data: jsonData, encoding: .utf8) ?? "Invalid JSON")")
         } catch {
             completion(.failure(error))
             return
@@ -68,11 +67,6 @@ extension EditViewController {
                 return
             }
             
-            // Debug raw response
-//            if let rawResponse = String(data: data, encoding: .utf8) {
-//                print("Raw response: \(rawResponse)")
-//            }
-
             do {
                 if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                    let choices = json["choices"] as? [[String: Any]],
