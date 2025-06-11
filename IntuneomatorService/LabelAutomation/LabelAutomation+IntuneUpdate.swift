@@ -37,7 +37,7 @@ extension LabelAutomation {
         // Step 2: Extract processed application data for metadata updates
         wrappedProcessedAppResults = extractDataForProcessedAppResults(from: folderName)
         
-        guard let processedAppResults = wrappedProcessedAppResults else {
+        guard var processedAppResults = wrappedProcessedAppResults else {
             Logger.log("  Failed to extract ProcessedAppResults data for \(folderName)", logType: logType)
             return
         }
@@ -121,7 +121,7 @@ extension LabelAutomation {
         // Step 2: Extract processed application data for script updates
         wrappedProcessedAppResults = extractDataForProcessedAppResults(from: folderName)
         
-        guard let processedAppResults = wrappedProcessedAppResults else {
+        guard var processedAppResults = wrappedProcessedAppResults else {
             Logger.log("  Failed to extract ProcessedAppResults data for \(folderName)", logType: logType)
             return
         }
@@ -196,7 +196,7 @@ extension LabelAutomation {
         // Step 2: Extract processed application data for assignment updates
         wrapedProcessedAppResults = extractDataForProcessedAppResults(from: folderName)
         
-        guard let processedAppResults = wrapedProcessedAppResults else {
+        guard var processedAppResults = wrapedProcessedAppResults else {
             Logger.log("  Failed to extract ProcessedAppResults data for \(folderName)", logType: logType)
             return
         }
