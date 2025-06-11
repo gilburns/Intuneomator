@@ -4496,6 +4496,17 @@ Gw
                                     <font key="font" metaFont="miniSystem"/>
                                 </buttonCell>
                             </button>
+                            <button toolTip="Open the temp folder" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="y2X-ZO-cZs">
+                                <rect key="frame" x="20" y="20" width="21" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="magnifyingglass.circle" catalog="system" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="TA0-di-cY7">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="openTempFolder:" target="v8I-Kx-Luc" id="d3n-Uc-b6g"/>
+                                </connections>
+                            </button>
                         </subviews>
                     </view>
                     <connections>
@@ -4759,6 +4770,17 @@ Gw
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
+                            <button toolTip="Open the temp folder" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="MOy-tG-2iH">
+                                <rect key="frame" x="12" y="20" width="21" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="magnifyingglass.circle" catalog="system" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="8fQ-dI-o2Q">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="openTempFolder:" target="oku-Kq-drE" id="8GI-ni-Hqi"/>
+                                </connections>
+                            </button>
                         </subviews>
                     </view>
                     <connections>
@@ -5788,6 +5810,7 @@ DQ
         <image name="edit" width="128" height="128"/>
         <image name="eye" catalog="system" width="21" height="13"/>
         <image name="gear" catalog="system" width="17" height="16"/>
+        <image name="magnifyingglass.circle" catalog="system" width="15" height="15"/>
         <image name="questionmark.circle" catalog="system" width="15" height="15"/>
     </resources>
 </document>
