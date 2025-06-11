@@ -21,7 +21,6 @@ extension LabelAutomation {
         
         Logger.log("--------------------------------------------------------", logType: logType)
         Logger.log("🚀 Start processing of \(folderName)", logType: "Automation")
-        Logger.log("Start processing: \(folderName)", logType: logType)
 
         // Update the label plist with latest info using the .sh file.
         let folderResults = InstallomatorLabelProcessor.runProcessLabelScript(for: folderName)
@@ -41,9 +40,9 @@ extension LabelAutomation {
         
         Logger.log("  Extracted ProcessedAppResults data for \(processedAppResults.appDisplayName)", logType: logType)
         
-        Logger.log("  Label: \(String(describing: processedAppResults.appLabelName))", logType: logType)
-        Logger.log("  Tracking ID: \(String(describing: processedAppResults.appTrackingID))", logType: logType)
-        Logger.log("  Version to check: \(String(describing: processedAppResults.appVersionExpected))", logType: logType)
+        Logger.log("  Label: \(processedAppResults.appLabelName)", logType: logType)
+        Logger.log("  Tracking ID: \(processedAppResults.appTrackingID)", logType: logType)
+        Logger.log("  Version to check: \(processedAppResults.appVersionExpected)", logType: logType)
         
         
         let appLabelName = processedAppResults.appLabelName
@@ -83,14 +82,14 @@ extension LabelAutomation {
                     Logger.log("     ID: \(app.id)", logType: logType)
                 }
                 
-                // Check if current version is already uploaded to Intune
+                // Check if current version already exists in Intune
                 let versionExistsInIntune = isVersionUploadedToIntune(appInfo: appInfo, version: processedAppResults.appVersionExpected)
                 
                 // Version is already in Intune. No need to continue
                 if versionExistsInIntune {
                     Logger.log("    ---", logType: logType)
-                    Logger.log("    Version \(processedAppResults.appVersionExpected) is already uploaded to Intune", logType: logType)
-                    return ("\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) is already uploaded to Intune.", "", "", false)
+                    Logger.log("    Version \(processedAppResults.appVersionExpected) already exists in Intune", logType: logType)
+                    return ("\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) already exists in Intune", "", "", true)
 
                 }
                 
@@ -126,6 +125,9 @@ extension LabelAutomation {
                 let downloadType: String = processedAppResults.appLabelType
                 let expectedTeamID: String = processedAppResults.appTeamID
                 let expectedBundleID: String = processedAppResults.appBundleIdExpected
+                let expectedVersion: String = processedAppResults.appVersionExpected
+                let deploymentType: Int = processedAppResults.appDeploymentType
+                let deploymentArch: Int = processedAppResults.appDeploymentArch
 
                 if x86URL == nil {
                     Logger.log("Only ARM available for \(folderName)", logType: logType)
@@ -137,7 +139,7 @@ extension LabelAutomation {
                     switch downloadType.lowercased() {
                     case "pkg", "pkginzip", "pkgindmg", "pkgindmginzip":
                         
-                        let (url, bundleID, version) = try await processPkgFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID)
+                        let (url, bundleID, version) = try await processPkgFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID, expectedVersion: expectedVersion)
                         
                         var localURL: URL!
                         if let wrappedURL = url {
@@ -148,7 +150,7 @@ extension LabelAutomation {
                         processedAppResults.appVersionActual = version
 
                     case "zip", "tbz", "dmg", "appindmginzip":
-                        let (url, filename, bundleID, version) = try await processAppFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, deploymentType: 0, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID)
+                        let (url, filename, bundleID, version) = try await processAppFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, deploymentType: deploymentType, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID, expectedVersion: expectedVersion)
 
                         var localURL: URL!
                         if let wrappedURL = url {
@@ -225,13 +227,13 @@ extension LabelAutomation {
             // Check Intune for an existing version
             Logger.log("  " + folderName + ": Fetching app info from Intune...", logType: logType)
             
-            // Check if current actual version is already uploaded to Intune
+            // Check if current actual version already exists in Intune
             let versionExistsInIntune = isVersionUploadedToIntune(appInfo: appInfo, version: processedAppResults.appVersionActual)
             
             // Version is already in Intune. No need to continue
             if versionExistsInIntune {
                 Logger.log("    ---", logType: logType)
-                Logger.log("    Version \(processedAppResults.appVersionActual) is already uploaded to Intune", logType: logType)
+                Logger.log("    Version \(processedAppResults.appVersionActual) already exists in Intune", logType: logType)
                 
                 
                 // Clean up the download before we bail
@@ -260,6 +262,12 @@ extension LabelAutomation {
 
             // Call the upload function
             newAppID = try await EntraGraphRequests.uploadAppToIntune(authToken: authToken, app: processedAppResults)
+            
+            Logger.log("New app ID post upload: \(newAppID)", logType: logType)
+            
+            guard !newAppID.isEmpty else {
+                return ("\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) failed to get AppID from upload to Intune", "\(processedAppResults.appDisplayName)", "", false)
+            }
             
         } catch {
             let messageResult = await TeamsNotifier.processNotification(for: processedAppResults, success: false, errorMessage: "Error uploading \(processedAppResults.appLocalURL) to Intune: \(error.localizedDescription)")
