@@ -124,12 +124,10 @@ extension LabelAutomation {
     /// - Parameter results: ProcessedAppResults containing label name, version, and filename information
     /// - Returns: URL of cached file if found, nil if not cached
     static func isVersionCached(forProcessedResult results: ProcessedAppResults) -> URL? {
-        
-        
         let labelName = results.appLabelName
         let versionExpected = results.appVersionExpected
         let fileName = results.appUploadFilename
-        
+
         if labelName == "" {
             return nil
         }
@@ -145,18 +143,34 @@ extension LabelAutomation {
         Logger.log("Label Name: \(labelName)", logType: logType)
         Logger.log("Version: \(versionExpected)", logType: logType)
         Logger.log("File Name: \(fileName)", logType: logType)
-        
+
         // Construct cache file path: Cache/{label}/{version}/{filename}
         let versionCheckPath: URL = AppConstants.intuneomatorCacheFolderURL
             .appending(path: labelName, directoryHint: .isDirectory)
             .appending(path: versionExpected, directoryHint: .isDirectory)
             .appending(path: fileName, directoryHint: .notDirectory)
-                
+
         Logger.log("Version Check Path: \(versionCheckPath.path)")
-        
+
         // Return URL if cached file exists, otherwise nil
         if FileManager.default.fileExists(atPath: versionCheckPath.path) {
-            return versionCheckPath
+            do {
+                let attributes = try FileManager.default.attributesOfItem(atPath: versionCheckPath.path)
+                if let ownerID = attributes[.ownerAccountID] as? NSNumber,
+                   let groupID = attributes[.groupOwnerAccountID] as? NSNumber {
+                    // Check if file is owned by root:wheel (UID 0, GID 0)
+                    if ownerID.intValue == 0 && groupID.intValue == 0 {
+                        return versionCheckPath
+                    } else {
+                        Logger.log("Ownership mismatch on cached file. Deleting: \(versionCheckPath.path)", logType: logType)
+                        try FileManager.default.removeItem(at: versionCheckPath)
+                        return nil
+                    }
+                }
+            } catch {
+                Logger.log("Error checking ownership of cached file: \(error.localizedDescription)", logType: logType)
+                return nil
+            }
         }
         return nil
     }
@@ -171,6 +185,10 @@ extension LabelAutomation {
     /// - Returns: True if version exists in Intune, false if not found
     static func isVersionUploadedToIntune(appInfo: [FilteredIntuneAppInfo], version: String) -> Bool {
         // Search for matching version in existing Intune applications
+        
+        Logger.log("Verifying version \(version)...", logType: "Version Check")
+        Logger.log("App Info: \(appInfo)", logType: "Version Check")
+        
         return appInfo.contains { app in
             return app.primaryBundleVersion == version
         }
