@@ -73,3 +73,24 @@ find "$SCRIPTS_DIR" -name ".DS_Store" -type f -delete
   "$SIGNED_PKG_NAME"
 
 echo "Created signed package: $SIGNED_PKG_NAME"
+
+# === Notarize the package ===
+echo "Submitting package for notarization..."
+if ! xcrun notarytool submit "$SIGNED_PKG_NAME" --keychain-profile "apple-notary-profile" --wait; then
+  echo "Notarization failed"
+  exit 1
+fi
+
+# === Staple the ticket ===
+echo "Stapling notarization ticket..."
+if ! xcrun stapler staple "$SIGNED_PKG_NAME"; then
+  echo "Stapling failed"
+  exit 1
+fi
+
+echo "tNotarization and stapling complete."
+
+# === Output SHA256 hash of the final package ===
+echo "Calculating SHA256 hash..."
+shasum -a 256 "$SIGNED_PKG_NAME" > "${SIGNED_PKG_NAME}.sha256.txt"
+cat "${SIGNED_PKG_NAME}.sha256.txt"
