@@ -47,9 +47,11 @@ class PkgInspector {
                 // Parse `PackageInfo` file
                 let packageInfoXML = try String(contentsOf: packageInfoPath, encoding: .utf8)
                 items = parsePackageInfoXML(packageInfoXML)
-            } else {
-                throw NSError(domain: "PkgInspector", code: 404, userInfo: [NSLocalizedDescriptionKey: "No valid metadata file found in the pkg"])
             }
+            
+//            else {
+//                throw NSError(domain: "PkgInspector", code: 404, userInfo: [NSLocalizedDescriptionKey: "No valid metadata file found in the pkg"])
+//            }
             
             // Find and inspect all .app and .framework bundles
             let bundleURLs = findBundles(in: tempExpandedDir)
