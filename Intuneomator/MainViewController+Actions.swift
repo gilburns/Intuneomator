@@ -343,4 +343,20 @@ extension MainViewController {
         presentAsSheet(controller)
     }
 
+    /**
+     * Open the Intuneomator Wiki on GitHub.
+     *
+     * Opens the Wiki URL using the default web browser
+     *
+     *
+     * - Parameter sender: The UI control that triggered this action
+     */
+    @IBAction func openIntuneomatorWiki(_ sender: Any) {
+        let helpWikiURL = "https://github.com/gilburns/Intuneomator/wiki"
+        if let url = URL(string: helpWikiURL) {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+
 }
