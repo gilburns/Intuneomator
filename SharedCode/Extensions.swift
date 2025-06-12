@@ -79,6 +79,14 @@ extension Bundle {
         }
     }
     
+    var appVersion: String {
+        return infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+    }
+    
+    var buildNumber: String {
+        return infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+    }
+
 }
 
 extension NSImage {
