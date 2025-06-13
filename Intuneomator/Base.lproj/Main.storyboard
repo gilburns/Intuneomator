@@ -651,7 +651,7 @@
                                     <items>
                                         <menuItem title="Intuneomator Help" keyEquivalent="?" id="FKE-Sm-Kum">
                                             <connections>
-                                                <action selector="showHelp:" target="Ady-hI-5gd" id="y7X-2Q-9no"/>
+                                                <action selector="openIntuneomatorWiki:" target="Ady-hI-5gd" id="uZB-Qg-Txy"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="Euw-mW-1qx"/>
