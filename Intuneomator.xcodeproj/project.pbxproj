@@ -14,6 +14,23 @@
 		1BB0472C2D8A406A004B6F3E /* entra-app-setup.md in Resources */ = {isa = PBXBuildFile; fileRef = 1BB0472B2D8A406A004B6F3E /* entra-app-setup.md */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		1B4FFF052DFA6BC700A1DC34 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1BB046482D81321F004B6F3E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1BB046652D81324E004B6F3E;
+			remoteInfo = IntuneomatorService;
+		};
+		1B4FFF072DFA6BC700A1DC34 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1BB046482D81321F004B6F3E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1B9DD88C2DDD759C005ECE05;
+			remoteInfo = IntuneomatorUpdater;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		1B9DD88B2DDD759C005ECE05 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -48,12 +65,24 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1B4FFF092DFA6BDD00A1DC34 /* Exceptions for "LaunchDaemon" folder in "Intuneomator" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				com.gilburns.intuneomator.automation.plist,
+				com.gilburns.intuneomator.cachecleaner.plist,
+				com.gilburns.intuneomator.labelupdater.plist,
+				com.gilburns.intuneomator.ondemand.plist,
+				com.gilburns.intuneomator.service.plist,
+			);
+			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
+		};
 		1B9DD8A42DDE1907005ECE05 /* Exceptions for "SharedCode" folder in "IntuneomatorUpdater" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				ConfigManager.swift,
 				CVEFetcher.swift,
 				CVEFetcherError.swift,
+				Extensions.swift,
 				Logging.swift,
 				LogManagerUtil.swift,
 			);
@@ -156,6 +185,9 @@
 		};
 		1BB046AC2D872F90004B6F3E /* LaunchDaemon */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1B4FFF092DFA6BDD00A1DC34 /* Exceptions for "LaunchDaemon" folder in "Intuneomator" target */,
+			);
 			path = LaunchDaemon;
 			sourceTree = "<group>";
 		};
@@ -270,6 +302,8 @@
 			buildRules = (
 			);
 			dependencies = (
+				1B4FFF062DFA6BC700A1DC34 /* PBXTargetDependency */,
+				1B4FFF082DFA6BC700A1DC34 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				1B9DDA392DE9F085005ECE05 /* Constants */,
@@ -383,7 +417,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\n\n# Path to your xcconfig file\nCONFIG_PATH=\"${PROJECT_DIR}/Config.xcconfig\"\necho \"Config path: $CONFIG_PATH\"\n\n# Check if file exists\nif [ ! -f \"$CONFIG_PATH\" ]; then\n    echo \"Error: Config.xcconfig file not found at $CONFIG_PATH\"\n    exit 1\nfi\n\n# Get the current version from the xcconfig file\ncurrentVersion=$(grep \"CURRENT_PROJECT_VERSION\" \"$CONFIG_PATH\" | cut -d'=' -f2)\necho \"Current version: $currentVersion\"\n\n# Remove any whitespace\ncurrentVersion=$(echo $currentVersion | tr -d '[:space:]')\n\n# Increment the version\nnewVersion=$(($currentVersion + 1))\necho \"New version: $newVersion\"\n\n# Replace the version in the file\nsed -i '' \"s/CURRENT_PROJECT_VERSION=$currentVersion/CURRENT_PROJECT_VERSION=$newVersion/\" \"$CONFIG_PATH\"\necho \"Version updated successfully in Config.xcconfig\"\n";
+			shellScript = "#!/bin/bash\n\n# Path to your xcconfig file\nCONFIG_PATH=\"${PROJECT_DIR}/Config.xcconfig\"\necho \"Config path: $CONFIG_PATH\"\n\n# Check if file exists\nif [ ! -f \"$CONFIG_PATH\" ]; then\n    echo \"Error: Config.xcconfig file not found at $CONFIG_PATH\"\n    exit 1\nfi\n\n# Get the current version from the xcconfig file\ncurrentVersion=$(grep \"CURRENT_PROJECT_VERSION\" \"$CONFIG_PATH\" | cut -d'=' -f2)\necho \"Current version: $currentVersion\"\n\n# Remove any whitespace\ncurrentVersion=$(echo $currentVersion | tr -d '[:space:]')\n\n# Increment the version\nnewVersion=$(($currentVersion + 1))\necho \"New version: $newVersion\"\n\n# Replace the version in the file\nsed -i '' \"s/CURRENT_PROJECT_VERSION=$currentVersion/CURRENT_PROJECT_VERSION=$newVersion/\" \"$CONFIG_PATH\"\necho \"Version updated successfully in Config.xcconfig\"\n\n# Sync daemon version constants after version increment\necho \"Syncing daemon version constants...\"\nDAEMON_SYNC_SCRIPT=\"${PROJECT_DIR}/Scripts/sync-daemon-versions.sh\"\nif [ -f \"$DAEMON_SYNC_SCRIPT\" ]; then\n    \"$DAEMON_SYNC_SCRIPT\"\n    echo \"Daemon versions synced successfully\"\nelse\n    echo \"Warning: Daemon sync script not found at $DAEMON_SYNC_SCRIPT\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -411,14 +445,38 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		1B4FFF062DFA6BC700A1DC34 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1BB046652D81324E004B6F3E /* IntuneomatorService */;
+			targetProxy = 1B4FFF052DFA6BC700A1DC34 /* PBXContainerItemProxy */;
+		};
+		1B4FFF082DFA6BC700A1DC34 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1B9DD88C2DDD759C005ECE05 /* IntuneomatorUpdater */;
+			targetProxy = 1B4FFF072DFA6BC700A1DC34 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
 		1B9DD8922DDD759C005ECE05 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEVELOPMENT_TEAM = G4MQ57TVLE;
+				DONT_GENERATE_INFOPLIST_FILE = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = IntuneomatorUpdater/Info.plist;
+				INFOPLIST_PREPROCESS = NO;
 				MACOSX_DEPLOYMENT_TARGET = 14.5;
+				OTHER_LDFLAGS = (
+					"\"-sectcreate\"",
+					"\"__TEXT\"",
+					"\"__info_plist\"",
+					"\"$(SRCROOT)/IntuneomatorUpdater/Info.plist\"",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomator.updater;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "";
@@ -430,10 +488,21 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEVELOPMENT_TEAM = G4MQ57TVLE;
+				DONT_GENERATE_INFOPLIST_FILE = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = IntuneomatorUpdater/Info.plist;
+				INFOPLIST_PREPROCESS = NO;
 				MACOSX_DEPLOYMENT_TARGET = 14.5;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = (
+					"\"-sectcreate\"",
+					"\"__TEXT\"",
+					"\"__info_plist\"",
+					"\"$(SRCROOT)/IntuneomatorUpdater/Info.plist\"",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomator.updater;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "";
@@ -493,6 +562,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = "";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -550,6 +620,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = "";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -630,13 +701,20 @@
 		1BB0466B2D81324E004B6F3E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLY_RULES_IN_COPY_FILES = NO;
 				CODE_SIGN_ENTITLEMENTS = IntuneomatorService/IntuneomatorService.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEVELOPMENT_TEAM = G4MQ57TVLE;
+				DONT_GENERATE_INFOPLIST_FILE = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = IntuneomatorService/Info.plist;
+				INFOPLIST_PREPROCESS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomator.service;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRINGS_FILE_INFOPLIST_RENAME = NO;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -644,14 +722,21 @@
 		1BB0466C2D81324E004B6F3E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLY_RULES_IN_COPY_FILES = NO;
 				CODE_SIGN_ENTITLEMENTS = IntuneomatorService/IntuneomatorService.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEVELOPMENT_TEAM = G4MQ57TVLE;
+				DONT_GENERATE_INFOPLIST_FILE = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = IntuneomatorService/Info.plist;
+				INFOPLIST_PREPROCESS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.5;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gilburns.Intuneomator.service;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRINGS_FILE_INFOPLIST_RENAME = NO;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
