@@ -37,25 +37,23 @@ extension Bundle {
         if let name = self.infoDictionary?["CFBundleName"] as? String {
             return name
         } else {
-            print("Unable to determine 'appName'")
             return ""
         }
     }
     
-    static var appName: String {
-        if let name = Bundle.main.infoDictionary?["CFBundleName"] as? String {
-            return name
-        } else {
-            print("Unable to determine 'appName'")
-            return ""
-        }
-    }
+//    static var appName: String {
+//        if let name = Bundle.main.infoDictionary?["CFBundleName"] as? String {
+//            return name
+//        } else {
+//            print("Unable to determine 'appName'")
+//            return ""
+//        }
+//    }
     
     static var appVersionMarketing: String {
         if let name = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
             return name
         } else {
-            print("Unable to determine 'appVersionMarketing'")
             return ""
         }
     }
@@ -65,7 +63,6 @@ extension Bundle {
         if let version = Bundle.main.object(forInfoDictionaryKey: bundleKey) as? String {
             return version
         } else {
-            print("Unable to determine 'appVersionBuild'")
             return "0"
         }
     }
@@ -74,14 +71,26 @@ extension Bundle {
         if let name = Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String {
             return name
         } else {
-            print("Unable to determine 'copyrightHumanReadable'")
             return ""
         }
     }
     
     var appVersion: String {
-        return infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        if let version = self.infoDictionary?["CFBundleShortVersionString"] as? String {
+            return version
+        } else {
+            return ""
+        }
     }
+
+//    static var appVersion: String {
+//        if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+//            return version
+//        } else {
+//            print("Unable to determine 'appVersion'")
+//            return ""
+//        }
+//    }
     
     var buildNumber: String {
         return infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
