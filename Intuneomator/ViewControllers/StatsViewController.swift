@@ -76,6 +76,14 @@ class StatsViewController: NSViewController {
         return nil
     }
 
+    override func viewDidAppear() {
+        super.viewDidAppear()
+        self.view.window?.makeFirstResponder(self)
+    }
+    
+    override func cancelOperation(_ sender: Any?) {
+        self.dismiss(self)
+    }
     
     // MARK: - User Action Methods
     
