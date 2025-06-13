@@ -7,6 +7,42 @@
 
 import Foundation
 
+// MARK: - Version Constants (Update when preparing a release)
+private let DAEMON_VERSION = "1.0.0"
+private let DAEMON_BUILD = "160"
+
+// MARK: - Version Support
+func getVersionInfo() -> (version: String, build: String) {
+    // Try to read from Bundle first (works for GUI apps)
+    let bundleVersion = Bundle.main.appVersion
+    let bundleBuild = Bundle.main.buildNumber
+    
+    // If Bundle has the actual values (not defaults), use them
+    if !bundleVersion.isEmpty && bundleVersion != "Unknown" {
+        return (bundleVersion, bundleBuild != "Unknown" ? bundleBuild : DAEMON_BUILD)
+    }
+    
+    // Use version constants for command-line tools
+    return (DAEMON_VERSION, DAEMON_BUILD)
+}
+
+func printVersion() {
+    let name = Bundle.main.appName.isEmpty ? "IntuneomatorService" : Bundle.main.appName
+    let (version, build) = getVersionInfo()
+    print("\(name) v\(version).\(build)")
+}
+
+func handleVersionArguments() -> Bool {
+    let arguments = CommandLine.arguments
+    
+    if arguments.contains("--version") || arguments.contains("-v") {
+        printVersion()
+        return true
+    }
+    
+    return false
+}
+
 // MARK: - Check Root
 // Check if running as root
 func verify_root() {
@@ -72,6 +108,7 @@ func printUsage() {
       process-label-script    Process .sh file generate plist for folder
       login                   Validate Microsoft Entra ID credentials
 
+      --version, -v           Display version information
       help                    Display this help message
     """)
 }
@@ -368,13 +405,42 @@ func login() {
     }
 }
 
+// MARK: - Entitlements
+func secCall<Result>(_ body: (_ resultPtr: UnsafeMutablePointer<Result?>) -> OSStatus  ) throws -> Result {
+    var result: Result? = nil
+    let err = body(&result)
+    guard err == errSecSuccess else {
+        throw NSError(domain: NSOSStatusErrorDomain, code: Int(err), userInfo: nil)
+    }
+    return result!
+}
+
+func checkEntitlements() throws {
+    let me = try secCall { SecCodeCopySelf([], $0) }
+    let meStatic = try secCall { SecCodeCopyStaticCode(me, [], $0) }
+    let infoCF = try secCall { SecCodeCopySigningInformation(meStatic, [], $0) }
+    let info = infoCF as NSDictionary
+    let entitlements = info[kSecCodeInfoEntitlementsDict] as? NSDictionary
+    print("entitlements: %@", entitlements ?? [:])
+}
+
 // MARK: - Command Line Argument Handling
 func handleCommandLineArguments() {
     let arguments = CommandLine.arguments
     
+    // Handle version arguments first
+    if handleVersionArguments() {
+        exit(EXIT_SUCCESS)
+    }
+    
     // MARK: - Start Main RunLoop
     // If no arguments provided or only the path argument (index 0)
     if arguments.count <= 1 {
+        // Log version on daemon startup
+        let serviceName = Bundle.main.appName.isEmpty ? "IntuneomatorService" : Bundle.main.appName
+        let (serviceVersion, serviceBuild) = getVersionInfo()
+        Logger.log("Starting \(serviceName) version \(serviceVersion) (build \(serviceBuild))", logType: "System")
+        
         // Start normal XPC service
         let daemon = XPCListener()
         daemon.start()
@@ -442,6 +508,7 @@ func handleCommandLineArguments() {
     // Check for self updates
     case "update-check":
         checkForUpdates()
+        
     case "login":
         login()
         
