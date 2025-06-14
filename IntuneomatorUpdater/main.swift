@@ -13,29 +13,11 @@ import Foundation
 import Security
 import Darwin
 
-// MARK: - Version Constants (Update when preparing a release)
-private let DAEMON_VERSION = "1.0.0"
-private let DAEMON_BUILD = "160"
-
 // MARK: - Version Support
-func getVersionInfo() -> (version: String, build: String) {
-    // Try to read from Bundle first (works for GUI apps)
-    let bundleVersion = Bundle.main.appVersion
-    let bundleBuild = Bundle.main.buildNumber
-    
-    // If Bundle has the actual values (not defaults), use them
-    if !bundleVersion.isEmpty && bundleVersion != "Unknown" {
-        return (bundleVersion, bundleBuild != "Unknown" ? bundleBuild : DAEMON_BUILD)
-    }
-    
-    // Use version constants for command-line tools
-    return (DAEMON_VERSION, DAEMON_BUILD)
-}
-
 func printVersion() {
     let name = Bundle.main.appName.isEmpty ? "IntuneomatorUpdater" : Bundle.main.appName
-    let (version, build) = getVersionInfo()
-    print("\(name) v\(version).\(build)")
+    let version = VersionInfo.getVersionString()
+    print("\(name) v\(version)")
 }
 
 func handleVersionArguments() -> Bool {
@@ -299,8 +281,8 @@ if handleVersionArguments() {
 }
 
 let updaterName = Bundle.main.appName.isEmpty ? "IntuneomatorUpdater" : Bundle.main.appName
-let (updaterVersion, updaterBuild) = getVersionInfo()
-log("Starting \(updaterName) version \(updaterVersion) (build \(updaterBuild))")
+let updaterVersion = VersionInfo.getVersionString()
+log("Starting \(updaterName) version \(updaterVersion)")
 log("Starting update process")
 
 // Parent path verification disabled for current implementation
