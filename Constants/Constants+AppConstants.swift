@@ -61,6 +61,11 @@ struct AppConstants {
     static let intuneomatorServiceFileURL = intuneomatorFolderURL
         .appendingPathComponent("IntuneomatorService.plist")
 
+    /// Status file for the Intuneomator service
+    /// Location: /Library/Application Support/Intuneomator/IntuneomatorStatus.json
+    static let intuneomatorOperationStatusFileURL = intuneomatorFolderURL
+        .appendingPathComponent("IntuneomatorStatus.json")
+
     /// File containing the current Installomator version
     /// Location: /Library/Application Support/Intuneomator/Installomator/Version.txt
     static let installomatorVersionFileURL = installomatorFolderURL
