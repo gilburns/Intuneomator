@@ -24,8 +24,7 @@ class StatusNotificationManager {
     static let notificationName = "com.intuneomator.status.update"
     
     /// State file location
-    private static let stateFileURL = AppConstants.intuneomatorLogSystemURL
-        .appendingPathComponent("operation_status.json")
+    private static let stateFileURL = AppConstants.intuneomatorOperationStatusFileURL
     
     // MARK: - Data Structures
     
@@ -149,7 +148,7 @@ class StatusNotificationManager {
     private struct SystemState: Codable {
         var operations: [String: OperationProgress] = [:]
         var lastUpdate: Date = Date()
-        var daemonVersion: String = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+        var daemonVersion: String = VersionInfo.getVersionString()
     }
     
     // MARK: - Private Properties
@@ -464,7 +463,9 @@ class StatusNotificationManager {
     /// Saves current state to JSON file with file locking
     private func saveStateFile() {
         do {
-            let jsonData = try JSONEncoder().encode(currentState)
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .secondsSince1970
+            let jsonData = try encoder.encode(currentState)
             
             // Write atomically to prevent corruption
             let tempURL = Self.stateFileURL.appendingPathExtension("tmp")
@@ -494,7 +495,9 @@ class StatusNotificationManager {
         
         do {
             let jsonData = try Data(contentsOf: Self.stateFileURL)
-            currentState = try JSONDecoder().decode(SystemState.self, from: jsonData)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .secondsSince1970
+            currentState = try decoder.decode(SystemState.self, from: jsonData)
             
             // Clean up any stale operations (older than 1 hour)
             let cutoffTime = Date().addingTimeInterval(-3600)
