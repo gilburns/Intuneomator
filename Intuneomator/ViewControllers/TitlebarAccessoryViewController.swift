@@ -15,7 +15,7 @@ class TitlebarAccessoryViewController: NSTitlebarAccessoryViewController {
     // MARK: - Interface Builder Outlets
     
     /// Button displaying current XPC daemon service status with visual indicators
-    /// Shows "Daemon ✅" when service is running, "Daemon ❌" when not available
+    /// Shows "Daemon 🟢" when service is running, "Daemon 🔴" when not available
     @IBOutlet weak var daemonRunningStatusButton: NSButton!
 
     /// Timer for periodic XPC service status checking (60-second intervals)
@@ -76,7 +76,7 @@ class TitlebarAccessoryViewController: NSTitlebarAccessoryViewController {
     func daemonStatusCheck() {
         let isRunning = checkXPCServiceRunning()
         DispatchQueue.main.async {
-            self.daemonRunningStatusButton.title = isRunning ? "Daemon ✅" : "Daemon ❌"
+            self.daemonRunningStatusButton.title = isRunning ? "Daemon 🟢" : "Daemon 🔴"
         }
     }
     
