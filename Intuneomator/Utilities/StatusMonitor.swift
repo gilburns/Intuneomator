@@ -22,7 +22,7 @@ class StatusMonitor: ObservableObject {
     
     @Published var operations: [String: OperationProgress] = [:]
     @Published var activeOperationCount: Int = 0
-    @Published var lastUpdate: Date = Date()
+    @Published var lastUpdate: Date = Date(timeIntervalSince1970: 0)
     @Published var isMonitoring: Bool = false
     
     // MARK: - Private Properties
@@ -33,7 +33,7 @@ class StatusMonitor: ObservableObject {
     private let queue = DispatchQueue(label: "com.intuneomator.gui.status", qos: .utility)
     
     /// State file location (same as daemon)
-    private let stateFileURL = URL(fileURLWithPath: "/Library/Application Support/Intuneomator/Logs/operation_status.json")
+    private let stateFileURL = AppConstants.intuneomatorOperationStatusFileURL
     
     // MARK: - Data Structures (Mirror of daemon)
     
@@ -80,10 +80,32 @@ class StatusMonitor: ObservableObject {
         let name: String
         let progress: Double
         let detail: String?
+        
+        // Custom initializer to handle missing detail field
+        init(name: String, progress: Double, detail: String? = nil) {
+            self.name = name
+            self.progress = progress
+            self.detail = detail
+        }
+        
+        // Custom decoder to handle missing detail field
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            
+            name = try container.decode(String.self, forKey: .name)
+            progress = try container.decode(Double.self, forKey: .progress)
+            detail = try container.decodeIfPresent(String.self, forKey: .detail)
+        }
+        
+        enum CodingKeys: String, CodingKey {
+            case name, progress, detail
+        }
     }
     
     struct OperationProgress: Codable, Identifiable {
-        let id = UUID() // For SwiftUI List
+        // Note: id is computed property, not stored, to avoid JSON encoding issues
+        var id: String { return operationId }
+        
         let operationId: String
         let labelName: String
         let appName: String
@@ -94,6 +116,54 @@ class StatusMonitor: ObservableObject {
         let lastUpdate: Date
         let errorMessage: String?
         let estimatedTimeRemaining: TimeInterval?
+        
+        // Regular initializer for creating operations in code
+        init(
+            operationId: String,
+            labelName: String,
+            appName: String,
+            status: OperationStatus,
+            currentPhase: OperationPhase,
+            overallProgress: Double,
+            startTime: Date,
+            lastUpdate: Date,
+            errorMessage: String? = nil,
+            estimatedTimeRemaining: TimeInterval? = nil
+        ) {
+            self.operationId = operationId
+            self.labelName = labelName
+            self.appName = appName
+            self.status = status
+            self.currentPhase = currentPhase
+            self.overallProgress = overallProgress
+            self.startTime = startTime
+            self.lastUpdate = lastUpdate
+            self.errorMessage = errorMessage
+            self.estimatedTimeRemaining = estimatedTimeRemaining
+        }
+        
+        // Custom decoder to handle missing optional fields
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            
+            operationId = try container.decode(String.self, forKey: .operationId)
+            labelName = try container.decode(String.self, forKey: .labelName)
+            appName = try container.decode(String.self, forKey: .appName)
+            status = try container.decode(OperationStatus.self, forKey: .status)
+            currentPhase = try container.decode(OperationPhase.self, forKey: .currentPhase)
+            overallProgress = try container.decode(Double.self, forKey: .overallProgress)
+            startTime = try container.decode(Date.self, forKey: .startTime)
+            lastUpdate = try container.decode(Date.self, forKey: .lastUpdate)
+            
+            // Handle optional fields that might be missing
+            errorMessage = try container.decodeIfPresent(String.self, forKey: .errorMessage)
+            estimatedTimeRemaining = try container.decodeIfPresent(TimeInterval.self, forKey: .estimatedTimeRemaining)
+        }
+        
+        enum CodingKeys: String, CodingKey {
+            case operationId, labelName, appName, status, currentPhase
+            case overallProgress, startTime, lastUpdate, errorMessage, estimatedTimeRemaining
+        }
         
         /// Formatted progress percentage
         var progressPercentage: String {
@@ -146,6 +216,8 @@ class StatusMonitor: ObservableObject {
         
         isMonitoring = true
         
+        Logger.info("Starting status monitoring with state file path: \(stateFileURL.path)", category: .core, toUserDirectory: true)
+        
         // Setup distributed notification observer
         setupNotificationObserver()
         
@@ -156,6 +228,7 @@ class StatusMonitor: ObservableObject {
         setupPollingTimer()
         
         // Initial state load
+        Logger.info("Loading initial state...", category: .core, toUserDirectory: true)
         loadCurrentState()
         
         Logger.info("Started status monitoring", category: .core, toUserDirectory: true)
@@ -212,13 +285,18 @@ class StatusMonitor: ObservableObject {
     
     /// Sets up distributed notification observer
     private func setupNotificationObserver() {
+        Logger.info("Setting up distributed notification observer for: com.intuneomator.status.update", category: .core, toUserDirectory: true)
+        
         notificationObserver = DistributedNotificationCenter.default.addObserver(
             forName: NSNotification.Name("com.intuneomator.status.update"),
             object: nil,
             queue: .main
         ) { [weak self] notification in
+            Logger.info("Received distributed notification: \(notification.name)", category: .core, toUserDirectory: true)
             self?.handleNotification(notification)
         }
+        
+        Logger.info("Distributed notification observer setup complete", category: .core, toUserDirectory: true)
     }
     
     /// Sets up file system watcher for state file
@@ -255,9 +333,10 @@ class StatusMonitor: ObservableObject {
     
     /// Sets up polling timer as fallback
     private func setupPollingTimer() {
-        pollTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+        pollTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             self?.loadCurrentState()
         }
+        Logger.info("Setup polling timer with 1 second interval", category: .core, toUserDirectory: true)
     }
     
     /// Handles incoming distributed notifications
@@ -324,18 +403,23 @@ class StatusMonitor: ObservableObject {
         
         do {
             let jsonData = try Data(contentsOf: stateFileURL)
-            let systemState = try JSONDecoder().decode(SystemState.self, from: jsonData)
+            
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .secondsSince1970
+            let systemState = try decoder.decode(SystemState.self, from: jsonData)
+            
+            Logger.debug("Decoded \(systemState.operations.count) operations from state file", category: .core, toUserDirectory: true)
             
             // Update operations if state is newer
             if systemState.lastUpdate > lastUpdate {
                 operations = systemState.operations
                 updatePublishedProperties()
                 
-                Logger.debug("Loaded \(operations.count) operations from state file", category: .core, toUserDirectory: true)
+                Logger.debug("Updated GUI with \(operations.count) operations from state file", category: .core, toUserDirectory: true)
             }
             
         } catch {
-            Logger.error("Failed to load status file: \(error)", category: .core, toUserDirectory: true)
+            Logger.error("Failed to decode status file: \(error)", category: .core, toUserDirectory: true)
         }
     }
     
