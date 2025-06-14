@@ -48,7 +48,7 @@ class MainWindowController: NSWindowController, NSWindowDelegate {
             if !frameRect.isEmpty && frameRect.width > 100 && frameRect.height > 100 {
                 window.setFrame(frameRect, display: true)
             } else {
-                Logger.logApp("Invalid saved window frame, centering window")
+                Logger.info("Invalid saved window frame, centering window", category: .core, toUserDirectory: true)
                 window.center()
             }
         } else {
@@ -128,21 +128,21 @@ class MainWindowController: NSWindowController, NSWindowDelegate {
     private func cleanupTempDirectory() {
         let tempPath = AppConstants.intuneomatorTempFolderURL.path
         guard FileManager.default.fileExists(atPath: tempPath) else {
-            Logger.logApp("Temp directory does not exist, skipping cleanup")
+            Logger.info("Temp directory does not exist, skipping cleanup", category: .core, toUserDirectory: true)
             return
         }
         
         do {
             try FileManager.default.removeItem(atPath: tempPath)
-            Logger.logApp("Successfully deleted temp directory: \(tempPath)")
+            Logger.info("Successfully deleted temp directory: \(tempPath)", category: .core, toUserDirectory: true)
         } catch let error as CocoaError {
             if error.code == .fileNoSuchFile {
-                Logger.logApp("Temp directory already removed: \(tempPath)")
+                Logger.info("Temp directory already removed: \(tempPath)", category: .core, toUserDirectory: true)
             } else {
-                Logger.logApp("Failed to delete temp directory: \(error.localizedDescription)")
+                Logger.info("Failed to delete temp directory: \(error.localizedDescription)", category: .core, toUserDirectory: true)
             }
         } catch {
-            Logger.logApp("Unexpected error deleting temp directory: \(error.localizedDescription)")
+            Logger.info("Unexpected error deleting temp directory: \(error.localizedDescription)", category: .core, toUserDirectory: true)
         }
     }
     

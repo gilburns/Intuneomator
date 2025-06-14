@@ -25,7 +25,7 @@ extension XPCService {
                 let categories = try await EntraGraphRequests.fetchMobileAppCategories(authToken: authToken)
                 reply(categories)
             } catch {
-                Logger.log("Failed to fetch mobile app categories: \(error.localizedDescription)", logType: logType)
+                Logger.error("Failed to fetch mobile app categories: \(error.localizedDescription)", category: .core)
                 reply(nil)
             }
         }
@@ -42,7 +42,7 @@ extension XPCService {
                 let categories = try await EntraGraphRequests.fetchEntraGroups(authToken: authToken)
                 reply(categories)
             } catch {
-                Logger.log("Failed to fetch security enabled groups: \(error.localizedDescription)", logType: logType)
+                Logger.error("Failed to fetch security enabled groups: \(error.localizedDescription)", category: .core)
                 reply(nil)
             }
         }
@@ -59,7 +59,7 @@ extension XPCService {
                 let filters = try await EntraGraphRequests.fetchMacAssignmentFiltersAsDictionaries(authToken: authToken)
                 reply(filters)
             } catch {
-                Logger.log("Failed to fetch assignment filters: \(error.localizedDescription)", logType: logType)
+                Logger.error("Failed to fetch assignment filters: \(error.localizedDescription)", category: .core)
                 reply(nil)
             }
         }

@@ -95,12 +95,12 @@ class FileFolderManagerUtil {
                 } else {
                     if excludeHiddenFiles && (item as NSString).lastPathComponent.hasPrefix(".") { continue }
                     if let allowedExtensions = allowedExtensions, !allowedExtensions.contains((item as NSString).pathExtension) { continue }
-                    Logger.log("Item: \(item)")
+                    Logger.info("Item: \(item)", category: .core)
                     
                     do {
                         try fileManager.setAttributes([.posixPermissions: newPermissions], ofItemAtPath: fullPath)
                     } catch {
-                        Logger.log("Failed to set permissions for \(item): \(error.localizedDescription).")
+                        Logger.info("Failed to set permissions for \(item): \(error.localizedDescription).", category: .core)
                     }
 
                 }

@@ -80,8 +80,8 @@ class PkgInspectorViewController: NSViewController {
         // Find all images in the package
         availableImages = findAllImages()
 
-        print("Available Images: \(availableImages.count)")
-        print("Available Images: \(availableImages.keys)")
+        Logger.debug("Available Images: \(availableImages.count)", category: .debug, toUserDirectory: true)
+        Logger.debug("Available Images: \(availableImages.keys)", category: .debug, toUserDirectory: true)
         
         // Set an app image as the default if available
         if !availableImages.isEmpty {
@@ -360,20 +360,20 @@ class PkgInspectorViewController: NSViewController {
         } else if FileManager.default.fileExists(atPath: packageInfoPath.path) {
             xmlFilePath = packageInfoPath
         } else {
-            print("No valid metadata file found")
+            Logger.error("No valid metadata file found", category: .core, toUserDirectory: true)
             return
         }
         
         do {
             let xmlData = try Data(contentsOf: xmlFilePath)
             guard let xmlDocument = try? XMLDocument(data: xmlData, options: .documentTidyXML) else {
-                print("Error: Failed to parse XML")
+                Logger.error("Error: Failed to parse XML", category: .core, toUserDirectory: true)
                 return
             }
 
             // Get the selected version
             guard let selectedVersionRaw = pkgItems.first(where: { $0.0 == id })?.1 else {
-                print("Error: No version found for ID: \(id)")
+                Logger.error("Error: No version found for ID: \(id)", category: .core, toUserDirectory: true)
                 return
             }
 
@@ -402,13 +402,13 @@ class PkgInspectorViewController: NSViewController {
             guard let pkgRefNode = matchedPkgRefNode,
                   let pkgRefValue = pkgRefNode.stringValue,
                   pkgRefValue.hasPrefix("#") else {
-                print("Error: No matching pkg-ref found")
+                Logger.error("Error: No matching pkg-ref found", category: .core, toUserDirectory: true)
                 return
             }
 
             let encodedFolderName = String(pkgRefValue.dropFirst()) // Remove the `#`
             guard let folderName = encodedFolderName.removingPercentEncoding else {
-                print("Error: Failed to decode percent-encoded folder name")
+                Logger.error("Error: Failed to decode percent-encoded folder name", category: .core, toUserDirectory: true)
                 return
             }
 
@@ -424,12 +424,12 @@ class PkgInspectorViewController: NSViewController {
                     let display = displayName(forMinimumOS: minOSVersion)
                     pkgMinOSTextField.stringValue = display
                 } else {
-                    print("LSMinimumSystemVersion not found in Info.plist")
+                    Logger.warning("LSMinimumSystemVersion not found in Info.plist", category: .core, toUserDirectory: true)
                     pkgMinOSTextField.stringValue = ""
                 }
             }
         } catch {
-            print("Error processing XML: \(error)")
+            Logger.error("Error processing XML: \(error)", category: .core, toUserDirectory: true)
         }
     }
 
@@ -490,7 +490,7 @@ class PkgInspectorViewController: NSViewController {
                 }
             }
         } catch {
-            print("Error finding images: \(error)")
+            Logger.error("Error finding images: \(error)", category: .core, toUserDirectory: true)
         }
         
         return imageMap
@@ -499,7 +499,7 @@ class PkgInspectorViewController: NSViewController {
     
     private func loadAndSetIconAndMinOS(forID id: String) {
         guard let pkgURL = pkgURL else {
-            print("Error: pkgURL is nil. Cannot load icon.")
+            Logger.error("Error: pkgURL is nil. Cannot load icon.", category: .core, toUserDirectory: true)
             pkgImageButton.image = nil
             selectedIconPath = nil
             return
@@ -519,12 +519,12 @@ class PkgInspectorViewController: NSViewController {
             // Parse `PackageInfo` file
             xmlFilePath = packageInfoPath
         } else {
-            print([NSLocalizedDescriptionKey: "No valid metadata file found"])
+            Logger.error("No valid metadata file found", category: .core, toUserDirectory: true)
             return
         }
         
         guard FileManager.default.fileExists(atPath: xmlFilePath.path) else {
-            print("Error: Could not locate Distribution file.")
+            Logger.error("Error: Could not locate Distribution file.", category: .core, toUserDirectory: true)
             pkgImageButton.image = nil
             selectedIconPath = nil
             return
@@ -533,7 +533,7 @@ class PkgInspectorViewController: NSViewController {
         do {
             let xmlData = try Data(contentsOf: xmlFilePath)
             guard let xmlDocument = try? XMLDocument(data: xmlData, options: .documentTidyXML) else {
-                print("Error: Failed to parse XML at \(xmlFilePath.path).")
+                Logger.error("Error: Failed to parse XML at \(xmlFilePath.path).", category: .core, toUserDirectory: true)
                 pkgImageButton.image = nil
                 selectedIconPath = nil
                 return
@@ -541,7 +541,7 @@ class PkgInspectorViewController: NSViewController {
 
             // Get the selected version
             guard let selectedVersionRaw = pkgItems.first(where: { $0.0 == id })?.1 else {
-                print("Error: No version found for ID: \(id)")
+                Logger.error("Error: No version found for ID: \(id)", category: .core, toUserDirectory: true)
                 pkgImageButton.image = nil
                 selectedIconPath = nil
                 return
@@ -563,7 +563,7 @@ class PkgInspectorViewController: NSViewController {
             // Try each possible version format
             for version in possibleVersions {
                 let pkgRefXPath = "//pkg-ref[@id='\(id)' and @version='\(version)']"
-                print("Trying XPath: \(pkgRefXPath)") // Debug
+                Logger.debug("Trying XPath: \(pkgRefXPath)", category: .debug, toUserDirectory: true)
                 if let pkgRefNode = try? xmlDocument.nodes(forXPath: pkgRefXPath).first as? XMLElement {
                     matchedPkgRefNode = pkgRefNode
                     break
@@ -573,7 +573,7 @@ class PkgInspectorViewController: NSViewController {
             guard let pkgRefNode = matchedPkgRefNode,
                   let pkgRefValue = pkgRefNode.stringValue,
                   pkgRefValue.hasPrefix("#") else {
-                print("Error: No matching pkg-ref found for ID: \(id) and version: \(selectedVersionRaw)")
+                Logger.error("Error: No matching pkg-ref found for ID: \(id) and version: \(selectedVersionRaw)", category: .core, toUserDirectory: true)
                 pkgImageButton.image = nil
                 selectedIconPath = nil
                 return
@@ -581,7 +581,7 @@ class PkgInspectorViewController: NSViewController {
 
             let encodedFolderName = String(pkgRefValue.dropFirst()) // Remove the `#`
             guard let folderName = encodedFolderName.removingPercentEncoding else {
-                print("Error: Failed to decode percent-encoded folder name: \(encodedFolderName)")
+                Logger.error("Error: Failed to decode percent-encoded folder name: \(encodedFolderName)", category: .core, toUserDirectory: true)
                 pkgImageButton.image = nil
                 selectedIconPath = nil
                 return
@@ -589,7 +589,7 @@ class PkgInspectorViewController: NSViewController {
 
             let payloadDir = expandedPkgDir.appendingPathComponent(folderName).appendingPathComponent("Payload")
             guard FileManager.default.fileExists(atPath: payloadDir.path) else {
-                print("Error: Payload directory does not exist for ID: \(id)")
+                Logger.error("Error: Payload directory does not exist for ID: \(id)", category: .core, toUserDirectory: true)
                 pkgImageButton.image = nil
                 selectedIconPath = nil
                 return
@@ -597,12 +597,11 @@ class PkgInspectorViewController: NSViewController {
 
             let apps = try findFiles(inFolder: URL(fileURLWithPath: payloadDir.path), withExtension: "app")
             
-            print("Found \(apps.count) .app files in \(payloadDir)")
+            Logger.info("Found \(apps.count) .app files in \(payloadDir)", category: .core, toUserDirectory: true)
             
             for app in apps {
-                print(app.path)
                 let appName = app.deletingPathExtension().lastPathComponent
-                print("App name: \(appName)")
+                Logger.debug("App name: \(appName)", category: .debug, toUserDirectory: true)
                 
             }
             
@@ -628,17 +627,17 @@ class PkgInspectorViewController: NSViewController {
                     let display = displayName(forMinimumOS: minOSVersion)
                     pkgMinOSTextField.stringValue = display
                 } else {
-                    print("LSMinimumSystemVersion not found in Info.plist for app at: \(appPath.path)")
+                    Logger.warning("LSMinimumSystemVersion not found in Info.plist for app at: \(appPath.path)", category: .core, toUserDirectory: true)
                     pkgMinOSTextField.stringValue = ""
                 }
                 
             } else {
-                print("No .app found in Payload directory for ID: \(id)")
+                Logger.error("No .app found in Payload directory for ID: \(id)", category: .core, toUserDirectory: true)
                 pkgImageButton.image = nil
                 selectedIconPath = nil
             }
         } catch {
-            print("Error processing XML or locating Payload folder: \(error)")
+            Logger.error("Error processing XML or locating Payload folder: \(error)", category: .core, toUserDirectory: true)
             pkgImageButton.image = nil
             selectedIconPath = nil
         }
@@ -648,16 +647,15 @@ class PkgInspectorViewController: NSViewController {
     func unMountDiskImage() {
         // Unmount the DMG if needed
         if let pkgURL = pkgURL, pkgURL.path.contains("/mount/") {
-            //            print("Unmounting DMG for path: \(pkgURL.path)")
             let unmountProcess = Process()
             unmountProcess.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil")
             unmountProcess.arguments = ["detach", pkgURL.deletingLastPathComponent().path, "-quiet", "-force"]
             do {
                 try unmountProcess.run()
                 unmountProcess.waitUntilExit()
-                                print("DMG unmounted successfully.")
+                                Logger.info("DMG unmounted successfully.", category: .core, toUserDirectory: true)
             } catch {
-                                print("Failed to unmount DMG: \(error)")
+                                Logger.error("Failed to unmount DMG: \(error)", category: .core, toUserDirectory: true)
             }
         }
     }
@@ -725,10 +723,10 @@ class PkgInspectorViewController: NSViewController {
                    let bitmap = NSBitmapImageRep(data: tiffData),
                    let pngData = bitmap.representation(using: .png, properties: [:]) {
                     try pngData.write(to: URL(fileURLWithPath: imageURL.path))
-                    print("Image saved to: \(imageURL)")
+                    Logger.info("Image saved to: \(imageURL)", category: .core, toUserDirectory: true)
                 }
             } catch {
-                print("Failed to save image: \(error)")
+                Logger.error("Failed to save image: \(error)", category: .core, toUserDirectory: true)
             }
 
             // copy to permanent location
@@ -738,18 +736,18 @@ class PkgInspectorViewController: NSViewController {
                         // clean up temp folder/icon
                         do {
                             try FileManager.default.removeItem(atPath: folderPath.path)
-                            print("Temp folder removed.")
+                            Logger.info("Temp folder removed.", category: .core, toUserDirectory: true)
                         } catch {
-                            print("Failed to remove temp folder: \(error)")
+                            Logger.error("Failed to remove temp folder: \(error)", category: .core, toUserDirectory: true)
                         }
                     } else {
-                        print("Failed to reset icon")
+                        Logger.error("Failed to reset icon", category: .core, toUserDirectory: true)
                     }
                 }
             }
             
         } else {
-            print("No image to save.")
+            Logger.warning("No image to save.", category: .core, toUserDirectory: true)
         }
 
         

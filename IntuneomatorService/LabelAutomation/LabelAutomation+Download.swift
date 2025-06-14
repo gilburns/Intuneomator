@@ -72,7 +72,7 @@ extension LabelAutomation {
             throw DownloadError.invalidURL(urlString)
         }
         
-        Logger.log("  Starting download from \(url.absoluteString)", logType: logType)
+        Logger.info("  Starting download from \(url.absoluteString)", category: .automation)
         
         let labelName = folderName.components(separatedBy: "_").first ?? folderName
         
@@ -105,7 +105,7 @@ extension LabelAutomation {
                     try? FileManager.default.removeItem(at: downloadsDir)
                     throw error
                 }
-                Logger.log("Download failed (attempt \(attempt)/\(maxDownloadRetries)), retrying...", logType: logType)
+                Logger.warning("Download failed (attempt \(attempt)/\(maxDownloadRetries)), retrying...", category: .automation)
                 // Exponential backoff: wait 2^(attempt-1) * baseRetryDelay seconds
                 let delayNanoseconds = UInt64(pow(2.0, Double(attempt - 1))) * baseRetryDelay * 1_000_000_000
                 try await Task.sleep(nanoseconds: delayNanoseconds)
@@ -138,7 +138,7 @@ extension LabelAutomation {
         do {
             if FileManager.default.fileExists(atPath: destinationURL.path) {
                 try FileManager.default.removeItem(at: destinationURL)
-                Logger.log("🗑️ Removed existing file: \(destinationURL.path)", logType: logType)
+                Logger.info("🗑️ Removed existing file: \(destinationURL.path)", category: .automation)
             }
             
             try FileManager.default.moveItem(at: tempLocation, to: destinationURL)
@@ -150,8 +150,8 @@ extension LabelAutomation {
         // Log download completion details
         logDownloadFileInfo(forLabel: labelName, destinationURL: destinationURL, finalFilename: finalFilename, finalURL: response.url ?? url)
         
-        Logger.log("  Download complete: \(finalFilename)", logType: logType)
-        Logger.log("  Downloaded to: \(destinationURL.path)", logType: logType)
+        Logger.info("  Download complete: \(finalFilename)", category: .automation)
+        Logger.info("  Downloaded to: \(destinationURL.path)", category: .automation)
         
         
         return destinationURL

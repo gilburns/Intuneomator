@@ -36,6 +36,7 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
     
     @IBOutlet weak var labelCacheCleanupRule: NSTextField!
     @IBOutlet weak var labelTaskDescription: NSTextField!
+    @IBOutlet weak var toggleEnabledButton: NSButton!
     
     // MARK: - Properties
     
@@ -187,8 +188,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
             // Create or update the LaunchDaemon
             let scheduledTimes = entries.map { $0.toScheduledTime() }
 
-            print("GUI: Sending \(scheduledTimes.count) schedule(s) to \(taskLabel)")
-            scheduledTimes.forEach { print($0.weekday ?? -1, $0.hour, $0.minute) }
+            Logger.info("GUI: Sending \(scheduledTimes.count) schedule(s) to \(taskLabel)", category: .core, toUserDirectory: true)
+            scheduledTimes.forEach { Logger.info("Schedule: weekday=\($0.weekday ?? -1), hour=\($0.hour), minute=\($0.minute)", category: .core, toUserDirectory: true) }
 
             
             XPCManager.shared.createOrUpdateScheduledTask(
@@ -225,6 +226,25 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         } else {
             labelCacheCleanupRule.isHidden = true
         }
+        updateToggleButtonState()
+    }
+    
+    /// Handles toggle button clicks to enable/disable the daemon
+    @IBAction func toggleEnabledButtonClicked(_ sender: NSButton) {
+        let isEnabled = sender.state == .on
+        
+        XPCManager.shared.toggleScheduledTask(label: taskLabel, enable: isEnabled) { success, message in
+            DispatchQueue.main.async {
+                if !success {
+                    sender.state = isEnabled ? .off : .on
+                    let alert = NSAlert()
+                    alert.messageText = "Failed to \(isEnabled ? "enable" : "disable") task"
+                    alert.informativeText = message ?? "Unknown error occurred"
+                    alert.alertStyle = .warning
+                    alert.runModal()
+                }
+            }
+        }
     }
     
     
@@ -248,7 +268,7 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         do {
             return try NSKeyedArchiver.archivedData(withRootObject: schedules, requiringSecureCoding: true)
         } catch {
-            print("❌ Failed to encode schedules: \(error)")
+            Logger.error("❌ Failed to encode schedules: \(error)", category: .core, toUserDirectory: true)
             return nil
         }
     }
@@ -310,6 +330,51 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         buttonAdd.isEnabled = !hasSelection
         buttonUpdate.isEnabled = hasSelection
         buttonDelete.isEnabled = hasSelection
+    }
+    
+    /// Reads the Disabled state from the daemon plist file
+    /// - Parameter label: The daemon label to check
+    /// - Returns: True if daemon is disabled, false if enabled or if plist doesn't exist
+    private func isDaemonDisabled(label: String) -> Bool {
+        let daemonPath = "/Library/LaunchDaemons/\(label).plist"
+        
+        guard FileManager.default.fileExists(atPath: daemonPath) else {
+            return false
+        }
+        
+        do {
+            let plistURL = URL(fileURLWithPath: daemonPath)
+            let plistData = try Data(contentsOf: plistURL)
+            guard let plistDict = try PropertyListSerialization.propertyList(from: plistData, options: [], format: nil) as? [String: Any] else {
+                return false
+            }
+            
+            return plistDict["Disabled"] as? Bool ?? false
+        } catch {
+            return false
+        }
+    }
+    
+    /// Updates the toggle button state based on the current daemon's enabled/disabled status
+    private func updateToggleButtonState() {
+        guard !taskLabel.isEmpty else {
+            toggleEnabledButton.isEnabled = false
+            return
+        }
+        
+        let daemonPath = "/Library/LaunchDaemons/\(taskLabel).plist"
+        let daemonExists = FileManager.default.fileExists(atPath: daemonPath)
+        
+        toggleEnabledButton.isEnabled = daemonExists
+        
+        if daemonExists {
+            let isDisabled = isDaemonDisabled(label: taskLabel)
+            toggleEnabledButton.state = isDisabled ? .off : .on
+            toggleEnabledButton.title = isDisabled ? "Enable" : "Disable"
+        } else {
+            toggleEnabledButton.state = .off
+            toggleEnabledButton.title = "Enable"
+        }
     }
     
     // MARK: - Table View Data Source & Delegate
@@ -383,7 +448,7 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
                 }
             }
         } catch {
-            print("Failed to load plist: \(error.localizedDescription)")
+            Logger.error("Failed to load plist: \(error.localizedDescription)", category: .core, toUserDirectory: true)
         }
         
         originalEntries = entries.map { ScheduleEntry(weekday: $0.weekday, hour: $0.hour, minute: $0.minute) }

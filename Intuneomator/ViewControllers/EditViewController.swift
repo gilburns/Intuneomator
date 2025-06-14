@@ -156,11 +156,10 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     ///   - parent: The parent `TabViewController` to which this controller belongs.
     func configure(with data: Any, parent: TabViewController) {
         guard let appData = data as? AppInfo else {
-            Logger.logApp("Invalid data passed to EditViewController")
+            Logger.info("Invalid data passed to EditViewController", category: .core, toUserDirectory: true)
             return
         }
         self.appData = appData
-        //        print("appData: \(appData)")
         self.parentTabViewController = parent
         
         setupCategoriesPopover()
@@ -176,7 +175,6 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         
         // Use appData to configure the view
         if (appData != nil) {
-            //            print("Received appData in EditViewController: \(String(describing: appData))")
             populateFieldsFromAppData()
         }
         
@@ -219,9 +217,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         // Set the NSTextStorage delegate
         if let textStorage = fieldLabelDescription.textStorage {
             textStorage.delegate = self
-            //            print("Text storage delegate set successfully.")
         } else {
-            //            print("Failed to access text storage.")
         }
         
         setDeploymentTypeState()
@@ -299,7 +295,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
             ) as! [String: Any]
             
         } catch {
-            //            print("Failed to load plist: \(error)")
+            //            Logger.error("Failed to load plist: \(error)", category: .core, toUserDirectory: true)
             return
         }
         
@@ -382,7 +378,6 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         
         // Store the loaded metadata for future comparison
         lastLoadedMetadata = appMetadata
-        //            print("Metadata loaded and stored for change tracking.")
         
         
     }
@@ -392,12 +387,10 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     /// - Returns: true if an _i386.plist exists in the label folder.
     private func titleIsDualArch() -> Bool {
         guard let label = appData?.label else {
-            //            print("Error: appData or label is nil.")
             return false
         }
         
         guard let guid = appData?.guid else {
-            //            print("Error: appData or guid is nil.")
             return false
         }
         
@@ -564,7 +557,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
             let labelContents = try String(contentsOfFile: labelURL!.path, encoding: .utf8)
             showPopover(with: labelContents)
         } catch {
-            print("❌ Failed to read label file \(labelName).sh: \(error)")
+            Logger.error("Failed to read label file \(labelName).sh: \(error)", category: .core, toUserDirectory: true)
         }
     }
     
@@ -628,7 +621,6 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     /// - Parameter sender: The button that triggered the action.
     @IBAction func viewOtherMetaData(_ sender: NSButton) {
         
-        //        print("app metadata: \(String(describing: self.appMetadata))")
         
         let appName = appData?.name ?? "Unknown App"
         
@@ -646,7 +638,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     func showOtherMetadataSheet(for appName: String, currentMetadataPartial: MetadataPartial, lastMetadataPartial: MetadataPartial ) {
         let storyboard = NSStoryboard(name: "Main", bundle: nil)
         guard let sheetController = storyboard.instantiateController(withIdentifier: "EditOtherViewController") as? EditOtherViewController else {
-            //            print("❌ Failed to instantiate EditOtherViewController")
+            Logger.error("Failed to instantiate EditOtherViewController", category: .core, toUserDirectory: true)
             return
         }
         
@@ -682,7 +674,6 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         if index != -1 {
             buttonPopUpMinimumOs.selectItem(at: index)
         } else {
-            //                print("Minimum OS '\(displayString)' not found in popup menu.")
         }
     }
 

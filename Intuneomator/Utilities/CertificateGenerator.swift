@@ -35,7 +35,7 @@ class CertificateGenerator {
 
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         if let output = String(data: data, encoding: .utf8) {
-            print(output)
+            Logger.debug("\(output)", category: .debug)
         }
 
         if process.terminationStatus != 0 {
@@ -87,7 +87,7 @@ class CertificateGenerator {
             "pkcs12", "-export", "-out", pfxPath, "-inkey", privateKeyPath, "-in", crtPath, "-passout", "pass:\(password)"
         ])
 
-        print("Certificates generated successfully at \(outputPath)")
+        Logger.info("Certificates generated successfully at \(outputPath)", category: .core)
     }
 
     // MARK: - Certificate Analysis Methods

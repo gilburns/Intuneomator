@@ -75,9 +75,9 @@ extension LabelAutomation {
     static func processDualAppFiles(downloadURL: URL, downloadURLx86_64: URL, folderName: String, downloadType: String, fileUploadName: String, expectedTeamID: String, expectedBundleID: String) async throws -> (url: URL?, appName: String, appBundleID: String, appVersion: String)  {
         
         
-        Logger.log("Building Universal Dual Arch Package", logType: logType)
-        Logger.log("ARM64 URL: \(downloadURL)", logType: logType)
-        Logger.log("x86_64 URL: \(downloadURLx86_64)", logType: logType)
+        Logger.info("Building Universal Dual Arch Package", category: .automation)
+        Logger.info("ARM64 URL: \(downloadURL)", category: .automation)
+        Logger.info("x86_64 URL: \(downloadURLx86_64)", category: .automation)
         
         // Variables to track processing results
         var appFiles: [URL] = []
@@ -103,12 +103,12 @@ extension LabelAutomation {
         let downloadArray = [downloadURL, downloadURLx86_64]
         for (index, downloadURL) in downloadArray.enumerated() {
             let archName = index == 0 ? "ARM64" : "x86_64"
-            Logger.log("Processing \(archName) URL: \(downloadURL)", logType: logType)
+            Logger.info("Processing \(archName) URL: \(downloadURL)", category: .automation)
             
             // Process download based on archive type
             switch downloadType.lowercased() {
             case "zip":
-                Logger.log("Handle type zip specifics for \(archName)", logType: logType)
+                Logger.debug("Handle type zip specifics for \(archName)", category: .automation)
                 // Extract ZIP archive and locate .app bundle
                 let extractedFolder = try await extractZipFileWithDitto(zipURL: downloadURL)
                 appFiles = try findFiles(inFolder: extractedFolder, withExtension: "app")
@@ -119,7 +119,7 @@ extension LabelAutomation {
                 appFilesFound += [appFile]
                 
             case "tbz":
-                Logger.log("Handle type tbz specifics for \(archName)", logType: logType)
+                Logger.debug("Handle type tbz specifics for \(archName)", category: .automation)
                 // Extract TBZ/TAR.BZ2 archive and locate .app bundle
                 let extractedFolder = try await extractTBZFile(tbzURL: downloadURL)
                 let foundAppFiles = try findFiles(inFolder: extractedFolder, withExtension: "app")
@@ -130,7 +130,7 @@ extension LabelAutomation {
                 appFilesFound += [appFile]
                 
             case "dmg":
-                Logger.log("Handle type dmg specifics for \(archName)", logType: logType)
+                Logger.debug("Handle type dmg specifics for \(archName)", category: .automation)
                 // Mount DMG, locate .app bundle, and copy to safe location
                 let mountPoint = try await mountDMGFile(dmgURL: downloadURL)
                 defer { _ = try? unmountDMG(mountPoint: mountPoint) }
@@ -141,9 +141,9 @@ extension LabelAutomation {
                     throw NSError(domain: "ProcessingError", code: 108, userInfo: [NSLocalizedDescriptionKey: "No .app file found in mounted DMG for \(archName)"])
                 }
                 
-                Logger.log("\(archName) appFile: \(appFile.path)", logType: logType)
+                Logger.info("\(archName) appFile: \(appFile.path)", category: .automation)
                 let appName = appFile.lastPathComponent
-                Logger.log("\(archName) App name: \(appName)", logType: logType)
+                Logger.info("\(archName) App name: \(appName)", category: .automation)
                 
                 // Copy app bundle off the mounted DMG to ensure URL remains valid after unmounting
                 if let copyDir = downloadURL.deletingLastPathComponent().path.removingPercentEncoding {
@@ -156,13 +156,13 @@ extension LabelAutomation {
                     
                     appFilesFound += [destinationURL]
                     
-                    Logger.log("\(archName) App to process: \(destinationURL.path)", logType: logType)
+                    Logger.info("\(archName) App to process: \(destinationURL.path)", category: .automation)
                 } else {
                     throw NSError(domain: "ProcessingError", code: 120, userInfo: [NSLocalizedDescriptionKey: "Invalid copy directory for DMG processing (\(archName))"])
                 }
                 
             case "appindmginzip":
-                Logger.log("Handle type appindmginzip specifics for \(archName)", logType: logType)
+                Logger.debug("Handle type appindmginzip specifics for \(archName)", category: .automation)
                 // Extract ZIP, mount contained DMG, locate .app bundle, and copy to safe location
                 let extractedFolder = try await extractZipFile(zipURL: downloadURL)
                 let dmgFiles = try findFiles(inFolder: extractedFolder, withExtension: "dmg")
@@ -179,9 +179,9 @@ extension LabelAutomation {
                     throw NSError(domain: "ProcessingError", code: 110, userInfo: [NSLocalizedDescriptionKey: "No .app file found in mounted DMG (from ZIP) for \(archName)"])
                 }
                 
-                Logger.log("\(archName) appFile: \(appFile.path)", logType: logType)
+                Logger.info("\(archName) appFile: \(appFile.path)", category: .automation)
                 let appName = appFile.lastPathComponent
-                Logger.log("\(archName) App name: \(appName)", logType: logType)
+                Logger.info("\(archName) App name: \(appName)", category: .automation)
                 
                 // Copy app bundle off the mounted DMG to ensure URL remains valid after unmounting
                 if let copyDir = downloadURL.deletingLastPathComponent().path.removingPercentEncoding {
@@ -194,7 +194,7 @@ extension LabelAutomation {
                     
                     appFilesFound += [destinationURL]
                     
-                    Logger.log("\(archName) App to process: \(destinationURL.path)", logType: logType)
+                    Logger.info("\(archName) App to process: \(destinationURL.path)", category: .automation)
                 } else {
                     throw NSError(domain: "ProcessingError", code: 121, userInfo: [NSLocalizedDescriptionKey: "Invalid copy directory for ZIP-DMG processing (\(archName))"])
                 }
@@ -211,17 +211,17 @@ extension LabelAutomation {
         // Validate signatures and extract versions for both app bundles
         for (index, appFile) in appFilesFound.enumerated() {
             let archName = index == 0 ? "ARM64" : "x86_64"
-            Logger.log("Validating \(archName) app: \(appFile.path)", logType: logType)
+            Logger.info("Validating \(archName) app: \(appFile.path)", category: .automation)
             
             // Verify code signature against expected Team ID
             let signatureResult = inspectSignatureOfDownloadedSoftware(for: appFile, expectedTeamID: expectedTeamID, inspectionType: "app")
             
-            Logger.log("  \(archName) signature result: \(signatureResult)", logType: logType)
+            Logger.info("  \(archName) signature result: \(signatureResult)", category: .automation)
             
             if signatureResult == true {
-                Logger.log("  \(archName) signature is valid.", logType: logType)
+                Logger.info("  \(archName) signature is valid.", category: .automation)
             } else {
-                Logger.log("  \(archName) signature is invalid.", logType: logType)
+                Logger.info("  \(archName) signature is invalid.", category: .automation)
                 throw NSError(domain: "ProcessingError", code: 101, userInfo: [NSLocalizedDescriptionKey : "\(archName) signature is invalid."])
             }
             
@@ -232,14 +232,14 @@ extension LabelAutomation {
                     switch result {
                     case .success(let version):
                         if let version = version {
-                            Logger.log("  \(archName) version for bundle ID '\(expectedBundleID)': \(version)", logType: logType)
+                            Logger.info("  \(archName) version for bundle ID '\(expectedBundleID)': \(version)", category: .automation)
                             continuation.resume(returning: version)
                         } else {
-                            Logger.log("  Bundle ID '\(expectedBundleID)' not found in the \(archName) .app", logType: logType)
+                            Logger.info("  Bundle ID '\(expectedBundleID)' not found in the \(archName) .app", category: .automation)
                             continuation.resume(returning: "None")
                         }
                     case .failure(let error):
-                        Logger.log("Error inspecting \(archName) .app: \(error.localizedDescription)", logType: logType)
+                        Logger.error("Error inspecting \(archName) .app: \(error.localizedDescription)", category: .automation)
                         continuation.resume(returning: "None")
                     }
                 }
@@ -257,12 +257,12 @@ extension LabelAutomation {
         
         // Verify both architectures have matching versions
         if downloadedVersions[0] != downloadedVersions[1] {
-            Logger.log("🛑 Architecture versions do not match!", logType: logType)
-            Logger.log("ARM64 version: \(downloadedVersions[0])", logType: logType)
-            Logger.log("x86_64 version: \(downloadedVersions[1])", logType: logType)
+            Logger.info("🛑 Architecture versions do not match!", category: .automation)
+            Logger.info("ARM64 version: \(downloadedVersions[0])", category: .automation)
+            Logger.info("x86_64 version: \(downloadedVersions[1])", category: .automation)
             throw NSError(domain: "ProcessingError", code: 112, userInfo: [NSLocalizedDescriptionKey: "App versions do not match: ARM64(\(downloadedVersions[0])) vs x86_64(\(downloadedVersions[1]))"])
         } else {
-            Logger.log("✅ Architecture versions match: \(downloadedVersions[0])", logType: logType)
+            Logger.info("✅ Architecture versions match: \(downloadedVersions[0])", category: .automation)
         }
         
         // Ensure we have exactly 2 app files (one per architecture)
@@ -274,9 +274,9 @@ extension LabelAutomation {
         let expectedArchitectures: [AppArchitecture] = [.arm64, .x86_64]
         do {
             try validateAppArchitectures(urls: appFilesFound, expected: expectedArchitectures)
-            Logger.log("✅ App architectures validated: ARM64 + x86_64", logType: logType)
+            Logger.info("✅ App architectures validated: ARM64 + x86_64", category: .automation)
         } catch {
-            Logger.log("❌ Architecture validation failed: \(error)", logType: logType)
+            Logger.info("❌ Architecture validation failed: \(error)", category: .automation)
             throw error
         }
         
@@ -289,26 +289,26 @@ extension LabelAutomation {
         try FileManager.default.createDirectory(at: finalDestinationFolder, withIntermediateDirectories: true)
         
         // Create universal PKG installer containing both architectures
-        Logger.log("Creating universal PKG installer", logType: logType)
-        Logger.log("ARM64 input: \(appFilesFound[0].path)", logType: logType)
-        Logger.log("x86_64 input: \(appFilesFound[1].path)", logType: logType)
-        Logger.log("Output directory: \(finalDestinationFolder.path)", logType: logType)
+        Logger.info("Creating universal PKG installer", category: .automation)
+        Logger.info("ARM64 input: \(appFilesFound[0].path)", category: .automation)
+        Logger.info("x86_64 input: \(appFilesFound[1].path)", category: .automation)
+        Logger.info("Output directory: \(finalDestinationFolder.path)", category: .automation)
         
         let pkgCreator = PKGCreatorUniversal()
         if let (outputURLResult, outputAppNameResult, outputAppBundleIDResult, outputAppVersionResult) = pkgCreator.createUniversalPackage(inputPathArm64: appFilesFound[0].path, inputPathx86_64: appFilesFound[1].path, outputDir: finalDestinationFolder.path) {
-            Logger.log("✅ Universal package creation succeeded.", logType: logType)
+            Logger.info("✅ Universal package creation succeeded.", category: .automation)
             
             outputURL = URL(fileURLWithPath: outputURLResult)
             outputAppName = outputAppNameResult
             outputAppBundleID = outputAppBundleIDResult
             outputAppVersion = outputAppVersionResult
             
-            Logger.log("Created universal PKG: \(outputURLResult)", logType: logType)
-            Logger.log("App name: \(outputAppNameResult)", logType: logType)
-            Logger.log("Bundle ID: \(outputAppBundleIDResult)", logType: logType)
-            Logger.log("Version: \(outputAppVersionResult)", logType: logType)
+            Logger.info("Created universal PKG: \(outputURLResult)", category: .automation)
+            Logger.info("App name: \(outputAppNameResult)", category: .automation)
+            Logger.info("Bundle ID: \(outputAppBundleIDResult)", category: .automation)
+            Logger.info("Version: \(outputAppVersionResult)", category: .automation)
         } else {
-            Logger.log("❌ Universal package creation failed.", logType: logType)
+            Logger.info("❌ Universal package creation failed.", category: .automation)
             outputURL = nil
             outputAppName = ""
             outputAppBundleID = ""

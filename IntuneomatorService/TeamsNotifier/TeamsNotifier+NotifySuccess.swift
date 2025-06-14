@@ -144,7 +144,7 @@ extension TeamsNotifier {
         
         // Add CVE (Common Vulnerabilities and Exposures) information if configured
         if includeCVEs {
-            Logger.log("Loading CVEs for \(title)...", logType: TeamsNotifier.logType)
+            Logger.error("Loading CVEs for \(title)...", category: .core)
             let fetcher = CVEFetcher()
             
             // Fetch CVE data asynchronously and send notification when complete
@@ -154,9 +154,8 @@ extension TeamsNotifier {
                     // Add CVE information sections to the notification body
                     let cveSections = createCVESections(cves)
                     bodyContent.append(contentsOf: cveSections)
-                    Logger.log("CVE fetch complete. Found \(cves.count) CVEs", logType: TeamsNotifier.logType)
                 case .failure(let error):
-                    Logger.log("Error fetching CVEs: \(error)", logType: TeamsNotifier.logType)
+                    Logger.error("Error fetching CVEs: \(error)", category: .core)
                     // Continue without CVE data if fetch fails
                 }
                 

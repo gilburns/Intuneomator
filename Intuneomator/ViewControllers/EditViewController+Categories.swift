@@ -57,7 +57,6 @@ extension EditViewController {
     func populateCategories() {
         guard let scrollView = categoriesPopover.contentViewController?.view as? NSScrollView,
               let stackView = scrollView.documentView as? NSStackView else {
-//            print("StackView not found!")
             return
         }
 
@@ -126,7 +125,6 @@ extension EditViewController {
             selectedCategories.remove(id)
         }
 
-//        print("Selected Categories: \(selectedCategories)")
         updateCategoryButtonTitle() // Update the button text
         trackChanges() // Track changes after updating categories
     }

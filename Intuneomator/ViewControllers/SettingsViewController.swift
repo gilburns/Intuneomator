@@ -9,7 +9,6 @@ import Foundation
 import Cocoa
 
 /// Log type identifier for Settings operations
-private let logType = "Settings"
 
 /// View controller for managing Intuneomator application settings and configuration
 /// Provides comprehensive interface for configuring authentication, Teams notifications,
@@ -253,21 +252,20 @@ class SettingsViewController: NSViewController {
     /// Logs success or failure and shows a user alert.
     private func processP12File(fileURL: URL, passphrase: String) {
         // Implement your logic for handling the p12 file and passphrase
-        Logger.logApp("Selected file: \(fileURL.path)", logType: logType)
-        Logger.logApp("Entered passphrase: \(passphrase)", logType: logType) // Remove this in production for security reasons
+        Logger.info("Selected file: \(fileURL.path)", category: .core, toUserDirectory: true)
         
         do {
             let p12Data = try Data(contentsOf: fileURL)
             XPCManager.shared.importP12Certificate(p12Data: p12Data, passphrase: passphrase) { success in
                 DispatchQueue.main.async {
                     if success ?? false {
-                        Logger.logApp("Successfully imported .p12 into the daemon.", logType: logType)
+                        Logger.info("Successfully imported .p12 into the daemon.", category: .core, toUserDirectory: true)
                         DispatchQueue.main.async {
                             self.showAlert(title: "Success", message: "Import was successful.")
                         }
 //                        self.onCompletionStatusChanged?(true)
                     } else {
-                        Logger.logApp("Failed to import .p12.", logType: logType)
+                        Logger.info("Failed to import .p12.", category: .core, toUserDirectory: true)
                         DispatchQueue.main.async {
                             self.showAlert(title: "Success", message: "Import failed.")
                         }
@@ -276,7 +274,7 @@ class SettingsViewController: NSViewController {
                 }
             }
         } catch {
-            Logger.logApp("Failed to read .p12 file: \(error)", logType: logType)
+            Logger.info("Failed to read .p12 file: \(error)", category: .core, toUserDirectory: true)
         }
         
     }
@@ -325,12 +323,11 @@ class SettingsViewController: NSViewController {
     /// On success, optionally schedules an expiration notification.
     private func handleEntraIDSecretKey(_ secretKey: String) {
         // Implement logic to store, validate, or use the secret key
-        Logger.logApp("Entered Entra ID Secret Key: \(secretKey)", logType: logType) // Do NOT log in production
 
-        Logger.logApp("Saving secret key...", logType: logType)
+        Logger.info("Saving secret key...", category: .core, toUserDirectory: true)
         XPCManager.shared.importEntraIDSecretKey(secretKey: secretKey) { success in
             if success ?? false {
-                Logger.logApp("Successfully imported Entra ID secret key.", logType: logType)
+                Logger.info("Successfully imported Entra ID secret key.", category: .core, toUserDirectory: true)
                 DispatchQueue.main.async {
                     let alert = NSAlert()
                     alert.messageText = "Success"
@@ -362,7 +359,7 @@ class SettingsViewController: NSViewController {
                     }
                 }
             } else {
-                Logger.logApp("Failed to import Entra ID secret key.", logType: logType)
+                Logger.info("Failed to import Entra ID secret key.", category: .core, toUserDirectory: true)
                 DispatchQueue.main.async {
                     self.showAlert(title: "Failed", message: "Import failed.")
                 }
@@ -811,7 +808,7 @@ class SettingsViewController: NSViewController {
     private func setTeamsWebHookEnabled() {
         let isEnabled = (buttonSendTeamsNotifications.state == .on)
         XPCManager.shared.setTeamsNotificationsEnabled(isEnabled) { success in
-            Logger.logApp("Teams notifications updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Teams notifications updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
     
@@ -819,7 +816,7 @@ class SettingsViewController: NSViewController {
     private func setTeamsWebHookURL() {
         let urlString = fieldTeamsWebhookURL.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         XPCManager.shared.setTeamsWebhookURL(urlString) { success in
-            Logger.logApp("Webhook URL updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Webhook URL updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
     
@@ -827,7 +824,7 @@ class SettingsViewController: NSViewController {
     private func setTeamsWebHookEnabledForCleanup() {
         let isEnabled = (buttonSendTeamsNotificationsForCleanup.state == .on)
         XPCManager.shared.setTeamsNotificationsForCleanup(isEnabled) { success in
-            Logger.logApp("Teams notifications for cleanup: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Teams notifications for cleanup: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
 
@@ -835,7 +832,7 @@ class SettingsViewController: NSViewController {
     private func setTeamsWebHookEnabledForCVEs() {
         let isEnabled = (buttonSendTeamsNotificationsForCVEs.state == .on)
         XPCManager.shared.setTeamsNotificationsForCVEs(isEnabled) { success in
-            Logger.logApp("Teams notifications for CVEs: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Teams notifications for CVEs: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
 
@@ -843,7 +840,7 @@ class SettingsViewController: NSViewController {
     private func setTeamsWebHookEnabledForGroups() {
         let isEnabled = (buttonSendTeamsNotificationsForGroups.state == .on)
         XPCManager.shared.setTeamsNotificationsForGroups(isEnabled) { success in
-            Logger.logApp("Teams notifications for Groups: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Teams notifications for Groups: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
 
@@ -851,7 +848,7 @@ class SettingsViewController: NSViewController {
     private func setTeamsWebHookEnabledForLabelUpdates() {
         let isEnabled = (buttonSendTeamsNotificationsForLabelUpdates.state == .on)
         XPCManager.shared.setTeamsNotificationsForLabelUpdates(isEnabled) { success in
-            Logger.logApp("Teams notifications for Label Updates: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Teams notifications for Label Updates: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
 
@@ -859,7 +856,7 @@ class SettingsViewController: NSViewController {
     private func setTeamsWebHookEnabledForUpdates() {
         let isEnabled = (buttonSendTeamsNotificationsForUpdates.state == .on)
         XPCManager.shared.setTeamsNotificationsForUpdates(isEnabled) { success in
-            Logger.logApp("Teams notifications for Updates: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Teams notifications for Updates: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
 
@@ -867,7 +864,7 @@ class SettingsViewController: NSViewController {
     private func setTeamsWebHookStyle() {
         let selectedTag = (buttonSendTeamsNotificationsStyle.selectedTag())
         XPCManager.shared.setTeamsNotificationsStyle(selectedTag) { success in
-            Logger.logApp("Teams notifications Style: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Teams notifications Style: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
 
@@ -875,7 +872,7 @@ class SettingsViewController: NSViewController {
     private func setCertificateThumbprint() {
         let thumbprint = fieldCertificateThumbprint.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         XPCManager.shared.setApplicationID(thumbprint) { success in
-            Logger.logApp("Certificate Thumbprint updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Certificate Thumbprint updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
     
@@ -883,7 +880,7 @@ class SettingsViewController: NSViewController {
     private func setClientSecret() {
         let secret = fieldClientSecret.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         XPCManager.shared.setApplicationID(secret) { success in
-            Logger.logApp("Client Secret updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Client Secret updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
     
@@ -898,7 +895,7 @@ class SettingsViewController: NSViewController {
         }
         
         XPCManager.shared.setAuthMethod(authMethod) { success in
-            Logger.logApp("Auth Method updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Auth Method updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
     
@@ -906,7 +903,7 @@ class SettingsViewController: NSViewController {
     private func setAppsToKeep() {
         let appsToKeepString = Int(fieldAppsToKeep.stringValue.trimmingCharacters(in: .whitespacesAndNewlines))
         XPCManager.shared.setAppsToKeep(appsToKeepString ?? 2) { success in
-            Logger.logApp("Apps to keep updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Apps to keep updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
     
@@ -914,7 +911,7 @@ class SettingsViewController: NSViewController {
     private func setApplicationID() {
         let appIDString = fieldClientID.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         XPCManager.shared.setApplicationID(appIDString) { success in
-            Logger.logApp("Application ID updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Application ID updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
     
@@ -922,7 +919,7 @@ class SettingsViewController: NSViewController {
     private func setTenantID() {
         let tenantIDString = fieldTenantID.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         XPCManager.shared.setTenantID(tenantIDString) { success in
-            Logger.logApp("Tenant ID updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Tenant ID updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
     
@@ -930,7 +927,7 @@ class SettingsViewController: NSViewController {
     private func setLogAgeMax() {
         let logAgeMaxString = Int(fieldLogsMaxAge.stringValue.trimmingCharacters(in: .whitespacesAndNewlines))
         XPCManager.shared.setLogAgeMax(logAgeMaxString ?? 0) { success in
-            Logger.logApp("Log max age updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Log max age updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
 
@@ -938,7 +935,7 @@ class SettingsViewController: NSViewController {
     private func setLogSizeMax() {
         let logSizeMaxString = Int(fieldLogsMaxSize.stringValue.trimmingCharacters(in: .whitespacesAndNewlines))
         XPCManager.shared.setLogSizeMax(logSizeMaxString ?? 0) { success in
-            Logger.logApp("Log max size updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Log max size updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
     
@@ -946,7 +943,7 @@ class SettingsViewController: NSViewController {
     private func setIntuneomatorUpdateMode() {
         let selectedTag = (buttonIntuneomatorUpdateMode.selectedTag())
         XPCManager.shared.setIntuneomatorUpdateMode(selectedTag) { success in
-            Logger.logApp("Intuneomator Update Mode updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Intuneomator Update Mode updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
 

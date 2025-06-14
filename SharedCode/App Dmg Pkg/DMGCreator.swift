@@ -91,6 +91,7 @@ class DMGCreator {
     /// Provides consistent logging format for update operations
     /// - Parameter message: Message to log
     func log(_ message: String) {
+        Logger.info("\(message)", category: .automation)
         print("[DMGCreator] \(message)")
     }
 

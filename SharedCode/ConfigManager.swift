@@ -20,7 +20,7 @@ class ConfigManager {
     /// - Returns: The value cast to the specified type, or nil if not found or cast fails
     static func readPlistValue<T>(key: String) -> T? {
         guard let plistDict = loadPlist() else {
-            Logger.log("Failed to load plist for reading key: \(key)")
+            Logger.info("Failed to load plist for reading key: \(key)", category: .core)
             return nil
         }
         return plistDict[key] as? T
@@ -65,7 +65,7 @@ class ConfigManager {
             restrictPlistPermissions() // Ensure permissions after saving
             return true
         } catch {
-            Logger.log("Failed to write plist: \(error)")
+            Logger.info("Failed to write plist: \(error)", category: .core)
             return false
         }
     }
@@ -94,7 +94,7 @@ class ConfigManager {
             try task.run()
             task.waitUntilExit()
         } catch {
-            Logger.log("Error executing \(command) \(arguments.joined(separator: " ")): \(error)")
+            Logger.info("Error executing \(command) \(arguments.joined(separator: " ")): \(error)", category: .core)
         }
     }
 }

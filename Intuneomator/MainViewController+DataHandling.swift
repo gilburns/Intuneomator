@@ -90,7 +90,7 @@ extension MainViewController {
                     }
                 }
             } catch {
-                Logger.logApp("Error loading app data: \(error)", logType: MainViewController.logType)
+                Logger.info("Error loading app data: \(error)", category: .core, toUserDirectory: true)
             }
         }
         
@@ -161,7 +161,7 @@ extension MainViewController {
         if parts.count == 2 {
             name = String(parts[0])
         } else {
-            Logger.logApp("Invalid directory format for: \(directoryName)", logType: MainViewController.logType)
+            Logger.info("Invalid directory format for: \(directoryName)", category: .core, toUserDirectory: true)
             return nil
         }
         
@@ -177,7 +177,7 @@ extension MainViewController {
                     options: [],
                     format: nil
                 ) as? [String: Any] else {
-                    Logger.logApp("Failed to parse plist for \(directoryName)", logType: MainViewController.logType)
+                    Logger.info("Failed to parse plist for \(directoryName)", category: .core, toUserDirectory: true)
                     return nil
                 }
 
@@ -205,10 +205,10 @@ extension MainViewController {
                     versionKey: plistDictionary["versionKey"] as? String ?? ""
                 )
             } catch {
-                Logger.logApp("Error loading plist for \(directoryName): \(error)", logType: MainViewController.logType)
+                Logger.info("Error loading plist for \(directoryName): \(error)", category: .core, toUserDirectory: true)
             }
         } else {
-            Logger.logApp("Plist file not found for directory: \(directoryName)", logType: MainViewController.logType)
+            Logger.info("Plist file not found for directory: \(directoryName)", category: .core, toUserDirectory: true)
         }
 
         return nil

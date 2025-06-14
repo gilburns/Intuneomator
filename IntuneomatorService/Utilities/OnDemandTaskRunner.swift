@@ -16,8 +16,6 @@ class OnDemandTaskRunner {
     /// Maximum number of idle iterations before terminating (25 seconds total)
     static let maxIdleIterations = 5 // 5 * 5 = 25 seconds idle
     
-    /// Log type identifier for logging operations
-    static let logType = "OnDemandTaskRunner"
 
     /// Starts the on-demand task runner that monitors for trigger files and processes automation tasks
     /// Runs continuously until no tasks are found for the maximum idle period
@@ -38,14 +36,14 @@ class OnDemandTaskRunner {
                 if name.hasSuffix(".trigger") {
                     triggerFiles.append(file)
                 } else {
-                    Logger.log("Removing unexpected file: \(name)", logType: logType)
+                    Logger.info("Removing unexpected file: \(name)", category: .core)
                     try? FileManager.default.removeItem(at: file)
                 }
             }
 
             if triggerFiles.isEmpty {
                 idleCount += 1
-                Logger.log("Idle count: \(idleCount)", logType: logType)
+                Logger.info("Idle count: \(idleCount)", category: .core)
                 try? await Task.sleep(nanoseconds: UInt64(idleWaitTime * 1_000_000_000))
                 continue
             }
@@ -54,26 +52,26 @@ class OnDemandTaskRunner {
 
             for file in triggerFiles {
                 let folderName = file.deletingPathExtension().lastPathComponent
-                Logger.log("Processing touch file: \(folderName)", logType: logType)
+                Logger.info("Processing touch file: \(folderName)", category: .core)
                 let folderPath = managedTitlesDirectory.appendingPathComponent(folderName)
 
                 guard FileManager.default.fileExists(atPath: folderPath.path, isDirectory: nil) else {
-                    Logger.log("Skipping nonexistent folder: \(folderName)", logType: logType)
+                    Logger.info("Skipping nonexistent folder: \(folderName)", category: .core)
                     try? FileManager.default.removeItem(at: file)
                     continue
                 }
 
                 do {
-                    Logger.log("Processing: \(folderName)", logType: logType)
+                    Logger.info("Processing: \(folderName)", category: .core)
                     let processingResult = await LabelAutomation.processFolder(named: folderName)
-                    Logger.log("Finished: \(folderName): \(processingResult)", logType: logType)
+                    Logger.info("Finished: \(folderName): \(processingResult)", category: .core)
                     try FileManager.default.removeItem(at: file)
                 } catch {
-                    Logger.log("Error processing \(folderName): \(error.localizedDescription)", logType: logType)
+                    Logger.error("Error processing \(folderName): \(error.localizedDescription)", category: .core)
                 }
             }
         }
 
-        Logger.log("No more files to process. Exiting.", logType: logType)
+        Logger.info("No more files to process. Exiting.", category: .core)
     }
 }

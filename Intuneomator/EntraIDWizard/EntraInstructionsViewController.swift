@@ -23,8 +23,6 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
     /// Indicates if this step has been completed (always true for instructional step)
     var isStepCompleted: Bool { return true } // Read-only step, so always complete
 
-    /// Log type identifier for logging operations
-    private let logType = "Settings"
 
     // MARK: - Interface Builder Outlets
     
@@ -55,7 +53,7 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
     /// Converts markdown to styled HTML and loads it in the web view
     func loadMarkdownInstructions() {
         guard let filePath = Bundle.main.path(forResource: "entra-app-setup", ofType: "md") else {
-            Logger.logApp("Markdown file not found in bundle", logType: logType)
+            Logger.info("Markdown file not found in bundle", category: .core, toUserDirectory: true)
             return
         }
 
@@ -64,7 +62,7 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
             let htmlText = convertMarkdownToHTML(markdownText)
             webView.loadHTMLString(htmlText, baseURL: nil)
         } catch {
-            Logger.logApp("Failed to load Markdown file.", logType: logType)
+            Logger.info("Failed to load Markdown file.", category: .core, toUserDirectory: true)
         }
     }
 
@@ -110,7 +108,7 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
             case .success(let pdfData):
                 self.printPDFData(pdfData)
             case .failure(let error):
-                Logger.logApp("Failed to create PDF for printing: \(error.localizedDescription)", logType: logType)
+                Logger.info("Failed to create PDF for printing: \(error.localizedDescription)", category: .core, toUserDirectory: true)
             }
         }
     }
@@ -120,7 +118,7 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
     /// - Parameter pdfData: PDF data generated from web view content
     func printPDFData(_ pdfData: Data) {
         guard let pdfDocument = PDFDocument(data: pdfData) else {
-            Logger.logApp("Error: Failed to create PDF document from data", logType: logType)
+            Logger.info("Error: Failed to create PDF document from data", category: .core, toUserDirectory: true)
             return
         }
 
@@ -176,16 +174,16 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
                 case .success(let data):
                     do {
                         try data.write(to: url)
-                        Logger.logApp("PDF successfully saved at: \(url)", logType: logType)
+                        Logger.info("PDF successfully saved at: \(url)", category: .core, toUserDirectory: true)
                     } catch {
-                        Logger.logApp("Failed to save PDF: \(error)", logType: logType)
+                        Logger.info("Failed to save PDF: \(error)", category: .core, toUserDirectory: true)
                     }
                 case .failure(let error):
-                    Logger.logApp("Failed to create PDF: \(error.localizedDescription)", logType: logType)
+                    Logger.info("Failed to create PDF: \(error.localizedDescription)", category: .core, toUserDirectory: true)
                 }
             }
         } else {
-            Logger.logApp("PDF export is only supported on macOS 12 or later.", logType: logType)
+            Logger.info("PDF export is only supported on macOS 12 or later.", category: .core, toUserDirectory: true)
         }
     }
     

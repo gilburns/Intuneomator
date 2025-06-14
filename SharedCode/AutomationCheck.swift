@@ -11,7 +11,6 @@ import Foundation
 /// Provides checks for required files and key/value presence in metadata, assignments, scripts, and plists.
 enum AutomationCheck {
     
-    private static let logType = "AutomationCheck"
 
     /// Required keys in metadata.json
     private static let requiredMetadataKeys = [

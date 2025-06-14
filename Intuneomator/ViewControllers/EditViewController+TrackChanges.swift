@@ -65,7 +65,6 @@ extension EditViewController {
         guard let lastMetadata = lastLoadedMetadata else {
             hasUnsavedChanges = false
             highlightChangesAgainstDefaults(currentMetadata: currentMetadata!)
-//            print("No previously loaded metadata; comparing against default values.")
             
             // Notify TabViewController to update the Save button state
             parentTabViewController?.updateSaveButtonState()
@@ -79,11 +78,9 @@ extension EditViewController {
         if currentMetadata != lastMetadata {
             hasUnsavedChanges = true
             highlightChangedFields(currentMetadata: currentMetadata!, lastMetadata: lastMetadata)
-//            print("Changes detected in EditView.")
         } else {
             hasUnsavedChanges = false
             clearFieldHighlights()
-//            print("No changes detected in EditView.")
         }
 
         // Notify TabViewController to update the Save button state
@@ -168,7 +165,6 @@ extension EditViewController {
     /// Clears all highlight backgrounds and borders from tracked UI fields.
     /// Resets any visual indicators of unsaved changes.
     private func clearFieldHighlights() {
-//        print("clearFieldHighlights ALL")
         clearHighlight(buttonSelectCategories)
 //        fieldInfoURL.backgroundColor = nil
         fieldPublisher.backgroundColor = nil
@@ -213,12 +209,9 @@ extension EditViewController {
         // Check categories
         let currentCategoryIDs = Set(currentMetadata.categories.map { $0.id })
         let lastCategoryIDs = Set(lastMetadata.categories.map { $0.id })
-//        print("Category IDs Check: \(currentCategoryIDs) \(lastCategoryIDs)")
         if currentCategoryIDs != lastCategoryIDs {
-//            print("highlight")
             highlightField(buttonSelectCategories)
         } else {
-//            print("clear")
             clearHighlight(buttonSelectCategories)
         }
 
@@ -314,7 +307,7 @@ extension EditViewController {
     func setTextViewBorder(field: NSTextView, color: NSColor) {
         guard let scrollView = field.enclosingScrollView else {
             #if DEBUG
-            print("No enclosing NSScrollView found.")
+            Logger.warning("No enclosing NSScrollView found.", category: .core, toUserDirectory: true)
             #endif
             return
         }
@@ -396,16 +389,12 @@ extension EditViewController {
         switch sender.selectedItem?.tag {
         case 0:
             AppDataManager.shared.currentAppType = "macOSDmgApp"
-//            print("Selected macOSDmgApp")
         case 1:
             AppDataManager.shared.currentAppType = "macOSPkgApp"
-//            print("Selected macOSPkgApp")
         case 2:
             AppDataManager.shared.currentAppType = "macOSLobApp"
-//            print("Selected macOSLobApp")
         default:
             AppDataManager.shared.currentAppType = ""
-//            print("Selected no type")
         }
     
         populateFieldsFromAppData()
@@ -447,10 +436,8 @@ extension EditViewController {
     func markUnsavedChanges() {
         hasUnsavedChanges = true
         if let parentVC = parent as? TabViewController {
-//            print("Parent is TabViewController.")
             parentVC.updateSaveButtonState()
         } else {
-//            print("Parent is not TabViewController. Actual parent: \(String(describing: parent))")
         }
         parentTabViewController?.updateSaveButtonState()
     }

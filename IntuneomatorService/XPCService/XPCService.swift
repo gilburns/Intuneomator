@@ -22,8 +22,6 @@ class XPCService: NSObject, XPCServiceProtocol {
     /// Dictionary tracking active operations to prevent concurrent access issues
     private var transactionObjects: [String: NSObject] = [:]
     
-    /// Log type identifier for logging operations
-    let logType = "XPCService"
     
     /// Begins a tracked operation to prevent concurrent access to shared resources
     /// - Parameters:
@@ -37,12 +35,12 @@ class XPCService: NSObject, XPCServiceProtocol {
         }
         
         self.transactionObjects[identifier] = NSObject()
-        Logger.log("Transaction begun for: \(identifier)", logType: logType)
+        Logger.info("Transaction begun for: \(identifier)", category: .core)
         
         // Add automatic timeout
         DispatchQueue.main.asyncAfter(deadline: .now() + timeout) { [weak self] in
             if self?.transactionObjects[identifier] != nil {
-                Logger.log("Transaction \(identifier) timed out after \(timeout) seconds", logType: self!.logType)
+                Logger.info("Transaction \(identifier) timed out after \(timeout) seconds", category: .core)
                 self?.transactionObjects.removeValue(forKey: identifier)
             }
         }
@@ -58,7 +56,7 @@ class XPCService: NSObject, XPCServiceProtocol {
         // Remove the transaction object
         if self.transactionObjects[identifier] != nil {
             self.transactionObjects.removeValue(forKey: identifier)
-            Logger.log("Transaction ended for: \(identifier)", logType: logType)
+            Logger.info("Transaction ended for: \(identifier)", category: .core)
         }
         completion(true)
     }

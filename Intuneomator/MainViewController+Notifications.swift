@@ -51,6 +51,18 @@ extension MainViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(handleNewDirectoryAdded(_:)), name: .newDirectoryAdded, object: nil)
 
         NotificationCenter.default.addObserver(self, selector: #selector(handleLabelEditCompleted(_:)), name: .labelEditCompleted, object: nil)
+        
+        // register for potential Daemon status updates
+        StatusMonitor.shared.startMonitoring()
+        
+        // Observe changes
+        StatusMonitor.shared.$operations
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] operations in
+                self?.updateUI(operations: operations)
+            }
+            .store(in: &cancellables)
+
     }
     
     // MARK: - Notification Handlers
@@ -182,6 +194,24 @@ extension MainViewController {
                     self.invalidateValidationCache()
                 }
             }
+        }
+    }
+
+    /**
+     * Handles notifications from the Daemon and updates the GUI as required.
+     *
+     */
+    
+    private func updateUI(operations: [String: StatusMonitor.OperationProgress]) {
+        let active = operations.values.filter { $0.status.isActive }
+        
+        if let current = active.first {
+            statusLabel.stringValue = "\(current.appName): \(current.currentPhase.name)"
+            progressView.doubleValue = current.overallProgress * 100
+            progressView.isHidden = false
+        } else {
+            statusLabel.stringValue = "Ready"
+            progressView.isHidden = true
         }
     }
 

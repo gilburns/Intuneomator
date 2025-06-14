@@ -87,14 +87,12 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     ///   - parent: Reference to the parent TabViewController for save state updates.
     func configure(with data: Any, parent: TabViewController) {
         guard let appData = data as? AppInfo else {
-//            print("Invalid data passed to GroupAssignViewController")
             return
         }
         self.appData = appData
         self.parentTabViewController = parent
         
         // Additional setup logic, if needed
-        //        print("GroupAssignViewController configured with data: \(appData)")
     }
     
     /// Marks that the assignments have been changed, setting `hasUnsavedChanges` and
@@ -111,7 +109,6 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
         super.viewDidLoad()
         
         guard let appData = appData else {
-//            print("App data is not set.")
             return
         }
         
@@ -196,7 +193,6 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     /// - Parameter sender: The assignment button clicked.
     @IBAction func selectGroupsForAssignment(_ sender: NSButton) {
         guard let appData = appData else {
-//            print("Error: appData is missing.")
             return
         }
         
@@ -212,7 +208,6 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
         case assignUninstallGroupButton:
             assignmentType = "Uninstall"
         default:
-//            print("Unknown button clicked")
             return
         }
         
@@ -257,7 +252,6 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     /// - Parameter sender: The Filter button that was clicked.
     @IBAction func selectFilterForAssignment(_ sender: NSButton) {
         guard let appData = appData else {
-//            print("Error: appData is missing.")
             return
         }
         
@@ -306,25 +300,18 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
     /// Loads group assignments from the `assignments.json` file if it exists.
     /// Parses the JSON array into `groupAssignments` and sorts them for display.
     private func loadAssignments() {
-//        print("loading assignments...")
-//        print("assignments file path: \(assignmentsFilePath?.path ?? "nil")")
         guard let filePath = assignmentsFilePath else { return }
         guard FileManager.default.fileExists(atPath: filePath.path) else { return }
         
         do {
             let data = try Data(contentsOf: filePath)
-//            print("Data loaded successfully")
             // Parse the JSON as an array of dictionaries
             if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] {
                 groupAssignments = json
                 sortGroupAssignments()
-//                print("Loaded \(groupAssignments.count) group assignments")
-//                print("Group assignments: \(groupAssignments)")
             } else {
-//                print("JSON format is invalid")
             }
         } catch {
-//            print("Failed to load assignments: \(error)")
         }
     }
     
@@ -574,10 +561,8 @@ extension GroupAssignViewController: TabSaveable {
     /// - Uses `appData.label` and `appData.guid` to determine the file folder for assignments.
     func saveMetadata() {
         // Save logic for the Group Assignments tab
-//        print("Saving data for GroupAssignmentsView...")
         
         guard let appData = appData else {
-//            print("No app data available to save assignments.")
             return
         }
         
@@ -594,10 +579,8 @@ extension GroupAssignViewController: TabSaveable {
                     // Notify the TabViewController to update the Save button state
                     self.parentTabViewController?.updateSaveButtonState()
                     
-//                    print("Group assignments saved successfully.")
                 }
             } else {
-//                print("Failed to save group assignments.")
             }
         }
     }

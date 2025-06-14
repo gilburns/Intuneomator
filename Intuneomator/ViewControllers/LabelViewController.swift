@@ -122,7 +122,7 @@ class LabelViewController: NSViewController {
                 } else {
                     // On failure, stop the spinner and log the error.
                     self.progressIndicator.stopAnimation(nil)
-                    print("Failed to update label content")
+                    Logger.error("Failed to update label content", category: .core, toUserDirectory: true)
                 }
             }
         }
@@ -264,7 +264,7 @@ class LabelViewController: NSViewController {
             labelTableView.reloadData()
         } catch {
             // On any error, print to console (e.g., if directories are missing).
-            print("Failed to load label data: \(error)")
+            Logger.error("Failed to load label data: \(error)", category: .core, toUserDirectory: true)
         }
     }
     
@@ -309,7 +309,7 @@ class LabelViewController: NSViewController {
         } catch {
             // On failure, show an error message in `versionTextField` and log the error.
             versionTextField.stringValue = "Failed to load version file: \(error.localizedDescription)"
-            print("Error loading Version.txt: \(error)")
+            Logger.error("Error loading Version.txt: \(error)", category: .core, toUserDirectory: true)
         }
     }
 }
@@ -407,7 +407,7 @@ extension LabelViewController: NSTableViewDataSource, NSTableViewDelegate {
 
         } catch {
             // If reading the managed titles directory fails, disable the button and set title to “Error”.
-            print("Error reading directory contents: \(error.localizedDescription)")
+            Logger.error("Error reading directory contents: \(error.localizedDescription)", category: .core, toUserDirectory: true)
             buttonAddLabel.isEnabled = false
             buttonAddLabel.title = "Error"
         }

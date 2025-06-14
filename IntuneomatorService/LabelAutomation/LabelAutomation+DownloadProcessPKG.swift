@@ -79,12 +79,12 @@ extension LabelAutomation {
         // Process download based on archive type to locate PKG installer
         switch downloadType.lowercased() {
         case "pkg":
-            Logger.log("Handle type pkg specifics", logType: logType)
+            Logger.debug("Handle type pkg specifics", category: .automation)
             // Direct PKG file - use as-is
             pkgToProcessURL = downloadURL
             
         case "pkginzip":
-            Logger.log("Handle type pkginzip specifics", logType: logType)
+            Logger.debug("Handle type pkginzip specifics", category: .automation)
             // Extract ZIP archive and locate PKG installer
             let extractedFolder = try await extractZipFile(zipURL: downloadURL)
             let pkgFiles = try findFiles(inFolder: extractedFolder, withExtension: "pkg")
@@ -93,10 +93,10 @@ extension LabelAutomation {
                 throw NSError(domain: "ProcessingError", code: 102, userInfo: [NSLocalizedDescriptionKey: "No PKG file found in ZIP archive"])
             }
             pkgToProcessURL = pkgFile
-            Logger.log("Pkg to process: \(pkgToProcessURL.absoluteString)", logType: logType)
+            Logger.info("Pkg to process: \(pkgToProcessURL.absoluteString)", category: .automation)
             
         case "pkgindmg":
-            Logger.log("Handle type pkgindmg specifics", logType: logType)
+            Logger.debug("Handle type pkgindmg specifics", category: .automation)
             // Mount DMG, locate PKG installer, and copy to safe location
             let mountPoint = try await mountDMGFile(dmgURL: downloadURL)
             defer { _ = try? unmountDMG(mountPoint: mountPoint) }
@@ -107,9 +107,9 @@ extension LabelAutomation {
                 throw NSError(domain: "ProcessingError", code: 103, userInfo: [NSLocalizedDescriptionKey: "No PKG file found in mounted DMG"])
             }
             
-            Logger.log("pkgFile: \(pkgFile.path)", logType: logType)
+            Logger.info("pkgFile: \(pkgFile.path)", category: .automation)
             let pkgName = pkgFile.lastPathComponent
-            Logger.log("Pkg name: \(pkgName)", logType: logType)
+            Logger.info("Pkg name: \(pkgName)", category: .automation)
             
             // Copy PKG installer off the mounted DMG to ensure URL remains valid after unmounting
             if let copyDir = downloadURL.deletingLastPathComponent().path.removingPercentEncoding {
@@ -120,13 +120,13 @@ extension LabelAutomation {
                 }
                 try FileManager.default.copyItem(atPath: pkgFile.path, toPath: destinationURL.path)
                 pkgToProcessURL = destinationURL
-                Logger.log("Pkg to process: \(pkgToProcessURL.absoluteString)", logType: logType)
+                Logger.info("Pkg to process: \(pkgToProcessURL.absoluteString)", category: .automation)
             } else {
                 throw NSError(domain: "ProcessingError", code: 122, userInfo: [NSLocalizedDescriptionKey: "Invalid copy directory for PKG-DMG processing"])
             }
             
         case "pkgindmginzip":
-            Logger.log("Handle type pkgindmginzip specifics", logType: logType)
+            Logger.debug("Handle type pkgindmginzip specifics", category: .automation)
             // Extract ZIP, mount contained DMG, locate PKG installer, and copy to safe location
             let extractedFolder = try await extractZipFile(zipURL: downloadURL)
             let dmgFiles = try findFiles(inFolder: extractedFolder, withExtension: "dmg")
@@ -144,9 +144,9 @@ extension LabelAutomation {
                 throw NSError(domain: "ProcessingError", code: 105, userInfo: [NSLocalizedDescriptionKey: "No PKG file found in mounted DMG (from ZIP)"])
             }
             
-            Logger.log("pkgFile: \(pkgFile.path)", logType: logType)
+            Logger.info("pkgFile: \(pkgFile.path)", category: .automation)
             let pkgName = pkgFile.lastPathComponent
-            Logger.log("Pkg name: \(pkgName)", logType: logType)
+            Logger.info("Pkg name: \(pkgName)", category: .automation)
             
             // Copy PKG installer off the mounted DMG to ensure URL remains valid after unmounting
             if let copyDir = downloadURL.deletingLastPathComponent().path.removingPercentEncoding {
@@ -157,7 +157,7 @@ extension LabelAutomation {
                 }
                 try FileManager.default.copyItem(atPath: pkgFile.path, toPath: destinationURL.path)
                 pkgToProcessURL = destinationURL
-                Logger.log("Pkg to process: \(pkgToProcessURL.absoluteString)", logType: logType)
+                Logger.info("Pkg to process: \(pkgToProcessURL.absoluteString)", category: .automation)
             } else {
                 throw NSError(domain: "ProcessingError", code: 123, userInfo: [NSLocalizedDescriptionKey: "Invalid copy directory for PKG-DMG-ZIP processing"])
             }
@@ -172,12 +172,12 @@ extension LabelAutomation {
         // Verify code signature against expected Team ID
         let signatureResult = inspectSignatureOfDownloadedSoftware(for: pkgToProcessURL, expectedTeamID: expectedTeamID, inspectionType: "pkg")
         
-        Logger.log("  Inspect result: \(signatureResult)", logType: logType)
+        Logger.info("  Inspect result: \(signatureResult)", category: .automation)
         
         if signatureResult == true {
-            Logger.log("  Signature is valid.", logType: logType)
+            Logger.info("  Signature is valid.", category: .automation)
         } else {
-            Logger.log("  Signature is invalid.", logType: logType)
+            Logger.info("  Signature is invalid.", category: .automation)
             throw NSError(domain: "ProcessingError", code: 101, userInfo: [NSLocalizedDescriptionKey : "Signature is invalid."])
         }
         
@@ -192,14 +192,14 @@ extension LabelAutomation {
                 switch result {
                 case .success(let version):
                     if let version = version {
-                        Logger.log("  Version for package ID '\(packageID)': \(version)", logType: logType)
+                        Logger.info("  Version for package ID '\(packageID)': \(version)", category: .automation)
                         continuation.resume(returning: version)
                     } else {
-                        Logger.log("  Package ID '\(packageID)' not found in the .pkg", logType: logType)
+                        Logger.info("  Package ID '\(packageID)' not found in the .pkg", category: .automation)
                         continuation.resume(returning: "None")
                     }
                 case .failure(let error):
-                    Logger.log("Error inspecting .pkg: \(error.localizedDescription)", logType: logType)
+                    Logger.error("Error inspecting .pkg: \(error.localizedDescription)", category: .automation)
                     continuation.resume(returning: "None")
                 }
             }
@@ -207,7 +207,7 @@ extension LabelAutomation {
         
         // Validate version against expected (log warning if mismatch, but continue)
         if downloadedVersion != expectedVersion && expectedVersion != "" {
-            Logger.log("⚠️ Version mismatch: downloaded \(downloadedVersion), expected \(expectedVersion)", logType: logType)
+            Logger.warning("⚠️ Version mismatch: downloaded \(downloadedVersion), expected \(expectedVersion)", category: .automation)
             // Note: Continuing with downloaded version as it may be a newer release
         }
         
@@ -231,12 +231,12 @@ extension LabelAutomation {
         // Copy the processed PKG installer to final destination
         try FileManager.default.copyItem(at: pkgToProcessURL, to: destinationURL)
         
-        Logger.log("📁 Copied PKG installer to: \(destinationURL.path)", logType: logType)
+        Logger.info("📁 Copied PKG installer to: \(destinationURL.path)", category: .automation)
         
         // Log final results
-        Logger.log("Output URL: \(destinationURL)", logType: logType)
-        Logger.log("Output Package ID: \(packageID)", logType: logType)
-        Logger.log("Output Version: \(downloadedVersion)", logType: logType)
+        Logger.info("Output URL: \(destinationURL)", category: .automation)
+        Logger.info("Output Package ID: \(packageID)", category: .automation)
+        Logger.info("Output Version: \(downloadedVersion)", category: .automation)
         
         outputURL = destinationURL
         

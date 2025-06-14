@@ -11,15 +11,13 @@ import Foundation
 /// Creates required directory structure, downloads Installomator labels, and configures Launch Daemons
 class FirstRun {
     
-    /// Log type identifier for logging operations
-    static let logType = "FirstRun"
 
     /// Performs first-run initialization if not already completed
     /// Sets up folder structure, downloads labels, and configures scheduled tasks
     static func checkFirstRun() -> Void {
         
         if ConfigManager.readPlistValue(key: "FirstRunServiceCompleted") ?? false {
-//            Logger.log("Intuneomator first run has already run. Exiting...", logType: logType)
+//            Logger.info("Intuneomator first run has already run. Exiting...", category: .core)
             return
         }
         
@@ -36,9 +34,9 @@ class FirstRun {
         let setFirstRun = ConfigManager.writePlistValue(key: "FirstRunServiceCompleted", value: true)
         
         if !setFirstRun {
-            Logger.log("Failed to set FirstRun to true in config.plist", logType: logType)
+            Logger.error("Failed to set FirstRun to true in config.plist", category: .core)
         } else {
-            Logger.log(">>> First run complete! <<<", logType: logType)
+            Logger.info(">>> First run complete! <<<", category: .core)
         }
     }
     
@@ -47,7 +45,7 @@ class FirstRun {
     /// Creates the required directory structure for Intuneomator operations
     /// Ensures all necessary folders exist with proper permissions
     static func setupSupportFolders() {
-        Logger.log("Checking for and creating application support folders...", logType: logType)
+        Logger.info("Checking for and creating application support folders...", category: .core)
         let folders = [
             AppConstants.intuneomatorFolderURL.path,
             AppConstants.intuneomatorCacheFolderURL.path,
@@ -62,15 +60,15 @@ class FirstRun {
         for folder in folders {
             if !FileManager.default.fileExists(atPath: folder) {
                 _ = FileFolderManagerUtil.createFolder(at: folder)
-                Logger.log("Created folder: \(folder)", logType: logType)
+                Logger.info("Created folder: \(folder)", category: .core)
             }
         }
         
         // Check if Installomator labels exist
         // Installs labels at first launch
-        Logger.log("Checking for Installomator labels...", logType: logType)
+        Logger.info("Checking for Installomator labels...", category: .core)
         if !FileManager.default.fileExists(atPath: AppConstants.installomatorLabelsFolderURL.path) {
-            Logger.log("Installomator labels not found. Downloading...", logType: logType)
+            Logger.info("Installomator labels not found. Downloading...", category: .core)
             downloadInstallomatorLabels()
         }
     }
@@ -83,7 +81,7 @@ class FirstRun {
         InstallomatorLabels.installInstallomatorLabels { success, message in
             DispatchQueue.main.async {
                 if success {
-                    Logger.log("Installomator labels downloaded successfully.", logType: logType)
+                    Logger.info("Installomator labels downloaded successfully.", category: .core)
 
                     if FileFolderManagerUtil.changePermissionsRecursively(
                         at: AppConstants.installomatorLabelsFolderURL.path,
@@ -91,7 +89,7 @@ class FirstRun {
                         excludeHiddenFiles: true,
                         skipDirectories: true
                     ) {
-                        Logger.log("Permissions changed for files recursively!", logType: logType)
+                        Logger.info("Permissions changed for files recursively!", category: .core)
                     }
                     if FileFolderManagerUtil.changePermissionsRecursively(
                         at: AppConstants.installomatorLabelsFolderURL.path,
@@ -99,10 +97,10 @@ class FirstRun {
                         excludeHiddenFiles: true,
                         skipDirectories: false
                     ) {
-                        Logger.log("Permissions changed for directories recursively!", logType: logType)
+                        Logger.info("Permissions changed for directories recursively!", category: .core)
                     }
                 } else {
-                    Logger.log("Failed to download Installomator labels: \(message)", logType: logType)
+                    Logger.error("Failed to download Installomator labels: \(message)", category: .core)
                 }
             }
         }
@@ -131,11 +129,11 @@ class FirstRun {
                         (weekday: daemon.weekday, hour: daemon.hour, minute: 0)
                     ],
                     completion: { success, message in
-                        Logger.log(success ? "✅ Created \(daemon.label)" : "❌ Failed to create \(daemon.label): \(message ?? "unknown error")", logType: logType)
+                        Logger.info(success ? "✅ Created \(daemon.label)" : "❌ Failed to create \(daemon.label): \(message ?? "unknown error")", category: .core)
                     }
                 )
             } else {
-                Logger.log("ℹ️ \(daemon.label) already exists, skipping creation.", logType: logType)
+                Logger.info("ℹ️ \(daemon.label) already exists, skipping creation.", category: .core)
             }
         }
     }

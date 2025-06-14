@@ -31,7 +31,7 @@ extension LabelAutomation {
             let fileSizeMB = Double(fileSizeBytes) / 1_048_576
                         
             // Log tab-separated values for structured download tracking
-            Logger.logNoDateStamp("\(labelName)\t\(finalFilename)\t\(String(format: "%.2f", fileSizeMB)) MB\t\(finalURL.path)", logType: "Download")
+            Logger.log("\(labelName)\t\(finalFilename)\t\(String(format: "%.2f", fileSizeMB)) MB\t\(finalURL.path)", level: .info, category: .download)
         } catch {
             // Silently handle file attribute errors
         }
@@ -62,7 +62,7 @@ extension LabelAutomation {
         // Perform the file copy operation
         try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
         
-        Logger.log("📁 Copied file to: \(destinationURL.path)", logType: logType)
+        Logger.info("📁 Copied file to: \(destinationURL.path)", category: .automation)
         return destinationURL
     }
     
@@ -74,14 +74,14 @@ extension LabelAutomation {
     /// - Returns: The URL of the extraction directory containing extracted contents
     /// - Throws: ExtractionError if unzip command fails or returns non-zero exit status
     static func extractZipFile(zipURL: URL) async throws -> URL {
-        Logger.log("Extracting ZIP file: \(zipURL.lastPathComponent)", logType: logType)
+        Logger.info("Extracting ZIP file: \(zipURL.lastPathComponent)", category: .automation)
         
         let extractFolder = zipURL.deletingLastPathComponent()
         
         // Ensure extraction directory exists
         try FileManager.default.createDirectory(at: extractFolder, withIntermediateDirectories: true)
         
-        Logger.log("📦 Extracting ZIP file: \(zipURL.lastPathComponent)", logType: logType)
+        Logger.info("📦 Extracting ZIP file: \(zipURL.lastPathComponent)", category: .automation)
         
         // Execute unzip command with quiet mode and destination directory
         let process = Process()
@@ -99,8 +99,8 @@ extension LabelAutomation {
             throw NSError(domain: "ExtractionError", code: 201, userInfo: [NSLocalizedDescriptionKey: "Failed to extract ZIP file"])
         }
         
-        Logger.log("✅ ZIP extraction complete", logType: logType)
-        Logger.log("Extracted folder: \(extractFolder.path)", logType: logType)
+        Logger.info("✅ ZIP extraction complete", category: .automation)
+        Logger.info("Extracted folder: \(extractFolder.path)", category: .automation)
         return extractFolder
     }
     
@@ -110,14 +110,14 @@ extension LabelAutomation {
     /// - Returns: The URL of the extraction directory containing extracted contents
     /// - Throws: ExtractionError if ditto command fails or returns non-zero exit status
     static func extractZipFileWithDitto(zipURL: URL) async throws -> URL {
-        Logger.log("Extracting ZIP file: \(zipURL.lastPathComponent)", logType: logType)
+        Logger.info("Extracting ZIP file: \(zipURL.lastPathComponent)", category: .automation)
         
         let extractFolder = zipURL.deletingLastPathComponent()
         
         // Ensure extraction directory exists
         try FileManager.default.createDirectory(at: extractFolder, withIntermediateDirectories: true)
         
-        Logger.log("📦 Extracting ZIP file: \(zipURL.lastPathComponent)", logType: logType)
+        Logger.info("📦 Extracting ZIP file: \(zipURL.lastPathComponent)", category: .automation)
         
         // Execute ditto command with extract and keep structure options
         let process = Process()
@@ -135,8 +135,8 @@ extension LabelAutomation {
             throw NSError(domain: "ExtractionError", code: 201, userInfo: [NSLocalizedDescriptionKey: "Failed to extract ZIP file with ditto"])
         }
         
-        Logger.log("✅ ZIP extraction complete", logType: logType)
-        Logger.log("Extracted folder: \(extractFolder.path)", logType: logType)
+        Logger.info("✅ ZIP extraction complete", category: .automation)
+        Logger.info("Extracted folder: \(extractFolder.path)", category: .automation)
         return extractFolder
     }
     
@@ -146,7 +146,7 @@ extension LabelAutomation {
     /// - Returns: The URL of the extraction directory containing extracted contents
     /// - Throws: ExtractionError if tar command fails or returns non-zero exit status
     static func extractTBZFile(tbzURL: URL) async throws -> URL {
-        Logger.log("Extracting TBZ file: \(tbzURL.lastPathComponent)", logType: logType)
+        Logger.info("Extracting TBZ file: \(tbzURL.lastPathComponent)", category: .automation)
         
         let extractFolder = tbzURL.deletingLastPathComponent()
         
@@ -169,7 +169,7 @@ extension LabelAutomation {
             throw NSError(domain: "ExtractionError", code: 202, userInfo: [NSLocalizedDescriptionKey: "Failed to extract TBZ file"])
         }
         
-        Logger.log("✅ TBZ extraction complete", logType: logType)
+        Logger.info("✅ TBZ extraction complete", category: .automation)
         return extractFolder
     }
     
@@ -181,7 +181,7 @@ extension LabelAutomation {
     /// - Returns: The mount point path where the DMG is accessible
     /// - Throws: MountError if mounting fails, SLA conversion fails, or mount point cannot be determined
     static func mountDMGFile(dmgURL: URL) async throws -> String {
-        Logger.log("  Mounting DMG file: \(dmgURL.lastPathComponent)", logType: logType)
+        Logger.info("  Mounting DMG file: \(dmgURL.lastPathComponent)", category: .automation)
         
         let tempDir = dmgURL.deletingLastPathComponent()
 
@@ -193,9 +193,9 @@ extension LabelAutomation {
             if dmgHasSLA(at: dmgURL.path) {
                 let success = await convertDmgWithSLA(at: dmgURL.path)
                 if success {
-                Logger.logApp("Successfully converted dmg with SLA", logType: logType)
+                Logger.info("Successfully converted dmg with SLA", category: .automation)
                 } else {
-                    Logger.logApp("Failed to convert dmg with SLA", logType: logType)
+                    Logger.error("Failed to convert dmg with SLA", category: .automation)
                     throw NSError(domain: "EditViewController", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert dmg containing pkg"])
                 }
             }
@@ -220,7 +220,7 @@ extension LabelAutomation {
         // Verify successful mounting
         guard process.terminationStatus == 0 else {
             let errorOutput = String(data: errorPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? "Unknown error"
-            Logger.log("Error: Failed to mount .dmg file. \(errorOutput)", logType: logType)
+            Logger.error("Error: Failed to mount .dmg file. \(errorOutput)", category: .automation)
             throw NSError(domain: "MountError", code: 301, userInfo: [NSLocalizedDescriptionKey: "Failed to mount DMG file: \(errorOutput)"])
         }
         
@@ -235,7 +235,7 @@ extension LabelAutomation {
         // Extract mount point from system entities
         for entity in entities {
             if let mountPoint = entity["mount-point"] as? String {
-                Logger.log("  DMG mounted at: \(mountPoint)", logType: logType)
+                Logger.info("  DMG mounted at: \(mountPoint)", category: .automation)
                 return mountPoint
             }
         }
@@ -260,7 +260,7 @@ extension LabelAutomation {
         
         // Verify command executed successfully
         guard process.terminationStatus == 0 else {
-            Logger.log("Error: Failed to check for SLA in DMG.", logType: logType)
+            Logger.error("Error: Failed to check for SLA in DMG.", category: .automation)
             return false
         }
         
@@ -296,7 +296,7 @@ extension LabelAutomation {
         do {
             try process.run()
         } catch {
-            Logger.logApp("Error: Could not launch hdiutil: \(error)", logType: logType)
+            Logger.error("Error: Could not launch hdiutil: \(error)", category: .automation)
             return false
         }
 
@@ -309,13 +309,13 @@ extension LabelAutomation {
 
         // Verify conversion completed successfully
         guard process.terminationStatus == 0 else {
-            Logger.logApp("Error: hdiutil failed to convert DMG with SLA.", logType: logType)
+            Logger.error("Error: hdiutil failed to convert DMG with SLA.", category: .automation)
             return false
         }
 
         // Verify converted file was created
         guard FileManager.default.fileExists(atPath: tempFileURL.path) else {
-            Logger.logApp("Error: Converted file not found at expected location.", logType: logType)
+            Logger.error("Error: Converted file not found at expected location.", category: .automation)
             return false
         }
 
@@ -324,7 +324,7 @@ extension LabelAutomation {
             try FileManager.default.removeItem(atPath: path)
             try FileManager.default.moveItem(atPath: tempFileURL.path, toPath: path)
         } catch {
-            Logger.logApp("Failed to finalize converted DMG: \(error)", logType: logType)
+            Logger.error("Failed to finalize converted DMG: \(error)", category: .automation)
             return false
         }
 
@@ -336,7 +336,7 @@ extension LabelAutomation {
     /// - Parameter mountPoint: The file system path where the DMG is mounted
     /// - Throws: Does not throw errors but logs unmounting failures for debugging
     static func unmountDMG(mountPoint: String) throws {
-        Logger.log("  Unmounting DMG: \(mountPoint)", logType: logType)
+        Logger.info("  Unmounting DMG: \(mountPoint)", category: .automation)
         
         // Execute hdiutil detach with force option to ensure unmounting
         let process = Process()
@@ -354,11 +354,11 @@ extension LabelAutomation {
         
         // Log success or failure with detailed error information
         if process.terminationStatus == 0 {
-            Logger.log("  DMG unmounted successfully", logType: logType)
+            Logger.info("  DMG unmounted successfully", category: .automation)
         } else {
             let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
             let errorMessage = String(data: errorData, encoding: .utf8) ?? "Unknown error"
-            Logger.log("  Failed to unmount DMG: \(errorMessage)", logType: logType)
+            Logger.error("  Failed to unmount DMG: \(errorMessage)", category: .automation)
         }
     }
     
@@ -395,9 +395,9 @@ extension LabelAutomation {
         }
         
         // Log discovery results for debugging
-        Logger.log("  Found \(foundFiles.count) files with extension .\(ext) in \(folderURL.path)", logType: logType)
+        Logger.info("  Found \(foundFiles.count) files with extension .\(ext) in \(folderURL.path)", category: .automation)
         for file in foundFiles {
-            Logger.log("   - \(file.lastPathComponent)", logType: logType)
+            Logger.info("   - \(file.lastPathComponent)", category: .automation)
         }
         
         // Sort by shortest path length (typically finds files at root level first)

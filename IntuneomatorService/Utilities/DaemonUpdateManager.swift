@@ -32,8 +32,6 @@ class DaemonUpdateManager {
     /// Expected Apple Developer Team ID for signature validation
     static let expectedTeamID = "G4MQ57TVLE"
     
-    /// Log type identifier for logging operations
-    static let logType = "DaemonUpdateManager"
 
     /// Gets the combined local version (CFBundleShortVersionString.CFBundleVersion)
     /// - Returns: Version string from the app's Info.plist, or "0.0.0.0" if not found
@@ -52,12 +50,12 @@ class DaemonUpdateManager {
     static func checkAndPerformUpdateIfNeeded() {
         fetchRemoteVersion { remoteVersion in
             guard let remoteVersion = remoteVersion else {
-                Logger.log("❌ Failed to fetch remote version.", logType: logType)
+                Logger.error("❌ Failed to fetch remote version.", category: .core)
                 exit(EXIT_FAILURE)
             }
 
             if remoteVersion.compare(localCombinedVersion, options: .numeric) == .orderedDescending {
-                Logger.log("⬇️ New version available: \(remoteVersion)", logType: logType)
+                Logger.info("⬇️ New version available: \(remoteVersion)", category: .core)
                 
                 // Check if we should self update or just send a teams notification
                 // 🔔 Teams Notification
@@ -70,16 +68,16 @@ class DaemonUpdateManager {
                     let url = ConfigManager.readPlistValue(key: "TeamsWebhookURL") ?? ""
 
                     if url.isEmpty {
-                        Logger.log("No Teams Webhook URL set in Config. Not sending notification.")
+                        Logger.info("No Teams Webhook URL set in Config. Not sending notification.", category: .core)
                     } else {
                         let version = "unknown"
                         if let plist = NSDictionary(contentsOfFile: "/Applications/Intuneomator.app/Contents/Info.plist"),
                            let bundleVersion = plist["CFBundleShortVersionString"] as? String {
-                            Logger.log("Detected Intuneomator version: \(bundleVersion)")
+                            Logger.info("Detected Intuneomator version: \(bundleVersion)", category: .core)
                             let teamsNotifier = TeamsNotifier(webhookURL: url)
                             teamsNotifier.sendUpdateAvailableNotification(initialVersion: bundleVersion, updatedVersion: bundleVersion)
                         } else {
-                            Logger.log("⚠️ Could not determine Intuneomator version.")
+                            Logger.info("⚠️ Could not determine Intuneomator version.", category: .core)
                             let teamsNotifier = TeamsNotifier(webhookURL: url)
                             teamsNotifier.sendUpdateAvailableNotification(initialVersion: "Unknown version", updatedVersion: version, errorMessage: "Unable to determine updated version.")
                         }
@@ -94,17 +92,17 @@ class DaemonUpdateManager {
                             if isValid {
                                 runUpdater()
                             } else {
-                                Logger.log("❌ Package signature validation failed.", logType: logType)
+                                Logger.error("❌ Package signature validation failed.", category: .core)
                                 exit(EXIT_FAILURE)
                             }
                         }
                     } else {
-                        Logger.log("❌ Update download failed.", logType: logType)
+                        Logger.error("❌ Update download failed.", category: .core)
                         exit(EXIT_FAILURE)
                     }
                 }
             } else {
-                Logger.log("✅ Already up-to-date.", logType: logType)
+                Logger.info("✅ Already up-to-date.", category: .core)
                 exit(EXIT_SUCCESS)
             }
         }
@@ -127,9 +125,9 @@ class DaemonUpdateManager {
         let resultTeamID = signatureResult["DeveloperTeam"] as? String ?? ""
         let resultDeveloperID = signatureResult["DeveloperID"] as? String ?? ""
 
-        Logger.log("Validated Result: \(resultAccepted)", logType: logType)
-        Logger.log("Validated Team ID: \(resultTeamID)", logType: logType)
-        Logger.log("Validated Developer ID: \(resultDeveloperID)", logType: logType)
+        Logger.info("Validated Result: \(resultAccepted)", category: .core)
+        Logger.info("Validated Team ID: \(resultTeamID)", category: .core)
+        Logger.info("Validated Developer ID: \(resultDeveloperID)", category: .core)
 
         #if DEBUG
         if resultTeamID == expectedTeamID {
@@ -173,7 +171,7 @@ class DaemonUpdateManager {
                 try FileManager.default.moveItem(at: tempURL, to: destURL)
                 completion(true)
             } catch {
-                Logger.log("❌ Move error: \(error)", logType: logType)
+                Logger.error("❌ Move error: \(error)", category: .core)
                 completion(false)
             }
         }
@@ -198,12 +196,12 @@ class DaemonUpdateManager {
             process.executableURL = URL(fileURLWithPath: "/tmp/IntuneomatorUpdater")
             process.arguments = ["--caller-pid", "\(getpid())"]
             try process.run()
-            Logger.log("🚀 Updater launched successfully.", logType: logType)
+            Logger.info("🚀 Updater launched successfully.", category: .core)
 
             sleep(4)
             exit(EXIT_SUCCESS)
         } catch {
-            Logger.log("❌ Failed to run updater: \(error)", logType: logType)
+            Logger.error("❌ Failed to run updater: \(error)", category: .core)
             exit(EXIT_FAILURE)
         }
     }

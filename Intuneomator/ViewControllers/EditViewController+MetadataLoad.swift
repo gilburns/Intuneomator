@@ -35,12 +35,10 @@ extension EditViewController {
     /// both `lastMetadataPartial` and `currentMetadataPartial` for change tracking.
     func loadMetadata() {
         guard let labelName = appData?.label else {
-            //            print("Label name is missing.")
             return
         }
         
         guard let labelGUID = appData?.guid else {
-            //            print("GUID is missing.")
             return
         }
         
@@ -53,7 +51,6 @@ extension EditViewController {
             appMetadata = try JSONDecoder().decode(Metadata.self, from: data)
             
         } catch {
-            //            print("Failed to load metadata: \(error)")
             setDefaultMetadataValues() // Set defaults when no metadata file is found
         }
         
@@ -90,7 +87,6 @@ extension EditViewController {
     /// It also constructs a `defaultMetadata` object to represent baseline metadata and
     /// assigns it to `lastLoadedMetadata` for future comparison.
     private func setDefaultMetadataValues() {
-        //        print("Setting default metadata values.")
         
         // Set default values for GUI items
         fieldPublisher.stringValue = ""

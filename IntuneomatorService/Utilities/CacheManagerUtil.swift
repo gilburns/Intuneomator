@@ -11,8 +11,6 @@ import Foundation
 /// Removes orphaned cache folders and maintains version limits to control disk usage
 class CacheManagerUtil {
     
-    /// Log type identifier for logging operations
-    static private let logType = "CacheCleaner"
     
     /// Removes cache folders that no longer correspond to active managed titles
     /// Compares cache folder names against managed titles and deletes unmatched entries
@@ -38,7 +36,7 @@ class CacheManagerUtil {
                 if !managedTitles.contains(folderName) {
                     // Not a managed title, delete it
                     try? FileManager.default.removeItem(at: folder)
-                    Logger.log("🗑️ Removed orphaned cache folder: \(folderName)", logType: logType)
+                    Logger.info("🗑️ Removed orphaned cache folder: \(folderName)", category: .core)
                 }
             }
         }
@@ -67,7 +65,7 @@ class CacheManagerUtil {
                 for version in versionsToDelete {
                     let versionPath = titleFolder.appendingPathComponent(version)
                     try? FileManager.default.removeItem(at: versionPath)
-                    Logger.log("🧹 Deleted old version: \(titleFolderName)/\(version)", logType: logType)
+                    Logger.info("🧹 Deleted old version: \(titleFolderName)/\(version)", category: .core)
                 }
             }
         }
@@ -76,10 +74,10 @@ class CacheManagerUtil {
     /// Performs comprehensive cache cleanup including orphan removal and version trimming
     /// Executes cleanup operations in optimal order for maximum effectiveness
     static func runCleanup() {
-        Logger.log("🔍 Running orphaned cache cleanup...", logType: logType)
+        Logger.info("🔍 Running orphaned cache cleanup...", category: .core)
         removeOrphanedCaches()
         
-        Logger.log("🔍 Trimming old versions...", logType: logType)
+        Logger.info("🔍 Trimming old versions...", category: .core)
         trimOldVersions()
     }
     

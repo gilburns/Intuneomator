@@ -44,7 +44,7 @@ extension MainViewController {
         XPCManager.shared.checkIntuneForAutomation() { success in
             if let success = success {
                 if success {
-                    Logger.logApp("Scan completed successfully.", logType: MainViewController.logType)
+                    Logger.info("Scan completed successfully.", category: .core, toUserDirectory: true)
                 }
             }
         }

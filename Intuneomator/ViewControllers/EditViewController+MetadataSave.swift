@@ -35,11 +35,10 @@ extension EditViewController: TabSaveable {
     ///  - Minimum OS ID and display string
     ///
     /// All fields are gathered from `appData`, `currentMetadataPartial`, and UI controls.
-    /// Errors during encoding or string conversion are logged via `Logger.logUser`.
+    /// Errors during encoding or string conversion are logged via `Logger`.
     /// On successful save, a confirmation is logged; on failure, an error is logged.
     func saveMetadata() {
         // Save logic for the Edit tab
-        //        print("Saving data for EditView...")
         
         guard let appData = appData else { return }
         
@@ -87,16 +86,16 @@ extension EditViewController: TabSaveable {
             if let jsonString = String(data: jsonData, encoding: .utf8) {
                 XPCManager.shared.saveMetadataForLabel(jsonString, labelFolder) { reply in
                     if reply == true {
-                        Logger.logApp("Saved metadata for \(labelFolder)")
+                        Logger.info("Saved metadata for \(labelFolder)", category: .core, toUserDirectory: true)
                     } else {
-                        Logger.logApp("Failed to save metadata for \(labelFolder)")
+                        Logger.info("Failed to save metadata for \(labelFolder)", category: .core, toUserDirectory: true)
                     }
                 }
             } else {
-                Logger.logApp("Failed to convert metadata JSON data to string.")
+                Logger.info("Failed to convert metadata JSON data to string.", category: .core, toUserDirectory: true)
             }
         } catch {
-            Logger.logApp("Error encoding metadata: \(error)")
+            Logger.info("Error encoding metadata: \(error)", category: .core, toUserDirectory: true)
         }
     }
 }

@@ -118,7 +118,6 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
     ///   - charIndex: The character index where the click occurred (unused).
     /// - Returns: True if the link click was handled.
     func textView(_ textView: NSTextView, clickedOnLink link: Any, at charIndex: Int) -> Bool {
-        print("Link clicked!")
         if let url = link as? URL {
             NSWorkspace.shared.open(url)
         }

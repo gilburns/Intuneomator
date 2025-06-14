@@ -24,7 +24,7 @@ extension LabelAutomation {
     /// - Returns: True if signature validation passes and team ID matches, false if any verification fails
     static func inspectSignatureOfDownloadedSoftware(for downloadURL: URL, expectedTeamID: String, inspectionType: String) -> Bool {
         
-        Logger.log("Inspecting \(inspectionType) signature...", logType: logType)
+        Logger.info("Inspecting \(inspectionType) signature...", category: .automation)
         
         // Route to appropriate signature inspection method based on file type
         switch inspectionType {
@@ -38,29 +38,29 @@ extension LabelAutomation {
                 
                 // Execute cryptographic signature inspection using SignatureInspector utility
                 inspectionResult = try SignatureInspector.inspectPackageSignature(pkgPath: pkgPath)
-                Logger.log("Package Signature Inspection Result: \(inspectionResult)", logType: logType)
+                Logger.info("Package Signature Inspection Result: \(inspectionResult)", category: .automation)
                 
                 // Verify that the package signature is accepted by the system
                 if let accepted = inspectionResult["Accepted"] as? Bool, accepted {
-                    Logger.log("  Inspection Passed", logType: logType)
+                    Logger.info("  Inspection Passed", category: .automation)
                 } else {
-                    Logger.log("  Inspection Failed", logType: logType)
+                    Logger.error("  Inspection Failed", category: .automation)
                     throw NSError(domain: "LabelAutomation", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Package signature inspection failed"])
                 }
                 
                 // Validate Developer Team ID matches expected value for security
                 if let teamID = inspectionResult["DeveloperTeam"] as? String {
-                    Logger.log("  Download Team ID: \(teamID)", logType: logType)
-                    Logger.log("  Expected Team ID: \(expectedTeamID)", logType: logType)
+                    Logger.info("  Download Team ID: \(teamID)", category: .automation)
+                    Logger.info("  Expected Team ID: \(expectedTeamID)", category: .automation)
                     if teamID != expectedTeamID {
-                        Logger.log("  Team ID mismatch! Expected: \(expectedTeamID), Actual: \(teamID)", logType: logType)
+                        Logger.error("  Team ID mismatch! Expected: \(expectedTeamID), Actual: \(teamID)", category: .automation)
                         throw NSError(domain: "LabelAutomation", code: 1003, userInfo: [NSLocalizedDescriptionKey : "Team ID mismatch"])
                     } else {
-                        Logger.log("  Team ID matches", logType: logType)
+                        Logger.info("  Team ID matches", category: .automation)
                     }
                 }
             } catch {
-                Logger.log("Error inspecting package: \(error)", logType: logType)
+                Logger.error("Error inspecting package: \(error)", category: .automation)
                 return false
             }
             
@@ -74,42 +74,42 @@ extension LabelAutomation {
                 
                 // Execute cryptographic signature inspection for application bundles
                 inspectionResult = try SignatureInspector.inspectAppSignature(appPath: appPath)
-                Logger.log("  Application Signature Inspection Result: \(inspectionResult)", logType: logType)
+                Logger.info("  Application Signature Inspection Result: \(inspectionResult)", category: .automation)
                 
                 // Verify that the application signature is accepted by the system
                 if let accepted = inspectionResult["Accepted"] as? Bool, accepted {
-                    Logger.log("  Inspection Passed", logType: logType)
+                    Logger.info("  Inspection Passed", category: .automation)
                 } else {
-                    Logger.log("  Inspection Failed", logType: logType)
+                    Logger.error("  Inspection Failed", category: .automation)
                     throw NSError(domain: "LabelAutomation", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Application signature inspection failed"])
                 }
                 
                 // Validate Developer Team ID matches expected value for security
                 if let teamID = inspectionResult["DeveloperTeam"] as? String {
-                    Logger.log("  Download Team ID: \(teamID)", logType: logType)
-                    Logger.log("  Expected Team ID: \(expectedTeamID)", logType: logType)
+                    Logger.info("  Download Team ID: \(teamID)", category: .automation)
+                    Logger.info("  Expected Team ID: \(expectedTeamID)", category: .automation)
                     if teamID != expectedTeamID {
-                        Logger.log("  Team ID mismatch! Expected: \(expectedTeamID), Actual: \(teamID)", logType: logType)
+                        Logger.error("  Team ID mismatch! Expected: \(expectedTeamID), Actual: \(teamID)", category: .automation)
                         throw NSError(domain: "LabelAutomation", code: 1003, userInfo: [NSLocalizedDescriptionKey : "Team ID mismatch"])
                     } else {
-                        Logger.log("  Team ID matches", logType: logType)
+                        Logger.info("  Team ID matches", category: .automation)
                     }
                 }
             } catch {
-                Logger.log("Error inspecting application: \(error)", logType: logType)
+                Logger.error("Error inspecting application: \(error)", category: .automation)
                 return false
             }
             
         default:
             // Handle unsupported file types
-            Logger.log("Unsupported file type: \(inspectionType)", logType: logType)
-            Logger.log("Supported types: 'pkg' (installer packages) and 'app' (application bundles)", logType: logType)
+            Logger.info("Unsupported file type: \(inspectionType)", category: .automation)
+            Logger.info("Supported types: 'pkg' (installer packages) and 'app' (application bundles)", category: .automation)
             return false
             
         }
         
         // All signature validations passed successfully
-        Logger.log("✅ Signature inspection completed successfully for \(inspectionType)", logType: logType)
+        Logger.info("✅ Signature inspection completed successfully for \(inspectionType)", category: .automation)
         return true
     }
 

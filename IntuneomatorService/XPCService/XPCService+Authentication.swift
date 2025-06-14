@@ -61,7 +61,7 @@ extension XPCService {
                 let result = try await authenticator.ValidateCredentials()
                 reply(result)
             } catch {
-                Logger.log("Credential validation failed: \(error.localizedDescription)", logType: logType)
+                Logger.error("Credential validation failed: \(error.localizedDescription)", category: .core)
                 reply(false)
             }
         }

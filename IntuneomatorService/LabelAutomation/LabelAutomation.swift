@@ -19,7 +19,6 @@ import Foundation
 /// The class serves as a coordination layer between various processing components
 /// and provides utilities for application analysis and validation.
 class LabelAutomation {
-    static let logType = "LabelAutomation"
 
     /// Scans the managed titles directory for valid label folders ready for processing
     ///
@@ -49,12 +48,12 @@ class LabelAutomation {
         
         for path in possiblePaths {
             if FileManager.default.fileExists(atPath: path) {
-                Logger.log("Found Intuneomator.app at: \(path)", logType: logType)
+                Logger.info("Found Intuneomator.app at: \(path)", category: .automation)
                 return path
             }
         }
         
-        Logger.log("Could not find Intuneomator.app in expected locations.", logType: logType)
+        Logger.warning("Could not find Intuneomator.app in expected locations", category: .automation)
         return nil
     }
     
@@ -76,7 +75,7 @@ class LabelAutomation {
         do {
             // Validate file exists before reading
             guard FileManager.default.fileExists(atPath: filePath) else {
-                Logger.log("File does not exist at path: \(filePath)", logType: logType)
+                Logger.error("File does not exist at path: \(filePath)", category: .automation)
                 return false
             }
             
@@ -86,15 +85,11 @@ class LabelAutomation {
             // Look for architecture detection commands
             let containsArch = fileContents.contains("$(arch)") || fileContents.contains("$(/usr/bin/arch)")
             
-            if containsArch {
-                Logger.log("Architecture commands found in: \(filePath)", logType: logType)
-            } else {
-                Logger.log("No architecture commands in: \(filePath)", logType: logType)
-            }
+            Logger.debug("Architecture commands \(containsArch ? "found" : "not found") in: \(filePath)", category: .automation)
             
             return containsArch
         } catch {
-            Logger.log("Error reading file at \(filePath): \(error.localizedDescription)", logType: logType)
+            Logger.error("Error reading file at \(filePath): \(error.localizedDescription)", category: .automation)
             return false
         }
     }
@@ -155,14 +150,14 @@ class LabelAutomation {
     static func getAppArchitecture(at appURL: URL) throws -> AppArchitecture {
         // Validate app bundle structure
         guard FileManager.default.fileExists(atPath: appURL.path) else {
-            Logger.log("App bundle not found at: \(appURL.path)", logType: logType)
+            Logger.info("App bundle not found at: \(appURL.path)", category: .automation)
             return .unknown
         }
         
         // Load Info.plist to get the executable name
         let infoPlistURL = appURL.appendingPathComponent("Contents/Info.plist")
         guard FileManager.default.fileExists(atPath: infoPlistURL.path) else {
-            Logger.log("Info.plist not found in app bundle: \(appURL.path)", logType: logType)
+            Logger.info("Info.plist not found in app bundle: \(appURL.path)", category: .automation)
             return .unknown
         }
         
@@ -172,7 +167,7 @@ class LabelAutomation {
             let execName = plist["CFBundleExecutable"] as? String,
             !execName.isEmpty
         else {
-            Logger.log("Could not read CFBundleExecutable from Info.plist", logType: logType)
+            Logger.info("Could not read CFBundleExecutable from Info.plist", category: .automation)
             return .unknown
         }
 
@@ -183,14 +178,14 @@ class LabelAutomation {
             .appendingPathComponent(execName)
         
         guard FileManager.default.fileExists(atPath: binaryURL.path) else {
-            Logger.log("Executable not found: \(binaryURL.path)", logType: logType)
+            Logger.info("Executable not found: \(binaryURL.path)", category: .automation)
             return .unknown
         }
 
         // Verify /usr/bin/file exists
         let fileToolPath = "/usr/bin/file"
         guard FileManager.default.fileExists(atPath: fileToolPath) else {
-            Logger.log("File command not found at \(fileToolPath)", logType: logType)
+            Logger.info("File command not found at \(fileToolPath)", category: .automation)
             return .unknown
         }
 
@@ -213,12 +208,12 @@ class LabelAutomation {
             try fileHandle.close()
             
             guard process.terminationStatus == 0 else {
-                Logger.log("File command failed with status: \(process.terminationStatus)", logType: logType)
+                Logger.info("File command failed with status: \(process.terminationStatus)", category: .automation)
                 return .unknown
             }
             
             guard let output = String(data: outputData, encoding: .utf8)?.lowercased() else {
-                Logger.log("Could not decode file command output", logType: logType)
+                Logger.info("Could not decode file command output", category: .automation)
                 return .unknown
             }
 
@@ -238,11 +233,11 @@ class LabelAutomation {
                 architecture = .unknown
             }
             
-            Logger.log("Detected architecture for \(appURL.lastPathComponent): \(architecture.rawValue)", logType: logType)
+            Logger.info("Detected architecture for \(appURL.lastPathComponent): \(architecture.rawValue)", category: .automation)
             return architecture
             
         } catch {
-            Logger.log("Error executing file command: \(error.localizedDescription)", logType: logType)
+            Logger.error("Error executing file command: \(error.localizedDescription)", category: .automation)
             return .unknown
         }
     }
@@ -290,11 +285,11 @@ class LabelAutomation {
         expected: [AppArchitecture]
     ) throws {
         guard urls.count == expected.count else {
-            Logger.log("URL count (\(urls.count)) doesn't match expected architecture count (\(expected.count))", logType: logType)
+            Logger.info("URL count (\(urls.count)) doesn't match expected architecture count (\(expected.count))", category: .automation)
             throw NSError(domain: "ValidationError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Mismatched array sizes"])
         }
         
-        Logger.log("Validating architectures for \(urls.count) app bundles", logType: logType)
+        Logger.info("Validating architectures for \(urls.count) app bundles", category: .automation)
         
         for (url, expArch) in zip(urls, expected) {
             do {
@@ -305,21 +300,21 @@ class LabelAutomation {
                 }
                 
                 guard actualArch == expArch else {
-                    Logger.log("Architecture validation failed for \(url.lastPathComponent)", logType: logType)
+                    Logger.info("Architecture validation failed for \(url.lastPathComponent)", category: .automation)
                     throw ArchitectureValidationError.mismatch(at: url, expected: expArch, found: actualArch)
                 }
                 
-                Logger.log("Architecture validated for \(url.lastPathComponent): \(actualArch.rawValue)", logType: logType)
+                Logger.info("Architecture validated for \(url.lastPathComponent): \(actualArch.rawValue)", category: .automation)
                 
             } catch let error as ArchitectureValidationError {
                 throw error
             } catch {
-                Logger.log("Architecture analysis failed for \(url.lastPathComponent): \(error.localizedDescription)", logType: logType)
+                Logger.info("Architecture analysis failed for \(url.lastPathComponent): \(error.localizedDescription)", category: .automation)
                 throw ArchitectureValidationError.analysisFailure(at: url, error: error)
             }
         }
         
-        Logger.log("All app bundles passed architecture validation", logType: logType)
+        Logger.info("All app bundles passed architecture validation", category: .automation)
     }
     
 }

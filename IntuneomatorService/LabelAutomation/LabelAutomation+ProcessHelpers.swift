@@ -27,7 +27,7 @@ extension LabelAutomation {
         folderName: String
     ) async throws -> (URL, URL?) {
         let primaryURL = processed.appDownloadURL
-        Logger.log("  Download URL: \(primaryURL)", logType: logType)
+        Logger.info("  Download URL: \(primaryURL)", category: .automation)
 
         // Download primary architecture (Universal/ARM64) first
         let universalURL = try await downloadFile(
@@ -40,7 +40,7 @@ extension LabelAutomation {
         if processed.appDeploymentArch == 2,
            MetadataLoader.titleIsDualArch(forFolder: folderName)
         {
-            Logger.log("Downloading x86 slice for dual-arch", logType: logType)
+            Logger.info("Downloading x86 slice for dual-arch", category: .automation)
             x86URL = try await downloadFile(
                 for: folderName,
                 processedAppResults: processed,
@@ -103,7 +103,7 @@ extension LabelAutomation {
         _ cacheURL: URL,
         to results: inout ProcessedAppResults
     ) {
-        Logger.log("Cached item found at \(cacheURL.path)", logType: logType)
+        Logger.info("Cached item found at \(cacheURL.path)", category: .automation)
         results.appLocalURL = cacheURL.path
         results.appBundleIdActual = results.appBundleIdExpected
         results.appVersionActual = results.appVersionExpected
@@ -113,8 +113,8 @@ extension LabelAutomation {
     /// Provides visibility into the final processing results before upload
     /// - Parameter results: The ProcessedAppResults containing processed application information
     static func logProcessed(_ results: ProcessedAppResults) {
-        Logger.log("  Processed file ready at: \(results.appLocalURL)", logType: logType)
-        Logger.log("  Version: \(results.appVersionActual)", logType: logType)
+        Logger.info("  Processed file ready at: \(results.appLocalURL)", category: .automation)
+        Logger.info("  Version: \(results.appVersionActual)", category: .automation)
     }
 
     // MARK: - Cache Management Operations
@@ -140,9 +140,9 @@ extension LabelAutomation {
             return nil
         }
 
-        Logger.log("Label Name: \(labelName)", logType: logType)
-        Logger.log("Version: \(versionExpected)", logType: logType)
-        Logger.log("File Name: \(fileName)", logType: logType)
+        Logger.info("Label Name: \(labelName)", category: .automation)
+        Logger.info("Version: \(versionExpected)", category: .automation)
+        Logger.info("File Name: \(fileName)", category: .automation)
 
         // Construct cache file path: Cache/{label}/{version}/{filename}
         let versionCheckPath: URL = AppConstants.intuneomatorCacheFolderURL
@@ -150,7 +150,7 @@ extension LabelAutomation {
             .appending(path: versionExpected, directoryHint: .isDirectory)
             .appending(path: fileName, directoryHint: .notDirectory)
 
-        Logger.log("Version Check Path: \(versionCheckPath.path)")
+        Logger.info("Version Check Path: \(versionCheckPath.path)", category: .automation)
 
         // Return URL if cached file exists, otherwise nil
         if FileManager.default.fileExists(atPath: versionCheckPath.path) {
@@ -162,13 +162,13 @@ extension LabelAutomation {
                     if ownerID.intValue == 0 && groupID.intValue == 0 {
                         return versionCheckPath
                     } else {
-                        Logger.log("Ownership mismatch on cached file. Deleting: \(versionCheckPath.path)", logType: logType)
+                        Logger.info("Ownership mismatch on cached file. Deleting: \(versionCheckPath.path)", category: .automation)
                         try FileManager.default.removeItem(at: versionCheckPath)
                         return nil
                     }
                 }
             } catch {
-                Logger.log("Error checking ownership of cached file: \(error.localizedDescription)", logType: logType)
+                Logger.error("Error checking ownership of cached file: \(error.localizedDescription)", category: .automation)
                 return nil
             }
         }
@@ -186,8 +186,8 @@ extension LabelAutomation {
     static func isVersionUploadedToIntune(appInfo: [FilteredIntuneAppInfo], version: String) -> Bool {
         // Search for matching version in existing Intune applications
         
-        Logger.log("Verifying version \(version)...", logType: "Version Check")
-        Logger.log("App Info: \(appInfo)", logType: "Version Check")
+        Logger.info("Verifying version \(version)...", category: .automation)
+        Logger.info("App Info: \(appInfo)", category: .automation)
         
         return appInfo.contains { app in
             return app.primaryBundleVersion == version
@@ -231,33 +231,33 @@ extension LabelAutomation {
         var uploadSucceeded = false
         var currentAttempt = 0
 
-        Logger.log("Polling for Intune upload status...", logType: logType)
+        Logger.info("Polling for Intune upload status...", category: .automation)
         do {
 
             // Poll until upload appears in Intune or max attempts reached
             while currentAttempt < maxPollAttempts && !uploadSucceeded {
                 appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: appTrackingID)
-                Logger.log("appInfo: \(appInfo)", logType: "debug")
+                Logger.debug("appInfo: \(appInfo)", category: .automation)
                 uploadSucceeded = isVersionUploadedToIntune(appInfo: appInfo, version: processedAppResults.appVersionActual)
-                Logger.log("uploadSucceeded: \(uploadSucceeded)", logType: "debug")
+                Logger.debug("uploadSucceeded: \(uploadSucceeded)", category: .automation)
 
                 if uploadSucceeded {
-                    Logger.log("Version \(processedAppResults.appVersionActual) was uploaded to Intune", logType: logType)
+                    Logger.info("Version \(processedAppResults.appVersionActual) was uploaded to Intune", category: .automation)
                     break
                 } else {
-                    Logger.log("Waiting for version \(processedAppResults.appVersionActual) to appear in Intune (attempt \(currentAttempt + 1))", logType: logType)
+                    Logger.info("Waiting for version \(processedAppResults.appVersionActual) to appear in Intune (attempt \(currentAttempt + 1))", category: .automation)
                     try await Task.sleep(nanoseconds: pollInterval)
                     currentAttempt += 1
                 }
             }
 
             if uploadSucceeded {
-                Logger.log("Version \(processedAppResults.appVersionActual) was uploaded to Intune after polling", logType: logType)
+                Logger.info("Version \(processedAppResults.appVersionActual) was uploaded to Intune after polling", category: .automation)
                 return (true, appInfo)
             }
 
         } catch {
-            Logger.log("Failed to check for successful upload to Intune: \(error.localizedDescription)", logType: logType)
+            Logger.error("Failed to check for successful upload to Intune: \(error.localizedDescription)", category: .automation)
         }
         
         return (false, [])
@@ -289,10 +289,10 @@ extension LabelAutomation {
             let fileSizeMB = Double(fileSizeBytes) / 1_048_576
                     
             // Write tab-separated values to Upload log file for structured tracking
-            Logger.logNoDateStamp("\(labelDisplayName)\t\(labelName)\t\(finalFilename)\t\(String(format: "%.2f", fileSizeMB)) MB\t\(fileIdentifier)\t\(fileVersionActual)\t\(fileVersionExpected)\t\(labelTrackingID)\t\(finalURL)", logType: "Upload")
+            Logger.log("\(labelDisplayName)\t\(labelName)\t\(finalFilename)\t\(String(format: "%.2f", fileSizeMB)) MB\t\(fileIdentifier)\t\(fileVersionActual)\t\(fileVersionExpected)\t\(labelTrackingID)\t\(finalURL)", level: .info, category: .upload)
             
         } catch {
-            Logger.log("Unable to get file size: \(error.localizedDescription)", logType: logType)
+            Logger.info("Unable to get file size: \(error.localizedDescription)", category: .automation)
         }
 
     }
@@ -333,7 +333,7 @@ extension LabelAutomation {
             }
 
         } catch {
-            Logger.log("Error: \(error)", logType: logType)
+            Logger.error("Error: \(error)", category: .automation)
         }
 
     }
@@ -355,9 +355,9 @@ extension LabelAutomation {
         if FileManager.default.fileExists(atPath: downloadFolder.path) {
             do{
                 try FileManager.default.removeItem(at: downloadFolder)
-                Logger.log("Cleaned up temporary files for \(label)", logType: LabelAutomation.logType)
+                Logger.info("Cleaned up temporary files for \(label)", category: .automation)
             } catch {
-                Logger.log("Failed to delete tmp folder: \(error.localizedDescription)", logType: LabelAutomation.logType)
+                Logger.error("Failed to delete tmp folder: \(error.localizedDescription)", category: .automation)
                 return false
             }
         }

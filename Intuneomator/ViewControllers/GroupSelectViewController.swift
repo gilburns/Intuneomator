@@ -68,10 +68,6 @@ class GroupSelectViewController: NSViewController, NSTableViewDelegate, NSTableV
         // Initialize user toggle flag
         userHasToggledVirtualCheckbox = false
 
-//        print("GroupSelectViewController - viewDidLoad")
-//        print("assignmentType: \(assignmentType)")
-//        print("existingAssignments: \(existingAssignments)")
-//        print("excludedGroups: \(excludedGroups)")
         
         // Set the title for the group assignment
         if assignmentType.isEmpty {

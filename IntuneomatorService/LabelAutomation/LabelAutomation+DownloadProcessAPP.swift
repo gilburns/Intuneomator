@@ -67,15 +67,15 @@ extension LabelAutomation {
     /// - 127: Unsupported download type
     static func processAppFile(downloadURL: URL, folderName: String, downloadType: String, deploymentType: Int, fileUploadName: String, expectedTeamID: String, expectedBundleID: String, expectedVersion: String) async throws -> (url: URL?, appName: String, appBundleID: String, appVersion: String) {
         
-        Logger.log("Processing App Download URL type: \(downloadType) - \(downloadURL)", logType: logType)
+        Logger.info("Processing App Download URL type: \(downloadType) - \(downloadURL)", category: .automation)
         
         var outputURL: URL? = nil
         var outputAppName: String
         var outputAppBundleID: String
         var outputAppVersion: String
         
-        Logger.log("  Processing downloaded file: \(downloadURL.lastPathComponent)", logType: logType)
-        Logger.log("  File type: \(downloadType)", logType: logType)
+        Logger.info("Processing downloaded file: \(downloadURL.lastPathComponent)", category: .automation)
+        Logger.debug("File type: \(downloadType)", category: .automation)
 
         // Extract label name from folder name (format: "labelname_GUID")
         guard let labelName = folderName.components(separatedBy: "_").first else {
@@ -94,7 +94,7 @@ extension LabelAutomation {
         // Process download based on archive type
         switch downloadType.lowercased() {
         case "zip":
-            Logger.log("Handle type zip specifics", logType: logType)
+            Logger.debug("Handle type zip specifics", category: .automation)
             // Extract ZIP archive and locate .app bundle
             let extractedFolder = try await extractZipFileWithDitto(zipURL: downloadURL)
             appFiles = try findFiles(inFolder: extractedFolder, withExtension: "app")
@@ -106,7 +106,7 @@ extension LabelAutomation {
             appFileFound = appFile
             
         case "tbz":
-            Logger.log("Handle type tbz specifics", logType: logType)
+            Logger.debug("Handle type tbz specifics", category: .automation)
             // Extract TBZ/TAR.BZ2 archive and locate .app bundle
             let extractedFolder = try await extractTBZFile(tbzURL: downloadURL)
             let foundAppFiles = try findFiles(inFolder: extractedFolder, withExtension: "app")
@@ -117,7 +117,7 @@ extension LabelAutomation {
             appFileFound = appFile
             
         case "dmg":
-            Logger.log("Handle type dmg specifics", logType: logType)
+            Logger.debug("Handle type dmg specifics", category: .automation)
             // Mount DMG, locate .app bundle, and copy to safe location
             let mountPoint = try await mountDMGFile(dmgURL: downloadURL)
             defer { _ = try? unmountDMG(mountPoint: mountPoint) }
@@ -128,9 +128,9 @@ extension LabelAutomation {
                 throw NSError(domain: "ProcessingError", code: 108, userInfo: [NSLocalizedDescriptionKey: "No .app file found in mounted DMG"])
             }
             
-            Logger.log("appFile: \(appFile.path)", logType: logType)
+            Logger.info("appFile: \(appFile.path)", category: .automation)
             let appName = appFile.lastPathComponent
-            Logger.log("App name: \(appName)", logType: logType)
+            Logger.info("App name: \(appName)", category: .automation)
             
             // Copy app bundle off the mounted DMG to ensure URL remains valid after unmounting
             if let copyDir = downloadURL.deletingLastPathComponent().path.removingPercentEncoding {
@@ -141,13 +141,13 @@ extension LabelAutomation {
                 }
                 try FileManager.default.copyItem(atPath: appFile.path, toPath: destinationURL.path)
                 appFileFound = destinationURL
-                Logger.log("App to process: \(appFileFound.absoluteString)", logType: logType)
+                Logger.info("App to process: \(appFileFound.absoluteString)", category: .automation)
             } else {
                 throw NSError(domain: "ProcessingError", code: 125, userInfo: [NSLocalizedDescriptionKey: "Invalid copy directory for DMG processing"])
             }
             
         case "appindmginzip":
-            Logger.log("Handle type appindmginzip specifics", logType: logType)
+            Logger.debug("Handle type appindmginzip specifics", category: .automation)
             // Extract ZIP, mount contained DMG, locate .app bundle, and copy to safe location
             let extractedFolder = try await extractZipFile(zipURL: downloadURL)
             let dmgFiles = try findFiles(inFolder: extractedFolder, withExtension: "dmg")
@@ -164,9 +164,9 @@ extension LabelAutomation {
                 throw NSError(domain: "ProcessingError", code: 110, userInfo: [NSLocalizedDescriptionKey: "No .app file found in mounted DMG (from ZIP)"])
             }
             
-            Logger.log("appFile: \(appFile.path)", logType: logType)
+            Logger.info("appFile: \(appFile.path)", category: .automation)
             let appName = appFile.lastPathComponent
-            Logger.log("App name: \(appName)", logType: logType)
+            Logger.info("App name: \(appName)", category: .automation)
             
             // Copy app bundle off the mounted DMG to ensure URL remains valid after unmounting
             if let copyDir = downloadURL.deletingLastPathComponent().path.removingPercentEncoding {
@@ -177,7 +177,7 @@ extension LabelAutomation {
                 }
                 try FileManager.default.copyItem(atPath: appFile.path, toPath: destinationURL.path)
                 appFileFound = destinationURL
-                Logger.log("App to process: \(appFileFound.absoluteString)", logType: logType)
+                Logger.info("App to process: \(appFileFound.absoluteString)", category: .automation)
             } else {
                 throw NSError(domain: "ProcessingError", code: 126, userInfo: [NSLocalizedDescriptionKey: "Invalid copy directory for ZIP-DMG processing"])
             }
@@ -193,12 +193,12 @@ extension LabelAutomation {
         // Verify code signature against expected Team ID
         let signatureResult = inspectSignatureOfDownloadedSoftware(for: appFile, expectedTeamID: expectedTeamID, inspectionType: "app")
         
-        Logger.log("  Inspect result: \(signatureResult)", logType: logType)
+        Logger.info("  Inspect result: \(signatureResult)", category: .automation)
         
         if signatureResult == true {
-            Logger.log("  Signature is valid.", logType: logType)
+            Logger.info("  Signature is valid.", category: .automation)
         } else {
-            Logger.log("  Signature is invalid.", logType: logType)
+            Logger.info("  Signature is invalid.", category: .automation)
             throw NSError(domain: "ProcessingError", code: 101, userInfo: [NSLocalizedDescriptionKey : "Signature is invalid."])
         }
         
@@ -211,14 +211,14 @@ extension LabelAutomation {
                 switch result {
                 case .success(let version):
                     if let version = version {
-                        Logger.log("  Version for bundle ID '\(expectedBundleID)': \(version)", logType: logType)
+                        Logger.info("  Version for bundle ID '\(expectedBundleID)': \(version)", category: .automation)
                         continuation.resume(returning: version)
                     } else {
-                        Logger.log("  Bundle ID '\(expectedBundleID)' not found in the .app", logType: logType)
+                        Logger.info("  Bundle ID '\(expectedBundleID)' not found in the .app", category: .automation)
                         continuation.resume(returning: "None")
                     }
                 case .failure(let error):
-                    Logger.log("Error inspecting .app: \(error.localizedDescription)", logType: logType)
+                    Logger.error("Error inspecting .app: \(error.localizedDescription)", category: .automation)
                     continuation.resume(returning: "None")
                 }
             }
@@ -232,46 +232,46 @@ extension LabelAutomation {
         
         try FileManager.default.createDirectory(at: finalDestinationFolder, withIntermediateDirectories: true)
         
-        Logger.log("Deployment type: \(deploymentType)", logType: logType)
+        Logger.info("Deployment type: \(deploymentType)", category: .automation)
         
         // Create deployment package based on specified type
         if deploymentType == 0 {
             // Create DMG package for Intune deployment
-            Logger.log("Creating DMG package for Intune deployment", logType: logType)
+            Logger.info("Creating DMG package for Intune deployment", category: .automation)
             let dmgCreator = DMGCreator()
             do {
                 let (outputURLResult, outputAppNameResult, outputAppBundleIDResult, outputAppVersionResult) = try dmgCreator.processToDMG(inputPath: appFile.path, outputDirectory: finalDestinationFolder.path)
-                Logger.log("Created DMG at \(String(describing: outputURLResult)) for \(outputAppNameResult) (\(outputAppBundleIDResult)) version \(outputAppVersionResult)", logType: logType)
+                Logger.info("Created DMG at \(String(describing: outputURLResult)) for \(outputAppNameResult) (\(outputAppBundleIDResult)) version \(outputAppVersionResult)", category: .automation)
                 
                 outputURL = URL(fileURLWithPath: outputURLResult)
                 outputAppName = outputAppNameResult
                 outputAppBundleID = outputAppBundleIDResult
                 outputAppVersion = outputAppVersionResult
             } catch {
-                Logger.log("Failed to process DMG: \(error.localizedDescription)", logType: logType)
+                Logger.error("Failed to process DMG: \(error.localizedDescription)", category: .automation)
                 return (nil, "" ,"", "")
             }
             
         } else {
             // Create PKG package for Intune deployment  
-            Logger.log("Creating PKG package for Intune deployment", logType: logType)
+            Logger.info("Creating PKG package for Intune deployment", category: .automation)
             let pkgCreator = PKGCreator()
             if let (outputURLResult, outputAppNameResult, outputAppBundleIDResult, outputAppVersionResult) = await pkgCreator.createPackage(inputPath: appFile.path, outputDir: finalDestinationFolder.path) {
-                Logger.log("  Package creation succeeded.", logType: logType)
+                Logger.info("  Package creation succeeded.", category: .automation)
                 outputURL = URL(fileURLWithPath: outputURLResult)
                 outputAppName = outputAppNameResult
                 outputAppBundleID = outputAppBundleIDResult
                 outputAppVersion = outputAppVersionResult
             } else {
-                Logger.log("Package creation failed.", logType: logType)
+                Logger.info("Package creation failed.", category: .automation)
                 return (nil, "" ,"", "")
             }
         }
         
-        Logger.log("  Output URL: \(outputURL?.path ?? "nil")", logType: logType)
-        Logger.log("  Output App Name: \(outputAppName)", logType: logType)
-        Logger.log("  Output App Bundle ID: \(outputAppBundleID)", logType: logType)
-        Logger.log("  Output App Version: \(outputAppVersion)", logType: logType)
+        Logger.info("  Output URL: \(outputURL?.path ?? "nil")", category: .automation)
+        Logger.info("  Output App Name: \(outputAppName)", category: .automation)
+        Logger.info("  Output App Bundle ID: \(outputAppBundleID)", category: .automation)
+        Logger.info("  Output App Version: \(outputAppVersion)", category: .automation)
         
         return (outputURL, outputAppName, outputAppBundleID, outputAppVersion)
         

@@ -38,7 +38,6 @@ import Cocoa
 class MainViewController: NSViewController {
     
     /// Logging identifier for this class
-    static let logType = "MainViewController"
     
     // MARK: - Data Properties
     
@@ -87,6 +86,11 @@ class MainViewController: NSViewController {
     /// Animated status update label for user feedback
     @IBOutlet weak var statusUpdateLabel: NSTextField!
     
+    /// Daemon feedback to the GUI on current status
+    @IBOutlet weak var progressView: NSProgressIndicator!
+    @IBOutlet weak var progressLabel: NSTextField!
+    @IBOutlet weak var progressDetailLabel: NSTextField!
+
     // MARK: - Search Properties
     
     /// Buffer for accumulating keystrokes for quick table navigation

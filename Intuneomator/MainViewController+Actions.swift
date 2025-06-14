@@ -61,7 +61,7 @@ extension MainViewController {
         let itemToRemove = filteredAppData[selectedRow]
         let itemName = itemToRemove.name
         let itemLabel = itemToRemove.label
-        Logger.logApp("Button clicked to delete '\(itemName)' directory.")
+        Logger.info("Button clicked to delete '\(itemName)' directory.", category: .core, toUserDirectory: true)
 
         // Create a confirmation dialog
         let alert = NSAlert()
@@ -75,16 +75,16 @@ extension MainViewController {
         let response = alert.runModal()
         if response == .alertFirstButtonReturn {
             // User confirmed deletion
-            Logger.logApp("User confirmed deletion of '\(itemName)' directory.")
+            Logger.info("User confirmed deletion of '\(itemName)' directory.", category: .core, toUserDirectory: true)
             // Remove the directory associated with the item
             let directoryPath = (AppConstants.intuneomatorManagedTitlesFolderURL.path as NSString).appendingPathComponent("\(itemToRemove.label)_\(itemToRemove.guid)")
 
             
             XPCManager.shared.removeLabelContent(directoryPath) { success in
                 if let success = success, success {
-                    Logger.logApp("Deleted directory: \(directoryPath)")
+                    Logger.info("Deleted directory: \(directoryPath)", category: .core, toUserDirectory: true)
                 } else {
-                    Logger.logApp("Failed to delete directory: \(directoryPath)")
+                    Logger.info("Failed to delete directory: \(directoryPath)", category: .core, toUserDirectory: true)
                     return
                 }
             }
@@ -105,7 +105,7 @@ extension MainViewController {
             removeButton.isEnabled = false
         } else {
             // User canceled deletion
-            Logger.logApp("User canceled deletion")
+            Logger.info("User canceled deletion", category: .core, toUserDirectory: true)
         }
         refreshUI()
     }

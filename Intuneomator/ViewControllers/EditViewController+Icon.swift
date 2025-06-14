@@ -32,7 +32,6 @@ extension EditViewController {
         var url: URL?
         if dialog.runModal() == .OK {
             if dialog.url == nil {
-                //                print("No file selected")
                 progImageEdit.stopAnimation(self)
                 return
             } else {
@@ -47,7 +46,6 @@ extension EditViewController {
                         self.loadIcon()
                     }
                 } else {
-                    //                    print("Failed to reset icon")
                 }
             }
         }
@@ -72,7 +70,6 @@ extension EditViewController {
                     }
                 } else {
                     self.progImageEdit.stopAnimation(self)
-                    //                    print("Failed to reset icon")
                 }
             }
         }
@@ -81,13 +78,10 @@ extension EditViewController {
     /// Loads the current icon image from the label's folder and sets it on the `buttonIcon`.
     /// If loading fails, no change is made.
     func loadIcon() {
-        //        print("Loading icon for label: \(appData!.label)")
         let iconPath = getLabelImagePath()
         if let icon = NSImage(contentsOfFile: iconPath!) {
-            //            print("Loaded icon for path: \(iconPath ?? "")")
             buttonIcon.image = icon
         } else {
-            //            print("Failed to load icon for path: \(iconPath ?? "")")
         }
     }
     
@@ -96,12 +90,10 @@ extension EditViewController {
     /// - Returns: The absolute path to `<label>_<guid>/<label>.png` if available, or `nil` if data is missing.
     private func getLabelImagePath() -> String? {
         guard let label = appData?.label else {
-            //            print("Error: appData or label is nil.")
             return nil
         }
         
         guard let guid = appData?.guid else {
-            //            print("Error: appData or guid is nil.")
             return nil
         }
         
@@ -124,7 +116,7 @@ extension EditViewController {
         do {
             try pngData.write(to: URL(fileURLWithPath: path))
         } catch {
-            Logger.logApp("Failed to save icon: \(error)")
+            Logger.info("Failed to save icon: \(error)", category: .core, toUserDirectory: true)
         }
     }
     

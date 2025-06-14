@@ -79,16 +79,12 @@ class EditOtherViewController: NSViewController, NSTextStorageDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-//        print("Current AppMetadata: \(String(describing: lastMetadataPartial))")
-//        print("Last AppMetadata: \(String(describing: currentMetadataPartial))")
 
         
         // Set the NSTextStorage delegate
         if let textStorage = fieldNotes.textStorage {
             textStorage.delegate = self
-//            print("Text storage delegate set successfully.")
         } else {
-//            print("Failed to access text storage.")
         }
 
     }
@@ -216,7 +212,6 @@ class EditOtherViewController: NSViewController, NSTextStorageDelegate {
     func textStorage(_ textStorage: AppKit.NSTextStorage, didProcessEditing editedMask: AppKit.NSTextStorageEditActions, range editedRange: NSRange, changeInLength delta: Int) {
 
         // Trigger tracking changes
-//        print("Tracking")
         trackChanges()
     }
 
@@ -239,12 +234,10 @@ class EditOtherViewController: NSViewController, NSTextStorageDelegate {
         if currentMetadataPartial != lastMetadataPartial {
             hasUnsavedChanges = true
             buttonSave.isEnabled = true
-//            print("Changes detected in EditView.")
         
         } else {
             hasUnsavedChanges = false
             buttonSave.isEnabled = false
-//            print("No changes detected in EditView.")
         }
     }
     
@@ -332,7 +325,7 @@ class EditOtherViewController: NSViewController, NSTextStorageDelegate {
     func setTextViewBorder(field: NSTextView, color: NSColor) {
         guard let scrollView = field.enclosingScrollView else {
             #if DEBUG
-            print("No enclosing NSScrollView found.")
+            Logger.warning("No enclosing NSScrollView found.", category: .core, toUserDirectory: true)
             #endif
             return
         }

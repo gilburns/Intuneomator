@@ -14,7 +14,6 @@ import Foundation
 /// labels into Intune-compatible application packages.
 class InstallomatorLabelProcessor {
     
-    static private let logType = "InstallomatorLabelProcessor"
     
     /// Locates the Intuneomator.app bundle in common installation locations.
     /// 
@@ -47,7 +46,7 @@ class InstallomatorLabelProcessor {
             }
         }
 
-        Logger.log("❌ Could not find Intuneomator.app in expected locations.", logType: logType)
+        Logger.info("❌ Could not find Intuneomator.app in expected locations.", category: .core)
         return nil
     }
 
@@ -76,7 +75,7 @@ class InstallomatorLabelProcessor {
             // Look for either "$(arch)" or "$(/usr/bin/arch)" in the file
             return fileContents.contains("$(arch)") || fileContents.contains("$(/usr/bin/arch)")
         } catch {
-            Logger.log("❌ Error reading file at \(filePath): \(error)", logType: logType)
+            Logger.error("❌ Error reading file at \(filePath): \(error)", category: .core)
             return false
         }
     }
@@ -102,7 +101,7 @@ class InstallomatorLabelProcessor {
         process.waitUntilExit()
         
         guard process.terminationStatus == 0 else {
-            Logger.log("❌ Process failed with exit code \(process.terminationStatus) for \(folderName)", logType: logType)
+            Logger.error("❌ Process failed with exit code \(process.terminationStatus) for \(folderName)", category: .core)
             return nil
         }
         
@@ -140,7 +139,7 @@ class InstallomatorLabelProcessor {
     static func runProcessLabelScript(for folderName: String) -> Bool {
         
         guard let intuneomatorAppPath = getIntuneomatorAppPath() else {
-            Logger.log("❌ Could not find Intuneomator.app.", logType: logType)
+            Logger.info("❌ Could not find Intuneomator.app.", category: .core)
             return false
         }
 
@@ -151,14 +150,14 @@ class InstallomatorLabelProcessor {
         // Parse folder name format (labelname_GUID)
         let parts = folderName.split(separator: "_")
         guard parts.count == 2 else {
-            Logger.log("❌ Invalid folder format: \(folderName)", logType: logType)
+            Logger.info("❌ Invalid folder format: \(folderName)", category: .core)
             return false
         }
         
         // Update label script to latest version before processing
         let updateLabel = self.updateLabelDirectory(labelDir: folderURL)
         if !updateLabel {
-            Logger.log("❌ Failed to update label for \(folderName)", logType: logType)
+            Logger.error("❌ Failed to update label for \(folderName)", category: .core)
             return false
         }
         
@@ -166,12 +165,12 @@ class InstallomatorLabelProcessor {
 
         // Validate required script files exist before execution
         if !FileManager.default.fileExists(atPath: processScriptPath) {
-            Logger.log("❌ process_label.sh not found at \(processScriptPath)", logType: logType)
+            Logger.info("❌ process_label.sh not found at \(processScriptPath)", category: .core)
             return false
         }
         
         if !FileManager.default.fileExists(atPath: labelScriptPath) {
-            Logger.log("❌ Label script not found at \(labelScriptPath)", logType: logType)
+            Logger.info("❌ Label script not found at \(labelScriptPath)", category: .core)
             return false
         }
 
@@ -184,16 +183,16 @@ class InstallomatorLabelProcessor {
             ) {
                 // Check for successful plist creation output
                 if output != "Plist created" {
-                    Logger.log("❌ plist update failed for \(folderName): \(output)", logType: logType)
+                    Logger.error("❌ plist update failed for \(folderName): \(output)", category: .core)
                     return false
                 }
                 // Success - continue to check if architecture-specific execution needed
             } else {
-                Logger.log("❌ No output received from process_label.sh for \(folderName)", logType: logType)
+                Logger.info("❌ No output received from process_label.sh for \(folderName)", category: .core)
                 return false
             }
         } catch {
-            Logger.log("❌ Failed to execute process_label.sh: \(error.localizedDescription)", logType: logType)
+            Logger.error("❌ Failed to execute process_label.sh: \(error.localizedDescription)", category: .core)
             return false
         }
         
@@ -210,21 +209,21 @@ class InstallomatorLabelProcessor {
                     if output == "Plist created" {
                         return true
                     } else {
-                        Logger.log("❌ plist update failed for \(folderName): \(output)", logType: logType)
+                        Logger.error("❌ plist update failed for \(folderName): \(output)", category: .core)
                         return false
                     }
                 } else {
-                    Logger.log("❌ No output received from x86_64 process_label.sh for \(folderName)", logType: logType)
+                    Logger.info("❌ No output received from x86_64 process_label.sh for \(folderName)", category: .core)
                     return false
                 }
             } catch {
-                Logger.log("❌ Failed to execute x86_64 process_label.sh: \(error.localizedDescription)", logType: logType)
+                Logger.error("❌ Failed to execute x86_64 process_label.sh: \(error.localizedDescription)", category: .core)
                 return false
             }
         } else {
             return true
         }
-        Logger.log("❌ Unknown error occurred when running process_label.sh", logType: logType)
+        Logger.error("❌ Unknown error occurred when running process_label.sh", category: .core)
         return false
     }
     
@@ -261,7 +260,7 @@ class InstallomatorLabelProcessor {
         let parts = directoryName.split(separator: "_")
         
         guard parts.count == 2 else {
-            Logger.log("❌ Invalid directory format: \(directoryName)", logType: logType)
+            Logger.info("❌ Invalid directory format: \(directoryName)", category: .core)
             return false
         }
         
@@ -296,17 +295,17 @@ class InstallomatorLabelProcessor {
                     if originalContents != updatedContents {
                         // Update script with newer version from repository
                         try updatedContents.write(to: existingScriptURL, atomically: true, encoding: .utf8)
-                        Logger.log("Replaced outdated script at \(existingScriptURL.path) with updated content.", logType: logType)
+                        Logger.info("Replaced outdated script at \(existingScriptURL.path) with updated content.", category: .core)
                         } else {
                         // Script is already current, no update needed
                     }
                 }
             } catch {
-                Logger.log("Failed to update script: \(error)", logType: logType)
+                Logger.error("Failed to update script: \(error)", category: .core)
                 return false
             }
         } else {
-            Logger.log("Script not found at \(existingScriptURL.path)", logType: logType)
+            Logger.info("Script not found at \(existingScriptURL.path)", category: .core)
             return false
         }
         return true

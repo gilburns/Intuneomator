@@ -116,10 +116,10 @@ extension EntraGraphRequests {
         let (metadataData, metadataResponse) = try await URLSession.shared.data(for: request)
         
         if let httpResponse = metadataResponse as? HTTPURLResponse {
-            Logger.log("Metadata response status code: \(httpResponse.statusCode)", logType: logType)
+            Logger.info("Metadata response status code: \(httpResponse.statusCode)", category: .core)
             if !(200...299).contains(httpResponse.statusCode) {
                 let responseBody = String(data: metadataData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("Error response body: \(responseBody)", logType: logType)
+                Logger.error("Error response body: \(responseBody)", category: .core)
                 throw NSError(domain: "UploadPKGWithScripts", code: httpResponse.statusCode, userInfo: [
                     NSLocalizedDescriptionKey: "Failed to create PKG app metadata. Status: \(httpResponse.statusCode)"
                 ])
@@ -136,8 +136,8 @@ extension EntraGraphRequests {
             ])
         }
         
-        Logger.log("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", logType: logType)
-        Logger.log("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", logType: "Automation")
+        Logger.info("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", category: .core)
+        Logger.info("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", category: .core)
 
         // Step 2: Begin file upload workflow
         do {
@@ -152,7 +152,7 @@ extension EntraGraphRequests {
             let (versionData, versionResponse) = try await URLSession.shared.data(for: versionRequest)
             if let httpResponse = versionResponse as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
                 let responseBody = String(data: versionData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("Failed to create content version. Status: \(httpResponse.statusCode), Response: \(responseBody)", logType: logType)
+                Logger.info("Failed to create content version. Status: \(httpResponse.statusCode), Response: \(responseBody)", category: .core)
                 throw NSError(domain: "UploadPKGWithScripts", code: httpResponse.statusCode, userInfo: [
                     NSLocalizedDescriptionKey: "Failed to create content version. Status: \(httpResponse.statusCode)",
                     "responseBody": responseBody
@@ -191,7 +191,7 @@ extension EntraGraphRequests {
             let (fileData, fileResponse) = try await URLSession.shared.data(for: fileRequest)
             if let httpResponse = fileResponse as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
                 let responseBody = String(data: fileData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("File registration failed. Status: \(httpResponse.statusCode), Response: \(responseBody)", logType: logType)
+                Logger.info("File registration failed. Status: \(httpResponse.statusCode), Response: \(responseBody)", category: .core)
                 throw NSError(domain: "UploadPKGWithScripts", code: httpResponse.statusCode, userInfo: [
                     NSLocalizedDescriptionKey: "File registration failed. Status: \(httpResponse.statusCode)"
                 ])
@@ -239,9 +239,9 @@ extension EntraGraphRequests {
             // Step 7: Commit the uploaded file with encryption information
             try await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds wait before commit
             
-            Logger.log("Committing appId: \(appId)", logType: logType)
-            Logger.log("Committing versionId: \(versionId)", logType: logType)
-            Logger.log("Committing fileId: \(fileId)", logType: logType)
+            Logger.info("Committing appId: \(appId)", category: .core)
+            Logger.info("Committing versionId: \(versionId)", category: .core)
+            Logger.info("Committing fileId: \(fileId)", category: .core)
             
             let fileCommitURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appId)/microsoft.graph.macOSPkgApp/contentVersions/\(versionId)/files/\(fileId)/commit")!
             var fileCommitRequest = URLRequest(url: fileCommitURL)
@@ -257,7 +257,7 @@ extension EntraGraphRequests {
             
             if let httpResponse = fileCommitResponse as? HTTPURLResponse, httpResponse.statusCode != 200 {
                 let responseBody = String(data: fileCommitResponseData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("File commit status \(httpResponse.statusCode): \(responseBody)", logType: logType)
+                Logger.info("File commit status \(httpResponse.statusCode): \(responseBody)", category: .core)
             }
             
             // Step 8: Wait for file processing completion
@@ -279,14 +279,14 @@ extension EntraGraphRequests {
             let (updateResponseData, updateResponse) = try await URLSession.shared.data(for: updateRequest)
             if let httpResponse = updateResponse as? HTTPURLResponse, httpResponse.statusCode != 204 {
                 let responseBody = String(data: updateResponseData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.log("App update failed with status \(httpResponse.statusCode): \(responseBody)", logType: logType)
+                Logger.error("App update failed with status \(httpResponse.statusCode): \(responseBody)", category: .core)
                 throw NSError(domain: "UploadPKGWithScripts", code: 7, userInfo: [
                     NSLocalizedDescriptionKey: "Failed to update app with committed content version. Status: \(httpResponse.statusCode)"
                 ])
             }
             
             // Step 10: Assign categories for organization in Company Portal
-            Logger.log("Assigning categories to Intune app...", logType: logType)
+            Logger.info("Assigning categories to Intune app...", category: .core)
             
             do {
                 let entraAuthenticator = EntraAuthenticator()
@@ -298,7 +298,7 @@ extension EntraGraphRequests {
                     categories: app.appCategories
                 )
             } catch {
-                Logger.log("Error assigning categories: \(error.localizedDescription)", logType: logType)
+                Logger.error("Error assigning categories: \(error.localizedDescription)", category: .core)
             }
             
             // Step 11: Assign groups for deployment targeting

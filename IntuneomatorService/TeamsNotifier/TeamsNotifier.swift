@@ -13,7 +13,6 @@ class TeamsNotifier {
     /// The Microsoft Teams webhook URL for sending notifications
     let webhookURL: String
     
-    /// Log type identifier for logging operations
     static let logType = "TeamsNotifier"
 
     /// Initializes a Teams notifier with the specified webhook URL
@@ -48,20 +47,18 @@ class TeamsNotifier {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = jsonData
 
-//            Logger.log("🔹 Sending request to Teams Webhook...", logType: TeamsNotifier.logType)
-//
             let semaphore = DispatchSemaphore(value: 0)
 
             let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 if let error = error {
-                    Logger.log("❌ Error sending notification: \(error.localizedDescription)", logType: TeamsNotifier.logType)
+                    Logger.error("Error sending notification: \(error.localizedDescription)", category: .core)
                 } else if let httpResponse = response as? HTTPURLResponse {
                     if (200...299).contains(httpResponse.statusCode) {
-//                        Logger.log("✅ Notification sent successfully!", logType: TeamsNotifier.logType)
+                        Logger.log("Notification sent successfully!", category: .core)
                     } else {
-                        Logger.log("❌ Failed to send notification. HTTP Status: \(httpResponse.statusCode)", logType: TeamsNotifier.logType)
+                        Logger.error("Failed to send notification. HTTP Status: \(httpResponse.statusCode)", category: .core)
                         if let data = data, let responseBody = String(data: data, encoding: .utf8) {
-                            Logger.log("🔹 Response Body: \(responseBody)", logType: TeamsNotifier.logType)
+                            Logger.error("🔹 Response Body: \(responseBody)", category: .core)
                         }
                     }
                 }
@@ -71,7 +68,7 @@ class TeamsNotifier {
             task.resume()
             semaphore.wait()
         } catch {
-            Logger.log("❌ Error serializing JSON: \(error)", logType: TeamsNotifier.logType)
+            Logger.error("Error serializing JSON: \(error)", category: .core)
         }
     }
     

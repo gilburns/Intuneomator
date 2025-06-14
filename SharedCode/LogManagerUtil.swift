@@ -124,8 +124,7 @@ class LogManagerUtil {
                    let modifiedDate = values.contentModificationDate,
                    modifiedDate < expirationDate {
                     try fileManager.removeItem(at: fileURL)
-                    Logger.logNoDateStamp("  Deleting old log file:", logType: logFileName)
-                    Logger.logNoDateStamp("  \(fileURL.path)", logType: logFileName)
+                    Logger.info("Deleting old log file: \(fileURL.path)", category: .core)
                 }
             } catch {
                 continue // Skip files that can't be processed
@@ -208,14 +207,13 @@ class LogManagerUtil {
 
         var bytesToFree = currentSize - maxBytes
 
-        Logger.logNoDateStamp("Found \(files.count) log files, trimming to free up \(bytesToFree) bytes...", logType: logFileName)
+        Logger.info("Found \(files.count) log files, trimming to free up \(bytesToFree) bytes...", category: .core)
         
         // Delete oldest files until size target is achieved
         for file in files {
             do {
                 try fileManager.removeItem(at: file.url)
-                Logger.logNoDateStamp("  Deleting log file to free space:", logType: logFileName)
-                Logger.logNoDateStamp("  \(file.url.path)", logType: logFileName)
+                Logger.info("Deleting log file to free space: \(file.url.path)", category: .core)
 
                 bytesToFree -= file.size
                 if bytesToFree <= 0 {
@@ -260,13 +258,13 @@ class LogManagerUtil {
         
         // Apply age-based retention policy if configured
         if let retentionDays: Int = ConfigManager.readPlistValue(key: "LogRetentionDays"), retentionDays > 0 {
-            Logger.logNoDateStamp("Cleaning up logs older than \(retentionDays) days...", logType: logFileName)
+            Logger.info("Cleaning up logs older than \(retentionDays) days...", category: .core)
             removeLogFiles(olderThan: retentionDays, forLogFolder: logType)
         }
 
         // Apply size-based retention policy if configured
         if let maxSizeMB: Int = ConfigManager.readPlistValue(key: "LogMaxSizeMB"), maxSizeMB > 0 {
-            Logger.logNoDateStamp("Trimming logs to maximum size of \(maxSizeMB) MB...", logType: logFileName)
+            Logger.info("Trimming logs to maximum size of \(maxSizeMB) MB...", category: .core)
             trimLogFiles(toMaxSizeMB: maxSizeMB, forLogFolder: logType)
         }
     }

@@ -12,8 +12,6 @@ import CommonCrypto
 /// Handles P12 certificate import, private key access, and Entra ID secret management
 class KeychainManager {
     
-    /// Log type identifier for logging operations
-    static private let logType = "KeychainManager"
     
     /// Stores a secret key in the keychain (legacy method)
     /// - Parameter secretKey: The secret key string to store
@@ -74,20 +72,20 @@ class KeychainManager {
         let status = SecItemAdd(query as CFDictionary, nil)
 
         if status == errSecSuccess {
-            Logger.log("Successfully stored Entra ID secret key in the system keychain.", logType: logType)
+            Logger.info("Successfully stored Entra ID secret key in the system keychain.", category: .core)
             
             // Save the import date for possible expiration notifications later
             let importDate = Date()
             if ConfigManager.writePlistValue(key: "SecretImportDate", value: importDate) {
                 ConfigManager.restrictPlistPermissions()
-                Logger.log("Saved Secret Imports Date to plist.", logType: logType)
+                Logger.info("Saved Secret Imports Date to plist.", category: .core)
             } else {
-                Logger.log("Failed to save secert import date to plist.", logType: logType)
+                Logger.error("Failed to save secert import date to plist.", category: .core)
             }
             
             return true
         } else {
-            Logger.log("Failed to store Entra ID secret key: \(status)", logType: logType)
+            Logger.error("Failed to store Entra ID secret key: \(status)", category: .core)
             return false
         }
     }
@@ -110,10 +108,10 @@ class KeychainManager {
         let status = SecItemCopyMatching(query as CFDictionary, &item)
         
         if status == errSecSuccess, let secretData = item as? Data, let secretKey = String(data: secretData, encoding: .utf8) {
-            Logger.log("Successfully retrieved Entra ID secret key from keychain.", logType: logType)
+            Logger.info("Successfully retrieved Entra ID secret key from keychain.", category: .core)
             return secretKey
         } else {
-            Logger.log("Failed to retrieve Entra ID secret key: \(status)", logType: logType)
+            Logger.error("Failed to retrieve Entra ID secret key: \(status)", category: .core)
             return nil
         }
     }
@@ -142,7 +140,7 @@ class KeychainManager {
     /// - Returns: True if the secret key exists, false otherwise
     static func entraIDSecretKeyExistsWithLogging() -> Bool {
         let exists = entraIDSecretKeyExists()
-        Logger.log("Entra ID secret key exists: \(exists)", logType: logType)
+        Logger.info("Entra ID secret key exists: \(exists)", category: .core)
         return exists
     }
 
@@ -162,19 +160,19 @@ class KeychainManager {
         
         let status = SecPKCS12Import(p12Data as CFData, importParams as CFDictionary, &items)
         if status != errSecSuccess {
-            Logger.log("Failed to import .p12 file: \(status)", logType: logType)
+            Logger.error("Failed to import .p12 file: \(status)", category: .core)
             return false
         }
         
         guard let itemsArray = items as? [[String: Any]],
               let firstItem = itemsArray.first else {
-            Logger.log("No valid items found in the .p12 file.", logType: logType)
+            Logger.info("No valid items found in the .p12 file.", category: .core)
             return false
         }
         
         // Extract identity and certificate for identification
         if firstItem[kSecImportItemIdentity as String] == nil {
-            Logger.log("No identity found in .p12", logType: logType)
+            Logger.info("No identity found in .p12", category: .core)
             return false
         }
         
@@ -183,7 +181,7 @@ class KeychainManager {
         var certificate: SecCertificate?
         let certStatus = SecIdentityCopyCertificate(identity, &certificate)
         if certStatus != errSecSuccess || certificate == nil {
-            Logger.log("Failed to extract certificate from identity", logType: logType)
+            Logger.error("Failed to extract certificate from identity", category: .core)
             return false
         }
         
@@ -199,7 +197,7 @@ class KeychainManager {
         do {
             try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         } catch {
-            Logger.log("Failed to create temporary directory: \(error)", logType: logType)
+            Logger.error("Failed to create temporary directory: \(error)", category: .core)
             return false
         }
         
@@ -208,7 +206,7 @@ class KeychainManager {
         do {
             try p12Data.write(to: p12Path)
         } catch {
-            Logger.log("Failed to write .p12 to temp file: \(error)", logType: logType)
+            Logger.error("Failed to write .p12 to temp file: \(error)", category: .core)
             return false
         }
         
@@ -223,22 +221,22 @@ class KeychainManager {
         // Clean up
         do {
             try FileManager.default.removeItem(at: tempDir)
-            Logger.log("Info: Cleaned up temp files: \(tempDir)", logType: logType)
+            Logger.info("Info: Cleaned up temp files: \(tempDir)", category: .core)
 
         } catch {
-            Logger.log("Warning: Failed to clean up temp files: \(error)", logType: logType)
+            Logger.error("Warning: Failed to clean up temp files: \(error)", category: .core)
         }
         
         if !result.success {
             if result.output.contains("already exists") {
-                Logger.log("Item already exists in keychain, considering this a success", logType: logType)
+                Logger.info("Item already exists in keychain, considering this a success", category: .core)
                 return true
             }
-            Logger.log("Failed to import .p12 to System keychain: \(result.output)", logType: logType)
+            Logger.error("Failed to import .p12 to System keychain: \(result.output)", category: .core)
             return false
         }
         
-        Logger.log("Successfully imported .p12 into the system keychain.", logType: logType)
+        Logger.info("Successfully imported .p12 into the system keychain.", category: .core)
         return true
     }
 
@@ -253,7 +251,7 @@ class KeychainManager {
         guard let certInfo = certificateManager.loadCertificateInfoFromPlist(),
               !certInfo.subjectName.isEmpty,
               !certInfo.thumbprint.isEmpty else {
-            Logger.log("Missing certificate info in plist", logType: logType)
+            Logger.info("Missing certificate info in plist", category: .core)
             return nil
         }
         
@@ -268,12 +266,12 @@ class KeychainManager {
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         
         if status != errSecSuccess {
-            Logger.log("Failed to find identities: \(status)", logType: logType)
+            Logger.error("Failed to find identities: \(status)", category: .core)
             return nil
         }
         
         guard let identities = result as? [SecIdentity] else {
-            Logger.log("Failed to cast identity results", logType: logType)
+            Logger.error("Failed to cast identity results", category: .core)
             return nil
         }
         
@@ -303,7 +301,7 @@ class KeychainManager {
                         let keyStatus = SecIdentityCopyPrivateKey(identity, &privateKey)
                         
                         if keyStatus == errSecSuccess, let key = privateKey {
-//                            Logger.log("Found matching certificate and extracted private key", logType: logType)
+//                            Logger.info("Found matching certificate and extracted private key", category: .core)
                             return key
                         }
                     }
@@ -311,7 +309,7 @@ class KeychainManager {
             }
         }
         
-        Logger.log("Could not find matching certificate and private key", logType: logType)
+        Logger.info("Could not find matching certificate and private key", category: .core)
         return nil
     }
 
@@ -368,7 +366,7 @@ class KeychainManager {
     /// - Returns: True if a matching private key exists, false otherwise
     static func privateKeyExistsWithLogging() -> Bool {
         let exists = privateKeyExists()
-        Logger.log("Private key exists: \(exists)", logType: logType)
+        Logger.info("Private key exists: \(exists)", category: .core)
         return exists
     }
 
@@ -395,11 +393,11 @@ class KeychainManager {
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
             
-            Logger.log("Security tool output: \(output)", logType: logType)
+            Logger.info("Security tool output: \(output)", category: .core)
             
             return (process.terminationStatus == 0, output)
         } catch {
-            Logger.log("Failed to execute security tool: \(error)", logType: logType)
+            Logger.error("Failed to execute security tool: \(error)", category: .core)
             return (false, error.localizedDescription)
         }
     }

@@ -19,8 +19,6 @@ class EntraAuthenticator {
     /// Expiration date of the cached token
     private var tokenExpiration: Date?
     
-    /// Log type identifier for logging operations
-    private let logType = "EntraAuthenticator"
     
     /// Custom error types for Entra ID authentication operations
     enum EntraAuthError: Error, LocalizedError {
@@ -57,7 +55,7 @@ class EntraAuthenticator {
     func getEntraIDToken() async throws -> String {
         // Check if a valid token is cached
         if let token = cachedToken, let expiration = tokenExpiration, expiration > Date() {
-            Logger.log("Returning cached Entra ID token.", logType: logType)
+            Logger.info("Returning cached Entra ID token.", category: .core)
             return token
         }
         
@@ -83,13 +81,13 @@ class EntraAuthenticator {
         var newToken: String
         switch authMethod {
         case "certificate":
-//            Logger.log("Using certificate-based authentication", logType: logType)
+//            Logger.info("Using certificate-based authentication", category: .core)
             newToken = try await authenticateWithCertificate(tenantId: tenantId, clientId: clientId)
         case "secret":
-//            Logger.log("Using client secret-based authentication", logType: logType)
+//            Logger.info("Using client secret-based authentication", category: .core)
             newToken = try await authenticateWithSecretKey(tenantId: tenantId, clientId: clientId)
         default:
-            Logger.log("Invalid authentication method: \(authMethod)", logType: logType)
+            Logger.info("Invalid authentication method: \(authMethod)", category: .core)
             throw EntraAuthError.invalidConfiguration("Invalid authentication method: \(authMethod)")
         }
         
@@ -111,12 +109,12 @@ class EntraAuthenticator {
     func authenticateWithSecretKey(tenantId: String, clientId: String) async throws -> String {
         // Retrieve the secret key from the system keychain
         guard let secretKey = KeychainManager.retrieveEntraIDSecretKey() else {
-            Logger.log("Failed to retrieve Entra ID secret key from keychain", logType: logType)
+            Logger.error("Failed to retrieve Entra ID secret key from keychain", category: .core)
             throw EntraAuthError.keychainError(-1, "Secret key not found")
         }
         
-//        Logger.log("authenticateWithSecretKey():", logType: logType)
-//        Logger.log("tenantId: \(tenantId), clientId: \(clientId)", logType: logType)
+//        Logger.info("authenticateWithSecretKey():", category: .core)
+//        Logger.info("tenantId: \(tenantId, category: .core), clientId: \(clientId)", logType: logType)
         
         let tokenUrl = URL(string: "https://login.microsoftonline.com/\(tenantId)/oauth2/v2.0/token")!
         var request = URLRequest(url: tokenUrl)
@@ -143,9 +141,9 @@ class EntraAuthenticator {
         
         if let httpResponse = response as? HTTPURLResponse,
            httpResponse.statusCode != 200 {
-            Logger.log("HTTP error: \(httpResponse.statusCode)", logType: logType)
+            Logger.error("HTTP error: \(httpResponse.statusCode)", category: .core)
             if let responseText = String(data: data, encoding: .utf8) {
-                Logger.log("Response: \(responseText)", logType: logType)
+                Logger.info("Response: \(responseText)", category: .core)
             }
             throw EntraAuthError.authenticationFailed("HTTP error: \(httpResponse.statusCode)")
         }
@@ -153,14 +151,14 @@ class EntraAuthenticator {
         do {
             if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                let accessToken = json["access_token"] as? String {
-                Logger.log("Successfully obtained access token", logType: logType)
+//                Logger.info("Successfully obtained access token", category: .core)
                 return accessToken
             } else {
                 throw EntraAuthError.authenticationFailed("Failed to retrieve access token from response")
             }
             
         } catch {
-            Logger.log("JSON parsing error: \(error)", logType: logType)
+            Logger.error("JSON parsing error: \(error)", category: .core)
             throw EntraAuthError.authenticationFailed("JSON parsing error")
         }
     }
@@ -175,25 +173,25 @@ class EntraAuthenticator {
     /// - Throws: EntraAuthError for authentication failures
     func authenticateWithCertificate(tenantId: String, clientId: String) async throws -> String {
         
-//        Logger.log("authenticateWithCertificate():", logType: logType)
-//        Logger.log("tenantId: \(tenantId), clientId: \(clientId)", logType: logType)
+//        Logger.info("authenticateWithCertificate():", category: .core)
+//        Logger.info("tenantId: \(tenantId, category: .core), clientId: \(clientId)", logType: logType)
         
         
         // 1. Get the private key from the keychain
         guard let privateKey = KeychainManager.getPrivateKeyFromKeychain() else {
-            Logger.log("Failed to retrieve private key from keychain", logType: logType)
+            Logger.error("Failed to retrieve private key from keychain", category: .core)
             throw EntraAuthError.privateKeyNotFound("Private key not found")
         }
         
         // 2. Get the certificate thumbprint from the saved plist
         let certificateManager = CertificateManager()
         guard let certInfo = certificateManager.loadCertificateInfoFromPlist() else {
-            Logger.log("Failed to load certificate info", logType: logType)
+            Logger.error("Failed to load certificate info", category: .core)
             throw EntraAuthError.invalidConfiguration("Certificate info not found")
         }
         
         let thumbprint = certInfo.thumbprint
-//        Logger.log("Using certificate with thumbprint: \(thumbprint)", logType: logType)
+//        Logger.info("Using certificate with thumbprint: \(thumbprint)", category: .core)
         
         // 3. Create JWT assertion for authentication
         let assertion = createClientAssertion(
@@ -245,7 +243,7 @@ class EntraAuthenticator {
         // Encode header and payload
         guard let headerJson = try? JSONSerialization.data(withJSONObject: header),
               let payloadJson = try? JSONSerialization.data(withJSONObject: payload) else {
-            Logger.log("Failed to encode JWT parts", logType: logType)
+            Logger.error("Failed to encode JWT parts", category: .core)
             return ""
         }
         
@@ -264,7 +262,7 @@ class EntraAuthenticator {
         
         // Sign the data
         guard let dataToSign = headerAndPayload.data(using: .utf8) else {
-            Logger.log("Failed to convert JWT to data", logType: logType)
+            Logger.error("Failed to convert JWT to data", category: .core)
             return ""
         }
         
@@ -276,7 +274,7 @@ class EntraAuthenticator {
             &error
         ) as Data? else {
             if let error = error?.takeRetainedValue() {
-                Logger.log("Signing error: \(error)", logType: logType)
+                Logger.error("Signing error: \(error)", category: .core)
             }
             return ""
         }
@@ -330,9 +328,9 @@ class EntraAuthenticator {
         
         if let httpResponse = response as? HTTPURLResponse,
            httpResponse.statusCode != 200 {
-            Logger.log("HTTP error: \(httpResponse.statusCode)", logType: logType)
+            Logger.error("HTTP error: \(httpResponse.statusCode)", category: .core)
             if let responseText = String(data: data, encoding: .utf8) {
-                Logger.log("Response: \(responseText)", logType: logType)
+                Logger.info("Response: \(responseText)", category: .core)
             }
             throw EntraAuthError.authenticationFailed("HTTP error: \(httpResponse.statusCode)")
         }
@@ -341,13 +339,13 @@ class EntraAuthenticator {
         do {
             if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                let accessToken = json["access_token"] as? String {
-//                Logger.log("Successfully obtained access token", logType: logType)
+//                Logger.info("Successfully obtained access token", category: .core)
                 return accessToken
             } else {
                 throw EntraAuthError.authenticationFailed("Failed to retrieve access token from response")
             }
         } catch {
-            Logger.log("JSON parsing error: \(error)", logType: logType)
+            Logger.error("JSON parsing error: \(error)", category: .core)
             throw EntraAuthError.authenticationFailed("JSON parsing error")
         }
     }
@@ -365,7 +363,7 @@ class EntraAuthenticator {
             // Step 2: Decode the JWT and verify permissions
             let claims = try decodeJWT(authToken)
             if let roles = claims["roles"] as? [String], roles.contains("DeviceManagementApps.ReadWrite.All") {
-                Logger.log("Token contains the required permission: DeviceManagementApps.ReadWrite.All", logType: logType)
+                Logger.info("Token contains the required permission: DeviceManagementApps.ReadWrite.All", category: .core)
             } else {
                 throw NSError(domain: "GraphValidationError", code: 1, userInfo: [
                     NSLocalizedDescriptionKey: "Token does not contain the required permission: DeviceManagementApps.ReadWrite.All"
@@ -377,7 +375,7 @@ class EntraAuthenticator {
             
             return true
         } catch {
-            Logger.log("Error validating credentials: \(error.localizedDescription)", logType: logType)
+            Logger.error("Error validating credentials: \(error.localizedDescription)", category: .core)
             return false
         }
     }

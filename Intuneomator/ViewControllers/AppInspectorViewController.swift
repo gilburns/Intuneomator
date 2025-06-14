@@ -122,17 +122,6 @@ class AppInspectorViewController: NSViewController {
     private func populateUI() {
         
         //debug logging
-        print(appPath.path)
-        print(appID)
-        print(appVersion)
-        print(appMinOSVersion)
-        print(signature["DeveloperID"] as? String ?? "")
-        print(expectedTeamID)
-        print(label)
-        print(itemGUID)
-        print(signature["DeveloperTeam"] as? String ?? "")
-        print(signature["Accepted"] as Any)
-        print(directoryPath)
 
         appIDTextField.stringValue = appID
         appVersionTextField.stringValue = appVersion
@@ -178,7 +167,7 @@ class AppInspectorViewController: NSViewController {
     /// - Clears the icon and path if loading fails.
     private func loadAndSetIcon() {
         guard let appPath = appPath, FileManager.default.fileExists(atPath: appPath.path) else {
-            print("Error: appPath is invalid or does not exist.")
+            Logger.error("Error: appPath is invalid or does not exist.", category: .core, toUserDirectory: true)
             appImageButton.image = nil
             selectedIconPath = nil
             return
@@ -190,9 +179,9 @@ class AppInspectorViewController: NSViewController {
             image.size = NSSize(width: 512, height: 512)
             appImageButton.image = image
             selectedIconPath = appPath
-            print("Successfully loaded app icon for: \(appPath.path)")
+            Logger.info("Successfully loaded app icon for: \(appPath.path)", category: .core, toUserDirectory: true)
         } else {
-            print("Error: Failed to load icon for app at: \(appPath.path)")
+            Logger.error("Error: Failed to load icon for app at: \(appPath.path)", category: .core, toUserDirectory: true)
             appImageButton.image = nil
             selectedIconPath = nil
         }
@@ -253,16 +242,15 @@ class AppInspectorViewController: NSViewController {
     func unMountDiskImage() {
         // Unmount the DMG if needed
         if let appPath = appPath, appPath.path.contains("/mount/") {
-//            print("Unmounting DMG for path: \(appPath.path)")
             let unmountProcess = Process()
             unmountProcess.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil")
             unmountProcess.arguments = ["detach", appPath.deletingLastPathComponent().path, "-quiet", "-force"]
             do {
                 try unmountProcess.run()
                 unmountProcess.waitUntilExit()
-//                print("DMG unmounted successfully.")
+//                Logger.info("DMG unmounted successfully.", category: .core, toUserDirectory: true)
             } catch {
-//                print("Failed to unmount DMG: \(error)")
+//                Logger.error("Failed to unmount DMG: \(error)", category: .core, toUserDirectory: true)
             }
         }
     }
@@ -332,26 +320,20 @@ class AppInspectorViewController: NSViewController {
                    let bitmap = NSBitmapImageRep(data: tiffData),
                    let pngData = bitmap.representation(using: .png, properties: [:]) {
                     try pngData.write(to: URL(fileURLWithPath: imagePath.path))
-//                    print("Image saved to: \(imagePath)")
                 }
             } catch {
-//                print("Failed to save image: \(error)")
             }
 
             // copy to permanent location
             do {
                 XPCManager.shared.importIconToLabel(imagePath.path, folderName) { success in
                     if success! {
-//                        print("Saved icon")
                         // clean up temp folder/icon
                         do {
                             try FileManager.default.removeItem(atPath: folderPath.path)
-//                            print("Temp folder removed.")
                         } catch {
-//                            print("Failed to remove temp folder: \(error)")
                         }
                     } else {
-//                        print("Failed to reset icon")
                     }
                 }
             }
@@ -384,10 +366,6 @@ class AppInspectorViewController: NSViewController {
     /// - Dismisses the inspector sheet without saving any changes.
     @IBAction func cancel(_ sender: NSButton) {
         
-        print("Canceled")
-        print("App path: \(appPath.path)")
-        
-              
         // Unmount the DMG if needed
         unMountDiskImage()
         

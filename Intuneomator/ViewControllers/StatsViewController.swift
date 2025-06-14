@@ -109,7 +109,6 @@ class StatsViewController: NSViewController {
     /// Allows browsing of all system-level log files and directories
     /// - Parameter sender: The button or control that triggered the action
     @IBAction func openLogsFolder(_ sender: Any) {
-        print("Opening system logs folder...")
         NSWorkspace.shared.open(AppConstants.intuneomatorLogSystemURL)
     }
 
@@ -117,7 +116,6 @@ class StatsViewController: NSViewController {
     /// Allows browsing of user-level log files and application logs
     /// - Parameter sender: The button or control that triggered the action
     @IBAction func openLogsUserFolder(_ sender: Any) {
-        print("Opening user logs folder...")
         NSWorkspace.shared.open(AppConstants.intuneomatorLogApplicationURL)
     }
 
@@ -125,7 +123,6 @@ class StatsViewController: NSViewController {
     /// Allows inspection of cached application files and temporary data
     /// - Parameter sender: The button or control that triggered the action
     @IBAction func openCacheFolder(_ sender: Any) {
-        print("Opening cache folder...")
         NSWorkspace.shared.open(AppConstants.intuneomatorCacheFolderURL)
     }
 
@@ -205,7 +202,7 @@ class StatsViewController: NSViewController {
         }
         
         guard FileManager.default.fileExists(atPath: logFileURL.path) else {
-            print("Log file not found.")
+            Logger.warning("Log file not found.", category: .core, toUserDirectory: true)
             return 0.0
         }
         
@@ -228,7 +225,7 @@ class StatsViewController: NSViewController {
             
             return total
         } catch {
-            print("Error reading log file: \(error.localizedDescription)")
+            Logger.error("Error reading log file: \(error.localizedDescription)", category: .core, toUserDirectory: true)
             return 0.0
         }
     }

@@ -206,13 +206,13 @@ class TabViewController: NSViewController {
                 if scriptVC.warningLabel.isHidden {
                     scriptVC.saveMetadata()
                 } else {
-                    print("Script tab has validation issues. Skipping script save.")
+                    Logger.warning("Script tab has validation issues. Skipping script save.", category: .core, toUserDirectory: true)
                 }
             } else if let saveableVC = viewController as? TabSaveable {
                 // Save other tabs that conform to TabSaveable protocol
                 saveableVC.saveMetadata()
             } else {
-                print("ViewController \(String(describing: viewController)) does not conform to TabSaveable.")
+                Logger.warning("ViewController \(String(describing: viewController)) does not conform to TabSaveable.", category: .core, toUserDirectory: true)
             }
         }
 
@@ -274,7 +274,7 @@ class TabViewController: NSViewController {
                         userInfo: nil)
                 }
             } else {
-                Logger.logApp("Toggle Custom Label Failed: \(directoryPath)")
+                Logger.info("Toggle Custom Label Failed: \(directoryPath)", category: .core, toUserDirectory: true)
             }
         }
     }
@@ -523,7 +523,7 @@ class TabViewController: NSViewController {
     func updateGroupAssignmentsView() {
         // Ensure the GroupAssignmentsViewController is loaded
         if let groupVC = viewControllerCache["GroupAssignmentsView"] as? GroupAssignViewController {
-            print("Updating GroupAssignmentsViewController with new transformToPkg state")
+            Logger.info("Updating GroupAssignmentsViewController with new transformToPkg state", category: .core, toUserDirectory: true)
             groupVC.appData?.transformToPkg = appData?.transformToPkg ?? false
         }
     }
@@ -553,7 +553,7 @@ class TabViewController: NSViewController {
     /// - Parameter tabViewItem: The tab view item requiring a view controller
     private func loadTabViewController(for tabViewItem: NSTabViewItem) {
         guard let identifier = tabViewItem.identifier as? String else {
-            print("TabViewItem identifier is missing")
+            Logger.warning("TabViewItem identifier is missing", category: .core, toUserDirectory: true)
             return
         }
 
@@ -566,7 +566,7 @@ class TabViewController: NSViewController {
         // Load the view controller dynamically from storyboard
         let storyboard = NSStoryboard(name: "Main", bundle: nil)
         guard let newViewController = storyboard.instantiateController(withIdentifier: identifier) as? NSViewController else {
-            print("Failed to load view controller with identifier: \(identifier)")
+            Logger.error("Failed to load view controller with identifier: \(identifier)", category: .core, toUserDirectory: true)
             return
         }
 
@@ -576,7 +576,7 @@ class TabViewController: NSViewController {
                 // Pass both the app data and the TabViewController reference
                 configurableVC.configure(with: appItemData, parent: self)
             } else {
-                print("No appItemData provided for \(identifier)")
+                Logger.warning("No appItemData provided for \(identifier)", category: .core, toUserDirectory: true)
             }
         }
 

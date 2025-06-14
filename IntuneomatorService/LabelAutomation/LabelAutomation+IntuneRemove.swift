@@ -23,14 +23,14 @@ extension LabelAutomation {
         var wrappedProcessedAppResults: ProcessedAppResults?
         var appInfo: [FilteredIntuneAppInfo]
 
-        Logger.log("--------------------------------------------------------", logType: logType)
-        Logger.log("🚀 Start removal of Intune automations for: \(folderName)", logType: "Automation")
+        Logger.info("--------------------------------------------------------", category: .automation)
+        Logger.info("🚀 Start removal of Intune automations for: \(folderName)", category: .automation)
 
         // Step 1: Process Installomator label to extract application metadata
         let folderResults = InstallomatorLabelProcessor.runProcessLabelScript(for: folderName)
         
         if !folderResults {
-            Logger.log("  Failed to run Installomator script for \(folderName)", logType: logType)
+            Logger.error("  Failed to run Installomator script for \(folderName)", category: .automation)
             return
         }
                 
@@ -38,19 +38,19 @@ extension LabelAutomation {
         wrappedProcessedAppResults = extractDataForProcessedAppResults(from: folderName)
         
         guard var processedAppResults = wrappedProcessedAppResults else {
-            Logger.log("  Failed to extract ProcessedAppResults data for \(folderName)", logType: logType)
+            Logger.error("  Failed to extract ProcessedAppResults data for \(folderName)", category: .automation)
             return
         }
         
-        Logger.log("  Extracted ProcessedAppResults data for \(processedAppResults.appDisplayName)", logType: logType)
-        Logger.log("  Label: \(processedAppResults.appLabelName)", logType: logType)
-        Logger.log("  Tracking ID: \(processedAppResults.appTrackingID)", logType: logType)
-        Logger.log("  Version to check: \(processedAppResults.appVersionExpected)", logType: logType)
+        Logger.info("  Extracted ProcessedAppResults data for \(processedAppResults.appDisplayName)", category: .automation)
+        Logger.info("  Label: \(processedAppResults.appLabelName)", category: .automation)
+        Logger.info("  Tracking ID: \(processedAppResults.appTrackingID)", category: .automation)
+        Logger.info("  Version to check: \(processedAppResults.appVersionExpected)", category: .automation)
         
         let trackingID = processedAppResults.appTrackingID
         
         // Step 3: Search Intune for applications with matching tracking ID
-        Logger.log("  " + folderName + ": Fetching app info from Intune...", logType: logType)
+        Logger.info("  " + folderName + ": Fetching app info from Intune...", category: .automation)
         
         do {
             let entraAuthenticator = EntraAuthenticator()
@@ -59,14 +59,14 @@ extension LabelAutomation {
             // Find all applications in Intune that match this tracking ID
             appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: trackingID)
             
-            Logger.log("    Found \(appInfo.count) apps matching tracking ID \(trackingID)", logType: logType)
+            Logger.info("    Found \(appInfo.count) apps matching tracking ID \(trackingID)", category: .automation)
             
             // Step 4: Remove each matching application from Intune
             for app in appInfo {
-                Logger.log("    ---", logType: logType)
-                Logger.log("    App: \(app.displayName)", logType: logType)
-                Logger.log("    Ver: \(app.primaryBundleVersion)", logType: logType)
-                Logger.log("     ID: \(app.id)", logType: logType)
+                Logger.info("    ---", category: .automation)
+                Logger.info("    App: \(app.displayName)", category: .automation)
+                Logger.info("    Ver: \(app.primaryBundleVersion)", category: .automation)
+                Logger.info("     ID: \(app.id)", category: .automation)
                 
                 // Remove individual application from Intune tenant
                 do {
@@ -77,7 +77,7 @@ extension LabelAutomation {
                     try await EntraGraphRequests.deleteIntuneApp(authToken: authToken, appId: app.id)
                     
                 } catch {
-                    Logger.log("Error removing \(processedAppResults.appDisplayName) item with AppID \(app.id) from Intune: \(error.localizedDescription)", logType: logType)
+                    Logger.error("Error removing \(processedAppResults.appDisplayName) item with AppID \(app.id) from Intune: \(error.localizedDescription)", category: .automation)
                 }
             }
             
@@ -91,12 +91,12 @@ extension LabelAutomation {
                 
                 if FileManager.default.fileExists(atPath: intuneUploadTouchFile.path) {
                     try FileManager.default.removeItem(at: intuneUploadTouchFile)
-                    Logger.log("  Removed upload tracking file for \(labelFolderName)", logType: logType)
+                    Logger.info("  Removed upload tracking file for \(labelFolderName)", category: .automation)
                 }
             }
             
         } catch {
-            Logger.log("Failed to fetch app info from Intune: \(error.localizedDescription)", logType: logType)
+            Logger.error("Failed to fetch app info from Intune: \(error.localizedDescription)", category: .automation)
             return
         }
     }

@@ -12,8 +12,6 @@ import CommonCrypto
 /// Provides methods for fetching app categories, assignment filters, managing app assignments, and app operations
 class EntraGraphRequests {
     
-    /// Log type identifier for logging operations
-    static let logType = "EntraGraphRequests"
     
     /// Custom error types for Microsoft Graph API operations
     enum GraphAPIError: Error {
@@ -328,10 +326,10 @@ class EntraGraphRequests {
         guard let jsonData = try? JSONSerialization.data(withJSONObject: requestPayload) else {
             throw GraphAPIError.encodingError
         }
-//        Logger.log("jsonData: \(jsonData)", logType: logType)
+//        Logger.info("jsonData: \(jsonData)", category: .core)
         
         // Add more detailed logging
-//        Logger.log("Final request payload: \(String(data: jsonData, encoding: .utf8) ?? "Could not decode payload")", logType: logType)
+//        Logger.info("Final request payload: \(String(data: jsonData, encoding: .utf8, category: .core) ?? "Could not decode payload")", logType: logType)
         
         // Prepare the request
         var request = URLRequest(url: url)
@@ -348,7 +346,7 @@ class EntraGraphRequests {
               (200...299).contains(httpResponse.statusCode) else {
             // If there's an error, try to extract more details
             if let errorString = String(data: data, encoding: .utf8) {
-                Logger.log("Error String: \(errorString)", logType: logType)
+                Logger.error("Error String: \(errorString)", category: .core)
 
                 throw GraphAPIError.apiError("API Error: \(errorString)")
             }
@@ -385,12 +383,12 @@ class EntraGraphRequests {
             if appTypeSupportsAssignmentFilters(appType) {
                 target["deviceAndAppManagementAssignmentFilterId"] = filterId
                 target["deviceAndAppManagementAssignmentFilterType"] = filterMode.lowercased()
-                Logger.log("🔎 Filter applied: ID=\(filterId), Type=\(filterMode.lowercased()) to \(target))", logType: logType)
+                Logger.info("🔎 Filter applied: ID=\(filterId), Type=\(filterMode.lowercased()) to \(target))", category: .core)
             } else {
-                Logger.log("⚠️ Filter was provided for unsupported appType: \(appType). Ignoring.", logType: logType)
+                Logger.info("⚠️ Filter was provided for unsupported appType: \(appType). Ignoring.", category: .core)
             }
         } else {
-            Logger.log("ℹ️ No filter applied for this assignment target", logType: logType)
+            Logger.info("ℹ️ No filter applied for this assignment target", category: .core)
         }
     }
     
@@ -444,10 +442,10 @@ class EntraGraphRequests {
                 throw GraphAPIError.invalidResponse
             }
             
-            Logger.log("Removed assignment: \(assignment.id)", logType: logType)
+            Logger.info("Removed assignment: \(assignment.id)", category: .core)
         }
         
-        Logger.log("All assignments removed for app: \(appId)", logType: logType)
+        Logger.info("All assignments removed for app: \(appId)", category: .core)
     }
     
     
@@ -527,8 +525,8 @@ class EntraGraphRequests {
             throw GraphAPIError.apiError("Failed to update scripts. Status code: \(httpResponse.statusCode)")
         }
         
-        Logger.log("Successfully updated scripts for app ID \(appId)", logType: logType)
-        Logger.log("Successfully updated \(app.appDisplayName) scripts for app ID \(appId)", logType: "Automation")
+        Logger.info("Successfully updated scripts for app ID \(appId)", category: .core)
+        Logger.info("Successfully updated \(app.appDisplayName) scripts for app ID \(appId)", category: .core)
     }
 
     // MARK: - Intune Delete App Function
@@ -563,7 +561,7 @@ class EntraGraphRequests {
             throw GraphAPIError.invalidResponse
         }
         
-        Logger.log("App deleted successfully: \(appId)", logType: logType)
+        Logger.info("App deleted successfully: \(appId)", category: .core)
     }
 }
 

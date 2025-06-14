@@ -11,6 +11,62 @@ import Foundation
 /// Provides thread-safe logging with automatic directory creation and file management
 class Logger {
     
+    // MARK: - Log Categories
+    
+    /// Standard log categories for consistent logging across the application
+    enum LogCategory: String, CaseIterable {
+        case core = "Core"               // Essential app operations (daemon, XPC, auth, errors)
+        case automation = "Automation"   // Label processing, Graph API, metadata operations
+        case download = "Download"       // Download tracking (kept separate)
+        case upload = "Upload"           // Upload tracking (kept separate)
+        case debug = "Debug"             // Development debugging (can be disabled in production)
+        
+        /// Whether this category should include date in filename
+        var includesDateInFilename: Bool {
+            switch self {
+            case .download, .upload:
+                return false  // Continuous logging files
+            default:
+                return true   // Date-based rotation
+            }
+        }
+        
+        /// Whether this category uses stats directory for download/upload tracking
+        var usesStatsDirectory: Bool {
+            return self == .download || self == .upload
+        }
+    }
+    
+    // MARK: - Log Levels
+    
+    /// Log levels for filtering messages by importance
+    enum LogLevel: String, CaseIterable, Comparable {
+        case debug = "DEBUG"
+        case info = "INFO"
+        case warning = "WARNING"
+        case error = "ERROR"
+        case critical = "CRITICAL"
+        
+        static func < (lhs: LogLevel, rhs: LogLevel) -> Bool {
+            let order: [LogLevel] = [.debug, .info, .warning, .error, .critical]
+            guard let lhsIndex = order.firstIndex(of: lhs),
+                  let rhsIndex = order.firstIndex(of: rhs) else {
+                return false
+            }
+            return lhsIndex < rhsIndex
+        }
+    }
+    
+    /// Current minimum log level (can be adjusted for production vs development)
+    static var minimumLogLevel: LogLevel = .info
+    
+    /// Production mode setting - when enabled, debug logging is completely disabled
+    static var isProductionMode: Bool = false {
+        didSet {
+            minimumLogLevel = isProductionMode ? .info : .debug
+        }
+    }
+    
     // MARK: - Private Properties
     
     /// Shared date formatter for log file naming (thread-safe singleton)
@@ -55,30 +111,86 @@ class Logger {
     
     // MARK: - Public Logging Methods
     
-    /// Logs a message to the system log directory with date-based file naming
+    /// Enhanced logging with categories and levels
     /// - Parameters:
     ///   - message: The message to log
-    ///   - logType: Category for organizing logs (default: "General")
-    static func log(_ message: String, logType: String = "General") {
-        writeLog(message: message, logType: logType, toUserDirectory: false, includeDateInFilename: true)
+    ///   - level: The importance level of the message
+    ///   - category: The category for organizing logs
+    ///   - toUserDirectory: Whether to log to user directory (false = system directory)
+    static func log(
+        _ message: String,
+        level: LogLevel = .info,
+        category: LogCategory = .core,
+        toUserDirectory: Bool = false
+    ) {
+        // Filter out messages below minimum log level
+        guard level >= minimumLogLevel else { return }
+        
+        let formattedMessage = "[\(level.rawValue)] \(message)"
+        writeLog(
+            message: formattedMessage,
+            logType: category.rawValue,
+            toUserDirectory: toUserDirectory && !category.usesStatsDirectory,
+            includeDateInFilename: category.includesDateInFilename
+        )
     }
     
-    /// Logs a message to the system log directory without date in filename
-    /// Note: Still includes timestamp in the log entry itself
-    /// - Parameters:
-    ///   - message: The message to log
-    ///   - logType: Category for organizing logs (default: "Download")
-    static func logNoDateStamp(_ message: String, logType: String = "Download") {
-        writeLog(message: message, logType: logType, toUserDirectory: false, includeDateInFilename: false)
+    // MARK: - Convenience Methods for Specific Levels
+    
+    /// Log a debug message (filtered out in production if minimumLogLevel > debug)
+    static func debug(_ message: String, category: LogCategory = .debug, toUserDirectory: Bool = false) {
+        log(message, level: .debug, category: category, toUserDirectory: toUserDirectory)
     }
     
-    /// Logs a message to the user-specific log directory
-    /// - Parameters:
-    ///   - message: The message to log
-    ///   - logType: Category for organizing logs (default: "General")
-    static func logApp(_ message: String, logType: String = "General") {
-        writeLog(message: message, logType: logType, toUserDirectory: true, includeDateInFilename: true)
+    /// Log an informational message
+    static func info(_ message: String, category: LogCategory = .core, toUserDirectory: Bool = false) {
+        log(message, level: .info, category: category, toUserDirectory: toUserDirectory)
     }
+    
+    /// Log a warning message
+    static func warning(_ message: String, category: LogCategory = .core, toUserDirectory: Bool = false) {
+        log(message, level: .warning, category: category, toUserDirectory: toUserDirectory)
+    }
+    
+    /// Log an error message
+    static func error(_ message: String, category: LogCategory = .core, toUserDirectory: Bool = false) {
+        log(message, level: .error, category: category, toUserDirectory: toUserDirectory)
+    }
+    
+    /// Log a critical message
+    static func critical(_ message: String, category: LogCategory = .core, toUserDirectory: Bool = false) {
+        log(message, level: .critical, category: category, toUserDirectory: toUserDirectory)
+    }
+    
+    // MARK: - Legacy Methods (for backward compatibility)
+    
+//    /// Logs a message to the system log directory with date-based file naming
+//    /// - Parameters:
+//    ///   - message: The message to log
+//    ///   - logType: Category for organizing logs (default: "General")
+//    @available(*, deprecated, message: "Use log(_:level:category:toUserDirectory:) instead")
+//    static func log(_ message: String, logType: String = "General") {
+//        writeLog(message: message, logType: logType, toUserDirectory: false, includeDateInFilename: true)
+//    }
+//    
+//    /// Logs a message to the system log directory without date in filename
+//    /// Note: Still includes timestamp in the log entry itself
+//    /// - Parameters:
+//    ///   - message: The message to log
+//    ///   - logType: Category for organizing logs (default: "Download")
+//    @available(*, deprecated, message: "Use log(_:level:category:toUserDirectory:) instead")
+//    static func logNoDateStamp(_ message: String, logType: String = "Download") {
+//        writeLog(message: message, logType: logType, toUserDirectory: false, includeDateInFilename: false)
+//    }
+//    
+//    /// Logs a message to the user-specific log directory
+//    /// - Parameters:
+//    ///   - message: The message to log
+//    ///   - logType: Category for organizing logs (default: "General")
+//    @available(*, deprecated, message: "Use log(_:level:category:toUserDirectory:) instead")
+//    static func logApp(_ message: String, logType: String = "General") {
+//        writeLog(message: message, logType: logType, toUserDirectory: true, includeDateInFilename: true)
+//    }
     
     // MARK: - Private Helper Methods
     
@@ -172,9 +284,17 @@ class Logger {
 // MARK: - Usage Examples
 /*
  
+ // New enhanced logging (recommended)
+ Logger.info("Application started", category: .core)
+ Logger.error("Authentication failed", category: .core)
+ Logger.info("Processing label: someLabel", category: .automation)
+ Logger.debug("Debugging download process", category: .debug)
+ Logger.log("Downloaded file.dmg", level: .info, category: .download)
+ Logger.log("Uploaded to Intune", level: .info, category: .upload)
+ 
+ // Legacy logging (deprecated but still supported)
  Logger.log("Application started.")
  Logger.log("Update completed successfully.", logType: "Updates")
- Logger.log("An error occurred in the update process.", logType: "Errors")
  Logger.logApp("User-specific action performed.", logType: "UserActions")
  Logger.logNoDateStamp("Continuous log entry", logType: "Download")
  

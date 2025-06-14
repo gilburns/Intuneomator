@@ -45,7 +45,7 @@ extension TeamsNotifier {
         errorMessage: String? = nil
     ) async {
         
-        Logger.log("Sending label update notification...", logType: "LabelUpdate")
+        Logger.debug("Sending label update notification...", category: .debug)
         let title = "Intuneomator Service"
         let intuneomatorIconUrl: String = "https://icons.intuneomator.org/intuneomator.png"
         

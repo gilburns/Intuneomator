@@ -60,7 +60,7 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
     ///   - parent: Parent TabViewController for save state coordination
     func configure(with data: Any, parent: TabViewController) {
         guard let appData = data as? AppInfo else {
-            print("Invalid data passed to ScriptViewController")
+            Logger.error("Invalid data passed to ScriptViewController", category: .core, toUserDirectory: true)
             return
         }
         self.appData = appData
@@ -71,14 +71,12 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
 // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-//        print("ScriptViewController loaded and ready.")
 
         // Use appData to configure the view
         guard appData != nil else {
-            print("Error: appData is nil in ScriptViewController viewDidLoad.")
+            Logger.error("Error: appData is nil in ScriptViewController viewDidLoad.", category: .core, toUserDirectory: true)
             return
         }
-//        print("Received appData in ScriptViewController: \(appData)")
         
         // Set up custom tab buttons
         setupCustomTabButtons()
@@ -230,7 +228,7 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
         default:
             return
         }
-        print("Import Script for \(selectedTab.label)")
+        Logger.info("Import Script for \(selectedTab.label)", category: .core, toUserDirectory: true)
 
         // Show a warning if the target field already has content
         if !targetField.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -351,14 +349,6 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
         let isPostInstallValid = isPostInstallValidShebang && isPostInstallValidLength
 
         // Debugging logs
-//        print("Preinstall Script:")
-//        print("  Content: \(preInstallContents)")
-//        print("  Valid Shebang: \(isPreInstallValidShebang)")
-//        print("  Valid Length: \(isPreInstallValidLength)")
-//        print("Postinstall Script:")
-//        print("  Content: \(postInstallContents)")
-//        print("  Valid Shebang: \(isPostInstallValidShebang)")
-//        print("  Valid Length: \(isPostInstallValidLength)")
 
         return isPreInstallValid && isPostInstallValid
     }
@@ -372,16 +362,13 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
         let postInstallChanged = fieldPostInstallScript.string != savedPostInstallScript
 
         if preInstallChanged {
-            print("Preinstall script changed")
         }
         if postInstallChanged {
-            print("Postinstall script changed")
         }
 
         hasUnsavedChanges = preInstallChanged || postInstallChanged
 
         if hasUnsavedChanges == false {
-            print("No changes detected")
         }
         updateSaveButtonState()
     }
@@ -404,7 +391,7 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
                 savedPreInstallScript = try String(contentsOf: preInstallPath, encoding: .utf8)
                 fieldPreInstallScript.string = savedPreInstallScript
             } catch {
-                print("Error loading preinstall script: \(error)")
+                Logger.error("Error loading preinstall script: \(error)", category: .core, toUserDirectory: true)
             }
         } else {
             fieldPreInstallScript.string = "" // Clear if file doesn't exist
@@ -416,7 +403,7 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
                 savedPostInstallScript = try String(contentsOf: postInstallPath, encoding: .utf8)
                 fieldPostInstallScript.string = savedPostInstallScript
             } catch {
-                print("Error loading postinstall script: \(error)")
+                Logger.error("Error loading postinstall script: \(error)", category: .core, toUserDirectory: true)
             }
         } else {
             fieldPostInstallScript.string = "" // Clear if file doesn't exist
@@ -600,9 +587,9 @@ extension ScriptViewController: TabSaveable {
         group.enter()
         XPCManager.shared.savePreInstallScriptToLabel(preInstallContents, labelFolder) { reply in
             if reply == true {
-                Logger.logApp("Saved preinstall script: \(labelFolder)")
+                Logger.info("Saved preinstall script: \(labelFolder)", category: .core, toUserDirectory: true)
             } else {
-                Logger.logApp("Failed to save preinstall script.")
+                Logger.info("Failed to save preinstall script.", category: .core, toUserDirectory: true)
             }
             group.leave()
         }
@@ -610,15 +597,15 @@ extension ScriptViewController: TabSaveable {
         group.enter()
         XPCManager.shared.savePostInstallScriptToLabel(postInstallContents, labelFolder) { reply in
             if reply == true {
-                Logger.logApp("Saved postinstall script: \(labelFolder)")
+                Logger.info("Saved postinstall script: \(labelFolder)", category: .core, toUserDirectory: true)
             } else {
-                Logger.logApp("Failed to save postinstall script.")
+                Logger.info("Failed to save postinstall script.", category: .core, toUserDirectory: true)
             }
             group.leave()
         }
 
         group.notify(queue: .main) {
-            Logger.logApp("Scripts both saved successfully.")
+            Logger.info("Scripts both saved successfully.", category: .core, toUserDirectory: true)
             // Sheet dismissal is handled by the parent view once all tabs complete saving.
         }
     }

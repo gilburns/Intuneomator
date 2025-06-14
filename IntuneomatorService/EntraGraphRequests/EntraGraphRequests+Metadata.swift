@@ -23,8 +23,8 @@ extension EntraGraphRequests {
     ///   - categories: Array of Category objects to assign to the application
     /// - Throws: Network errors, authentication errors, or API errors
     static func assignCategoriesToIntuneApp(authToken: String, appID: String, categories: [Category]) async throws {
-        Logger.log("Assigning categories to Intune app \(appID)", logType: logType)
-        Logger.log("Categories: \(categories)", logType: logType)
+        Logger.info("Assigning categories to Intune app \(appID)", category: .core)
+        Logger.info("Categories: \(categories)", category: .core)
         
         // Use beta endpoint for category assignment operations
         guard let baseUrl = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appID)/categories/$ref") else {
@@ -36,7 +36,7 @@ extension EntraGraphRequests {
             let body = [
                 "@odata.id": "https://graph.microsoft.com/beta/deviceAppManagement/mobileAppCategories/\(category.id)"
             ]
-            Logger.log("Request Body for category \(category.displayName): \(body)", logType: logType)
+            Logger.info("Request Body for category \(category.displayName): \(body)", category: .core)
             
             guard let jsonData = try? JSONSerialization.data(withJSONObject: body, options: []) else {
                 throw NSError(domain: "IntuneAPIError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to serialize request body"])
@@ -65,14 +65,14 @@ extension EntraGraphRequests {
                     }
                     
                     if httpResponse.statusCode == 204 || httpResponse.statusCode == 200 {
-                        Logger.log("Successfully assigned category \(category.displayName) to app \(appID)", logType: logType)
+                        Logger.info("Successfully assigned category \(category.displayName) to app \(appID)", category: .core)
                         success = true
                     } else {
                         let errorInfo = String(data: data, encoding: .utf8) ?? "No error details available"
-                        Logger.log("Error assigning category \(category.displayName): Status \(httpResponse.statusCode), Response: \(errorInfo)", logType: logType)
+                        Logger.info("Error assigning category \(category.displayName): Status \(httpResponse.statusCode), Response: \(errorInfo)", category: .core)
                         
                         if httpResponse.statusCode == 429 || httpResponse.statusCode >= 500 {
-                            Logger.log("Retrying after delay due to rate limit/server error (attempt \(attempt))", logType: logType)
+                            Logger.error("Retrying after delay due to rate limit/server error (attempt \(attempt))", category: .core)
                             try await Task.sleep(nanoseconds: 2_000_000_000)
                             continue
                         }
@@ -81,7 +81,7 @@ extension EntraGraphRequests {
                                       userInfo: [NSLocalizedDescriptionKey: "Failed to assign category \(category.displayName) to app \(appID). Status code: \(httpResponse.statusCode). Error: \(errorInfo)"])
                     }
                 } catch {
-                    Logger.log("Exception while assigning category \(category.displayName) (attempt \(attempt)): \(error)", logType: logType)
+                    Logger.error("Exception while assigning category \(category.displayName) (attempt \(attempt)): \(error)", category: .core)
                     if attempt == maxRetries {
                         throw error
                     } else {
@@ -92,7 +92,7 @@ extension EntraGraphRequests {
             
             try await Task.sleep(nanoseconds: 500_000_000) // Rate limiting between categories        }
             
-            Logger.log("Completed assigning all categories to app \(appID)", logType: logType)
+            Logger.info("Completed assigning all categories to app \(appID)", category: .core)
         }
     }
     
@@ -103,7 +103,7 @@ extension EntraGraphRequests {
     ///   - appID: Unique identifier of the Intune application
     /// - Throws: Network errors, authentication errors, or API errors
     static func removeAllCategoriesFromIntuneApp(authToken: String, appID: String) async throws {
-        Logger.log("Removing all category assignments from Intune app \(appID)", logType: logType)
+        Logger.info("Removing all category assignments from Intune app \(appID)", category: .core)
         
         // First, retrieve current category assignments
         guard let categoriesUrl = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appID)/categories") else {
@@ -136,22 +136,22 @@ extension EntraGraphRequests {
         
         // Early return if no categories are assigned
         if value.isEmpty {
-            Logger.log("No categories assigned to app \(appID)", logType: logType)
+            Logger.info("No categories assigned to app \(appID)", category: .core)
             return
         }
         
-        Logger.log("Found \(value.count) categories assigned to app \(appID)", logType: logType)
+        Logger.info("Found \(value.count) categories assigned to app \(appID)", category: .core)
         
         // Remove each category assignment individually
         for categoryInfo in value {
             guard let categoryId = categoryInfo["id"] as? String else {
-                Logger.log("Could not extract category ID from: \(categoryInfo)", logType: logType)
+                Logger.info("Could not extract category ID from: \(categoryInfo)", category: .core)
                 continue
             }
             
             // Build deletion URL for category reference
             guard let deleteUrl = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appID)/categories/\(categoryId)/$ref") else {
-                Logger.log("Invalid URL formation for category \(categoryId)", logType: logType)
+                Logger.info("Invalid URL formation for category \(categoryId)", category: .core)
                 continue
             }
             
@@ -175,14 +175,14 @@ extension EntraGraphRequests {
                     }
                     
                     if deleteHttpResponse.statusCode == 204 || deleteHttpResponse.statusCode == 200 {
-                        Logger.log("Successfully removed category \(categoryId) from app \(appID)", logType: logType)
+                        Logger.info("Successfully removed category \(categoryId) from app \(appID)", category: .core)
                         success = true
                     } else {
                         let errorInfo = String(data: deleteData, encoding: .utf8) ?? "No error details available"
-                        Logger.log("Error removing category \(categoryId): Status \(deleteHttpResponse.statusCode), Response: \(errorInfo)", logType: logType)
+                        Logger.info("Error removing category \(categoryId): Status \(deleteHttpResponse.statusCode), Response: \(errorInfo)", category: .core)
                         
                         if deleteHttpResponse.statusCode == 429 || deleteHttpResponse.statusCode >= 500 {
-                            Logger.log("Retrying after delay due to rate limit/server error (attempt \(attempt))", logType: logType)
+                            Logger.error("Retrying after delay due to rate limit/server error (attempt \(attempt))", category: .core)
                             try await Task.sleep(nanoseconds: 2_000_000_000)
                             continue
                         }
@@ -191,7 +191,7 @@ extension EntraGraphRequests {
                                       userInfo: [NSLocalizedDescriptionKey: "Failed to remove category \(categoryId) from app \(appID). Status code: \(deleteHttpResponse.statusCode). Error: \(errorInfo)"])
                     }
                 } catch {
-                    Logger.log("Exception while removing category \(categoryId) (attempt \(attempt)): \(error)", logType: logType)
+                    Logger.error("Exception while removing category \(categoryId) (attempt \(attempt)): \(error)", category: .core)
                     if attempt == maxRetries {
                         throw error
                     } else {
@@ -203,7 +203,7 @@ extension EntraGraphRequests {
             try await Task.sleep(nanoseconds: 500_000_000) // 500ms delay between category removals
         }
         
-        Logger.log("Successfully removed all categories from app \(appID)", logType: logType)
+        Logger.info("Successfully removed all categories from app \(appID)", category: .core)
     }
     
     // MARK: - Application Metadata Updates
@@ -288,7 +288,7 @@ extension EntraGraphRequests {
             throw GraphAPIError.apiError("Failed to update metadata. Status code: \(httpResponse.statusCode)")
         }
         
-        Logger.log("Successfully updated metadata for app ID \(appId)", logType: logType)
-        Logger.log("Successfully updated \(app.appDisplayName) metadata for app ID \(appId)", logType: "Automation")
+        Logger.info("Successfully updated metadata for app ID \(appId)", category: .core)
+        Logger.info("Successfully updated \(app.appDisplayName) metadata for app ID \(appId)", category: .core)
     }
 }

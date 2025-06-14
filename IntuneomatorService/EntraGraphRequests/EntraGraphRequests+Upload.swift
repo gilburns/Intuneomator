@@ -24,18 +24,18 @@ extension EntraGraphRequests {
     /// - Returns: The unique identifier of the uploaded application in Intune
     /// - Throws: Upload errors, authentication errors, or unsupported file type errors
     static func uploadAppToIntune(authToken: String, app: ProcessedAppResults) async throws -> String {
-        Logger.log("🖥️  Uploading app to Intune...", logType: logType)
+        Logger.info("🖥️  Uploading app to Intune...", category: .core)
         let uploadedAppID: String
         
         // Route to appropriate upload method based on deployment type
         if app.appDeploymentType == 2 {
-            Logger.log("Deploying LOB app...", logType: logType)
+            Logger.info("Deploying LOB app...", category: .core)
             uploadedAppID = try await uploadLOBPkg(authToken: authToken, app: app)
         } else if app.appDeploymentType == 1 {
-            Logger.log("Deploying PKG app...", logType: logType)
+            Logger.info("Deploying PKG app...", category: .core)
             uploadedAppID = try await uploadPKGWithScripts(authToken: authToken, app: app)
         } else if app.appDeploymentType == 0 {
-            Logger.log("Deploying DMG app...", logType: logType)
+            Logger.info("Deploying DMG app...", category: .core)
             uploadedAppID = try await uploadDMGApp(authToken: authToken, app: app)
         } else {
             throw NSError(domain: "UnsupportedFileType", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unsupported file type for upload."])
@@ -105,7 +105,7 @@ extension EntraGraphRequests {
                     lastError = error
                     if attempt < 3 {
                         // Exponential backoff for throughput throttling
-                        Logger.log("Throughput throttled, retrying block upload in \(0.5 * Double(attempt)) seconds...", logType: logType)
+                        Logger.info("Throughput throttled, retrying block upload in \(0.5 * Double(attempt)) seconds...", category: .core)
                         try await Task.sleep(nanoseconds: UInt64(0.5 * Double(attempt) * 1_000_000_000))
                         continue
                     }
@@ -115,7 +115,7 @@ extension EntraGraphRequests {
                 throw NSError(domain: "IntuneUploadError", code: -1, userInfo: [NSLocalizedDescriptionKey : error.localizedDescription])
             }
             
-            Logger.log("Uploaded block \(blockIndex): \(chunkData.count / 1024) KB", logType: logType)
+            Logger.info("Uploaded block \(blockIndex): \(chunkData.count / 1024) KB", category: .core)
             
             blockIndex += 1
             offset += chunkData.count
@@ -139,20 +139,20 @@ extension EntraGraphRequests {
         blockListRequest.addValue("application/xml", forHTTPHeaderField: "Content-Type")
         blockListRequest.httpBody = blockListData
         
-        Logger.log("Block list upload started...", logType: logType)
+        Logger.info("Block list upload started...", category: .core)
 
         // Commit all blocks as a single blob
         let (blockListResponseData, blockListResponse) = try await URLSession.shared.data(for: blockListRequest)
         
         guard let blockListHTTPResponse = blockListResponse as? HTTPURLResponse, blockListHTTPResponse.statusCode == 201 else {
             let responseString = String(data: blockListResponseData, encoding: .utf8) ?? "<non-UTF8 data>"
-            Logger.log("Block list upload failed: \(responseString)", logType: logType)
+            Logger.error("Block list upload failed: \(responseString)", category: .core)
             throw NSError(domain: "UploadLOBPkg", code: 3, userInfo: [
                 NSLocalizedDescriptionKey: "Failed to upload block list XML"
             ])
         }
-        Logger.log("Block list upload complete ✅", logType: logType)
-        Logger.log("File upload complete ✅", logType: logType)
+        Logger.info("Block list upload complete ✅", category: .core)
+        Logger.info("File upload complete ✅", category: .core)
     }
     
     // MARK: - Upload Status Monitoring
@@ -181,21 +181,21 @@ extension EntraGraphRequests {
             
             if let statusJson = try JSONSerialization.jsonObject(with: statusData) as? [String: Any] {
                 if let uploadState = statusJson["uploadState"] as? String {
-                    Logger.log("File upload state: \(uploadState)", logType: logType)
+                    Logger.info("File upload state: \(uploadState)", category: .core)
                     
                     // Check for successful completion
                     if uploadState == "commitFileSuccess" {
-                        Logger.log("File upload successfully committed ✅", logType: logType)
+                        Logger.info("File upload successfully committed ✅", category: .core)
                         return
                     }
                     
                     // Check for failure and extract error details
                     if uploadState == "commitFileFailed" {
                         if let errorCode = statusJson["errorCode"] as? String {
-                            Logger.log("Error code: \(errorCode)", logType: logType)
+                            Logger.error("Error code: \(errorCode)", category: .core)
                         }
                         if let errorDescription = statusJson["errorDescription"] as? String {
-                            Logger.log("Error description: \(errorDescription)", logType: logType)
+                            Logger.error("Error description: \(errorDescription)", category: .core)
                         }
                         
                         throw NSError(domain: "UploadApp", code: 6, userInfo: [

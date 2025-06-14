@@ -51,7 +51,7 @@ extension XPCManager {
                 let apps = try JSONDecoder().decode([DetectedApp].self, from: data)
                 completion(apps)
             } catch {
-                print("Failed to decode DetectedApp array: \(error)")
+                Logger.error("Failed to decode DetectedApp array: \(error)", category: .core)
                 completion(nil)
             }
         }
@@ -75,7 +75,7 @@ extension XPCManager {
                 let devices = try JSONDecoder().decode([DeviceInfo].self, from: data)
                 completion(devices)
             } catch {
-                print("⚠️ Failed to decode devices: \(error)")
+                Logger.error("Failed to decode devices: \(error)", category: .core, toUserDirectory: true)
                 completion(nil)
             }
         }

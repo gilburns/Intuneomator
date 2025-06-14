@@ -82,6 +82,31 @@ extension XPCManager {
         )
     }
     
+    /// Toggles the enabled/disabled state of a scheduled Launch Daemon task
+    /// Delegates to the privileged service for secure daemon management
+    /// - Parameters:
+    ///   - label: Unique identifier of the task to toggle
+    ///   - enable: True to enable the task, false to disable it
+    ///   - completion: Callback with success status and optional error message
+    func toggleScheduledTask(
+        label: String,
+        enable: Bool,
+        completion: @escaping (Bool, String?) -> Void
+    ) {
+        guard let connection = self.connection else {
+            completion(false, "XPC connection not available.")
+            return
+        }
+
+        (connection.remoteObjectProxyWithErrorHandler { error in
+            completion(false, "XPC error: \(error.localizedDescription)")
+        } as? XPCServiceProtocol)?.toggleScheduledTask(
+            label: label,
+            enable: enable,
+            withReply: completion
+        )
+    }
+    
     /// Encodes ScheduledTime objects for secure XPC transmission
     /// Uses NSKeyedArchiver with secure coding for safe data serialization
     /// - Parameter schedules: Array of ScheduledTime objects to encode

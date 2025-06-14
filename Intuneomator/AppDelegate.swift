@@ -9,7 +9,6 @@ import Cocoa
 import Foundation
 
 /// Private logging identifier for AppDelegate operations
-private let logType = "AppDelegate"
 
 /// Main application delegate responsible for application lifecycle management.
 /// 
@@ -50,7 +49,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// 
     /// - Parameter notification: The application launch notification
     func applicationDidFinishLaunching(_ notification: Notification) {
-        Logger.logApp("Intuneomator starting...", logType: logType)
+        Logger.info("Intuneomator starting...", category: .core, toUserDirectory: true)
         
         // Perform initial data loading asynchronously
         Task {
@@ -86,7 +85,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let windowController = NSApp.windows.first?.windowController as? MainWindowController,
               let window = windowController.window,
               let accessory = window.titlebarAccessoryViewControllers.first(where: { $0 is TitlebarAccessoryViewController }) as? TitlebarAccessoryViewController else {
-            Logger.logApp("No titlebar accessory found for termination cleanup", logType: logType)
+            Logger.info("No titlebar accessory found for termination cleanup", category: .core, toUserDirectory: true)
             return
         }
         
@@ -150,7 +149,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if mainWindowController == nil {
             let storyboard = NSStoryboard(name: "Main", bundle: nil)
             guard let windowController = storyboard.instantiateController(withIdentifier: "MainWindow") as? MainWindowController else {
-                Logger.logApp("Error: Failed to instantiate MainWindowController from storyboard", logType: logType)
+                Logger.info("Error: Failed to instantiate MainWindowController from storyboard", category: .core, toUserDirectory: true)
                 return
             }
             mainWindowController = windowController
@@ -159,7 +158,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Show the main window
         guard let windowController = mainWindowController,
               let window = windowController.window else {
-            Logger.logApp("Error: MainWindowController or its window is nil", logType: logType)
+            Logger.info("Error: MainWindowController or its window is nil", category: .core, toUserDirectory: true)
             return
         }
         
@@ -180,12 +179,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @IBAction func openSetupWizard(_ sender: Any) {
         let storyboard = NSStoryboard(name: "Wizard", bundle: nil)
         guard let wizardWindow = storyboard.instantiateController(withIdentifier: "EntraIDWizardWindow") as? NSWindowController else {
-            Logger.logApp("Error: Failed to instantiate wizard window controller", logType: logType)
+            Logger.info("Error: Failed to instantiate wizard window controller", category: .core, toUserDirectory: true)
             return
         }
         
         guard let window = wizardWindow.window else {
-            Logger.logApp("Error: Wizard window controller has no window", logType: logType)
+            Logger.info("Error: Wizard window controller has no window", category: .core, toUserDirectory: true)
             return
         }
         
@@ -209,9 +208,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         do {
             // Use concurrent loading for better performance
             try await AppDataManager.shared.refreshAllData()
-            Logger.logApp("All initial data loaded successfully", logType: logType)
+            Logger.info("All initial data loaded successfully", category: .core, toUserDirectory: true)
         } catch {
-            Logger.logApp("Error during data initialization: \(error.localizedDescription)", logType: logType)
+            Logger.info("Error during data initialization: \(error.localizedDescription)", category: .core, toUserDirectory: true)
         }
     }
     
@@ -244,23 +243,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     guard resourceValues.isDirectory == true else { continue }
                     
                     try FileManager.default.removeItem(at: url)
-                    Logger.logApp("Successfully removed old temp folder: \(url.path)", logType: logType)
+                    Logger.info("Successfully removed old temp folder: \(url.path)", category: .core, toUserDirectory: true)
                 } catch let error as CocoaError {
                     if error.code == .fileNoSuchFile {
-                        Logger.logApp("Old temp folder already removed: \(url.path)", logType: logType)
+                        Logger.info("Old temp folder already removed: \(url.path)", category: .core, toUserDirectory: true)
                     } else {
-                        Logger.logApp("Failed to remove old temp folder: \(url.path), error: \(error.localizedDescription)", logType: logType)
+                        Logger.info("Failed to remove old temp folder: \(url.path), error: \(error.localizedDescription)", category: .core, toUserDirectory: true)
                     }
                 } catch {
-                    Logger.logApp("Unexpected error removing temp folder: \(url.path), error: \(error.localizedDescription)", logType: logType)
+                    Logger.info("Unexpected error removing temp folder: \(url.path), error: \(error.localizedDescription)", category: .core, toUserDirectory: true)
                 }
             }
             
             if intuneomatorFolders.isEmpty {
-                Logger.logApp("No old temp folders found to clean up", logType: logType)
+                Logger.info("No old temp folders found to clean up", category: .core, toUserDirectory: true)
             }
         } catch {
-            Logger.logApp("Error reading temp directory contents: \(error.localizedDescription)", logType: logType)
+            Logger.info("Error reading temp directory contents: \(error.localizedDescription)", category: .core, toUserDirectory: true)
         }
     }
     
@@ -272,7 +271,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// creating them with appropriate permissions if needed. This prevents runtime
     /// errors when the application tries to access these directories later.
     private func setupApplicationSupportFolders() {
-        Logger.logApp("Setting up application support directories...", logType: logType)
+        Logger.info("Setting up application support directories...", category: .core, toUserDirectory: true)
         
         let requiredDirectories = [
             AppConstants.intuneomatorTempFolderURL
@@ -286,12 +285,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let exists = FileManager.default.fileExists(atPath: directoryPath, isDirectory: &isDirectory)
             
             if exists && isDirectory.boolValue {
-                Logger.logApp("Directory already exists: \(directoryPath)", logType: logType)
+                Logger.info("Directory already exists: \(directoryPath)", category: .core, toUserDirectory: true)
                 continue
             }
             
             if exists && !isDirectory.boolValue {
-                Logger.logApp("Error: File exists at directory path: \(directoryPath)", logType: logType)
+                Logger.info("Error: File exists at directory path: \(directoryPath)", category: .core, toUserDirectory: true)
                 continue
             }
             
@@ -304,11 +303,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         .posixPermissions: 0o755 // Standard directory permissions
                     ]
                 )
-                Logger.logApp("Successfully created directory: \(directoryPath)", logType: logType)
+                Logger.info("Successfully created directory: \(directoryPath)", category: .core, toUserDirectory: true)
             } catch let error as CocoaError {
-                Logger.logApp("Failed to create directory: \(directoryPath), CocoaError: \(error.localizedDescription)", logType: logType)
+                Logger.info("Failed to create directory: \(directoryPath), CocoaError: \(error.localizedDescription)", category: .core, toUserDirectory: true)
             } catch {
-                Logger.logApp("Failed to create directory: \(directoryPath), error: \(error.localizedDescription)", logType: logType)
+                Logger.info("Failed to create directory: \(directoryPath), error: \(error.localizedDescription)", category: .core, toUserDirectory: true)
             }
         }
     }

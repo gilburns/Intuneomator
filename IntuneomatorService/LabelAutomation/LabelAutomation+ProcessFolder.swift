@@ -46,7 +46,7 @@ extension LabelAutomation {
         
         // Validate input parameter
         guard !folderName.isEmpty else {
-            Logger.log("❌ Invalid folder name provided", logType: logType)
+            Logger.info("❌ Invalid folder name provided", category: .automation)
             return ("Invalid folder name provided", "", "", false)
         }
         
@@ -57,35 +57,46 @@ extension LabelAutomation {
         // For version checking in Intune
         var appInfo: [FilteredIntuneAppInfo] = []
         
-        Logger.log("--------------------------------------------------------", logType: logType)
-        Logger.log("🚀 Start processing of \(folderName)", logType: "Automation")
+        Logger.info("--------------------------------------------------------", category: .automation)
+        Logger.info("🚀 Start processing of \(folderName)", category: .automation)
 
         // Update the label plist with latest info using the .sh file.
         let folderResults = InstallomatorLabelProcessor.runProcessLabelScript(for: folderName)
         
         if !folderResults {
-            Logger.log("  Failed to run Installomator script for \(folderName)", logType: logType)
+            Logger.error("  Failed to run Installomator script for \(folderName)", category: .automation)
             return ("Failed to run Installomator script for \(folderName)", "", "", false)
         }
                 
         // Get the Processed App Results starter for this folder
         wrappedProcessedAppResults = extractDataForProcessedAppResults(from: folderName)
         guard var processedAppResults = wrappedProcessedAppResults else {
-            Logger.log("ProcessedAppResults unexpectedly nil", logType: logType)
+            Logger.info("ProcessedAppResults unexpectedly nil", category: .automation)
             return ("\(folderName) ProcessedAppResults unexpectedly nil", "", "", false)
 
         }
         
-        Logger.log("  Extracted ProcessedAppResults data for \(processedAppResults.appDisplayName)", logType: logType)
+        Logger.info("  Extracted ProcessedAppResults data for \(processedAppResults.appDisplayName)", category: .automation)
         
-        Logger.log("  Label: \(processedAppResults.appLabelName)", logType: logType)
-        Logger.log("  Tracking ID: \(processedAppResults.appTrackingID)", logType: logType)
-        Logger.log("  Version to check: \(processedAppResults.appVersionExpected)", logType: logType)
+        Logger.info("  Label: \(processedAppResults.appLabelName)", category: .automation)
+        Logger.info("  Tracking ID: \(processedAppResults.appTrackingID)", category: .automation)
+        Logger.info("  Version to check: \(processedAppResults.appVersionExpected)", category: .automation)
         
         
         let appLabelName = processedAppResults.appLabelName
         let appTrackingID = processedAppResults.appTrackingID
+        let appDisplayName = processedAppResults.appDisplayName
         
+        let operationId = "\(folderName)"
+        let statusManager = StatusNotificationManager.shared
+        
+        // Start tracking
+        statusManager.startOperation(
+            operationId: operationId,
+            labelName: appLabelName,
+            appName: appDisplayName
+        )
+
         
         // MARK: - Authentication
         
@@ -94,10 +105,11 @@ extension LabelAutomation {
         do {
             let entraAuthenticator = EntraAuthenticator()
             authToken = try await entraAuthenticator.getEntraIDToken()
-            Logger.log("✅ Successfully obtained Entra ID token", logType: logType)
+            Logger.info("✅ Successfully obtained Entra ID token", category: .automation)
         } catch {
-            Logger.log("❌ Failed to get Entra ID Token: \(error.localizedDescription)", logType: logType)
+            Logger.error("❌ Failed to get Entra ID Token: \(error.localizedDescription)", category: .automation)
             let errorMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appTrackingID) failed to get Entra ID Token"
+            statusManager.failOperation(operationId: operationId, errorMessage: errorMessage)
             return (errorMessage, processedAppResults.appDisplayName, "", false)
         }
         
@@ -107,19 +119,20 @@ extension LabelAutomation {
         if processedAppResults.appVersionExpected != "" {
             
             // Check Intune for an existing version
-            Logger.log("  " + folderName + ": Fetching app info from Intune...", logType: logType)
+            Logger.info("  " + folderName + ": Fetching app info from Intune...", category: .automation)
             
             do {
-                
+                statusManager.updateProcessingStatus(operationId, "Checking Intune for existing…")
+
                 appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: appTrackingID)
                 
-                Logger.log("    Found \(appInfo.count) apps matching tracking ID \(appTrackingID)", logType: logType)
+                Logger.info("    Found \(appInfo.count) apps matching tracking ID \(appTrackingID)", category: .automation)
                 
                 for app in appInfo {
-                    Logger.log("    ---", logType: logType)
-                    Logger.log("    App: \(app.displayName)", logType: logType)
-                    Logger.log("    Ver: \(app.primaryBundleVersion)", logType: logType)
-                    Logger.log("     ID: \(app.id)", logType: logType)
+                    Logger.info("    ---", category: .automation)
+                    Logger.info("    App: \(app.displayName)", category: .automation)
+                    Logger.info("    Ver: \(app.primaryBundleVersion)", category: .automation)
+                    Logger.info("     ID: \(app.id)", category: .automation)
                 }
                 
                 // Check if current version already exists in Intune
@@ -127,18 +140,22 @@ extension LabelAutomation {
                 
                 // Version is already in Intune. No need to continue
                 if versionExistsInIntune {
-                    Logger.log("    ---", logType: logType)
-                    Logger.log("    Version \(processedAppResults.appVersionExpected) already exists in Intune", logType: logType)
+                    statusManager.completeOperation(operationId: operationId)
+
+                    Logger.info("    ---", category: .automation)
+                    Logger.info("    Version \(processedAppResults.appVersionExpected) already exists in Intune", category: .automation)
+                    statusManager.failOperation(operationId: operationId, errorMessage: "Version \(processedAppResults.appVersionExpected) already exists in Intune")
                     return ("\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) already exists in Intune", "", "", true)
 
                 }
                 
                 checkedIntune = true
                 
-                Logger.log("  Version \(processedAppResults.appVersionExpected) is not yet uploaded to Intune", logType: logType)
+                Logger.info("  Version \(processedAppResults.appVersionExpected) is not yet uploaded to Intune", category: .automation)
                 
             } catch {
-                Logger.log("Failed to fetch app info from Intune: \(error.localizedDescription)", logType: logType)
+                Logger.error("Failed to fetch app info from Intune: \(error.localizedDescription)", category: .automation)
+                statusManager.failOperation(operationId: operationId, errorMessage: error.localizedDescription)
                 return ("\(processedAppResults.appDisplayName) \(processedAppResults.appTrackingID) failed to fetch app info from Intune.", "", "", false)
 
             }
@@ -151,10 +168,11 @@ extension LabelAutomation {
         if let cacheURL = cacheURLCheck {
             // No download needed, use cached version
             applyCached(cacheURL, to: &processedAppResults)
-            Logger.log("✅ Used cached version for \(folderName)", logType: logType)
+            Logger.info("✅ Used cached version for \(folderName)", category: .automation)
         } else {
             // Download required before proceeding to next step
             do {
+                statusManager.updateDownloadStatus(operationId, "Starting download")
                 let (armURL, x86URL) = try await downloadArchives(
                     for: processedAppResults,
                     folderName: folderName
@@ -168,17 +186,22 @@ extension LabelAutomation {
                 let deploymentArch: Int = processedAppResults.appDeploymentArch
 
                 if x86URL == nil {
-                    Logger.log("Only ARM available for \(folderName)", logType: logType)
+                    Logger.info("Only ARM available for \(folderName)", category: .automation)
 
                     let downloadURL: URL = armURL
                     let fileUploadName: String = processedAppResults.appUploadFilename
 
+                    statusManager.updateProcessingStatus(operationId, "Extracting files", progress: 0.0)
+
                     // New Processing
                     switch downloadType.lowercased() {
                     case "pkg", "pkginzip", "pkgindmg", "pkgindmginzip":
-                        
+                        statusManager.updateProcessingStatus(operationId, "Processing PKG installer", progress: 0.3)
+
                         let (url, bundleID, version) = try await processPkgFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID, expectedVersion: expectedVersion)
                         
+                        statusManager.updateProcessingStatus(operationId, "PKG processing complete", progress: 1.0)
+
                         guard let localURL = url else {
                             throw NSError(domain: "ProcessingError", code: 129, userInfo: [NSLocalizedDescriptionKey: "PKG processing failed - no output URL"])
                         }
@@ -188,7 +211,11 @@ extension LabelAutomation {
                         processedAppResults.appVersionActual = version
 
                     case "zip", "tbz", "dmg", "appindmginzip":
+                        statusManager.updateProcessingStatus(operationId, "Processing app bundle", progress: 0.3)
+
                         let (url, filename, bundleID, version) = try await processAppFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, deploymentType: deploymentType, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID, expectedVersion: expectedVersion)
+
+                        statusManager.updateProcessingStatus(operationId, "App processing complete", progress: 1.0)
 
                         guard let localURL = url else {
                             throw NSError(domain: "ProcessingError", code: 130, userInfo: [NSLocalizedDescriptionKey: "App processing failed - no output URL"])
@@ -200,19 +227,21 @@ extension LabelAutomation {
                         processedAppResults.appVersionActual = version
 
                     default:
-                        Logger.log("❌ Unsupported download type: \(downloadType)", logType: logType)
+                        Logger.info("❌ Unsupported download type: \(downloadType)", category: .automation)
                         throw NSError(domain: "ProcessingError", code: 131, userInfo: [NSLocalizedDescriptionKey: "Unsupported file type: \(downloadType)"])
                     }
 
                     
                 } else {
-                    Logger.log("Both ARM and x86 available for \(folderName)", logType: logType)
+                    statusManager.updateProcessingStatus(operationId, "Extracting files", progress: 0.0)
+                    Logger.info("Both ARM and x86 available for \(folderName)", category: .automation)
                     
                     let downloadType: String = processedAppResults.appLabelType
                     let downloadURL: URL = armURL
                     guard let downloadURLx86_64 = x86URL else {
                         let errorMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) x86_64 binary not available"
-                        Logger.log("❌ \(errorMessage)", logType: logType)
+                        Logger.info("❌ \(errorMessage)", category: .automation)
+                        statusManager.failOperation(operationId: operationId, errorMessage: errorMessage)
                         return (errorMessage, processedAppResults.appDisplayName, "", false)
                     }
                     let fileUploadName: String = processedAppResults.appUploadFilename
@@ -222,6 +251,7 @@ extension LabelAutomation {
                     let (url, appName, bundleID, version) = try await processDualAppFiles(downloadURL: downloadURL, downloadURLx86_64: downloadURLx86_64, folderName: folderName, downloadType: downloadType, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID)
                     
                     guard let localURL = url else {
+                        statusManager.failOperation(operationId: operationId, errorMessage: "Dual-architecture processing failed - no output URL")
                         throw NSError(domain: "ProcessingError", code: 132, userInfo: [NSLocalizedDescriptionKey: "Dual-architecture processing failed - no output URL"])
                     }
                     
@@ -233,23 +263,26 @@ extension LabelAutomation {
                 }
                 
             } catch {
-                Logger.log("❌ Download/processing failed: \(error.localizedDescription)", logType: logType)
+                Logger.info("❌ Download/processing failed: \(error.localizedDescription)", category: .automation)
+                statusManager.failOperation(operationId: operationId, errorMessage: "Download/processing failed: \(error.localizedDescription)")
+
                 // Attempt cleanup on processing failure
                 let _ = cleanUpTmpFiles(forAppLabel: appLabelName)
                 let errorMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) download/processing failed: \(error.localizedDescription)"
+                statusManager.failOperation(operationId: operationId, errorMessage: errorMessage)
                 return (errorMessage, processedAppResults.appDisplayName, "", false)
             }
 
         }
 
-        Logger.log("Processed \(processedAppResults)", logType: logType)
+        Logger.info("Processed \(processedAppResults)", category: .automation)
         // Process the file(s)
         
         
         
         // MARK: - Check download version against Intune versions
         if processedAppResults.appVersionActual != processedAppResults.appVersionExpected || checkedIntune == false {
-            Logger.log("  Version mismatch or Intune check not performed previously.", logType: logType)
+            Logger.info("  Version mismatch or Intune check not performed previously.", category: .automation)
             
             let deployAsArchTag = DeploymentArchTag(rawValue: processedAppResults.appDeploymentArch) ?? .arm64
             let deploymentTypeTag = DeploymentTypeTag(rawValue: processedAppResults.appDeploymentType) ?? .dmg
@@ -258,32 +291,33 @@ extension LabelAutomation {
                 let newFileName = try MetadataLoader.finalFilename(forAppTitle: processedAppResults.appDisplayName, version: processedAppResults.appVersionActual, deploymentType: deploymentTypeTag, deploymentArch: deployAsArchTag, isDualArch: processedAppResults.appIsDualArchCapable)
                 processedAppResults.appUploadFilename = newFileName
             } catch {
-                Logger.log("Error constructing new filename: \(error.localizedDescription)", logType: logType)
+                Logger.error("Error constructing new filename: \(error.localizedDescription)", category: .automation)
+                statusManager.failOperation(operationId: operationId, errorMessage: "Error constructing new filename: \(error.localizedDescription)")
                 return ("\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual)  download failed: \(error.localizedDescription)", "\(processedAppResults.appDisplayName)", "", false)
             }
             
             // Check Intune for an existing version
-            Logger.log("  " + folderName + ": Fetching app info from Intune...", logType: logType)
+            Logger.info("  " + folderName + ": Fetching app info from Intune...", category: .automation)
             
             // Check if current actual version already exists in Intune
             let versionExistsInIntune = isVersionUploadedToIntune(appInfo: appInfo, version: processedAppResults.appVersionActual)
             
             // Version is already in Intune. No need to continue
             if versionExistsInIntune {
-                Logger.log("    ---", logType: logType)
-                Logger.log("    Version \(processedAppResults.appVersionActual) already exists in Intune", logType: logType)
+                Logger.info("    ---", category: .automation)
+                Logger.info("    Version \(processedAppResults.appVersionActual) already exists in Intune", category: .automation)
                 
                 
                 // Clean up the download before we bail
                 let deleteFolder = cleanUpTmpFiles(forAppLabel: appLabelName)
-                Logger.log("✅ Folder cleanup: \(deleteFolder)", logType: logType)
+                Logger.info("✅ Folder cleanup: \(deleteFolder)", category: .automation)
                 let successMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) already exists in Intune"
                 return (successMessage, processedAppResults.appDisplayName, "", true)
             }
 
             checkedIntune = true
             
-            Logger.log("  Version \(processedAppResults.appVersionActual) is not yet uploaded to Intune", logType: logType)
+            Logger.info("  Version \(processedAppResults.appVersionActual) is not yet uploaded to Intune", category: .automation)
         }
 
         // MARK: - Upload to Intune
@@ -294,37 +328,43 @@ extension LabelAutomation {
            let localFilePath = processedAppResults.appLocalURL
 
             guard FileManager.default.fileExists(atPath: localFilePath) else {
-                Logger.log("❌ Upload file does not exist at path: \(localFilePath)", logType: logType)
+                Logger.info("❌ Upload file does not exist at path: \(localFilePath)", category: .automation)
                 let errorMessage = "Upload file does not exist at path. Please check the logs for file path and try again."
                 let messageResult = await TeamsNotifier.processNotification(for: processedAppResults, success: false, errorMessage: errorMessage)
-                Logger.log("📧 Teams notification sent: \(messageResult)", logType: logType)
+                Logger.info("📧 Teams notification sent: \(messageResult)", category: .automation)
                 
                 // Cleanup before returning
                 let _ = cleanUpTmpFiles(forAppLabel: appLabelName)
                 
                 let returnMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual): File not found: \(localFilePath)"
+                statusManager.failOperation(operationId: operationId, errorMessage: "File not found")
                 return (returnMessage, processedAppResults.appDisplayName, "", false)
             }
 
             // Call the upload function
+            statusManager.updateUploadStatus(operationId, "Uploading to Microsoft Intune", progress: 0.0)
             newAppID = try await EntraGraphRequests.uploadAppToIntune(authToken: authToken, app: processedAppResults)
-            
-            Logger.log("New app ID post upload: \(newAppID)", logType: logType)
+            statusManager.updateUploadStatus(operationId, "Upload completed", progress: 1.0)
+            Logger.info("New app ID post upload: \(newAppID)", category: .automation)
             
             guard !newAppID.isEmpty else {
+                statusManager.failOperation(operationId: operationId, errorMessage: "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) failed to get AppID from upload to Intune")
+
                 return ("\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) failed to get AppID from upload to Intune", "\(processedAppResults.appDisplayName)", "", false)
             }
             
         } catch {
-            Logger.log("❌ Upload to Intune failed: \(error.localizedDescription)", logType: logType)
+            Logger.info("❌ Upload to Intune failed: \(error.localizedDescription)", category: .automation)
             let errorMessage = "Error uploading \(processedAppResults.appLocalURL) to Intune: \(error.localizedDescription)"
             let messageResult = await TeamsNotifier.processNotification(for: processedAppResults, success: false, errorMessage: errorMessage)
-            Logger.log("📧 Teams notification sent: \(messageResult)", logType: logType)
+            Logger.info("📧 Teams notification sent: \(messageResult)", category: .automation)
             
             // Cleanup before returning
             let _ = cleanUpTmpFiles(forAppLabel: appLabelName)
             
             let returnMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) error uploading to Intune: \(error.localizedDescription)"
+            statusManager.failOperation(operationId: operationId, errorMessage: "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) error uploading to Intune: \(error.localizedDescription)")
+
             return (returnMessage, processedAppResults.appDisplayName, "", false)
         }
 
@@ -336,8 +376,14 @@ extension LabelAutomation {
         // MARK: - Check Intune for the new version and unassign or remove old versions.
         
         // Check Intune for the new version
-        Logger.log("  " + folderName + ": Confirming app upload to Intune...", logType: logType)
-        
+        Logger.info("  " + folderName + ": Confirming app upload to Intune...", category: .automation)
+        statusManager.updateOperation(
+            operationId: operationId,
+            status: .uploading,
+            phaseName: "Verifying Upload",
+            phaseDetail: "Confirming upload completed successfully"
+        )
+
         var uploadSucceeded: Bool = false
         do {
             let (uploadResult, appInfoResult) = await pollForIntuneUploadStatus(withID: appTrackingID, processedAppResults: processedAppResults, authToken: authToken)
@@ -348,22 +394,29 @@ extension LabelAutomation {
             Logger.log("App Info Result: \(appInfoResult)")
         }
 
-        Logger.log("✅ App upload to Intune succeeded!", logType: logType)
-        Logger.log("✅ Uploaded app ID: \(newAppID)", logType: logType)
-        Logger.log("✅ Upload succeeded: \(uploadSucceeded)", logType: logType)
-        Logger.log("📋 App info count: \(appInfo.count)", logType: logType)
+        Logger.info("✅ App upload to Intune succeeded!", category: .automation)
+        Logger.info("✅ Uploaded app ID: \(newAppID)", category: .automation)
+        Logger.info("✅ Upload succeeded: \(uploadSucceeded)", category: .automation)
+        Logger.info("📋 App info count: \(appInfo.count)", category: .automation)
 
         // Clean up Intune for failed upload
         if !uploadSucceeded {
-            Logger.log("❌ \(folderName): App upload to Intune failed!", logType: logType)
+            Logger.info("❌ \(folderName): App upload to Intune failed!", category: .automation)
             
+            statusManager.updateOperation(
+                operationId: operationId,
+                status: .processing,
+                phaseName: "Cleanup",
+                phaseDetail: "Removing old versions from Intune"
+            )
+
             // Attempt to delete the failed upload
             if !newAppID.isEmpty {
                 do {
                     try await EntraGraphRequests.deleteIntuneApp(authToken: authToken, appId: newAppID)
-                    Logger.log("✅ Cleaned up failed upload from Intune", logType: logType)
+                    Logger.info("✅ Cleaned up failed upload from Intune", category: .automation)
                 } catch {
-                    Logger.log("❌ Error deleting failed Intune app: \(error.localizedDescription)", logType: logType)
+                    Logger.error("❌ Error deleting failed Intune app: \(error.localizedDescription)", category: .automation)
                 }
             }
             
@@ -371,6 +424,7 @@ extension LabelAutomation {
             let _ = cleanUpTmpFiles(forAppLabel: appLabelName)
             
             let errorMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) failed to upload to Intune"
+            statusManager.failOperation(operationId: operationId, errorMessage: errorMessage)
             return (errorMessage, processedAppResults.appDisplayName, "", false)
         }
 
@@ -379,16 +433,16 @@ extension LabelAutomation {
         do {
             
             for app in appInfo {
-                Logger.log("App: \(app.displayName)", logType: logType)
-                Logger.log("Version: \(app.primaryBundleVersion)", logType: logType)
-                Logger.log("Tracking ID: \(app.id)", logType: logType)
+                Logger.info("App: \(app.displayName)", category: .automation)
+                Logger.info("Version: \(app.primaryBundleVersion)", category: .automation)
+                Logger.info("Tracking ID: \(app.id)", category: .automation)
                 
                 if app.primaryBundleVersion != processedAppResults.appVersionActual {
                     if app.isAssigned == true {
-                        Logger.log("Older assigned version found in Intune!", logType: logType)
-                        Logger.log("Unassigning older version for app \(app.displayName)", logType: logType)
-                        Logger.log("Unassigning older version for app \(app.primaryBundleVersion)", logType: logType)
-                        Logger.log("Unassigning older version for app \(app.id)", logType: logType)
+                        Logger.info("Older assigned version found in Intune!", category: .automation)
+                        Logger.info("Unassigning older version for app \(app.displayName)", category: .automation)
+                        Logger.info("Unassigning older version for app \(app.primaryBundleVersion)", category: .automation)
+                        Logger.info("Unassigning older version for app \(app.id)", category: .automation)
 
                         try await EntraGraphRequests.removeAllAppAssignments(authToken: authToken, appId: app.id)
                     }
@@ -404,15 +458,15 @@ extension LabelAutomation {
                 let appsToDelete = appInfo.prefix(versionsToDeleteCount)
                 for app in appsToDelete {
                     guard !app.isAssigned else { continue }
-                    Logger.log("Deleting older app \(app.displayName)", logType: logType)
-                    Logger.log("Deleting older app \(app.primaryBundleVersion)", logType: logType)
-                    Logger.log("Deleting older app \(app.id)", logType: logType)
+                    Logger.info("Deleting older app \(app.displayName)", category: .automation)
+                    Logger.info("Deleting older app \(app.primaryBundleVersion)", category: .automation)
+                    Logger.info("Deleting older app \(app.id)", category: .automation)
                     try await EntraGraphRequests.deleteIntuneApp(authToken: authToken, appId: app.id)
                 }
             }
             
         } catch {
-            Logger.log("Failed to delete older apps from Intune: \(error.localizedDescription)", logType: logType)
+            Logger.error("Failed to delete older apps from Intune: \(error.localizedDescription)", category: .automation)
             return ("\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) uploaded. Failed to delete older apps from Intune: \(error.localizedDescription)", "\(processedAppResults.appDisplayName)", newAppID, true)
         }
 
@@ -440,14 +494,14 @@ extension LabelAutomation {
         // MARK: - Final Cleanup
         
         let deleteFolder = cleanUpTmpFiles(forAppLabel: appLabelName)
-        Logger.log("✅ Final cleanup completed: \(deleteFolder)", logType: logType)
+        Logger.info("✅ Final cleanup completed: \(deleteFolder)", category: .automation)
 
 
         // MARK: - Return Success
         
         let successMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) uploaded to Intune."
-        Logger.log("✅ Processing completed successfully: \(successMessage)", logType: logType)
-        
+        Logger.info("✅ Processing completed successfully: \(successMessage)", category: .automation)
+        statusManager.completeOperation(operationId: operationId)
         return (successMessage, processedAppResults.appDisplayName, newAppID, true)
 
     }

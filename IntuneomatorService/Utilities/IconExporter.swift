@@ -18,7 +18,6 @@ import CoreFoundation
 /// application icons and system fallbacks for consistent icon availability.
 class IconExporter {
     
-    static private let logType = "IconExporter"
     
     /// Extracts an application icon from a macOS .app bundle and saves it as a PNG file.
     /// 
@@ -49,7 +48,7 @@ class IconExporter {
         // Read application's Info.plist to locate icon file name
         guard let plist = NSDictionary(contentsOfFile: plistPath),
               var iconName = plist["CFBundleIconFile"] as? String else {
-            Logger.log("❌ Failed to read CFBundleIconFile from Info.plist", logType: logType)
+            Logger.error("❌ Failed to read CFBundleIconFile from Info.plist", category: .core)
             return false
         }
         
@@ -62,7 +61,7 @@ class IconExporter {
         
         // Verify the icon file exists before attempting conversion
         guard FileManager.default.fileExists(atPath: icnsPath) else {
-            Logger.log("❌ .icns file not found at path: \(icnsPath)", logType: logType)
+            Logger.info("❌ .icns file not found at path: \(icnsPath)", category: .core)
             return false
         }
         
@@ -81,14 +80,14 @@ class IconExporter {
             
             // Check conversion success via process exit code
             if process.terminationStatus == 0 {
-                Logger.log("✅ Icon converted successfully to: \(outputPath)", logType: logType)
+                Logger.info("✅ Icon converted successfully to: \(outputPath)", category: .core)
                 return true
             } else {
-                Logger.log("❌ sips failed with exit code: \(process.terminationStatus)", logType: logType)
+                Logger.error("❌ sips failed with exit code: \(process.terminationStatus)", category: .core)
                 return false
             }
         } catch {
-            Logger.log("❌ Failed to run sips: \(error)", logType: logType)
+            Logger.error("❌ Failed to run sips: \(error)", category: .core)
             return false
         }
     }
@@ -120,7 +119,7 @@ class IconExporter {
         
         // Create image source from system generic icon
         guard let imageSource = CGImageSourceCreateWithURL(iconURL as CFURL, nil) else {
-            Logger.log("❌ Failed to create image source.", logType: logType)
+            Logger.error("❌ Failed to create image source.", category: .core)
             return false
         }
 
@@ -140,23 +139,23 @@ class IconExporter {
         }
 
         guard let finalImage = largestImage else {
-            Logger.log("❌ Failed to extract image from icon.", logType: logType)
+            Logger.error("❌ Failed to extract image from icon.", category: .core)
             return false
         }
 
         // Create PNG destination and write the image
         let outputURL = URL(fileURLWithPath: path)
         guard let destination = CGImageDestinationCreateWithURL(outputURL as CFURL, UTType.png.identifier as CFString, 1, nil) else {
-            Logger.log("❌ Failed to create image destination.", logType: logType)
+            Logger.error("❌ Failed to create image destination.", category: .core)
             return false
         }
 
         CGImageDestinationAddImage(destination, finalImage, nil)
         if CGImageDestinationFinalize(destination) {
-            Logger.log("✅ Saved generic app icon to \(path)", logType: logType)
+            Logger.info("✅ Saved generic app icon to \(path)", category: .core)
             return true
         } else {
-            Logger.log("❌ Failed to write PNG file.", logType: logType)
+            Logger.error("❌ Failed to write PNG file.", category: .core)
             return false
         }
     }
@@ -182,14 +181,14 @@ class IconExporter {
     static func getCGImageFromPath(fileImagePath: String) -> CGImage? {
         let fileURL = URL(fileURLWithPath: fileImagePath)
         guard let imageSource = CGImageSourceCreateWithURL(fileURL as CFURL, nil) else {
-            Logger.log("Failed to create image source from path: \(fileImagePath)", logType: logType)
+            Logger.error("Failed to create image source from path: \(fileImagePath)", category: .core)
             return nil
         }
 
         // Load the first image from the source
         let cgImage = CGImageSourceCreateImageAtIndex(imageSource, 0, nil)
         if cgImage == nil {
-            Logger.log("Failed to create CGImage from source.", logType: logType)
+            Logger.error("Failed to create CGImage from source.", category: .core)
         }
 
         return cgImage
@@ -218,14 +217,14 @@ class IconExporter {
     static func saveCGImageAsPNG(_ image: CGImage, to path: String) {
         let fileURL = URL(fileURLWithPath: path)
         guard let destination = CGImageDestinationCreateWithURL(fileURL as CFURL, UTType.png.identifier as CFString, 1, nil) else {
-            Logger.log("Failed to create image destination.", logType: logType)
+            Logger.error("Failed to create image destination.", category: .core)
             return
         }
 
         CGImageDestinationAddImage(destination, image, nil)
 
         if !CGImageDestinationFinalize(destination) {
-            Logger.log("Failed to finalize image destination.", logType: logType)
+            Logger.error("Failed to finalize image destination.", category: .core)
         }
     }
     

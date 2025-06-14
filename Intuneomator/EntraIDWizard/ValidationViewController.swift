@@ -21,8 +21,6 @@ class ValidationViewController: NSViewController, WizardStepProtocol {
     /// Indicates if this step has been completed (always true as validation is optional)
     var isStepCompleted: Bool { return true }
 
-    /// Log type identifier for logging operations
-    private let logType = "Settings"
 
     // MARK: - Interface Builder Outlets
     
@@ -182,7 +180,7 @@ class ValidationViewController: NSViewController, WizardStepProtocol {
     private func setApplicationID() {
         let appIDString = applicationIDTextField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         XPCManager.shared.setApplicationID(appIDString) { [self] success in
-            Logger.logApp("Application ID updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Application ID updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
     
@@ -191,7 +189,7 @@ class ValidationViewController: NSViewController, WizardStepProtocol {
     private func setTenantID() {
         let tenantIDString = tenantIDTextField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         XPCManager.shared.setTenantID(tenantIDString) { [self] success in
-            Logger.logApp("Tenant ID updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Tenant ID updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
 

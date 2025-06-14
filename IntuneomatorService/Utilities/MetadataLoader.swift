@@ -9,7 +9,6 @@ import Foundation
 
 /// Loads metadata, plist, installer scripts, and assignments for each Intuneomator managed title.
 struct MetadataLoader {
-    private static let logType = "MetadataLoader"
     
     /// Extracts metadata, plist, scripts, and group assignments into a `ProcessedAppResults`.
     /// - Parameter folderName: The Intuneomator managed title folder (e.g. "Safari_<UUID>").
@@ -18,7 +17,7 @@ struct MetadataLoader {
         // Extract the label name (before the UUID part)
         let parts = folderName.split(separator: "_")
         guard parts.count == 2 else {
-            Logger.log("❌ Invalid folder format: \(folderName)", logType: logType)
+            Logger.info("❌ Invalid folder format: \(folderName)", category: .core)
             return nil
         }
         let labelName = String(parts[0])
@@ -38,7 +37,7 @@ struct MetadataLoader {
             let data = try Data(contentsOf: metadataURL)
             metadata = try JSONDecoder().decode(Metadata.self, from: data)
         } catch {
-            Logger.log("Failed to load metadata: \(error)", logType: logType)
+            Logger.error("Failed to load metadata: \(error)", category: .core)
         }
         
         // Extract metadata fields
@@ -69,7 +68,7 @@ struct MetadataLoader {
             let validatedMinimumOS = minimumOS,
             let validatedPublisher = publisher
         else {
-            Logger.log("❌ Critical metadata keys are missing for \(folderName). Skipping.", logType: logType)
+            Logger.info("❌ Critical metadata keys are missing for \(folderName). Skipping.", category: .core)
             return nil
         }
         
@@ -92,18 +91,18 @@ struct MetadataLoader {
         }
         
         guard FileManager.default.fileExists(atPath: plistPath) else {
-            Logger.log("❌ Missing plist file: \(plistPath)", logType: logType)
+            Logger.info("❌ Missing plist file: \(plistPath)", category: .core)
             return nil
         }
         
         guard let plistData = NSDictionary(contentsOfFile: plistPath) as? [String: Any] else {
-            Logger.log("❌ Failed to parse plist: \(plistPath)", logType: logType)
+            Logger.error("❌ Failed to parse plist: \(plistPath)", category: .core)
             return nil
         }
         
         if deployAsArchTag == .universal && isDualArch {
             guard let plistDatax86 = NSDictionary(contentsOfFile: plistPathx86_64) as? [String: Any] else {
-                Logger.log("❌ Failed to parse plist: \(plistPathx86_64)", logType: logType)
+                Logger.error("❌ Failed to parse plist: \(plistPathx86_64)", category: .core)
                 return nil
             }
             downloadURLx86_64String = plistDatax86["downloadURL"] as? String ?? ""
@@ -126,10 +125,10 @@ struct MetadataLoader {
             let validatedLabelIcon = labelIcon,
             let validatedAppNewVersion = appNewVersion
         else {
-            Logger.log("❌ Critical plist keys are missing for \(folderName). Skipping.", logType: logType)
+            Logger.info("❌ Critical plist keys are missing for \(folderName). Skipping.", category: .core)
             return nil
         }
-//        Logger.log("  Extracted plist and metadata for \(folderName): name=\(validatedName), version=\(appNewVersion ?? "N/A"), downloadURL=\(validatedDownloadURL), type=\(validatedType)", logType: logType)
+//        Logger.info("  Extracted plist and metadata for \(folderName, category: .core): name=\(validatedName), version=\(appNewVersion ?? "N/A"), downloadURL=\(validatedDownloadURL), type=\(validatedType)", logType: logType)
         
         // calculate the file name
         var filename: String
@@ -180,10 +179,10 @@ struct MetadataLoader {
                 groupAssignments = json
                 sortGroupAssignments()
             } else {
-                Logger.log("JSON format is invalid", logType: logType)
+                Logger.info("JSON format is invalid", category: .core)
             }
         } catch {
-            Logger.log("Failed to load assignments: \(error)", logType: logType)
+            Logger.error("Failed to load assignments: \(error)", category: .core)
         }
         
         // Build the final ProcessedAppResults

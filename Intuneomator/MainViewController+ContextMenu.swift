@@ -82,7 +82,7 @@ extension MainViewController: NSMenuDelegate {
             let data = try Data(contentsOf: labelMetaDataURL)
             metadata = try JSONDecoder().decode(Metadata.self, from: data)
         } catch {
-            Logger.logApp("Could not load metadata for context menu", logType: MainViewController.logType)
+            Logger.info("Could not load metadata for context menu", category: .core, toUserDirectory: true)
         }
         
         let deploymentType = metadata.deploymentTypeTag
@@ -194,14 +194,14 @@ extension MainViewController: NSMenuDelegate {
                     if updateResult != nil {
                         self.animateStatusUpdate(updateResult ?? "No result provided.")
                     } else {
-                        Logger.logApp("Failed to update label content", logType: MainViewController.logType)
+                        Logger.info("Failed to update label content", category: .core, toUserDirectory: true)
                     }
                 }
             }
             
         } else {
             // User canceled update
-            Logger.logApp("User canceled", logType: MainViewController.logType)
+            Logger.info("User canceled", category: .core, toUserDirectory: true)
         }
     }
     
@@ -255,14 +255,14 @@ extension MainViewController: NSMenuDelegate {
                     if updateResult != nil {
                         self.animateStatusUpdate(updateResult ?? "No result provided.")
                     } else {
-                        Logger.logApp("Failed to update label content", logType: MainViewController.logType)
+                        Logger.info("Failed to update label content", category: .core, toUserDirectory: true)
                     }
                 }
             }
             
         } else {
             // User canceled update
-            Logger.logApp("User canceled", logType: MainViewController.logType)
+            Logger.info("User canceled", category: .core, toUserDirectory: true)
         }
     }
     
@@ -315,14 +315,14 @@ extension MainViewController: NSMenuDelegate {
                     if updateResult != nil {
                         self.animateStatusUpdate(updateResult ?? "No result provided.")
                     } else {
-                        Logger.logApp("Failed to update label content", logType: MainViewController.logType)
+                        Logger.info("Failed to update label content", category: .core, toUserDirectory: true)
                     }
                 }
             }
             
         } else {
             // User canceled update
-            Logger.logApp("User canceled", logType: MainViewController.logType)
+            Logger.info("User canceled", category: .core, toUserDirectory: true)
         }
     }
     
@@ -383,7 +383,7 @@ extension MainViewController: NSMenuDelegate {
             confirmAlert.addButton(withTitle: "Cancel")
             let confirmResponse = confirmAlert.runModal()
             guard confirmResponse == .alertFirstButtonReturn else {
-                Logger.logApp("User canceled full delete", logType: MainViewController.logType)
+                Logger.info("User canceled full delete", category: .core, toUserDirectory: true)
                 return
             }
             
@@ -395,14 +395,14 @@ extension MainViewController: NSMenuDelegate {
                     if updateResult != nil {
                         self.animateStatusUpdate(updateResult ?? "No result provided.")
                     } else {
-                        Logger.logApp("Failed to update label content", logType: MainViewController.logType)
+                        Logger.info("Failed to update label content", category: .core, toUserDirectory: true)
                     }
                 }
             }
             
         } else {
             // User canceled update
-            Logger.logApp("User canceled", logType: MainViewController.logType)
+            Logger.info("User canceled", category: .core, toUserDirectory: true)
         }
     }
     
@@ -464,13 +464,13 @@ extension MainViewController: NSMenuDelegate {
                     if updateResult != nil {
                         self.animateStatusUpdate(updateResult ?? "No result provided.")
                     } else {
-                        Logger.logApp("Failed to start automation", logType: MainViewController.logType)
+                        Logger.info("Failed to start automation", category: .core, toUserDirectory: true)
                     }
                 }
             }
         } else {
             // User canceled update
-            Logger.logApp("User canceled automation run", logType: MainViewController.logType)
+            Logger.info("User canceled automation run", category: .core, toUserDirectory: true)
         }
     }
 }

@@ -13,7 +13,7 @@ extension NSViewController {
     func presentSheet(withIdentifier identifier: String, passing data: AppInfo? = nil, parent: TabViewController? = nil) {
         guard let storyboard = storyboard,
               let sheetController = storyboard.instantiateController(withIdentifier: identifier) as? NSViewController else {
-            print("Failed to instantiate view controller with identifier: \(identifier)")
+            Logger.error("Failed to instantiate view controller with identifier: \(identifier)", category: .core, toUserDirectory: true)
             return
         }
 

@@ -65,6 +65,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1B0194AC2DFDBB3400FE32C6 /* Exceptions for "IntuneomatorService" folder in "IntuneomatorService" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Examples/StatusNotificationExample.swift,
+			);
+			target = 1BB046652D81324E004B6F3E /* IntuneomatorService */;
+		};
 		1B4FFF092DFA6BDD00A1DC34 /* Exceptions for "LaunchDaemon" folder in "Intuneomator" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -194,6 +201,7 @@
 		1BCDDB402DF10206004F7C25 /* IntuneomatorService */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				1B0194AC2DFDBB3400FE32C6 /* Exceptions for "IntuneomatorService" folder in "IntuneomatorService" target */,
 				1BCDDC432DF10614004F7C25 /* Exceptions for "IntuneomatorService" folder in "IntuneomatorUpdater" target */,
 			);
 			path = IntuneomatorService;

@@ -26,7 +26,7 @@ extension XPCService {
         scheduleData: Data,
         withReply reply: @escaping (Bool, String?) -> Void
     ) {
-        Logger.log("createOrUpdateScheduledTask called for \(label)", logType: logType)
+        Logger.info("createOrUpdateScheduledTask called for \(label)", category: .core)
         
         do {
             guard let decoded = try NSKeyedUnarchiver.unarchivedObject(ofClasses: [NSArray.self, ScheduledTime.self], from: scheduleData) as? [ScheduledTime] else {
@@ -62,7 +62,7 @@ extension XPCService {
         label: String,
         withReply reply: @escaping (Bool, String?) -> Void
     ) {
-        Logger.log("XPCService: removeScheduledTask called for \(label)", logType: logType)
+        Logger.info("XPCService: removeScheduledTask called for \(label)", category: .core)
         
         ScheduledTaskManager.removeScheduledTask(label: label, completion: reply)
     }
@@ -76,6 +76,20 @@ extension XPCService {
         reply(ScheduledTaskManager.taskExists(label: label))
     }
     
-
+    /// Toggles the enabled/disabled state of a scheduled Launch Daemon task
+    /// Modifies the Disabled key in the plist and reloads the daemon configuration
+    /// - Parameters:
+    ///   - label: Unique identifier of the task to toggle
+    ///   - enable: True to enable the task, false to disable it
+    ///   - reply: Callback with success status and optional error message
+    func toggleScheduledTask(
+        label: String,
+        enable: Bool,
+        withReply reply: @escaping (Bool, String?) -> Void
+    ) {
+        Logger.info("XPCService: toggleScheduledTask called for \(label), enable: \(enable)", category: .core)
+        
+        ScheduledTaskManager.toggleDaemon(label: label, enable: enable, completion: reply)
+    }
     
 }

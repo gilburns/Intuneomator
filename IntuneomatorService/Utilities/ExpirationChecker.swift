@@ -26,8 +26,6 @@ class ExpirationChecker {
     /// Number of days before expiration to trigger notifications
     private let thresholdDays = 30
 
-    /// Log type identifier for logging operations
-    private let logType = "ExpirationChecker"
 
     
     // MARK: - Check Certificate Expiration & Notify
@@ -38,14 +36,14 @@ class ExpirationChecker {
 
         // Read saved certificate details
         guard let plistDict: [String: Any] = ConfigManager.readPlistValue(key: "CertificateDetails") else {
-            Logger.logNoDateStamp("Certificate info plist not found or empty.", logType: logType)
+            Logger.info("Certificate info plist not found or empty.", category: .core)
             return
         }
 
         guard let expirationDate = plistDict["ExpirationDate"] as? Date,
         let importDate = plistDict["ImportDate"] as? Date,
         let thumbprint = plistDict["Thumbprint"] as? String else {
-            Logger.logNoDateStamp("Certificate details not found or incomplete for expiration check.", logType: logType)
+            Logger.info("Certificate details not found or incomplete for expiration check.", category: .core)
             return
         }
 
@@ -53,11 +51,11 @@ class ExpirationChecker {
         let today = Date()
         let components = calendar.dateComponents([.day], from: today, to: expirationDate)
         let daysUntilExpiry = components.day ?? 0
-        Logger.logNoDateStamp("Days until certificate expiration: \(daysUntilExpiry)", logType: logType)
+        Logger.info("Days until certificate expiration: \(daysUntilExpiry)", category: .core)
 
         // only fire if within threshold
         guard daysUntilExpiry <= thresholdDays else {
-            Logger.logNoDateStamp("Certificate expires in more than \(thresholdDays) days. No notification sent.", logType: logType)
+            Logger.info("Certificate expires in more than \(thresholdDays) days. No notification sent.", category: .core)
             return
         }
 
@@ -70,13 +68,13 @@ class ExpirationChecker {
         // Check Teams notification setting
         let sendTeamNotification = ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") ?? false
         guard sendTeamNotification else {
-            Logger.logNoDateStamp("Teams notifications disabled; skipping certificate-expiry alert.", logType: logType)
+            Logger.info("Teams notifications disabled; skipping certificate-expiry alert.", category: .core)
             return
         }
 
         let webhookURL = ConfigManager.readPlistValue(key: "TeamsWebhookURL") ?? ""
         guard !webhookURL.isEmpty else {
-            Logger.logNoDateStamp("No Teams Webhook URL set. Not sending certificate expiration notification.", logType: logType)
+            Logger.info("No Teams Webhook URL set. Not sending certificate expiration notification.", category: .core)
             return
         }
 
@@ -87,7 +85,7 @@ class ExpirationChecker {
             thumbprint: thumbprint,
             dnsNames: dnsNamesString
         )
-        Logger.logNoDateStamp("Certificate expiration notification sent.", logType: logType)
+        Logger.info("Certificate expiration notification sent.", category: .core)
     }
 
 
@@ -97,21 +95,21 @@ class ExpirationChecker {
 
         // Read saved secret details
         guard let expirationDate = ConfigManager.readPlistValue(key: "SecretExpirationDate") as Date? else {
-            Logger.logNoDateStamp("No SecretExpirationDate configured.", logType: logType)
+            Logger.info("No SecretExpirationDate configured.", category: .core)
             return
         }
         guard let importDate = ConfigManager.readPlistValue(key: "SecretImportDate") as Date? else {
-            Logger.logNoDateStamp("No SecretImportDate configured.", logType: logType)
+            Logger.info("No SecretImportDate configured.", category: .core)
             return
         }
 
         let now = Date()
         let daysRemaining = calendar.dateComponents([.day], from: now, to: expirationDate).day ?? Int.max
-        Logger.logNoDateStamp("Days until secret expiration: \(daysRemaining)", logType: logType)
+        Logger.info("Days until secret expiration: \(daysRemaining)", category: .core)
 
         // only fire if within threshold
         guard daysRemaining <= thresholdDays else {
-            Logger.logNoDateStamp("Secret expires in more than \(thresholdDays) days. No notification sent.", logType: logType)
+            Logger.info("Secret expires in more than \(thresholdDays) days. No notification sent.", category: .core)
             return
         }
 
@@ -122,13 +120,13 @@ class ExpirationChecker {
         // Check Teams notification setting
         let sendTeamNotification = ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") ?? false
         guard sendTeamNotification else {
-            Logger.logNoDateStamp("Teams notifications disabled; skipping secret-expiry alert.", logType: logType)
+            Logger.info("Teams notifications disabled; skipping secret-expiry alert.", category: .core)
             return
         }
 
         let webhookURL = ConfigManager.readPlistValue(key: "TeamsWebhookURL") ?? ""
         guard !webhookURL.isEmpty else {
-            Logger.logNoDateStamp("No Teams Webhook URL set. Not sending secret expiration notification.", logType: logType)
+            Logger.info("No Teams Webhook URL set. Not sending secret expiration notification.", category: .core)
             return
         }
 
@@ -137,7 +135,7 @@ class ExpirationChecker {
             expirationDate: expiryString,
             importDate: importString
         )
-        Logger.logNoDateStamp("Secret expiration notification sent.", logType: logType)
+        Logger.info("Secret expiration notification sent.", category: .core)
     }
     
 }

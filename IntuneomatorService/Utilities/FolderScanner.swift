@@ -9,13 +9,12 @@ import Foundation
 
 /// Scans the Intuneomator managed titles folder and validates each subfolder.
 struct FolderScanner {
-    private static let logType = "Automation"
 
     /// Scans and validates all managed titles directories.
     /// - Returns: An array of folder names ready for automation.
     static func scanAndValidateFolders() -> [String] {
-        Logger.log("🔄 Starting Intune automation run...", logType: logType)
-        Logger.log("--------------------------------------------------------", logType: logType)
+        Logger.info("🔄 Starting Intune automation run...", category: .core)
+        Logger.info("--------------------------------------------------------", category: .core)
 
         var validFolders: [String] = []
         let basePath = AppConstants.intuneomatorManagedTitlesFolderURL.path
@@ -27,19 +26,19 @@ struct FolderScanner {
             for folderName in folderContents {
                 let folderPath = (basePath as NSString).appendingPathComponent(folderName)
                 if AutomationCheck.validateFolder(at: folderPath) {
-                    Logger.log("✅ Ready for automation: \(folderName)", logType: logType)
+                    Logger.info("✅ Ready for automation: \(folderName)", category: .core)
                     validFolders.append(folderName)
                 } else {
-                    Logger.log("⚠️ Not ready for automation: \(folderName)", logType: logType)
+                    Logger.info("⚠️ Not ready for automation: \(folderName)", category: .core)
                 }
             }
         } catch {
-            Logger.log("❌ Error reading managed titles folder: \(error.localizedDescription)", logType: logType)
+            Logger.error("❌ Error reading managed titles folder: \(error.localizedDescription)", category: .core)
         }
-        Logger.log("--------------------------------------------------------", logType: logType)
+        Logger.info("--------------------------------------------------------", category: .core)
 
-//        Logger.log("📋 Valid software titles for automation: \(validFolders.joined(separator: ", "))", logType: logType)
-        Logger.log("🏁 Scan complete. \(validFolders.count) folders ready for automation.", logType: logType)
+//        Logger.info("📋 Valid software titles for automation: \(validFolders.joined(separator: ", ", category: .core))", logType: logType)
+        Logger.info("🏁 Scan complete. \(validFolders.count) folders ready for automation.", category: .core)
 
         return validFolders
     }

@@ -21,8 +21,6 @@ class WelcomeWizardViewController: NSViewController, NSTableViewDelegate, NSTabl
     /// Reference to main window controller for post-setup navigation
     var mainWindowController: MainWindowController?
 
-    /// Log type identifier for logging operations
-    private let logType = "Settings"
     
     // MARK: - Interface Builder Outlets
     
@@ -166,11 +164,11 @@ class WelcomeWizardViewController: NSViewController, NSTableViewDelegate, NSTabl
     /// Completes the wizard setup process and transitions to main application
     /// Marks first run as completed, shows main window, and closes wizard
     func finalizeSetup() {
-        Logger.logApp("Wizard completed. Processing configuration...", logType: logType)
+        Logger.info("Wizard completed. Processing configuration...", category: .core, toUserDirectory: true)
         
         // Update first run completion status via XPC
         XPCManager.shared.setFirstRunCompleted(true) { [self] success in
-            Logger.logApp("First run updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("First run updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
 
         // Show main application window
@@ -197,7 +195,7 @@ class WelcomeWizardViewController: NSViewController, NSTableViewDelegate, NSTabl
             window.delegate = mainWindowController // Ensure delegate is properly set
             window.makeKeyAndOrderFront(nil)
         } else {
-            Logger.logApp("Error: mainWindowController has no window.", logType: logType)
+            Logger.info("Error: mainWindowController has no window.", category: .core, toUserDirectory: true)
         }
     }
 

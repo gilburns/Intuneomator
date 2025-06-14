@@ -17,7 +17,6 @@
 import Foundation
 import AppKit
 
-private let logType = "EditViewController"
 
 /// Adds download inspection functionality to `EditViewController`.
 /// Implements methods to initiate a download, handle URLSession delegate callbacks for progress and completion,
@@ -122,10 +121,8 @@ extension EditViewController {
     /// - Parameter sender: The radio button that was clicked.
     @IBAction func handleRadioSelection(_ sender: NSButton) {
         if sender == radioYes {
-            //            print("Yes selected")
             // Add logic for "Yes" selection
         } else if sender == radioNo {
-            //            print("No selected")
             // Add logic for "No" selection
         }
         
@@ -185,18 +182,14 @@ extension EditViewController {
         // Decode the percent-encoded path
         let decodedPath = location.path.removingPercentEncoding ?? location.path
         
-        //        print("Inspecting package at path: \(decodedPath)")
         
         guard FileManager.default.fileExists(atPath: location.path) else {
-            //            print("Error: File does not exist at path \(location.path())")
             return
         }
         
         do {
             signatureResult = try SignatureInspector.inspectPackageSignature(pkgPath: decodedPath)
-            //            print("Package Signature Inspection Result: \(signatureResult)")
         } catch {
-            //            print("Error inspecting package signature: \(error)")
             signatureResult = [
                 "Accepted": false,
                 "DeveloperID": "Unknown",
@@ -277,9 +270,9 @@ extension EditViewController {
             if dmgHasSLA(at: location.path) {
                 let success = await convertDmgWithSLA(at: location.path)
                 if success {
-                    Logger.logApp("Successfully converted dmg with SLA", logType: logType)
+                    Logger.info("Successfully converted dmg with SLA", category: .core, toUserDirectory: true)
                 } else {
-                    Logger.logApp("Failed to convert dmg with SLA", logType: logType)
+                    Logger.info("Failed to convert dmg with SLA", category: .core, toUserDirectory: true)
                     throw NSError(domain: "EditViewController", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert dmg containing pkg"])
                 }
             }
@@ -359,7 +352,6 @@ extension EditViewController {
             
             await processPkgInDmg(at: dmgPath)
         } catch {
-            //            print("Error processing app type: \(error)")
             showError(message: error.localizedDescription)
             cleanupAfterProcessing()
         }
@@ -388,7 +380,7 @@ extension EditViewController {
                 pkgURL: fileURL
             )
         case .failure(let error):
-            print("Inspection failed: \(error)")
+            Logger.error("Inspection failed: \(error)", category: .core, toUserDirectory: true)
             cleanupAfterProcessing()
         }
     }
@@ -402,7 +394,6 @@ extension EditViewController {
     ///   - pkgURL: File URL of the pkg to inspect.
     private func presentPkgInspectorModal(pkgItems: [(String, String)], signature: [String: Any], pkgURL: URL) {
         guard let appData = appData else {
-            //            print("Error: appData is missing.")
             return
         }
         
@@ -447,7 +438,6 @@ extension EditViewController {
                 throw NSError(domain: "EditViewController", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unsupported app type"])
             }
         } catch {
-            //            print("Error processing app type: \(error)")
             showError(message: error.localizedDescription)
             cleanupAfterProcessing()
         }
@@ -462,7 +452,6 @@ extension EditViewController {
     ///   - inspector: `AppInspector` instance for metadata extraction.
     private func processDmg(at location: URL, tempDir: URL, inspector: AppInspector) throws {
         // Mount, find app, and inspect
-        //        print("Processing dmg at \(location)")
         let mountPoint = tempDir.appendingPathComponent("mount")
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil")
@@ -486,9 +475,7 @@ extension EditViewController {
         var signatureResult: [String: Any] = [:]
         do {
             signatureResult = try SignatureInspector.inspectAppSignature(appPath: appPath.path)
-            //            print("App Signature Inspection Result: \(signatureResult)")
         } catch {
-            //            print("Error inspecting app signature: \(error)")
         }
         
         // Inspect app ID and version
@@ -567,9 +554,7 @@ extension EditViewController {
         var signatureResult: [String: Any] = [:]
         do {
             signatureResult = try SignatureInspector.inspectAppSignature(appPath: appPath.path)
-            //            print("App Signature Inspection Result: \(signatureResult)")
         } catch {
-            //            print("Error inspecting app signature: \(error)")
         }
         
         // Inspect the app for its ID and version
@@ -673,7 +658,7 @@ extension EditViewController {
         process.waitUntilExit()
         
         guard process.terminationStatus == 0 else {
-            Logger.logApp("Error: Failed to check for SLA in DMG.", logType: logType)
+            Logger.info("Error: Failed to check for SLA in DMG.", category: .core, toUserDirectory: true)
             return false
         }
         
@@ -708,7 +693,7 @@ extension EditViewController {
         do {
             try process.run()
         } catch {
-            Logger.logApp("Error: Could not launch hdiutil: \(error)", logType: logType)
+            Logger.info("Error: Could not launch hdiutil: \(error)", category: .core, toUserDirectory: true)
             return false
         }
         
@@ -720,12 +705,12 @@ extension EditViewController {
         }
         
         guard process.terminationStatus == 0 else {
-            Logger.logApp("Error: hdiutil failed to convert DMG with SLA.", logType: logType)
+            Logger.info("Error: hdiutil failed to convert DMG with SLA.", category: .core, toUserDirectory: true)
             return false
         }
         
         guard FileManager.default.fileExists(atPath: tempFileURL.path) else {
-            Logger.logApp("Error: Converted file not found at expected location.", logType: logType)
+            Logger.info("Error: Converted file not found at expected location.", category: .core, toUserDirectory: true)
             return false
         }
         
@@ -733,7 +718,7 @@ extension EditViewController {
             try FileManager.default.removeItem(atPath: path)
             try FileManager.default.moveItem(atPath: tempFileURL.path, toPath: path)
         } catch {
-            Logger.logApp("Failed to finalize converted DMG: \(error)", logType: logType)
+            Logger.info("Failed to finalize converted DMG: \(error)", category: .core, toUserDirectory: true)
             return false
         }
         

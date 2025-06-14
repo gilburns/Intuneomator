@@ -203,7 +203,7 @@ class InstallomatorLabels {
 
             // Skip folders that don't follow labelname_GUID pattern
             guard folderName.components(separatedBy: "_").count == 2 else {
-                Logger.log ("  Skipping folder: \(folderName)", logType: "info")
+                Logger.error("  Skipping folder: \(folderName)", category: .core)
                 continue
             }
             

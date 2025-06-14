@@ -48,7 +48,7 @@ extension EntraGraphRequests {
 
             // Handle permission errors
             if httpResponse.statusCode == 403 {
-                Logger.log("Missing permissions. Please grant permissions in Enterprise App settings.")
+                Logger.info("Missing permissions. Please grant permissions in Enterprise App settings.", category: .core)
                 throw NSError(domain: "Graph API Forbidden", code: 403, userInfo: nil)
             }
 

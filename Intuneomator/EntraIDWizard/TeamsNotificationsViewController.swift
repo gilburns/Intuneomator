@@ -20,8 +20,6 @@ class TeamsNotificationsViewController: NSViewController, WizardStepProtocol {
     /// Indicates if this step has been completed (always true as Teams notifications are optional)
     var isStepCompleted: Bool { return true }
 
-    /// Log type identifier for logging operations
-    private let logType = "Settings"
 
     // MARK: - Interface Builder Outlets
     
@@ -84,13 +82,13 @@ class TeamsNotificationsViewController: NSViewController, WizardStepProtocol {
     /// Updates notification enabled status and toggles webhook URL field accessibility
     /// - Parameter sender: The checkbox button that triggered the action
     @IBAction func buttonSendTeamsMessageClicked (_ sender: NSButton) {
-        Logger.logApp("Send Teams Notifications button clicked", logType: logType)
-        Logger.logApp("Button state: \(sender.state)", logType: logType)
+        Logger.info("Send Teams Notifications button clicked", category: .core, toUserDirectory: true)
+        Logger.info("Button state: \(sender.state)", category: .core, toUserDirectory: true)
         fieldTeamsWebhookURL.isEnabled = sender.state == .on
         
         let isEnabled = sender.state == .on
         XPCManager.shared.setTeamsNotificationsEnabled(isEnabled) { [self] success in
-            Logger.logApp("Teams notifications updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Teams notifications updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
 
@@ -100,7 +98,7 @@ class TeamsNotificationsViewController: NSViewController, WizardStepProtocol {
     @IBAction func webhookURLChanged(_ sender: NSTextField) {
         let urlString = sender.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         XPCManager.shared.setTeamsWebhookURL(urlString) { [self] success in
-            Logger.logApp("Webhook URL updated: \(success == true ? "✅" : "❌")", logType: logType)
+            Logger.info("Webhook URL updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
 

@@ -234,6 +234,17 @@ import Foundation
         withReply reply: @escaping (Bool) -> Void
     )
     
+    /// Toggles the enabled/disabled state of a scheduled task
+    /// - Parameters:
+    ///   - label: Unique identifier of the task to toggle
+    ///   - enable: True to enable the task, false to disable it
+    ///   - reply: Callback with success status and optional message
+    func toggleScheduledTask(
+        label: String,
+        enable: Bool,
+        withReply reply: @escaping (Bool, String?) -> Void
+    )
+    
     // MARK: - Microsoft Graph API
     
     /// Fetches mobile app categories from Microsoft Graph

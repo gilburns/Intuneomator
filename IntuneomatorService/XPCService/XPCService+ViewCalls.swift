@@ -36,7 +36,7 @@ extension XPCService {
                 let success = await withTaskGroup(of: Bool.self) { taskGroup in
                     for subdir in subdirectories {
                         #if DEBUG
-                        Logger.log("Directory to process: \(subdir.lastPathComponent)", logType: logType)
+                        Logger.info("Directory to process: \(subdir.lastPathComponent)", category: .core)
                         #endif
                         let folderName = subdir.lastPathComponent
 
@@ -51,7 +51,7 @@ extension XPCService {
 
                 reply(success)
             } catch {
-                Logger.log("Error loading app data: \(error)", logType: logType)
+                Logger.error("Error loading app data: \(error)", category: .core)
                 reply(false)
             }
         }
@@ -157,7 +157,7 @@ extension XPCService {
                         let labelName = folderName.components(separatedBy: "_")[0]
                         let trackingID = folderName.components(separatedBy: "_")[1]
 
-                        Logger.log("Checking for Intune automation in folder \(labelName) (GUID: \(trackingID))")
+                        Logger.info("Checking for Intune automation in folder \(labelName) (GUID: \(trackingID))", category: .core)
 
                         do {
                             let entraAuthenticator = EntraAuthenticator()
@@ -170,23 +170,23 @@ extension XPCService {
                                 .appendingPathComponent(".uploaded")
 
                             if apps.count > 0 {
-                                Logger.log("Automation found for \(labelName) (GUID: \(trackingID))")
+                                Logger.info("Automation found for \(labelName) (GUID: \(trackingID))", category: .core)
 
                                 // Write app count to the file
                                 let appCountString = "\(apps.count)"
                                 try appCountString.write(to: uploadedFileURL, atomically: true, encoding: .utf8)
                             } else {
-                                Logger.log("No automation found for \(labelName) (GUID: \(trackingID))")
+                                Logger.info("No automation found for \(labelName) (GUID: \(trackingID))", category: .core)
 
                                 if FileManager.default.fileExists(atPath: uploadedFileURL.path) {
                                     try FileManager.default.removeItem(atPath: uploadedFileURL.path)
-                                    Logger.log("Removed stale .uploaded file for \(labelName)", logType: logType)
+                                    Logger.info("Removed stale .uploaded file for \(labelName)", category: .core)
                                 }
                             }
 
                             return true
                         } catch {
-                            Logger.log("❌ Error checking automation for \(labelName): \(error)", logType: logType)
+                            Logger.error("❌ Error checking automation for \(labelName): \(error)", category: .core)
                             return false
                         }
                     }
@@ -231,7 +231,7 @@ extension XPCService {
                 publisherURLFromPlist = info.publisher
                 privacyURLFromPlist = info.privacy
             } catch {
-                Logger.log("Error fetching plist: \(error)", logType: logType)
+                Logger.error("Error fetching plist: \(error)", category: .core)
                 appIDFromPlist = ""
                 descriptionFromPlist = ""
                 documentationURLFromPlist = ""
@@ -253,10 +253,10 @@ extension XPCService {
                 return
             }
             
-            Logger.log("Creating new directory: \(newDirectoryURL)", logType: logType)
-            Logger.log("Copying \(labelName).sh to \(newDirectoryURL)", logType: logType)
-            Logger.log("Source: \(source)", logType: logType)
-            Logger.log("Copy Sh file path: \(copyShFilePath)", logType: logType)
+            Logger.info("Creating new directory: \(newDirectoryURL)", category: .core)
+            Logger.info("Copying \(labelName).sh to \(newDirectoryURL)", category: .core)
+            Logger.info("Source: \(source)", category: .core)
+            Logger.info("Copy Sh file path: \(copyShFilePath)", category: .core)
             
             do {
                 // Create the new directory
@@ -266,12 +266,12 @@ extension XPCService {
                 let newShFileURL = newDirectoryURL
                     .appendingPathComponent("\(labelName).sh")
                                 
-                Logger.log("New Sh file path: \(newShFileURL.path)", logType: logType)
+                Logger.info("New Sh file path: \(newShFileURL.path)", category: .core)
                 
-                Logger.log("Creating new .sh file: \(newShFileURL)", logType: logType)
+                Logger.info("Creating new .sh file: \(newShFileURL)", category: .core)
                 
                 guard let copyShFileContents = try? String(contentsOfFile: copyShFilePath) else {
-                    Logger.log("Failed to read contents of \(copyShFilePath)", logType: logType)
+                    Logger.error("Failed to read contents of \(copyShFilePath)", category: .core)
                     reply(nil)
                     return
                 }
@@ -282,37 +282,37 @@ extension XPCService {
                     let touchFileURL = newDirectoryURL
                         .appendingPathComponent(".custom")
 
-                    Logger.log("Touch file path: \(touchFileURL.path)", logType: logType)
+                    Logger.info("Touch file path: \(touchFileURL.path)", category: .core)
                     FileManager.default.createFile(atPath: touchFileURL.path, contents: nil, attributes: nil)
                 }
                 
                 // Run the label processor
                 let installomatorLabelProcessor = InstallomatorLabelProcessor.runProcessLabelScript(for: newDirectoryName)
                 if installomatorLabelProcessor {
-                    Logger.log("Label processor ran successfully", logType: logType)
+                    Logger.info("Label processor ran successfully", category: .core)
                 } else {
-                    Logger.log("Label processor failed", logType: logType)
+                    Logger.error("Label processor failed", category: .core)
                 }
                 
                 // Attempt to download icon from server
                 let iconDestinationURL = newDirectoryURL
                     .appendingPathComponent("\(labelName).png")
-                Logger.log("Attempting to download icon from: https://icons.intuneomator.org/\(labelName).png", logType: logType)
+                Logger.info("Attempting to download icon from: https://icons.intuneomator.org/\(labelName).png", category: .core)
                 
                 if let iconURL = URL(string: "https://icons.intuneomator.org")?.appendingPathComponent("\(labelName).png"),
                    let iconData = try? Data(contentsOf: iconURL) {
                     do {
                         try iconData.write(to: iconDestinationURL)
-                        Logger.log("Successfully downloaded and saved icon to: \(iconDestinationURL)", logType: logType)
+                        Logger.info("Successfully downloaded and saved icon to: \(iconDestinationURL)", category: .core)
                     } catch {
-                        Logger.log("Failed to save downloaded icon: \(error)", logType: logType)
+                        Logger.error("Failed to save downloaded icon: \(error)", category: .core)
                         let fallbackSuccess = IconExporter.saveGenericAppIcon(to: iconDestinationURL.path)
-                        Logger.log("Fallback export icon status: \(fallbackSuccess ? "Success" : "Failure")", logType: logType)
+                        Logger.info("Fallback export icon status: \(fallbackSuccess ? "Success" : "Failure")", category: .core)
                     }
                 } else {
-                    Logger.log("Download failed or icon unavailable, falling back to generic icon", logType: logType)
+                    Logger.info("Download failed or icon unavailable, falling back to generic icon", category: .core)
                     let fallbackSuccess = IconExporter.saveGenericAppIcon(to: iconDestinationURL.path)
-                    Logger.log("Fallback export icon status: \(fallbackSuccess ? "Success" : "Failure")", logType: logType)
+                    Logger.info("Fallback export icon status: \(fallbackSuccess ? "Success" : "Failure")", category: .core)
                 }
                 
                 // Read the new Plist and then create the metadata.json
@@ -324,7 +324,7 @@ extension XPCService {
                 
                 // Read the plist
                 do {
-                    Logger.log("Reading plist file: \(plistURL)", logType: logType)
+                    Logger.info("Reading plist file: \(plistURL)", category: .core)
                     let plistData = try Data(contentsOf: plistURL)
                     plistDictionary = try PropertyListSerialization.propertyList(
                         from: plistData,
@@ -333,7 +333,7 @@ extension XPCService {
                     ) as! [String: Any]
                     
                 } catch {
-                    Logger.log("Failed to load plist: \(error)", logType: logType)
+                    Logger.error("Failed to load plist: \(error)", category: .core)
                     reply(nil)
                     return
                 }
@@ -390,14 +390,14 @@ extension XPCService {
                     try FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: metadataJSONURL.path)
                     
                 } catch {
-                    Logger.log("Failed to save metadata: \(error)", logType: logType)
+                    Logger.error("Failed to save metadata: \(error)", category: .core)
                     reply(nil)
                     return
                 }
                 
                 reply(newDirectoryURL.path)
             } catch {
-                Logger.log("Failed to create new content: \(error)", logType: logType)
+                Logger.error("Failed to create new content: \(error)", category: .core)
                 reply(nil)
             }
         }
@@ -414,7 +414,7 @@ extension XPCService {
             try fileManager.removeItem(atPath: labelDirectory)
             reply(true)
         } catch {
-            Logger.log("Failed to remove label content: \(error)", logType: logType)
+            Logger.error("Failed to remove label content: \(error)", category: .core)
             reply(false)
         }
     }
@@ -434,7 +434,7 @@ extension XPCService {
             throw URLError(.badURL)
         }
         
-        Logger.log("Plist URL: \(url)", logType: logType)
+        Logger.info("Plist URL: \(url)", category: .core)
 
         // fetch data
         let (data, response) = try await URLSession.shared.data(from: url)
@@ -456,9 +456,9 @@ extension XPCService {
     func updateLabelsFromGitHub(reply: @escaping (Bool) -> Void) {
         InstallomatorLabels.installInstallomatorLabels { [self] success, message in
             if success {
-                Logger.log("Installomator labels downloaded successfully.", logType: logType)
+                Logger.info("Installomator labels downloaded successfully.", category: .core)
             } else {
-                Logger.log("Failed to download Installomator labels: \(message)", logType: logType)
+                Logger.error("Failed to download Installomator labels: \(message)", category: .core)
             }
             reply(success)
         }
@@ -511,7 +511,7 @@ extension XPCService {
 
                 reply(true)
             } catch {
-                Logger.log("Faied to copy custom label: \(error.localizedDescription)", logType: logType)
+                Logger.error("Faied to copy custom label: \(error.localizedDescription)", category: .core)
                 reply(false)
             }
         } else {
@@ -531,7 +531,7 @@ extension XPCService {
                 
                 reply(true)
             } catch {
-                Logger.log("Faied to delete custom label touch file: \(error.localizedDescription)", logType: logType)
+                Logger.error("Faied to delete custom label touch file: \(error.localizedDescription)", category: .core)
                 reply(false)
             }
         }
@@ -558,7 +558,7 @@ extension XPCService {
         if parts.count == 2 {
             labelName = String(parts[0]) // Assign the name
         } else {
-            Logger.log("Invalid directory format.", logType: logType)
+            Logger.info("Invalid directory format.", category: .core)
             return
         }
 
@@ -566,16 +566,16 @@ extension XPCService {
         let iconDestinationPath = (labelFolderPath as NSString)
             .appendingPathComponent("\(labelName).png")
         
-//        Logger.log("Creating new icon file: \(iconDestinationPath)", logType: logType)
+//        Logger.info("Creating new icon file: \(iconDestinationPath)", category: .core)
 
         // Check if the icon is an app bundle
         if URL(string: iconPath)!.pathExtension == "app" {
-            Logger.log("Selected app bundle", logType: logType)
+            Logger.info("Selected app bundle", category: .core)
             let iconSuccess = IconExporter.extractAppIcon(appPath: iconPath, outputPath: iconDestinationPath)
-            Logger.log("Export status: \(iconSuccess ? "Success" : "Failure")", logType: logType)
+            Logger.info("Export status: \(iconSuccess ? "Success" : "Failure")", category: .core)
             reply(iconSuccess)
         } else {
-//            Logger.log("Selected image file", logType: logType)
+//            Logger.info("Selected image file", category: .core)
             if let cgImage = IconExporter.getCGImageFromPath(fileImagePath: iconPath) {
                 IconExporter.saveCGImageAsPNG(cgImage, to: iconDestinationPath)
                 reply(true)
@@ -602,7 +602,7 @@ extension XPCService {
         if parts.count == 2 {
             labelName = String(parts[0]) // Assign the name
         } else {
-            Logger.log("Invalid directory format.", logType: logType)
+            Logger.info("Invalid directory format.", category: .core)
             return
         }
         
@@ -610,10 +610,10 @@ extension XPCService {
         let iconDestinationPath = (labelFolderPath as NSString)
             .appendingPathComponent("\(labelName).png")
         
-//        Logger.log("Creating new icon file: \(iconDestinationPath)", logType: logType)
+//        Logger.info("Creating new icon file: \(iconDestinationPath)", category: .core)
         
         let iconSuccess = IconExporter.saveGenericAppIcon(to: iconDestinationPath)
-        Logger.log("Export status: \(iconSuccess ? "Success" : "Failure")", logType: logType)
+        Logger.info("Export status: \(iconSuccess ? "Success" : "Failure")", category: .core)
         reply(iconSuccess)
     }
     
@@ -646,7 +646,7 @@ extension XPCService {
 
             reply(true)
         } catch {
-            Logger.log("Failed to save metadata: \(error)", logType: logType)
+            Logger.error("Failed to save metadata: \(error)", category: .core)
             reply(false)
         }
     }
@@ -678,14 +678,14 @@ extension XPCService {
             do {
                 if FileManager.default.fileExists(atPath: preInstallPath.path) {
                     try FileManager.default.removeItem(at: preInstallPath)
-                    Logger.log("Deleted preinstall script: \(preInstallPath)", logType: logType)
+                    Logger.info("Deleted preinstall script: \(preInstallPath)", category: .core)
                     reply(true)
                 } else {
-//                    Logger.log("No preinstall script to delete at: \(preInstallPath)", logType: logType)
+//                    Logger.info("No preinstall script to delete at: \(preInstallPath)", category: .core)
                     reply(true)
                 }
             } catch {
-                Logger.log("Error deleting preinstall script: \(error)", logType: logType)
+                Logger.error("Error deleting preinstall script: \(error)", category: .core)
                 reply(false)
             }
         } else {
@@ -693,10 +693,10 @@ extension XPCService {
             do {
                 try preInstallContents.write(to: preInstallPath, atomically: true, encoding: .utf8)
                 try FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: preInstallPath.path)
-                Logger.log("Saved preinstall script: \(preInstallPath)", logType: logType)
+                Logger.info("Saved preinstall script: \(preInstallPath)", category: .core)
                 reply(true)
             } catch {
-                Logger.log("Error saving preinstall script: \(error)", logType: logType)
+                Logger.error("Error saving preinstall script: \(error)", category: .core)
                 reply(false)
             }
         }
@@ -724,14 +724,14 @@ extension XPCService {
             do {
                 if FileManager.default.fileExists(atPath: postInstallPath.path) {
                     try FileManager.default.removeItem(at: postInstallPath)
-                    Logger.log("Deleted postinstall script: \(postInstallPath)", logType: logType)
+                    Logger.info("Deleted postinstall script: \(postInstallPath)", category: .core)
                     reply(true)
                 } else {
-//                    Logger.log("No postinstall script to delete at: \(postInstallPath)", logType: logType)
+//                    Logger.info("No postinstall script to delete at: \(postInstallPath)", category: .core)
                     reply(true) // No file is considered "successfully deleted"
                 }
             } catch {
-                Logger.log("Error deleting postinstall script: \(error)", logType: logType)
+                Logger.error("Error deleting postinstall script: \(error)", category: .core)
                 reply(false)
             }
         } else {
@@ -739,11 +739,11 @@ extension XPCService {
             do {
                 try postInstallContents.write(to: postInstallPath, atomically: true, encoding: .utf8)
                 try FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: postInstallPath.path)
-                Logger.log("Saved postinstall script: \(postInstallPath)", logType: logType)
+                Logger.info("Saved postinstall script: \(postInstallPath)", category: .core)
                 reply(true)
 
             } catch {
-                Logger.log("Error saving postinstall script: \(error)", logType: logType)
+                Logger.error("Error saving postinstall script: \(error)", category: .core)
                 reply(false)
             }
         }
@@ -778,7 +778,7 @@ extension XPCService {
             
             reply(true)
         } catch {
-            Logger.log("Failed to create directory at \(basePath): \(error)", logType: logType)
+            Logger.error("Failed to create directory at \(basePath): \(error)", category: .core)
             reply(false)
         }
     }
@@ -800,11 +800,11 @@ extension XPCService {
                     let data = try encoder.encode(apps)
                     reply(data)
                 } catch {
-                    Logger.log("Error encoding DetectedApp array: \(error)", logType: logType)
+                    Logger.error("Error encoding DetectedApp array: \(error)", category: .core)
                     reply(nil)
                 }
             } catch {
-                Logger.log("❌ Error fetching detected apps: \(error)", logType: logType)
+                Logger.error("❌ Error fetching detected apps: \(error)", category: .core)
                 reply(nil)
             }
         }
@@ -831,7 +831,7 @@ extension XPCService {
                 reply(data)
             }
             catch {
-                Logger.log("❌ fetchDevices error: \(error)", logType: logType)
+                Logger.error("❌ fetchDevices error: \(error)", category: .core)
                 reply(nil)
             }
         }

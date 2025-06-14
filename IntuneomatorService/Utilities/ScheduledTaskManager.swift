@@ -107,6 +107,54 @@ class ScheduledTaskManager {
         return FileManager.default.fileExists(atPath: daemonPath)
     }
     
+    /// Toggles the enabled/disabled state of a launch daemon by modifying the Disabled key
+    /// - Parameters:
+    ///   - label: Unique identifier of the launch daemon to toggle
+    ///   - enable: True to enable (Disabled=false), false to disable (Disabled=true)
+    ///   - completion: Callback with success status and optional message
+    static func toggleDaemon(
+        label: String,
+        enable: Bool,
+        completion: @escaping (Bool, String?) -> Void
+    ) {
+        let daemonPath = "/Library/LaunchDaemons/\(label).plist"
+        let fileManager = FileManager.default
+        
+        guard fileManager.fileExists(atPath: daemonPath) else {
+            completion(false, "Task plist not found.")
+            return
+        }
+        
+        do {
+            // Read existing plist
+            let plistURL = URL(fileURLWithPath: daemonPath)
+            let plistData = try Data(contentsOf: plistURL)
+            guard var plistDict = try PropertyListSerialization.propertyList(from: plistData, options: [], format: nil) as? [String: Any] else {
+                completion(false, "Failed to parse plist file.")
+                return
+            }
+            
+            // Set Disabled key (true = disabled, false = enabled)
+            plistDict["Disabled"] = !enable
+            
+            // Write updated plist
+            let updatedData = try PropertyListSerialization.data(fromPropertyList: plistDict, format: .xml, options: 0)
+            try updatedData.write(to: plistURL)
+            try fileManager.setAttributes([.posixPermissions: 0o644], ofItemAtPath: daemonPath)
+            try fileManager.setAttributes([.ownerAccountID: 0, .groupOwnerAccountID: 0], ofItemAtPath: daemonPath)
+            
+            // Use modern bootstrap system commands to reload
+            _ = try? runShellCommand(["launchctl", "bootout", "system", daemonPath])
+            let result = try runShellCommand(["launchctl", "bootstrap", "system", daemonPath])
+            
+            let action = enable ? "enabled" : "disabled"
+            completion(true, "Task \(label) \(action) successfully. \(result)")
+        } catch {
+            let action = enable ? "enable" : "disable"
+            completion(false, "Failed to \(action) task: \(error.localizedDescription)")
+        }
+    }
+    
 
     /// Executes a shell command and returns its output
     /// - Parameter args: Array of command and arguments to execute

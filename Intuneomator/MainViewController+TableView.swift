@@ -143,7 +143,7 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
 
             cloudImageIcon = composed
         } else {
-            Logger.logApp("Could not create cloud icon", logType: MainViewController.logType)
+            Logger.info("Could not create cloud icon", category: .core, toUserDirectory: true)
         }
         
         var metadata: Metadata!
@@ -154,7 +154,7 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
             let data = try Data(contentsOf: labelMetaDataURL)
             metadata = try JSONDecoder().decode(Metadata.self, from: data)
         } catch {
-            Logger.logApp("Could not load metadata for row \(row)", logType: MainViewController.logType)
+            Logger.info("Could not load metadata for row \(row)", category: .core, toUserDirectory: true)
         }
         
         // determine Arch string

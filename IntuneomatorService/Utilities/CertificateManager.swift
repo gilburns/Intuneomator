@@ -13,8 +13,6 @@ import CommonCrypto
 /// Provides comprehensive certificate metadata extraction and keychain integration
 class CertificateManager {
     
-    /// Log type identifier for logging operations
-    static let logType = "CertificateManager"
     
     /// Retrieves the SHA-1 thumbprint of a certificate by its keychain label
     /// - Parameter certificateLabel: The label used to identify the certificate in keychain
@@ -94,9 +92,9 @@ class CertificateManager {
             // In your main certificate extraction function
             if let keyUsageValue = extractKeyUsage(from: properties) {
                 keyUsage = keyUsageValue
-                Logger.log(interpretKeyUsage(keyUsageValue), logType: logType)
+                Logger.info(interpretKeyUsage(keyUsageValue), category: .core)
             } else {
-                Logger.log("No key usage found in certificate", logType: logType)
+                Logger.info("No key usage found in certificate", category: .core)
             }
             
             
@@ -117,7 +115,7 @@ class CertificateManager {
             
             // If the primary method fails, try alternative approaches
             if algorithm == nil || keySize == nil {
-                Logger.log("Primary method failed to extract key info, trying alternatives...", logType: logType)
+                Logger.info("Primary method failed to extract key info, trying alternatives...", category: .core)
                 extractPublicKeyInfoAlternative(from: properties, certificate: certificate, algorithm: &algorithm, keySize: &keySize)
             }
             
@@ -131,11 +129,11 @@ class CertificateManager {
             // Debug: Log all available properties
             if let properties = SecCertificateCopyValues(certificate, nil, &error) as? [CFString: Any] {
                 for (key, value) in properties {
-                    Logger.log("Certificate property - Key: \(key), Type: \(type(of: value))", logType: logType)
+                    Logger.info("Certificate property - Key: \(key), Type: \(type(of: value))", category: .core)
                     
                     if let propDict = value as? [CFString: Any] {
                         if let propValue = propDict[kSecPropertyKeyValue] {
-                            Logger.log("  Value type: \(type(of: propValue))", logType: logType)
+                            Logger.info("  Value type: \(type(of: propValue))", category: .core)
                         }
                     }
                 }
@@ -150,12 +148,12 @@ class CertificateManager {
                 for key in dateKeys {
                     if let validityDict = properties[key] as? [CFString: Any],
                        let value = validityDict[kSecPropertyKeyValue] {
-                        Logger.log("Found date for key \(key): \(value) (type: \(type(of: value)))", logType: logType)
+                        Logger.info("Found date for key \(key): \(value) (type: \(type(of: value)))", category: .core)
                         
                         // If it's a date, use it
                         if let dateValue = value as? Date {
                             expirationDate = dateValue
-                            Logger.log("Successfully extracted expiration date: \(dateValue)", logType: logType)
+                            Logger.info("Successfully extracted expiration date: \(dateValue)", category: .core)
                             break
                         }
                     }
@@ -190,35 +188,35 @@ class CertificateManager {
     /// Logs all certificate properties recursively for debugging purposes
     /// - Parameter properties: Certificate properties dictionary from SecCertificateCopyValues
     static func logAllCertificateProperties(_ properties: [CFString: Any]) {
-        Logger.log("=== Full Certificate Properties for Debugging ===", logType: logType)
+        Logger.info("=== Full Certificate Properties for Debugging ===", category: .core)
         
         // Function to recursively print dictionary contents
         func logDictionary(_ dict: [CFString: Any], prefix: String = "") {
             for (key, value) in dict {
                 let keyString = key as String
-                Logger.log("\(prefix)Key: \(keyString)", logType: logType)
+                Logger.info("\(prefix)Key: \(keyString)", category: .core)
                 
                 if let nestedDict = value as? [CFString: Any] {
-                    Logger.log("\(prefix)  [Dictionary]:", logType: logType)
+                    Logger.info("\(prefix)  [Dictionary]:", category: .core)
                     logDictionary(nestedDict, prefix: prefix + "    ")
                 } else if let array = value as? [Any] {
-                    Logger.log("\(prefix)  [Array] Count: \(array.count)", logType: logType)
+                    Logger.info("\(prefix)  [Array] Count: \(array.count)", category: .core)
                     for (index, item) in array.enumerated() {
-                        Logger.log("\(prefix)    [\(index)] Type: \(type(of: item))", logType: logType)
+                        Logger.info("\(prefix)    [\(index)] Type: \(type(of: item))", category: .core)
                         if let dict = item as? [CFString: Any] {
                             logDictionary(dict, prefix: prefix + "      ")
                         } else {
-                            Logger.log("\(prefix)      Value: \(item)", logType: logType)
+                            Logger.info("\(prefix)      Value: \(item)", category: .core)
                         }
                     }
                 } else {
-                    Logger.log("\(prefix)  Value: \(value) (Type: \(type(of: value)))", logType: logType)
+                    Logger.info("\(prefix)  Value: \(value) (Type: \(type(of: value)))", category: .core)
                 }
             }
         }
         
         logDictionary(properties)
-        Logger.log("=== End of Certificate Properties ===", logType: logType)
+        Logger.info("=== End of Certificate Properties ===", category: .core)
     }
     
     
@@ -534,9 +532,9 @@ class CertificateManager {
 
         if ConfigManager.writePlistValue(key: "CertificateDetails", value: certDict) {
             ConfigManager.restrictPlistPermissions()
-            Logger.log("Saved certificate info to plist.", logType: CertificateManager.logType)
+            Logger.info("Saved certificate info to plist.", category: .core)
         } else {
-            Logger.log("Failed to save certificate info to plist.", logType: CertificateManager.logType)
+            Logger.error("Failed to save certificate info to plist.", category: .core)
         }
     }
     
@@ -545,14 +543,14 @@ class CertificateManager {
     /// - Returns: CertificateInfo structure if found and valid, nil otherwise
     func loadCertificateInfoFromPlist() -> CertificateInfo? {
     guard let plistDict: [String: Any] = ConfigManager.readPlistValue(key: "CertificateDetails") else {
-        Logger.log("Certificate info plist not found or empty.", logType: CertificateManager.logType)
+        Logger.info("Certificate info plist not found or empty.", category: .core)
         return nil
     }
 
     guard let subjectName = plistDict["SubjectName"] as? String,
           let serialNumber = plistDict["SerialNumber"] as? String,
           let thumbprint = plistDict["Thumbprint"] as? String else {
-        Logger.log("Failed to extract required certificate fields from plist.", logType: CertificateManager.logType)
+        Logger.error("Failed to extract required certificate fields from plist.", category: .core)
         return nil
     }
 
@@ -564,7 +562,7 @@ class CertificateManager {
     let keySize = plistDict["KeySize"] as? Int
 
     if let expiryDate = expirationDate, expiryDate < Date() {
-        Logger.log("WARNING: Certificate has expired on \(expiryDate)", logType: CertificateManager.logType)
+        Logger.info("WARNING: Certificate has expired on \(expiryDate)", category: .core)
     }
 
     return CertificateInfo(
@@ -597,12 +595,12 @@ class CertificateManager {
         let status = SecItemCopyMatching(query as CFDictionary, &item)
         
         if status != errSecSuccess {
-            Logger.log("Failed to find certificate: \(status)", logType: CertificateManager.logType)
+            Logger.error("Failed to find certificate: \(status)", category: .core)
             return nil
         }
         
         guard let certData = item as? Data else {
-            Logger.log("Failed to get certificate data", logType: CertificateManager.logType)
+            Logger.error("Failed to get certificate data", category: .core)
             return nil
         }
         
