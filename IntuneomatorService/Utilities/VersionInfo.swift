@@ -1,8 +1,8 @@
 //
 //  VersionInfo.swift
-//  IntuneomatorService
+//  IntuneomatorServices
 //
-//  Provides version information for the daemon service
+//  Provides version information for the daemon services
 //
 
 import Foundation
