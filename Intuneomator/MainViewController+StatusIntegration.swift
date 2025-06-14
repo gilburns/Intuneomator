@@ -28,28 +28,39 @@ extension MainViewController {
     
     // MARK: - StatusMonitor Integration
     
+    // MARK: - Private Properties for Status Integration
+    
+    /// Storage for Combine cancellables - using a global dictionary to avoid associated objects
+    private static var cancellablesStorage: [ObjectIdentifier: Set<AnyCancellable>] = [:]
+    
+    /// Storage for current progress operation - using a global dictionary to avoid associated objects  
+    private static var progressOperationStorage: [ObjectIdentifier: String] = [:]
+    
+    /// Cancellables for this view controller instance
     var cancellables: Set<AnyCancellable> {
         get {
-            // Store cancellables as associated object to avoid modifying main controller
-            return objc_getAssociatedObject(self, &AssociatedKeys.cancellables) as? Set<AnyCancellable> ?? Set<AnyCancellable>()
+            let id = ObjectIdentifier(self)
+            return Self.cancellablesStorage[id] ?? Set<AnyCancellable>()
         }
         set {
-            objc_setAssociatedObject(self, &AssociatedKeys.cancellables, newValue, .OBJC_ASSOCIATION_RETAIN)
+            let id = ObjectIdentifier(self)
+            Self.cancellablesStorage[id] = newValue
         }
-    }
-    
-    private struct AssociatedKeys {
-        static var cancellables = "cancellables"
-        static var currentProgressOperation = "currentProgressOperation"
     }
     
     /// Currently displayed progress operation (to avoid conflicts with animateStatusUpdate)
     private var currentProgressOperation: String? {
         get {
-            return objc_getAssociatedObject(self, &AssociatedKeys.currentProgressOperation) as? String
+            let id = ObjectIdentifier(self)
+            return Self.progressOperationStorage[id]
         }
         set {
-            objc_setAssociatedObject(self, &AssociatedKeys.currentProgressOperation, newValue, .OBJC_ASSOCIATION_RETAIN)
+            let id = ObjectIdentifier(self)
+            if let newValue = newValue {
+                Self.progressOperationStorage[id] = newValue
+            } else {
+                Self.progressOperationStorage.removeValue(forKey: id)
+            }
         }
     }
     
@@ -94,8 +105,11 @@ extension MainViewController {
      */
     func teardownStatusMonitoring() {
         StatusMonitor.shared.stopMonitoring()
-        cancellables.removeAll()
-        currentProgressOperation = nil
+        
+        // Clean up storage for this instance
+        let id = ObjectIdentifier(self)
+        Self.cancellablesStorage.removeValue(forKey: id)
+        Self.progressOperationStorage.removeValue(forKey: id)
         
         // Hide progress display if showing
         hideProgressDisplay()
@@ -146,9 +160,14 @@ extension MainViewController {
      * - Parameter operationId: The operation to display progress for
      */
     func showProgressForOperation(_ operationId: String) {
+        Logger.info("showProgressForOperation called for: \(operationId)", category: .core, toUserDirectory: true)
+        
         guard let operation = StatusMonitor.shared.getOperation(operationId: operationId) else {
+            Logger.warning("Operation not found: \(operationId)", category: .core, toUserDirectory: true)
             return
         }
+        
+        Logger.info("Found operation: \(operation.appName) - \(operation.status.rawValue)", category: .core, toUserDirectory: true)
         
         // Track current operation to avoid conflicts
         currentProgressOperation = operationId
@@ -167,10 +186,18 @@ extension MainViewController {
      * accordingly, managing the transition between different display modes.
      */
     private func handleOperationsUpdate(_ operations: [String: StatusMonitor.OperationProgress]) {
+        Logger.info("HandleOperationsUpdate called with \(operations.count) operations", category: .core, toUserDirectory: true)
+        
+        // Log details of each operation for debugging
+        for (id, operation) in operations {
+            Logger.info("Operation \(id): \(operation.appName) - \(operation.status.rawValue) - \(operation.progressPercentage) - phase: \(operation.currentPhase.name) - isActive: \(operation.status.isActive)", category: .core, toUserDirectory: true)
+        }
+        
         // Update current progress operation if it's being tracked
         if let currentOpId = currentProgressOperation,
            let currentOp = operations[currentOpId] {
             
+            Logger.info("Updating progress for tracked operation: \(currentOpId)", category: .core, toUserDirectory: true)
             updateProgressDisplay(for: currentOp)
             
             // Handle operation completion/failure
@@ -178,6 +205,7 @@ extension MainViewController {
                 handleOperationCompletion(currentOp)
             }
         } else if currentProgressOperation != nil {
+            Logger.info("Current operation was removed, hiding progress", category: .core, toUserDirectory: true)
             // Current operation was removed, hide progress
             hideProgressDisplay()
         }
@@ -240,14 +268,25 @@ extension MainViewController {
      */
     private func checkForNewOperations(_ operations: [String: StatusMonitor.OperationProgress]) {
         // Only auto-show progress if no operation is currently being displayed
-        guard currentProgressOperation == nil else { return }
+        guard currentProgressOperation == nil else {
+            Logger.info("Skipping new operation check - already tracking: \(currentProgressOperation!)", category: .core, toUserDirectory: true)
+            return
+        }
         
         // Find the most recent active operation
         let activeOps = operations.values.filter { $0.status.isActive }
-        guard let newestOp = activeOps.max(by: { $0.startTime < $1.startTime }) else { return }
+        Logger.info("Found \(activeOps.count) active operations", category: .core, toUserDirectory: true)
         
-        // Auto-show progress for operations that are already past the initial phase
-        if newestOp.overallProgress > 0.05 { // 5% threshold to avoid flicker
+        guard let newestOp = activeOps.max(by: { $0.startTime < $1.startTime }) else {
+            Logger.info("No active operations to display", category: .core, toUserDirectory: true)
+            return
+        }
+        
+        Logger.info("Newest operation: \(newestOp.operationId) - progress: \(newestOp.overallProgress)", category: .core, toUserDirectory: true)
+        
+        // Auto-show progress for any active operations (removed threshold for testing)
+        if newestOp.status.isActive {
+            Logger.info("Auto-showing progress for operation: \(newestOp.operationId)", category: .core, toUserDirectory: true)
             showProgressForOperation(newestOp.operationId)
         }
     }
@@ -261,16 +300,17 @@ extension MainViewController {
      * Adapt these method calls to match your actual UI structure.
      */
     private func showProgressDisplay() {
+        Logger.info("showProgressDisplay called - making progress UI visible", category: .core, toUserDirectory: true)
+        
         // Hide the normal status update label to avoid conflicts
         statusUpdateLabel.isHidden = true
         
         // Show progress-specific UI elements
-        // Note: You'll need to add these UI elements to your storyboard/xib
-        // progressBar?.isHidden = false
-        // progressLabel?.isHidden = false
-        // progressDetailLabel?.isHidden = false
+        progressView.isHidden = false
+        progressLabel.isHidden = false
+        progressDetailLabel.isHidden = false
         
-        Logger.debug("Showing persistent progress display", category: .core, toUserDirectory: true)
+        Logger.info("Progress UI elements visibility set: progressView=\(!progressView.isHidden), progressLabel=\(!progressLabel.isHidden), progressDetailLabel=\(!progressDetailLabel.isHidden)", category: .core, toUserDirectory: true)
     }
     
     /**
@@ -280,9 +320,12 @@ extension MainViewController {
      */
     private func hideProgressDisplay() {
         // Hide progress-specific UI elements
-        // progressBar?.isHidden = true
-        // progressLabel?.isHidden = true
-        // progressDetailLabel?.isHidden = true
+        progressView.isHidden = true
+        progressLabel.isHidden = true
+        progressDetailLabel.isHidden = true
+        
+        // Show the normal status update label again
+        statusUpdateLabel.isHidden = false
         
         Logger.debug("Hiding persistent progress display", category: .core, toUserDirectory: true)
     }
@@ -294,11 +337,14 @@ extension MainViewController {
      * latest information from the operation status.
      */
     private func updateProgressDisplay(for operation: StatusMonitor.OperationProgress) {
+        Logger.info("updateProgressDisplay called for: \(operation.appName)", category: .core, toUserDirectory: true)
+        
         // Update progress bar
-        // progressBar?.doubleValue = operation.overallProgress * 100
+        progressView.doubleValue = operation.overallProgress * 100
         
         // Update main progress label
-        // progressLabel?.stringValue = "\(operation.appName): \(operation.status.description)"
+        let mainLabelText = "\(operation.appName): \(operation.status.description)"
+        progressLabel.stringValue = mainLabelText
         
         // Update detail label with phase information
         var detailText = operation.currentPhase.name
@@ -309,9 +355,9 @@ extension MainViewController {
             detailText += " (\(timeRemaining))"
         }
         
-        // progressDetailLabel?.stringValue = detailText
+        progressDetailLabel.stringValue = detailText
         
-        Logger.debug("Updated progress display: \(operation.appName) - \(operation.progressPercentage)", category: .core, toUserDirectory: true)
+        Logger.info("Progress display updated: progress=\(operation.overallProgress * 100)%, label='\(mainLabelText)', detail='\(detailText)'", category: .core, toUserDirectory: true)
     }
     
     // MARK: - Convenience Methods for Common Scenarios
