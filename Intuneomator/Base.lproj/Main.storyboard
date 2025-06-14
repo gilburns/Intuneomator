@@ -2044,25 +2044,25 @@ CA
                                 </textFieldCell>
                             </textField>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="B4l-hJ-cFa">
-                                <rect key="frame" x="165" y="17" width="93" height="14"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="Daemon Activity:" id="swh-6R-Vhg">
+                                <rect key="frame" x="165" y="17" width="677" height="14"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="Daemon Activity" id="swh-6R-Vhg">
                                     <font key="font" metaFont="smallSystem"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Klq-TV-mdf">
-                                <rect key="frame" x="262" y="17" width="580" height="14"/>
+                                <rect key="frame" x="165" y="5" width="677" height="14"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                                <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="Nothing to report" id="MBo-7J-QRS">
+                                <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="Details" id="MBo-7J-QRS">
                                     <font key="font" metaFont="smallSystem"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
                             <progressIndicator fixedFrame="YES" maxValue="100" doubleValue="50" displayedWhenStopped="NO" controlSize="small" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="jih-OT-3Yz">
-                                <rect key="frame" x="257" y="7" width="583" height="12"/>
+                                <rect key="frame" x="167" y="-4" width="673" height="12"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                             </progressIndicator>
                         </subviews>
@@ -5583,6 +5583,9 @@ Gw
                             <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" controlSize="small" baseWritingDirection="leftToRight" alignment="left" translatesAutoresizingMaskIntoConstraints="NO" id="jxW-YK-vJs">
                                 <rect key="frame" x="91" y="325" width="36" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <connections>
+                                    <action selector="toggleEnabledButtonClicked:" target="Z7k-nH-K9T" id="Wgt-h3-HLg"/>
+                                </connections>
                             </switch>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="VVv-j9-Hs8">
                                 <rect key="frame" x="18" y="328" width="57" height="16"/>
@@ -5608,7 +5611,7 @@ Gw
                         <outlet property="popupWeekday" destination="s7n-MW-kIS" id="eCQ-TZ-g01"/>
                         <outlet property="tableView" destination="eId-aC-6Tg" id="HPX-Eu-W8C"/>
                         <outlet property="timePicker" destination="4t7-0j-wpN" id="Ni8-lE-Ulc"/>
-                        <outlet property="toggleEnabledButton" destination="jxW-YK-vJs" id="iG4-ai-xNi"/>
+                        <outlet property="toggleEnabledButton" destination="jxW-YK-vJs" id="Shf-MV-Y5F"/>
                     </connections>
                 </viewController>
                 <customObject id="jAV-37-EIx" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
