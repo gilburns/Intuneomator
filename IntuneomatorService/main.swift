@@ -7,29 +7,11 @@
 
 import Foundation
 
-// MARK: - Version Constants (Update when preparing a release)
-private let DAEMON_VERSION = "1.0.0"
-private let DAEMON_BUILD = "160"
-
 // MARK: - Version Support
-func getVersionInfo() -> (version: String, build: String) {
-    // Try to read from Bundle first (works for GUI apps)
-    let bundleVersion = Bundle.main.appVersion
-    let bundleBuild = Bundle.main.buildNumber
-    
-    // If Bundle has the actual values (not defaults), use them
-    if !bundleVersion.isEmpty && bundleVersion != "Unknown" {
-        return (bundleVersion, bundleBuild != "Unknown" ? bundleBuild : DAEMON_BUILD)
-    }
-    
-    // Use version constants for command-line tools
-    return (DAEMON_VERSION, DAEMON_BUILD)
-}
-
 func printVersion() {
-    let name = Bundle.main.appName.isEmpty ? "IntuneomatorService" : Bundle.main.appName
-    let (version, build) = getVersionInfo()
-    print("\(name) v\(version).\(build)")
+    let name = VersionInfo.getAppName()
+    let version = VersionInfo.getVersionString()
+    print("\(name) v\(version)")
 }
 
 func handleVersionArguments() -> Bool {
@@ -281,7 +263,7 @@ func runIntuneAutomationQuiet() {
         
         // Write full results to a file
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
+        dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm"
 
         let currentDate = dateFormatter.string(from: Date())
 
@@ -435,9 +417,9 @@ func handleCommandLineArguments() {
     // If no arguments provided or only the path argument (index 0)
     if arguments.count <= 1 {
         // Log version on daemon startup
-        let serviceName = Bundle.main.appName.isEmpty ? "IntuneomatorService" : Bundle.main.appName
-        let (serviceVersion, serviceBuild) = getVersionInfo()
-        Logger.info("Starting \(serviceName) version \(serviceVersion) (build \(serviceBuild))", category: .core)
+        let serviceName = VersionInfo.getAppName()
+        let serviceVersion = VersionInfo.getVersionString()
+        Logger.info("Starting \(serviceName) version \(serviceVersion)", category: .core)
         
         // Start normal XPC service
         let daemon = XPCListener()
