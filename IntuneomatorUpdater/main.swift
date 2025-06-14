@@ -74,7 +74,7 @@ let kSecCSDefaultFlags = SecCSFlags(rawValue: 0)
 /// - Parameter message: Message to log
 func log(_ message: String) {
     print("[IntuneomatorUpdater] \(message)")
-    Logger.log("\(message)", logType: "UpdateManager")
+    Logger.info("\(message)", category: .core)
 }
 
 // MARK: - Security Verification Functions
@@ -233,9 +233,32 @@ func isDaemonLoaded(_ label: String) -> Bool {
     return checkDaemonLoaded(label) == .loaded
 }
 
+/// Checks if a daemon is disabled by reading the Disabled key from its plist
+/// - Parameter label: Launch Daemon identifier to check
+/// - Returns: True if daemon is disabled, false otherwise
+func isDaemonDisabled(_ label: String) -> Bool {
+    let daemonPath = "/Library/LaunchDaemons/\(label).plist"
+    
+    guard FileManager.default.fileExists(atPath: daemonPath) else {
+        return false
+    }
+    
+    do {
+        let plistURL = URL(fileURLWithPath: daemonPath)
+        let plistData = try Data(contentsOf: plistURL)
+        guard let plistDict = try PropertyListSerialization.propertyList(from: plistData, options: [], format: nil) as? [String: Any] else {
+            return false
+        }
+        
+        return plistDict["Disabled"] as? Bool ?? false
+    } catch {
+        return false
+    }
+}
+
 
 /// Comprehensive check of all Intuneomator Launch Daemons
-/// Scans for plist files and determines load status for each daemon
+/// Scans for plist files and determines load status for each daemon, including disabled state
 /// - Returns: Dictionary mapping daemon identifiers to their status descriptions
 func checkAllDaemons() -> [String: String] {
     let daemonList = [
@@ -253,8 +276,13 @@ func checkAllDaemons() -> [String: String] {
     for daemon in daemonList {
         let daemonURL = daemonFolderURL.appendingPathComponent("\(daemon).plist")
         if FileManager.default.fileExists(atPath: daemonURL.path) {
-            let daemonStatus = checkDaemonLoaded(daemon)
-            fullDaemonStatus[daemon] = daemonStatus.description
+            // Check if daemon is disabled first
+            if isDaemonDisabled(daemon) {
+                fullDaemonStatus[daemon] = DaemonLoadStatus.disabled.description
+            } else {
+                let daemonStatus = checkDaemonLoaded(daemon)
+                fullDaemonStatus[daemon] = daemonStatus.description
+            }
         } else {
             fullDaemonStatus[daemon] = "Not Configured"
         }
@@ -407,6 +435,8 @@ enum DaemonLoadStatus: Equatable {
     case loaded
     /// Daemon is not loaded or not found
     case notLoaded
+    /// Daemon exists but is disabled via plist configuration
+    case disabled
     /// Error occurred while checking daemon status
     case error(String)
     
@@ -417,6 +447,8 @@ enum DaemonLoadStatus: Equatable {
             return "Loaded"
         case .notLoaded:
             return "Not Loaded"
+        case .disabled:
+            return "Disabled"
         case .error(let message):
             return "Error: \(message)"
         }

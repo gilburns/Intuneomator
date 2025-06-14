@@ -116,7 +116,6 @@ func printUsage() {
 // MARK: - Label Update Teams Notifications
 func sendLabelUpdateTeamsNotifications(withPreviousVersion previousLabelsVersion: String, andCurrentVersion currentLabelsVersion: String, updatedLabels: [String], isSuccess: Bool) async {
     // 🔔 Teams Notification
-    let logType: String = "LabelUpdate"
     
     let sendTeamNotification = ConfigManager.readPlistValue(key: "TeamsNotificationsEnabled") ?? false
     let sendForUpdates = ConfigManager.readPlistValue(key: "TeamsNotificationsForLabelUpdates") ?? false
@@ -125,9 +124,9 @@ func sendLabelUpdateTeamsNotifications(withPreviousVersion previousLabelsVersion
         let url = ConfigManager.readPlistValue(key: "TeamsWebhookURL") ?? ""
         
         if url.isEmpty {
-            Logger.log("No Teams Webhook URL set in Config. Not sending notification.", logType: logType)
+            Logger.info("No Teams Webhook URL set in Config. Not sending notification.", category: .core)
         } else {
-            Logger.log("Labels versions: \(previousLabelsVersion) \(currentLabelsVersion)", logType: logType)
+            Logger.info("Labels versions: \(previousLabelsVersion) \(currentLabelsVersion)", category: .core)
             let teamsNotifier = TeamsNotifier(webhookURL: url)
             await teamsNotifier.sendLabelUpdateNotification(initialVersion: previousLabelsVersion, updatedVersion: currentLabelsVersion, updatedLabels: updatedLabels, isSuccess: isSuccess)
         }
@@ -181,10 +180,10 @@ func processLabelQuiet(withParam folderName: String) async -> (String, String, S
 func labelUpdates() {
     Task {
         let (isUpToDate, versionMessage) = await InstallomatorLabels.compareInstallomatorVersionAsync()
-        Logger.log("🔍 Version Check: \(versionMessage)", logType: "LabelUpdate")
+        Logger.info("🔍 Version Check: \(versionMessage)", category: .core)
 
         if isUpToDate {
-            Logger.log("✅ No update needed.", logType: "LabelUpdate")
+            Logger.info("✅ No update needed.", category: .core)
             exit(EXIT_SUCCESS)
         }
 
@@ -196,27 +195,27 @@ func labelUpdates() {
         } else {
             currentVersionString = "Unknown"
         }
-        Logger.log("⬇️ Updating Installomator labels...", logType: "LabelUpdate")
+        Logger.info("⬇️ Updating Installomator labels...", category: .core)
 
         let (success, updateMessage) = await InstallomatorLabels.installInstallomatorLabelsAsync(withUpdatingLabels: false)
         if success {
-            Logger.log("✅ \(updateMessage)", logType: "LabelUpdate")
+            Logger.info("✅ \(updateMessage)", category: .core)
             let updatedLabels: [String]
             do {
                 updatedLabels = try await InstallomatorLabels.updateInUseLabels()
             } catch {
-                Logger.log("❌ Failed to get updated labels: \(error.localizedDescription)", logType: "LabelUpdate")
+                Logger.error("❌ Failed to get updated labels: \(error.localizedDescription)", category: .core)
                 await sendLabelUpdateTeamsNotifications(withPreviousVersion: localVersionString, andCurrentVersion: currentVersionString, updatedLabels: [], isSuccess: false)
                 exit(EXIT_FAILURE)
             }
-            Logger.log("Local version: \(localVersionString)", logType: "LabelUpdate")
-            Logger.log("Current version: \(currentVersionString)", logType: "LabelUpdate")
-            Logger.log("Updated labels: \(updatedLabels)", logType: "LabelUpdate")
+            Logger.info("Local version: \(localVersionString)", category: .core)
+            Logger.info("Current version: \(currentVersionString)", category: .core)
+            Logger.info("Updated labels: \(updatedLabels)", category: .core)
 
             await sendLabelUpdateTeamsNotifications(withPreviousVersion: localVersionString, andCurrentVersion: currentVersionString, updatedLabels: updatedLabels, isSuccess: success)
             exit(EXIT_SUCCESS)
         } else {
-            Logger.log("❌ \(updateMessage)", logType: "LabelUpdate")
+            Logger.info("❌ \(updateMessage)", category: .core)
             await sendLabelUpdateTeamsNotifications(withPreviousVersion: localVersionString, andCurrentVersion: currentVersionString, updatedLabels: [], isSuccess: success)
             exit(EXIT_FAILURE)
         }
@@ -256,25 +255,24 @@ func runIntuneAutomationQuiet() {
     group.enter()
     Task {
 
-        let logType = "Automation"
 
-        Logger.log("-------------------------------------------------------------------------", logType: logType)
-        Logger.log("Running Intune Automation...", logType: logType)
+        Logger.info("-------------------------------------------------------------------------", category: .core)
+        Logger.info("Running Intune Automation...", category: .core)
 
         let validFolders = LabelAutomation.scanAndValidateFolders()
-        Logger.log("Found -\(validFolders.count)- Intuneomator folders to process.", logType: logType)
+        Logger.info("Found -\(validFolders.count)- Intuneomator folders to process.", category: .core)
 
         // Collect results for each processed folder
         var processingResults: [(folder: String, displayName: String, text: String, newAppID: String, success: Bool)] = []
         var filteredProcessingResults: [(folder: String, displayName: String, text: String, newAppID: String, success: Bool)] = []
 
         for (index, folder) in validFolders.enumerated() {
-            Logger.log("Processing folder \(index+1)/\(validFolders.count): \(folder)", logType: logType)
-            Logger.log("  Updating Installomator label data: \(folder)", logType: logType)
+            Logger.info("Processing folder \(index+1)/\(validFolders.count): \(folder)", category: .core)
+            Logger.info("  Updating Installomator label data: \(folder)", category: .core)
 
             // Update label plist (process_label.sh)
             processLabelScript(withParam: folder)
-            Logger.log("  Processing \(folder).", logType: logType)
+            Logger.info("  Processing \(folder).", category: .core)
             
             // Run the automation for folder and capture the result
             let (text, displayName, newAppID, success) = await processLabelQuiet(withParam: folder)
@@ -295,9 +293,9 @@ func runIntuneAutomationQuiet() {
             .appendingPathComponent("\(currentDate)_Automation_Run_Results.txt")
         do {
             try fileContents.write(to: fileURL, atomically: true, encoding: .utf8)
-            Logger.log("Wrote results to \(fileURL.path)", logType: "Automation Results")
+            Logger.info("Wrote results to \(fileURL.path)", category: .core)
         } catch {
-            Logger.log("❌ Failed writing results file: \(error.localizedDescription)", logType: "Automation Results")
+            Logger.error("❌ Failed writing results file: \(error.localizedDescription)", category: .core)
         }
         
         // Filter the results for the Teams message.
@@ -318,7 +316,7 @@ func runIntuneAutomationQuiet() {
                 let teamsNotifier = TeamsNotifier(webhookURL: url)
                 await teamsNotifier.sendSingleSuccessNotification(processingResults: filteredProcessingResults)
             } else {
-                Logger.log("No Teams Webhook URL set in Config. Skipping batch notification.", logType: logType)
+                Logger.info("No Teams Webhook URL set in Config. Skipping batch notification.", category: .core)
             }
         }
 
@@ -335,7 +333,7 @@ func runIntuneAutomationQuiet() {
             let expirationChecker = ExpirationChecker()
             expirationChecker.checkSecretExpirationAndNotify()
         default:
-            Logger.log("Unsupported authMethod: \(authMethod)", logType: logType)
+            Logger.info("Unsupported authMethod: \(authMethod)", category: .core)
         }
 
         group.leave()
@@ -389,7 +387,7 @@ func login() {
         do {
             isValid = try await EntraAuthenticator().ValidateCredentials()
         } catch {
-            Logger.log("❌ Credential validation error: \(error.localizedDescription)", logType: "Authentication")
+            Logger.error("❌ Credential validation error: \(error.localizedDescription)", category: .core)
             isValid = false
         }
         stopSpinner()
@@ -439,7 +437,7 @@ func handleCommandLineArguments() {
         // Log version on daemon startup
         let serviceName = Bundle.main.appName.isEmpty ? "IntuneomatorService" : Bundle.main.appName
         let (serviceVersion, serviceBuild) = getVersionInfo()
-        Logger.log("Starting \(serviceName) version \(serviceVersion) (build \(serviceBuild))", logType: "System")
+        Logger.info("Starting \(serviceName) version \(serviceVersion) (build \(serviceBuild))", category: .core)
         
         // Start normal XPC service
         let daemon = XPCListener()
