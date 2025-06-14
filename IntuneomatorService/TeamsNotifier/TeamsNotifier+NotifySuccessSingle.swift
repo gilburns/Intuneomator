@@ -44,20 +44,18 @@ extension TeamsNotifier {
         var positiveMarkdownLines: [String] = []
         for (_, message, displayName, newAppID, success) in postiveResults {
             let prefix = success ? "✅" : "⚠️"
-
             positiveMarkdownLines.append("• \(prefix) **\(displayName)** [Intune Link:](\(intuneAppLink)\(newAppID)) – \(message)")
         }
-        let combinedPositiveList = positiveMarkdownLines.joined(separator: "  \n")
+        let combinedPositiveList = positiveMarkdownLines.isEmpty ? "None" : positiveMarkdownLines.joined(separator: "  \n")
 
         // Build markdown-formatted lists for failed deployments with folder context
         // Format: • ⚠️ AppName FolderName – Error message
         var negativeMarkdownLines: [String] = []
         for (folder, message, displayName, _, success) in negativeResults {
             let prefix = success ? "✅" : "⚠️"
-            
             negativeMarkdownLines.append("• \(prefix) **\(displayName)** \(folder) – \(message)")
         }
-        let combinedNegativeList = negativeMarkdownLines.joined(separator: "  \n")
+        let combinedNegativeList = negativeMarkdownLines.isEmpty ? "None" : negativeMarkdownLines.joined(separator: "  \n")
 
         
         // Build adaptive card body content with header, status indicator, and result details
