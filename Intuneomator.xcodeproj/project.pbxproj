@@ -151,6 +151,7 @@
 				TeamsNotifier/TeamsNotifier.swift,
 				"TeamsNotifier/TeamsNotifier+NotifyUpdate.swift",
 				"TeamsNotifier/TeamsNotifier+NotifyUpdateAvailable.swift",
+				Utilities/VersionInfo.swift,
 			);
 			target = 1B9DD88C2DDD759C005ECE05 /* IntuneomatorUpdater */;
 		};
