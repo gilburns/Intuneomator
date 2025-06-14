@@ -1,8 +1,11 @@
 #!/bin/bash
 
 # sync-daemon-versions.sh
-# Automatically updates version constants in daemon files from Config.xcconfig
+# Automatically updates version constants in VersionInfo.swift from Config.xcconfig
 # This ensures centralized version management across all Intuneomator targets
+#
+# NOTE: As of build 173+, daemon files use VersionInfo.swift instead of embedded constants
+# This script now only needs to update VersionInfo.swift rather than main.swift files
 #
 # Can be called standalone or from Xcode build phase with PROJECT_DIR environment variable
 
@@ -30,10 +33,9 @@ else
 fi
 
 CONFIG_FILE="$PROJECT_ROOT/Config.xcconfig"
-SERVICE_FILE="$PROJECT_ROOT/IntuneomatorService/main.swift"
-UPDATER_FILE="$PROJECT_ROOT/IntuneomatorUpdater/main.swift"
+VERSION_INFO_FILE="$PROJECT_ROOT/IntuneomatorService/Utilities/VersionInfo.swift"
 
-echo -e "${YELLOW}🔄 Syncing daemon version constants from Config.xcconfig...${NC}"
+echo -e "${YELLOW}🔄 Syncing version constants to VersionInfo.swift from Config.xcconfig...${NC}"
 
 # Check if Config.xcconfig exists
 if [[ ! -f "$CONFIG_FILE" ]]; then
@@ -67,8 +69,8 @@ update_version_constants() {
     # Create backup
     cp "$file" "$file.backup"
     
-    # Update DAEMON_VERSION constant
-    if sed -i '' "s/^private let DAEMON_VERSION = \".*\"/private let DAEMON_VERSION = \"$MARKETING_VERSION\"/" "$file"; then
+    # Update DAEMON_VERSION constant (using static let instead of private let for VersionInfo.swift)
+    if sed -i '' "s/private static let DAEMON_VERSION = \".*\"/private static let DAEMON_VERSION = \"$MARKETING_VERSION\"/" "$file"; then
         echo -e "${GREEN}✅ Updated DAEMON_VERSION in $file_name${NC}"
     else
         echo -e "${RED}❌ Failed to update DAEMON_VERSION in $file_name${NC}"
@@ -76,8 +78,8 @@ update_version_constants() {
         return 1
     fi
     
-    # Update DAEMON_BUILD constant
-    if sed -i '' "s/^private let DAEMON_BUILD = \".*\"/private let DAEMON_BUILD = \"$CURRENT_PROJECT_VERSION\"/" "$file"; then
+    # Update DAEMON_BUILD constant (using static let instead of private let for VersionInfo.swift)
+    if sed -i '' "s/private static let DAEMON_BUILD = \".*\"/private static let DAEMON_BUILD = \"$CURRENT_PROJECT_VERSION\"/" "$file"; then
         echo -e "${GREEN}✅ Updated DAEMON_BUILD in $file_name${NC}"
     else
         echo -e "${RED}❌ Failed to update DAEMON_BUILD in $file_name${NC}"
@@ -90,15 +92,12 @@ update_version_constants() {
     return 0
 }
 
-# Update both daemon files
-echo -e "${YELLOW}🔧 Updating IntuneomatorService...${NC}"
-update_version_constants "$SERVICE_FILE"
-
-echo -e "${YELLOW}🔧 Updating IntuneomatorUpdater...${NC}"
-update_version_constants "$UPDATER_FILE"
+# Update VersionInfo.swift (used by all daemon components)
+echo -e "${YELLOW}🔧 Updating VersionInfo.swift...${NC}"
+update_version_constants "$VERSION_INFO_FILE"
 
 echo -e "${GREEN}✅ Version sync complete!${NC}"
-echo -e "${GREEN}📦 All daemon files now use version $MARKETING_VERSION (build $CURRENT_PROJECT_VERSION)${NC}"
+echo -e "${GREEN}📦 VersionInfo.swift now provides version $MARKETING_VERSION (build $CURRENT_PROJECT_VERSION) to all daemon components${NC}"
 
 # Optional: Show what changed
 if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
