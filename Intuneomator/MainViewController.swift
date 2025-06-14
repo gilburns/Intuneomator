@@ -155,12 +155,28 @@ class MainViewController: NSViewController {
         
         // Display current app version
         labelVersionInfo.stringValue = formattedAppVersion()
+        
+        // Setup status monitoring for real-time progress updates
+        setupStatusMonitoring()
+        
+        // Initially hide progress UI elements
+        progressView.isHidden = true
+        progressLabel.isHidden = true
+        progressDetailLabel.isHidden = true
 
         // Start background automation check
         checkForIntuneAutomation()
     }
     
-    
+    /**
+     * Called when the view is about to disappear.
+     * 
+     * Cleans up status monitoring to prevent resource leaks.
+     */
+    override func viewWillDisappear() {
+        super.viewWillDisappear()
+        teardownStatusMonitoring()
+    }
     
     /**
      * Called when the application is about to terminate.
