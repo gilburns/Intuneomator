@@ -36,7 +36,7 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
     
     @IBOutlet weak var labelCacheCleanupRule: NSTextField!
     @IBOutlet weak var labelTaskDescription: NSTextField!
-    @IBOutlet weak var toggleEnabledButton: NSButton!
+    @IBOutlet weak var toggleEnabledButton: NSSwitch!
     
     // MARK: - Properties
     
@@ -229,8 +229,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         updateToggleButtonState()
     }
     
-    /// Handles toggle button clicks to enable/disable the daemon
-    @IBAction func toggleEnabledButtonClicked(_ sender: NSButton) {
+    /// Handles toggle switch changes to enable/disable the daemon
+    @IBAction func toggleEnabledButtonClicked(_ sender: NSSwitch) {
         let isEnabled = sender.state == .on
         
         XPCManager.shared.toggleScheduledTask(label: taskLabel, enable: isEnabled) { success, message in
@@ -355,7 +355,7 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         }
     }
     
-    /// Updates the toggle button state based on the current daemon's enabled/disabled status
+    /// Updates the toggle switch state based on the current daemon's enabled/disabled status
     private func updateToggleButtonState() {
         guard !taskLabel.isEmpty else {
             toggleEnabledButton.isEnabled = false
@@ -370,10 +370,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         if daemonExists {
             let isDisabled = isDaemonDisabled(label: taskLabel)
             toggleEnabledButton.state = isDisabled ? .off : .on
-            toggleEnabledButton.title = isDisabled ? "Enable" : "Disable"
         } else {
             toggleEnabledButton.state = .off
-            toggleEnabledButton.title = "Enable"
         }
     }
     
