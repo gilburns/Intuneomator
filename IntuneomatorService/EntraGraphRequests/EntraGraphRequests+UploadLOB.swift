@@ -21,9 +21,10 @@ extension EntraGraphRequests {
     /// - Parameters:
     ///   - authToken: OAuth bearer token for Microsoft Graph authentication
     ///   - app: ProcessedAppResults containing all application data and configuration
+    ///   - operationId: Optional operation ID for upload progress tracking
     /// - Returns: The unique identifier of the uploaded LOB application in Intune
     /// - Throws: Upload errors, encryption errors, network errors, or API errors
-    static func uploadLOBPkg(authToken: String, app: ProcessedAppResults) async throws -> String {
+    static func uploadLOBPkg(authToken: String, app: ProcessedAppResults, operationId: String? = nil) async throws -> String {
         
         // Step 1: Create LOB application metadata in Intune
         let metadataURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps")!
@@ -220,7 +221,7 @@ extension EntraGraphRequests {
             }
             
             // Step 6: Upload encrypted file using chunked upload
-            try await uploadFileInChunks(fileURL: encryptedFileURL, to: uploadUrl)
+            try await uploadFileInChunks(fileURL: encryptedFileURL, to: uploadUrl, operationId: operationId)
             
             // Clean up temporary encrypted file
             try FileManager.default.removeItem(at: encryptedFileURL)

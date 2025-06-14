@@ -20,11 +20,13 @@ extension LabelAutomation {
     /// - Parameters:
     ///   - processed: ProcessedAppResults containing download URLs and architecture requirements
     ///   - folderName: The Installomator label name for the application
+    ///   - operationId: Optional operation ID for status tracking
     /// - Returns: A tuple containing the primary (ARM64/Universal) URL and optional x86_64 URL
     /// - Throws: Download errors, network errors, or file system errors
     static func downloadArchives(
         for processed: ProcessedAppResults,
-        folderName: String
+        folderName: String,
+        operationId: String? = nil
     ) async throws -> (URL, URL?) {
         let primaryURL = processed.appDownloadURL
         Logger.info("  Download URL: \(primaryURL)", category: .automation)
@@ -32,7 +34,8 @@ extension LabelAutomation {
         // Download primary architecture (Universal/ARM64) first
         let universalURL = try await downloadFile(
             for: folderName,
-            processedAppResults: processed
+            processedAppResults: processed,
+            operationId: operationId
         )
 
         // Download x86_64 architecture if dual-arch deployment is required
@@ -44,7 +47,8 @@ extension LabelAutomation {
             x86URL = try await downloadFile(
                 for: folderName,
                 processedAppResults: processed,
-                downloadArch: "x86"
+                downloadArch: "x86",
+                operationId: operationId
             )
         } else {
             x86URL = nil

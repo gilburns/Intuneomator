@@ -21,22 +21,23 @@ extension EntraGraphRequests {
     /// - Parameters:
     ///   - authToken: OAuth bearer token for Microsoft Graph authentication
     ///   - app: ProcessedAppResults containing application data and configuration
+    ///   - operationId: Optional operation ID for upload progress tracking
     /// - Returns: The unique identifier of the uploaded application in Intune
     /// - Throws: Upload errors, authentication errors, or unsupported file type errors
-    static func uploadAppToIntune(authToken: String, app: ProcessedAppResults) async throws -> String {
+    static func uploadAppToIntune(authToken: String, app: ProcessedAppResults, operationId: String? = nil) async throws -> String {
         Logger.info("🖥️  Uploading app to Intune...", category: .core)
         let uploadedAppID: String
         
         // Route to appropriate upload method based on deployment type
         if app.appDeploymentType == 2 {
             Logger.info("Deploying LOB app...", category: .core)
-            uploadedAppID = try await uploadLOBPkg(authToken: authToken, app: app)
+            uploadedAppID = try await uploadLOBPkg(authToken: authToken, app: app, operationId: operationId)
         } else if app.appDeploymentType == 1 {
             Logger.info("Deploying PKG app...", category: .core)
-            uploadedAppID = try await uploadPKGWithScripts(authToken: authToken, app: app)
+            uploadedAppID = try await uploadPKGWithScripts(authToken: authToken, app: app, operationId: operationId)
         } else if app.appDeploymentType == 0 {
             Logger.info("Deploying DMG app...", category: .core)
-            uploadedAppID = try await uploadDMGApp(authToken: authToken, app: app)
+            uploadedAppID = try await uploadDMGApp(authToken: authToken, app: app, operationId: operationId)
         } else {
             throw NSError(domain: "UnsupportedFileType", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unsupported file type for upload."])
         }
@@ -51,8 +52,9 @@ extension EntraGraphRequests {
     ///   - fileURL: Local file URL to upload
     ///   - uploadURL: Azure Blob Storage upload URL with SAS token
     ///   - chunkSize: Size of each chunk in bytes (default: 6MB)
+    ///   - operationId: Optional operation ID for upload progress tracking
     /// - Throws: File I/O errors, network errors, or upload failures
-    static func uploadFileInChunks(fileURL: URL, to uploadURL: String, chunkSize: Int = 6 * 1024 * 1024) async throws {
+    static func uploadFileInChunks(fileURL: URL, to uploadURL: String, chunkSize: Int = 6 * 1024 * 1024, operationId: String? = nil) async throws {
         // Get file size for progress tracking and chunk calculation
         let fileSize = try FileManager.default.attributesOfItem(atPath: fileURL.path)[.size] as? Int ?? 0
         
@@ -66,6 +68,9 @@ extension EntraGraphRequests {
         var blockIds: [String] = []
         var blockIndex = 0
         var offset = 0
+        
+        // Initialize status manager for progress tracking
+        let statusManager = StatusNotificationManager.shared
         
         // Upload file in chunks using Azure Block Blob protocol
         while offset < fileSize {
@@ -119,6 +124,15 @@ extension EntraGraphRequests {
             
             blockIndex += 1
             offset += chunkData.count
+            
+            // Update upload progress if operation ID is provided
+            if let operationId = operationId {
+                statusManager.updateUploadProgress(
+                    operationId: operationId,
+                    uploadedBytes: Int64(offset),
+                    totalBytes: Int64(fileSize)
+                )
+            }
         }
         
         // Create block list XML to commit all uploaded blocks

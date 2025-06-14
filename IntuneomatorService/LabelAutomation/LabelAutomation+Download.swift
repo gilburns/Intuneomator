@@ -56,14 +56,16 @@ extension LabelAutomation {
     /// - HTTP response validation
     /// - Filename extraction from Content-Disposition headers or URL paths
     /// - Temporary file management and cleanup
+    /// - Real-time progress tracking via StatusNotificationManager
     /// 
     /// - Parameters:
     ///   - folderName: The folder name containing the GUID suffix for the managed app
     ///   - processedAppResults: Contains app metadata including download URLs and version info
     ///   - downloadArch: Target architecture ("Arm" for ARM64, "Intel" for x86_64)
+    ///   - operationId: Optional operation ID for status tracking
     /// - Returns: URL pointing to the downloaded file in the temporary cache directory
     /// - Throws: DownloadError for various failure scenarios including invalid URLs, network errors, and file system issues
-    static func downloadFile(for folderName: String, processedAppResults: ProcessedAppResults, downloadArch: String = "Arm") async throws -> URL {
+    static func downloadFile(for folderName: String, processedAppResults: ProcessedAppResults, downloadArch: String = "Arm", operationId: String? = nil) async throws -> URL {
         
         // Select appropriate download URL based on architecture
         let urlString = downloadArch == "Arm" ? processedAppResults.appDownloadURL : processedAppResults.appDownloadURLx86
@@ -96,7 +98,14 @@ extension LabelAutomation {
         
         while true {
             do {
-                (tempLocation, response) = try await URLSession.shared.download(from: url)
+                // Use custom download with progress tracking if operation ID is provided
+                if let operationId = operationId {
+                    let progressDelegate = DownloadProgressDelegate(operationId: operationId, downloadURL: url.absoluteString)
+                    let session = URLSession(configuration: .default, delegate: progressDelegate, delegateQueue: nil)
+                    (tempLocation, response) = try await session.download(from: url)
+                } else {
+                    (tempLocation, response) = try await URLSession.shared.download(from: url)
+                }
                 break
             } catch {
                 attempt += 1
@@ -218,4 +227,43 @@ extension LabelAutomation {
     }
     
 
+}
+
+// MARK: - Download Progress Tracking
+
+/// Custom URLSessionDownloadDelegate for tracking download progress
+/// Provides real-time progress updates via StatusNotificationManager
+class DownloadProgressDelegate: NSObject, URLSessionDownloadDelegate {
+    private let operationId: String
+    private let downloadURL: String
+    private let statusManager = StatusNotificationManager.shared
+    
+    init(operationId: String, downloadURL: String) {
+        self.operationId = operationId
+        self.downloadURL = downloadURL
+        super.init()
+    }
+    
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+        // Update download progress via StatusNotificationManager
+        if totalBytesExpectedToWrite > 0 {
+            statusManager.updateDownloadProgress(
+                operationId: operationId,
+                downloadedBytes: totalBytesWritten,
+                totalBytes: totalBytesExpectedToWrite,
+                downloadURL: downloadURL
+            )
+        }
+    }
+    
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        // Download completed - the file handling is done in the main function
+        Logger.debug("Download completed for operation \(operationId)", category: .automation)
+    }
+    
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        if let error = error {
+            Logger.error("Download failed for operation \(operationId): \(error.localizedDescription)", category: .automation)
+        }
+    }
 }

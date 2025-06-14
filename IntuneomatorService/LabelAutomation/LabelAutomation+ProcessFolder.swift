@@ -140,8 +140,6 @@ extension LabelAutomation {
                 
                 // Version is already in Intune. No need to continue
                 if versionExistsInIntune {
-                    statusManager.completeOperation(operationId: operationId)
-
                     Logger.info("    ---", category: .automation)
                     Logger.info("    Version \(processedAppResults.appVersionExpected) already exists in Intune", category: .automation)
                     statusManager.failOperation(operationId: operationId, errorMessage: "Version \(processedAppResults.appVersionExpected) already exists in Intune")
@@ -175,7 +173,8 @@ extension LabelAutomation {
                 statusManager.updateDownloadStatus(operationId, "Starting download")
                 let (armURL, x86URL) = try await downloadArchives(
                     for: processedAppResults,
-                    folderName: folderName
+                    folderName: folderName,
+                    operationId: operationId
                 )
                 
                 let downloadType: String = processedAppResults.appLabelType
@@ -269,7 +268,6 @@ extension LabelAutomation {
                 // Attempt cleanup on processing failure
                 let _ = cleanUpTmpFiles(forAppLabel: appLabelName)
                 let errorMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) download/processing failed: \(error.localizedDescription)"
-                statusManager.failOperation(operationId: operationId, errorMessage: errorMessage)
                 return (errorMessage, processedAppResults.appDisplayName, "", false)
             }
 
@@ -307,11 +305,11 @@ extension LabelAutomation {
                 Logger.info("    ---", category: .automation)
                 Logger.info("    Version \(processedAppResults.appVersionActual) already exists in Intune", category: .automation)
                 
-                
                 // Clean up the download before we bail
                 let deleteFolder = cleanUpTmpFiles(forAppLabel: appLabelName)
                 Logger.info("✅ Folder cleanup: \(deleteFolder)", category: .automation)
                 let successMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) already exists in Intune"
+                statusManager.failOperation(operationId: operationId, errorMessage: "Version \(processedAppResults.appVersionActual) already exists in Intune")
                 return (successMessage, processedAppResults.appDisplayName, "", true)
             }
 
@@ -343,7 +341,7 @@ extension LabelAutomation {
 
             // Call the upload function
             statusManager.updateUploadStatus(operationId, "Uploading to Microsoft Intune", progress: 0.0)
-            newAppID = try await EntraGraphRequests.uploadAppToIntune(authToken: authToken, app: processedAppResults)
+            newAppID = try await EntraGraphRequests.uploadAppToIntune(authToken: authToken, app: processedAppResults, operationId: operationId)
             statusManager.updateUploadStatus(operationId, "Upload completed", progress: 1.0)
             Logger.info("New app ID post upload: \(newAppID)", category: .automation)
             

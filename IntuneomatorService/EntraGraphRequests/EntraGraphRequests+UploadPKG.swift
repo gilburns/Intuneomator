@@ -23,7 +23,7 @@ extension EntraGraphRequests {
     ///   - app: ProcessedAppResults containing all application data, scripts, and configuration
     /// - Returns: The unique identifier of the uploaded PKG application in Intune
     /// - Throws: Upload errors, encryption errors, network errors, or API errors
-    static func uploadPKGWithScripts(authToken: String, app: ProcessedAppResults) async throws -> String {
+    static func uploadPKGWithScripts(authToken: String, app: ProcessedAppResults, operationId: String? = nil) async throws -> String {
         // Step 1: Create PKG application metadata in Intune
         let metadataURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps")!
         var request = URLRequest(url: metadataURL)
@@ -231,7 +231,7 @@ extension EntraGraphRequests {
             }
             
             // Step 6: Upload encrypted file using chunked upload
-            try await uploadFileInChunks(fileURL: encryptedFileURL, to: uploadUrl)
+            try await uploadFileInChunks(fileURL: encryptedFileURL, to: uploadUrl, operationId: operationId)
             
             // Clean up temporary encrypted file
             try FileManager.default.removeItem(at: encryptedFileURL)
