@@ -88,6 +88,7 @@ extension MainViewController {
     func refreshUI() {
         tableView.reloadData()
         configureInitialState()
+        updateAutomationTriggerUIState()
     }
     
     /**
@@ -315,6 +316,190 @@ extension MainViewController {
         tinted.unlockFocus()
         tinted.isTemplate = false
         return tinted
+    }
+    
+    // MARK: - Automation Readiness Checks
+    
+    /**
+     * Checks if automation can be triggered based on folder readiness and daemon status.
+     * 
+     * This method performs local validation checks without requiring XPC communication:
+     * 1. Counts folders ready for automation using AutomationCheck validation
+     * 2. Checks if the automation daemon is disabled in the launch daemon plist
+     * 
+     * - Returns: True if automation can be triggered, false otherwise
+     */
+    func isAutomationAvailable() -> Bool {
+        let readyCount = getAutomationReadyCount()
+        let daemonDisabled = isAutomationDaemonDisabled()
+        
+        return readyCount > 0 && !daemonDisabled
+    }
+    
+    // MARK: - Graph Connectivity Checks
+    
+    /**
+     * Checks if Graph API-dependent features are available.
+     * 
+     * This method validates that essential Microsoft Graph data has been successfully
+     * loaded during app startup, indicating that authentication and network connectivity
+     * are working properly. Features like Discovered Apps require valid Graph connectivity.
+     * 
+     * - Returns: True if Graph API features are likely to work, false otherwise
+     */
+    func isGraphConnectivityAvailable() -> Bool {
+        let categories = AppDataManager.shared.getMobileAppCategories()
+        let groups = AppDataManager.shared.getEntraGroups()
+        let filters = AppDataManager.shared.getEntraFilters()
+        
+        // All three should have data if Graph connectivity is working
+        // Even a minimal tenant should have some default categories and at least one group
+        return categories.count > 0 && groups.count > 0 && filters.count >= 0 // Filters can be 0 in some tenants
+    }
+    
+    /**
+     * Gets a detailed status of Graph connectivity for user feedback.
+     * 
+     * Provides specific information about which Graph data sources are missing,
+     * helping users understand why Graph-dependent features might not be available.
+     * 
+     * - Returns: A tuple with availability status and descriptive message
+     */
+    func getGraphConnectivityStatus() -> (available: Bool, message: String) {
+        let categories = AppDataManager.shared.getMobileAppCategories()
+        let groups = AppDataManager.shared.getEntraGroups()
+        let filters = AppDataManager.shared.getEntraFilters()
+        
+        if categories.isEmpty && groups.isEmpty {
+            return (false, "No connection to Microsoft Graph - check internet connectivity and authentication")
+        } else if categories.isEmpty {
+            return (false, "Unable to load app categories from Microsoft Graph")
+        } else if groups.isEmpty {
+            return (false, "Unable to load Entra groups from Microsoft Graph")
+        } else {
+            return (true, "Microsoft Graph connectivity is working")
+        }
+    }
+    
+    /**
+     * Counts the number of folders ready for automation using local validation.
+     * 
+     * Uses the same validation logic as FolderScanner and AutomationCheck to determine
+     * how many managed title folders are properly configured for automation.
+     * 
+     * - Returns: The number of folders that pass validation checks
+     */
+    func getAutomationReadyCount() -> Int {
+        var validFolders: [String] = []
+        let basePath = AppConstants.intuneomatorManagedTitlesFolderURL.path
+        
+        do {
+            let folderContents = try FileManager.default.contentsOfDirectory(atPath: basePath)
+            
+            for folderName in folderContents {
+                let folderPath = (basePath as NSString).appendingPathComponent(folderName)
+                if AutomationCheck.validateFolder(at: folderPath) {
+                    validFolders.append(folderName)
+                }
+            }
+        } catch {
+            Logger.error("Error reading managed titles folder: \(error.localizedDescription)", category: .core)
+            return 0
+        }
+        
+        return validFolders.count
+    }
+    
+    /**
+     * Checks if the automation daemon is disabled in the launch daemon plist.
+     * 
+     * Reads the automation daemon plist file to check for the Disabled key.
+     * This is a local file read that doesn't require elevated privileges.
+     * 
+     * - Returns: True if daemon is disabled or plist doesn't exist, false if enabled
+     */
+    func isAutomationDaemonDisabled() -> Bool {
+        let daemonLabel = "com.gilburns.intuneomator.automation"
+        let daemonPath = "/Library/LaunchDaemons/\(daemonLabel).plist"
+        
+        guard FileManager.default.fileExists(atPath: daemonPath) else {
+            // No daemon plist means it's effectively disabled
+            return true
+        }
+        
+        do {
+            let plistURL = URL(fileURLWithPath: daemonPath)
+            let plistData = try Data(contentsOf: plistURL)
+            guard let plistDict = try PropertyListSerialization.propertyList(from: plistData, options: [], format: nil) as? [String: Any] else {
+                return true
+            }
+            
+            return plistDict["Disabled"] as? Bool ?? false
+        } catch {
+            Logger.error("Failed to check daemon status: \(error.localizedDescription)", category: .core)
+            return true
+        }
+    }
+    
+    /**
+     * Updates UI control states based on current system readiness.
+     * 
+     * This method manages the enabled/disabled state of all system-dependent UI controls:
+     * - Automation trigger controls (based on folder readiness and daemon status)
+     * - Graph API-dependent controls (based on Microsoft Graph connectivity)
+     * 
+     * It automatically manages button/menu item states when they're connected and provides
+     * helpful status messages to users about why certain features might not be available.
+     * 
+     * ## Usage:
+     * Call this method:
+     * - After loading app data
+     * - After adding/removing labels
+     * - After configuration changes
+     * - Periodically to keep UI state current
+     * 
+     * ## UI Controls Updated:
+     * - automationTriggerButton/MenuItem (automation readiness)
+     * - discoveredAppsButton/MenuItem (Graph connectivity)
+     * - Status label with helpful state information
+     */
+    func updateAutomationTriggerUIState() {
+        // Check automation availability
+        let automationAvailable = isAutomationAvailable()
+        let readyCount = getAutomationReadyCount()
+        let daemonDisabled = isAutomationDaemonDisabled()
+        
+        // Check Graph connectivity
+        let graphAvailable = isGraphConnectivityAvailable()
+        let (_, graphMessage) = getGraphConnectivityStatus()
+        
+        // Log current state for debugging
+        Logger.info("UI State - Automation Available: \(automationAvailable), Ready Count: \(readyCount), Daemon Disabled: \(daemonDisabled), Graph Available: \(graphAvailable)", category: .core)
+        
+        // Update automation control states
+        automationTriggerButton?.isEnabled = automationAvailable
+        
+        // Update Graph-dependent control states
+        discoveredAppsButton?.isEnabled = graphAvailable
+        
+        // Update menu item states through AppDelegate
+        if let appDelegate = NSApp.delegate as? AppDelegate {
+            appDelegate.automationMenuItem?.isEnabled = automationAvailable
+            appDelegate.discoveredAppsMenuItem?.isEnabled = graphAvailable
+        }
+        
+        // Update status text to reflect current state (prioritize automation status)
+        if !automationAvailable {
+            if daemonDisabled {
+                statusLabel.stringValue = "Automation daemon is disabled"
+            } else if readyCount == 0 {
+                statusLabel.stringValue = "No labels ready for automation"
+            }
+        } else if !graphAvailable {
+            statusLabel.stringValue = "Microsoft Graph connectivity issues detected"
+        } else {
+            statusLabel.stringValue = "\(readyCount) labels ready for automation • Graph connectivity OK"
+        }
     }
 
 }
