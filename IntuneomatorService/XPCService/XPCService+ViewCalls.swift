@@ -837,6 +837,79 @@ extension XPCService {
         }
     }
     
+    // MARK: - Automation Trigger
+    
+    /// Triggers automation by creating the trigger file for the Launch Daemon
+    /// Creates the `.automation.trigger` file that the Launch Daemon watches for automation start
+    /// - Parameter reply: Callback with success status and optional message
+    func triggerAutomation(reply: @escaping (Bool, String?) -> Void) {
+        let triggerFileURL = URL(fileURLWithPath: "/Library/Application Support/Intuneomator/.automation.trigger")
+        
+        do {
+            // Ensure the directory exists
+            let parentDirectory = triggerFileURL.deletingLastPathComponent()
+            if !FileManager.default.fileExists(atPath: parentDirectory.path) {
+                try FileManager.default.createDirectory(at: parentDirectory, withIntermediateDirectories: true, attributes: nil)
+            }
+            
+            // Create/touch the trigger file
+            let triggerContent = "Triggered by GUI at \(Date())\n"
+            try triggerContent.write(to: triggerFileURL, atomically: true, encoding: .utf8)
+            
+            Logger.info("✅ Automation trigger file created successfully", category: .core)
+            reply(true, "Automation triggered successfully")
+            
+        } catch {
+            Logger.error("❌ Failed to create automation trigger file: \(error.localizedDescription)", category: .core)
+            reply(false, "Failed to trigger automation: \(error.localizedDescription)")
+        }
+    }
+    
+    /// Checks if automation is currently running by examining the status file
+    /// Determines if any operations are active (downloading, processing, uploading)
+    /// - Parameter reply: Callback indicating if automation is currently active
+    func isAutomationRunning(reply: @escaping (Bool) -> Void) {
+        let statusFileURL = AppConstants.intuneomatorOperationStatusFileURL
+        
+        guard FileManager.default.fileExists(atPath: statusFileURL.path) else {
+            // No status file means no automation is running
+            reply(false)
+            return
+        }
+        
+        do {
+            let jsonData = try Data(contentsOf: statusFileURL)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .secondsSince1970
+            
+            // Decode the status file to check for active operations
+            if let json = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
+               let operations = json["operations"] as? [String: Any] {
+                
+                // Check if any operation has an active status
+                for (_, operationData) in operations {
+                    if let operationDict = operationData as? [String: Any],
+                       let statusString = operationDict["status"] as? String {
+                        
+                        // Check for active statuses
+                        if ["downloading", "processing", "uploading"].contains(statusString) {
+                            Logger.info("Found active automation operation with status: \(statusString)", category: .core)
+                            reply(true)
+                            return
+                        }
+                    }
+                }
+            }
+            
+            // No active operations found
+            reply(false)
+            
+        } catch {
+            Logger.error("Failed to check automation status: \(error.localizedDescription)", category: .core)
+            // If we can't read the status file, assume automation is not running
+            reply(false)
+        }
+    }
 
     
 }
