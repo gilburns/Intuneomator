@@ -73,5 +73,5 @@ Package/Intuneomator.pkg
 /Archive
 /DerivedData
 /Wiki
-/Scripts
 Release_Checksums.txt
+Package/Intuneomator-*.sha256.txt
