@@ -99,6 +99,7 @@ extension MainViewController {
             filteredAppData.remove(at: selectedRow)
             tableView.reloadData()
             setLabelCount()
+            updateAutomationTriggerUIState()
 
             // Disable buttons after deletion
             editButton.isEnabled = false
@@ -214,6 +215,19 @@ extension MainViewController {
      * - Parameter sender: The UI control that triggered this action
      */
     @IBAction func openDiscoveredAppsManagerWindow(_ sender: Any) {
+        // First check if Graph connectivity is available
+        guard isGraphConnectivityAvailable() else {
+            let (_, message) = getGraphConnectivityStatus()
+            
+            let alert = NSAlert()
+            alert.messageText = "Microsoft Graph Not Available"
+            alert.informativeText = "\(message)\n\nThe Discovered Apps Manager requires a working connection to Microsoft Graph to fetch application data. Please check your authentication settings and internet connectivity."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        
         // Check if there's an existing Discovered Apps Manager window
         if let existingWindowController = discoveredAppsManagerWindowControllers.first(where: { $0.window?.isVisible == true }) {
             existingWindowController.window?.makeKeyAndOrderFront(nil) // Bring to front
@@ -355,6 +369,102 @@ extension MainViewController {
         let helpWikiURL = "https://github.com/gilburns/Intuneomator/wiki"
         if let url = URL(string: helpWikiURL) {
             NSWorkspace.shared.open(url)
+        }
+    }
+    
+    // MARK: - Automation Actions
+    
+    /**
+     * Triggers full automation for all managed labels.
+     * 
+     * This action performs comprehensive validation before triggering automation:
+     * 1. Checks if automation is available (folders ready + daemon enabled)
+     * 2. Checks if automation is already running to prevent multiple executions
+     * 3. Triggers the automation process via XPC
+     * Shows appropriate user feedback during the process.
+     * 
+     * - Parameter sender: The UI control that triggered this action
+     */
+    @IBAction func triggerFullAutomation(_ sender: Any) {
+        // First check if automation is available (readiness + daemon status)
+        guard isAutomationAvailable() else {
+            let readyCount = getAutomationReadyCount()
+            let daemonDisabled = isAutomationDaemonDisabled()
+            
+            let alert = NSAlert()
+            alert.messageText = "Automation Not Available"
+            
+            if daemonDisabled {
+                alert.informativeText = "The automation daemon is currently disabled. Please enable it in the Schedule Editor before triggering automation."
+            } else if readyCount == 0 {
+                alert.informativeText = "No managed labels are ready for automation. Please ensure you have properly configured labels with required metadata, assignments, and scripts."
+            } else {
+                alert.informativeText = "Automation is not available due to configuration issues."
+            }
+            
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        
+        // Check if automation is already running
+        XPCManager.shared.isAutomationRunning { [weak self] isRunning in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                
+                if let isRunning = isRunning, isRunning {
+                    // Show alert that automation is already running
+                    let alert = NSAlert()
+                    alert.messageText = "Automation Already Running"
+                    alert.informativeText = "Full automation is already in progress. Please wait for it to complete before starting a new run."
+                    alert.alertStyle = .informational
+                    alert.addButton(withTitle: "OK")
+                    alert.runModal()
+                    return
+                }
+                
+                // Show confirmation dialog before proceeding
+                let readyCount = self.getAutomationReadyCount()
+                let confirmAlert = NSAlert()
+                confirmAlert.messageText = "Confirm Automation Start"
+                confirmAlert.informativeText = "This will start full automation for \(readyCount) ready label\(readyCount == 1 ? "" : "s"). The automation process will potentially download, package, and upload applications to Microsoft Intune.\n\n⚠️ This action cannot be canceled once started and may take multiple minutes to complete."
+                confirmAlert.alertStyle = .warning
+                confirmAlert.addButton(withTitle: "Start Automation")
+                confirmAlert.addButton(withTitle: "Cancel")
+                
+                let response = confirmAlert.runModal()
+                
+                // Check if user confirmed (first button = .alertFirstButtonReturn)
+                guard response == .alertFirstButtonReturn else {
+                    // User canceled - do nothing
+                    Logger.info("User canceled automation trigger", category: .core, toUserDirectory: true)
+                    return
+                }
+                
+                // User confirmed - proceed with automation
+                self.statusLabel.stringValue = "Triggering automation for \(readyCount) ready labels..."
+                Logger.info("User confirmed automation trigger for \(readyCount) labels", category: .core, toUserDirectory: true)
+                
+                XPCManager.shared.triggerFullAutomation { [weak self] result in
+                    DispatchQueue.main.async {
+                        guard let self = self else { return }
+                        
+                        if let (success, message) = result {
+                            if success {
+                                self.statusLabel.stringValue = message ?? "Full automation triggered successfully"
+                                Logger.info("✅ Full automation triggered for \(readyCount) labels", category: .core, toUserDirectory: true)
+                            } else {
+                                self.statusLabel.stringValue = "Failed to trigger automation: \(message ?? "Unknown error")"
+                                Logger.error("❌ Failed to trigger automation: \(message ?? "Unknown error")", category: .core)
+                            }
+                        } else {
+                            self.statusLabel.stringValue = "Failed to communicate with automation service"
+                            Logger.error("❌ XPC communication failed for automation trigger", category: .core)
+                        }
+                    }
+                }
+            }
         }
     }
 
