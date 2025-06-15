@@ -329,7 +329,7 @@ Display the app prominently on the main page of the Company Portal when users br
 
     @IBAction func showHelpForInstallomator(_ sender: NSButton) {
         // Create the full string
-        let helpText = NSMutableAttributedString(string: "Installomator is an open-source project designed for macOS that automates the installation and updating of various applications by downloading the latest versions directly from vendor websites.\n\nThese Installomator \"Label\" files form the basis for creating Intuneomator managed apps.\n\nLearn more here:\n\nhttps://github.com/Installomator/Installomator")
+        let helpText = NSMutableAttributedString(string: "The information shown in the Installomator details section is mostly infomational. This is the resolved label information. This information is resolved everytime the app is run or the automation is re-run.\n\n Installomator is an open-source project designed for macOS that automates the installation and updating of various applications by downloading the latest versions directly from vendor websites.\n\nThese Installomator \"Label\" files form the basis for creating Intuneomator managed apps.\n\nLearn more here:\n\nhttps://github.com/Installomator/Installomator")
 
         // Add a hyperlink to "Mozilla's Firefox page"
         let hyperlinkRange = (helpText.string as NSString).range(of: "https://github.com/Installomator/Installomator")
