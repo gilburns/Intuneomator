@@ -149,6 +149,7 @@ extension MainViewController {
         isValid = AutomationCheck.validateFolder(at: editedLabelPath)
         validationCache[editedLabelPath] = isValid
         tableView.reloadData()
+        updateAutomationTriggerUIState()
     }
     
     /**
@@ -192,6 +193,7 @@ extension MainViewController {
                     self.tableView.reloadData()
                     
                     self.invalidateValidationCache()
+                    self.updateAutomationTriggerUIState()
                 }
             }
         }
