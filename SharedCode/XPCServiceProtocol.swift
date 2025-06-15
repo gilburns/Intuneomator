@@ -394,4 +394,14 @@ import Foundation
     /// Gets the total size of the log folder in bytes
     /// - Parameter completion: Callback with folder size in bytes
     func getLogFolderSize(completion: @escaping (Int64) -> Void)
+    
+    // MARK: - Status Management
+    
+    /// Cleans up stale operation status entries
+    /// - Parameter completion: Callback with number of operations removed
+    func cleanupStaleOperations(completion: @escaping (Int) -> Void)
+    
+    /// Clears all error operation status entries
+    /// - Parameter completion: Callback with number of operations removed
+    func clearAllErrorOperations(completion: @escaping (Int) -> Void)
 }
