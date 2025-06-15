@@ -99,10 +99,18 @@ update_version_constants "$VERSION_INFO_FILE"
 echo -e "${GREEN}✅ Version sync complete!${NC}"
 echo -e "${GREEN}📦 VersionInfo.swift now provides version $MARKETING_VERSION (build $CURRENT_PROJECT_VERSION) to all daemon components${NC}"
 
-# Optional: Show what changed
+# Show what changed
+echo -e "${YELLOW}📝 Updated version constants:${NC}"
+echo "  DAEMON_VERSION = \"$MARKETING_VERSION\""
+echo "  DAEMON_BUILD = \"$CURRENT_PROJECT_VERSION\""
+
+# Optional: Show git status if in a git repository
 if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
-    echo -e "${YELLOW}📝 Changes made:${NC}"
-    git diff --no-index /dev/null <(echo "Version constants updated to:")
-    git diff --no-index /dev/null <(echo "  DAEMON_VERSION = \"$MARKETING_VERSION\"")
-    git diff --no-index /dev/null <(echo "  DAEMON_BUILD = \"$CURRENT_PROJECT_VERSION\"")
+    echo -e "\n${YELLOW}📋 Git status:${NC}"
+    if git diff --quiet "$VERSION_INFO_FILE"; then
+        echo -e "${GREEN}No changes detected in VersionInfo.swift${NC}"
+    else
+        echo -e "${BLUE}Changes made to VersionInfo.swift:${NC}"
+        git diff --no-index /dev/null "$VERSION_INFO_FILE" 2>/dev/null | grep "^+" | grep -E "(DAEMON_VERSION|DAEMON_BUILD)" || echo "Version constants updated successfully"
+    fi
 fi
