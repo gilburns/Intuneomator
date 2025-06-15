@@ -45,6 +45,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// Menu item for opening discovered apps manager
     @IBOutlet weak var discoveredAppsMenuItem: NSMenuItem?
     
+    /// Flag to prevent app termination during initialization
+    private var isInitializing = true
+    
     // MARK: - Application Lifecycle
     
     /// Called when the application has finished launching.
@@ -57,42 +60,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         Logger.info("Intuneomator starting...", category: .core, toUserDirectory: true)
         
-        // Check network connectivity first - app is useless without internet
-        Task {
+        // Perform startup sequence in a single task to avoid nested task issues
+        Task { @MainActor in
+            // Step 1: Check network connectivity first - app is useless without internet
             let hasConnectivity = await checkNetworkConnectivity()
             
-            await MainActor.run {
-                if !hasConnectivity {
-                    showNetworkConnectivityError()
-                    return
-                }
-                
-                // Check Graph authentication credentials
+            if !hasConnectivity {
+                showNetworkConnectivityError()
+                return
+            }
+            
+            // Step 2: Check Graph authentication credentials
+            let authStatus = await checkGraphAuthentication()
+            
+            if !authStatus.isValid {
+                showGraphAuthenticationWarning(message: authStatus.message)
+            }
+            
+            // Step 3: Proceed with app initialization regardless of auth status
+            // (auth warning allows user to continue and fix the issue)
+            
+            // Step 4: Load initial data if auth is valid (in background)
+            if authStatus.isValid {
                 Task {
-                    let authStatus = await checkGraphAuthentication()
-                    
-                    await MainActor.run {
-                        if !authStatus.isValid {
-                            showGraphAuthenticationWarning(message: authStatus.message)
-                        }
-                        
-                        // Proceed with app initialization regardless of auth status
-                        // (auth warning allows user to continue and fix the issue)
-                        
-                        // Only attempt data loading if auth is valid
-                        if authStatus.isValid {
-                            Task {
-                                await loadInitialData()
-                            }
-                        }
-                        
-                        // Perform synchronous setup operations
-                        cleanOldTempFolders()
-                        setupApplicationSupportFolders()
-                        checkForFirstRun()
-                    }
+                    await loadInitialData()
                 }
             }
+            
+            // Step 5: Perform synchronous setup operations
+            cleanOldTempFolders()
+            setupApplicationSupportFolders()
+            checkForFirstRun()
         }
     }
     
@@ -129,8 +127,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// Determines if the application should terminate when the last window is closed.
     /// 
     /// - Parameter sender: The application instance
-    /// - Returns: Always true, allowing the application to quit when all windows close
+    /// - Returns: False during initialization to prevent premature termination, true otherwise
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        // Don't terminate during initialization when showing alerts
+        if isInitializing {
+            Logger.info("Preventing app termination during initialization", category: .core, toUserDirectory: true)
+            return false
+        }
         return true
     }
     
@@ -163,6 +166,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 } else if let strongSelf = self {
                     strongSelf.openSetupWizard(strongSelf)
                 }
+                
+                // Mark initialization as complete after window is shown
+                self?.isInitializing = false
+                Logger.info("App initialization complete, normal termination behavior restored", category: .core, toUserDirectory: true)
             }
         }
     }
