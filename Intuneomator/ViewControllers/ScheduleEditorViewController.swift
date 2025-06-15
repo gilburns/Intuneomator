@@ -154,6 +154,7 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         tableView.reloadData()
         checkForChanges()
         updateButtonStates()
+        updateToggleButtonState()
     }
     
     /// Deletes the selected schedule entry
@@ -168,6 +169,7 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         tableView.reloadData()
         checkForChanges()
         updateButtonStates()
+        updateToggleButtonState()
     }
     
     /// Saves the current schedule to Launch Daemon plist via XPC service
@@ -202,6 +204,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
                 DispatchQueue.main.async {
                     if success {
                         self.buttonSave.isEnabled = false
+                        self.updateToggleButtonState()
+
                     } else {
                         self.presentErrorAlert(message ?? "Failed to save scheduled task.")
                     }
