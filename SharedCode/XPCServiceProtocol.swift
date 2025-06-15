@@ -375,6 +375,16 @@ import Foundation
     /// Gets the client secret expiration date if available
     func getSecretExpirationDate(reply: @escaping (Date?) -> Void)
     
+    // MARK: - Automation Trigger
+    
+    /// Triggers automation by creating the trigger file
+    /// - Parameter reply: Callback with success status and optional message
+    func triggerAutomation(reply: @escaping (Bool, String?) -> Void)
+    
+    /// Checks if automation is currently running by examining the status file
+    /// - Parameter reply: Callback indicating if automation is active
+    func isAutomationRunning(reply: @escaping (Bool) -> Void)
+    
     // MARK: - System Information
     
     /// Gets the total size of the cache folder in bytes
