@@ -67,5 +67,36 @@ class XPCService: NSObject, XPCServiceProtocol {
         completion(true)
     }
     
+    // MARK: - Status Management
+    
+    /// Cleans up stale operation status entries
+    /// - Parameter completion: Callback with number of operations removed
+    func cleanupStaleOperations(completion: @escaping (Int) -> Void) {
+        let statusManager = StatusNotificationManager.shared
+        let initialCount = statusManager.getAllOperations().count
+        
+        statusManager.cleanupStaleOperations()
+        
+        // Wait a moment for the cleanup to complete, then return the difference
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            let finalCount = statusManager.getAllOperations().count
+            let removedCount = initialCount - finalCount
+            Logger.info("XPC cleanupStaleOperations: removed \(removedCount) operations", category: .automation)
+            completion(removedCount)
+        }
+    }
+    
+    /// Clears all error operation status entries
+    /// - Parameter completion: Callback with number of operations removed
+    func clearAllErrorOperations(completion: @escaping (Int) -> Void) {
+        let statusManager = StatusNotificationManager.shared
+        let errorCount = statusManager.getAllOperations().values.filter { $0.status == .error }.count
+        
+        statusManager.clearAllErrorOperations()
+        
+        Logger.info("XPC clearAllErrorOperations: cleared \(errorCount) error operations", category: .automation)
+        completion(errorCount)
+    }
+    
 }
 
