@@ -48,9 +48,22 @@ extension LabelAutomation {
         Logger.info("  Version to check: \(processedAppResults.appVersionExpected)", category: .automation)
         
         let trackingID = processedAppResults.appTrackingID
+        let appLabelName = processedAppResults.appLabelName
+        let appDisplayName = processedAppResults.appDisplayName
+        
+        let operationId = "\(folderName)_metadata"
+        let statusManager = StatusNotificationManager.shared
+        
+        // Start tracking metadata update operation
+        statusManager.startOperation(
+            operationId: operationId,
+            labelName: appLabelName,
+            appName: appDisplayName
+        )
         
         // Step 3: Search Intune for applications with matching tracking ID
         Logger.info("  " + folderName + ": Fetching app info from Intune...", category: .automation)
+        statusManager.updateProcessingStatus(operationId, "Fetching apps from Intune")
         
         do {
             let entraAuthenticator = EntraAuthenticator()
@@ -61,12 +74,22 @@ extension LabelAutomation {
             
             Logger.info("    Found \(appInfo.count) apps matching tracking ID \(trackingID)", category: .automation)
             
+            if appInfo.isEmpty {
+                statusManager.failOperation(operationId: operationId, errorMessage: "No applications found in Intune with tracking ID \(trackingID)")
+                return
+            }
+            
             // Step 4: Update metadata for each matching application
-            for app in appInfo {
+            statusManager.updateProcessingStatus(operationId, "Updating metadata for \(appInfo.count) app(s)")
+            for (index, app) in appInfo.enumerated() {
                 Logger.info("    ---", category: .automation)
                 Logger.info("    App: \(app.displayName)", category: .automation)
                 Logger.info("    Ver: \(app.primaryBundleVersion)", category: .automation)
                 Logger.info("     ID: \(app.id)", category: .automation)
+                
+                // Update progress
+                let progress = Double(index + 1) / Double(appInfo.count)
+                statusManager.updateProcessingStatus(operationId, "Updating \(app.displayName)", progress: progress)
                 
                 // Update application metadata and category assignments
                 do {
@@ -86,13 +109,22 @@ extension LabelAutomation {
                         categories: processedAppResults.appCategories
                     )
                     
+                    Logger.info("✅ Successfully updated metadata for \(app.displayName)", category: .automation)
+                    
                 } catch {
                     Logger.error("Error updating \(processedAppResults.appDisplayName) with AppID \(app.id) metadata in Intune: \(error.localizedDescription)", category: .automation)
+                    statusManager.failOperation(operationId: operationId, errorMessage: "Failed to update metadata for \(app.displayName): \(error.localizedDescription)")
+                    return
                 }
             }
             
+            // Complete the operation successfully
+            statusManager.completeOperation(operationId: operationId)
+            Logger.info("✅ Metadata update completed successfully for \(folderName)", category: .automation)
+            
         } catch {
             Logger.error("Failed to fetch app info from Intune: \(error.localizedDescription)", category: .automation)
+            statusManager.failOperation(operationId: operationId, errorMessage: "Failed to fetch app info from Intune: \(error.localizedDescription)")
             return
         }
     }
@@ -130,11 +162,23 @@ extension LabelAutomation {
         Logger.info("  Label: \(String(describing: processedAppResults.appLabelName))", category: .automation)
         
         let trackingID = processedAppResults.appTrackingID
+        let appLabelName = processedAppResults.appLabelName
+        let appDisplayName = processedAppResults.appDisplayName
         Logger.info("  Tracking ID: \(trackingID)", category: .automation)
-
+        
+        let operationId = "\(folderName)_scripts"
+        let statusManager = StatusNotificationManager.shared
+        
+        // Start tracking scripts update operation
+        statusManager.startOperation(
+            operationId: operationId,
+            labelName: appLabelName,
+            appName: appDisplayName
+        )
 
         // Step 3: Search Intune for PKG applications with matching tracking ID
         Logger.info("  " + folderName + ": Fetching app info from Intune...", category: .automation)
+        statusManager.updateProcessingStatus(operationId, "Fetching PKG apps from Intune")
         
         do {
             let entraAuthenticator = EntraAuthenticator()
@@ -145,12 +189,22 @@ extension LabelAutomation {
             
             Logger.info("    Found \(appInfo.count) apps matching tracking ID \(trackingID)", category: .automation)
             
+            if appInfo.isEmpty {
+                statusManager.failOperation(operationId: operationId, errorMessage: "No PKG applications found in Intune with tracking ID \(trackingID)")
+                return
+            }
+            
             // Step 4: Update scripts for each matching PKG application
-            for app in appInfo {
+            statusManager.updateProcessingStatus(operationId, "Updating scripts for \(appInfo.count) PKG app(s)")
+            for (index, app) in appInfo.enumerated() {
                 Logger.info("    ---", category: .automation)
                 Logger.info("    App: \(app.displayName)", category: .automation)
                 Logger.info("    Ver: \(app.primaryBundleVersion)", category: .automation)
                 Logger.info("     ID: \(app.id)", category: .automation)
+                
+                // Update progress
+                let progress = Double(index + 1) / Double(appInfo.count)
+                statusManager.updateProcessingStatus(operationId, "Updating scripts for \(app.displayName)", progress: progress)
                 
                 // Update pre/post-install scripts for PKG applications
                 do {
@@ -160,13 +214,22 @@ extension LabelAutomation {
                     // Update script content (Base64 encoded for secure transmission)
                     try await EntraGraphRequests.updateAppIntuneScripts(authToken: authToken, app: processedAppResults, appId: app.id)
                     
+                    Logger.info("✅ Successfully updated scripts for \(app.displayName)", category: .automation)
+                    
                 } catch {
                     Logger.error("Error updating \(processedAppResults.appDisplayName) with AppID \(app.id) scripts in Intune: \(error.localizedDescription)", category: .automation)
+                    statusManager.failOperation(operationId: operationId, errorMessage: "Failed to update scripts for \(app.displayName): \(error.localizedDescription)")
+                    return
                 }
             }
             
+            // Complete the operation successfully
+            statusManager.completeOperation(operationId: operationId)
+            Logger.info("✅ Scripts update completed successfully for \(folderName)", category: .automation)
+            
         } catch {
             Logger.error("Failed to fetch app info from Intune: \(error.localizedDescription)", category: .automation)
+            statusManager.failOperation(operationId: operationId, errorMessage: "Failed to fetch app info from Intune: \(error.localizedDescription)")
             return
         }
     }
@@ -205,11 +268,23 @@ extension LabelAutomation {
         Logger.info("  Label: \(String(describing: processedAppResults.appLabelName))", category: .automation)
         
         let trackingID = processedAppResults.appTrackingID
+        let appLabelName = processedAppResults.appLabelName
+        let appDisplayName = processedAppResults.appDisplayName
         Logger.info("  Tracking ID: \(trackingID)", category: .automation)
-
+        
+        let operationId = "\(folderName)_assignments"
+        let statusManager = StatusNotificationManager.shared
+        
+        // Start tracking assignments update operation
+        statusManager.startOperation(
+            operationId: operationId,
+            labelName: appLabelName,
+            appName: appDisplayName
+        )
 
         // Step 3: Search Intune for applications with matching tracking ID
         Logger.info("  " + folderName + ": Fetching app info from Intune...", category: .automation)
+        statusManager.updateProcessingStatus(operationId, "Fetching apps from Intune")
         
         do {
             let entraAuthenticator = EntraAuthenticator()
@@ -220,12 +295,22 @@ extension LabelAutomation {
             
             Logger.info("    Found \(appInfo.count) apps matching tracking ID \(trackingID)", category: .automation)
             
+            if appInfo.isEmpty {
+                statusManager.failOperation(operationId: operationId, errorMessage: "No applications found in Intune with tracking ID \(trackingID)")
+                return
+            }
+            
             // Step 4: Update assignments for each matching application
-            for app in appInfo {
+            statusManager.updateProcessingStatus(operationId, "Updating assignments for \(appInfo.count) app(s)")
+            for (index, app) in appInfo.enumerated() {
                 Logger.info("    ---", category: .automation)
                 Logger.info("    App: \(app.displayName)", category: .automation)
                 Logger.info("    Ver: \(app.primaryBundleVersion)", category: .automation)
                 Logger.info("     ID: \(app.id)", category: .automation)
+                
+                // Update progress
+                let progress = Double(index + 1) / Double(appInfo.count)
+                statusManager.updateProcessingStatus(operationId, "Updating assignments for \(app.displayName)", progress: progress)
                 
                 // Update group assignments only for applications that currently have assignments
                 if app.isAssigned {
@@ -262,14 +347,25 @@ extension LabelAutomation {
                             categories: processedAppResults.appCategories
                         )
                         
+                        Logger.info("✅ Successfully updated assignments for \(app.displayName)", category: .automation)
+                        
                     } catch {
                         Logger.error("Error updating \(processedAppResults.appDisplayName) with AppID \(app.id) assignment in Intune: \(error.localizedDescription)", category: .automation)
+                        statusManager.failOperation(operationId: operationId, errorMessage: "Failed to update assignments for \(app.displayName): \(error.localizedDescription)")
+                        return
                     }
+                } else {
+                    Logger.info("⏭️ Skipping \(app.displayName) - not currently assigned", category: .automation)
                 }
             }
             
+            // Complete the operation successfully
+            statusManager.completeOperation(operationId: operationId)
+            Logger.info("✅ Assignment update completed successfully for \(folderName)", category: .automation)
+            
         } catch {
             Logger.error("Failed to fetch app info from Intune: \(error.localizedDescription)", category: .automation)
+            statusManager.failOperation(operationId: operationId, errorMessage: "Failed to fetch app info from Intune: \(error.localizedDescription)")
             return
         }
     }

@@ -48,9 +48,22 @@ extension LabelAutomation {
         Logger.info("  Version to check: \(processedAppResults.appVersionExpected)", category: .automation)
         
         let trackingID = processedAppResults.appTrackingID
+        let appLabelName = processedAppResults.appLabelName
+        let appDisplayName = processedAppResults.appDisplayName
+        
+        let operationId = "\(folderName)_remove"
+        let statusManager = StatusNotificationManager.shared
+        
+        // Start tracking removal operation
+        statusManager.startOperation(
+            operationId: operationId,
+            labelName: appLabelName,
+            appName: appDisplayName
+        )
         
         // Step 3: Search Intune for applications with matching tracking ID
         Logger.info("  " + folderName + ": Fetching app info from Intune...", category: .automation)
+        statusManager.updateProcessingStatus(operationId, "Fetching apps from Intune")
         
         do {
             let entraAuthenticator = EntraAuthenticator()
@@ -61,12 +74,23 @@ extension LabelAutomation {
             
             Logger.info("    Found \(appInfo.count) apps matching tracking ID \(trackingID)", category: .automation)
             
+            if appInfo.isEmpty {
+                Logger.info("    No applications found to remove", category: .automation)
+                statusManager.completeOperation(operationId: operationId)
+                return
+            }
+            
             // Step 4: Remove each matching application from Intune
-            for app in appInfo {
+            statusManager.updateProcessingStatus(operationId, "Removing \(appInfo.count) app(s) from Intune")
+            for (index, app) in appInfo.enumerated() {
                 Logger.info("    ---", category: .automation)
                 Logger.info("    App: \(app.displayName)", category: .automation)
                 Logger.info("    Ver: \(app.primaryBundleVersion)", category: .automation)
                 Logger.info("     ID: \(app.id)", category: .automation)
+                
+                // Update progress
+                let progress = Double(index + 1) / Double(appInfo.count)
+                statusManager.updateProcessingStatus(operationId, "Removing \(app.displayName)", progress: progress)
                 
                 // Remove individual application from Intune tenant
                 do {
@@ -76,12 +100,17 @@ extension LabelAutomation {
                     // Execute deletion via Microsoft Graph API
                     try await EntraGraphRequests.deleteIntuneApp(authToken: authToken, appId: app.id)
                     
+                    Logger.info("✅ Successfully removed \(app.displayName) from Intune", category: .automation)
+                    
                 } catch {
                     Logger.error("Error removing \(processedAppResults.appDisplayName) item with AppID \(app.id) from Intune: \(error.localizedDescription)", category: .automation)
+                    statusManager.failOperation(operationId: operationId, errorMessage: "Failed to remove \(app.displayName): \(error.localizedDescription)")
+                    return
                 }
             }
             
             // Step 5: Clean up local automation tracking files
+            statusManager.updateProcessingStatus(operationId, "Cleaning up local tracking files")
             let labelFolderName = "\(processedAppResults.appLabelName)_\(processedAppResults.appTrackingID)"
             let labelFolderURL = AppConstants.intuneomatorManagedTitlesFolderURL.appendingPathComponent(labelFolderName)
             
@@ -95,8 +124,13 @@ extension LabelAutomation {
                 }
             }
             
+            // Complete the operation successfully
+            statusManager.completeOperation(operationId: operationId)
+            Logger.info("✅ Removal completed successfully for \(folderName)", category: .automation)
+            
         } catch {
             Logger.error("Failed to fetch app info from Intune: \(error.localizedDescription)", category: .automation)
+            statusManager.failOperation(operationId: operationId, errorMessage: "Failed to fetch app info from Intune: \(error.localizedDescription)")
             return
         }
     }
