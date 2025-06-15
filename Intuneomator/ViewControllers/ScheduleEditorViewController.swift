@@ -72,6 +72,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         updateSaveButtonTitle()
         updateTaskSelection()
         getAppsToKeep()
+        updateToggleButtonState()
+
     }
     
     override func viewWillAppear() {
