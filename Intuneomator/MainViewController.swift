@@ -77,6 +77,12 @@ class MainViewController: NSViewController {
     /// Info button for additional app details
     @IBOutlet weak var infoButton: NSButton!
     
+    /// Button for triggering full automation (optional - connect in Interface Builder if using a button)
+    @IBOutlet weak var automationTriggerButton: NSButton?
+    
+    /// Button for opening discovered apps manager (optional - connect in Interface Builder if using a button)
+    @IBOutlet weak var discoveredAppsButton: NSButton?
+    
     /// Label displaying current app version information
     @IBOutlet weak var labelVersionInfo: NSTextField!
     
