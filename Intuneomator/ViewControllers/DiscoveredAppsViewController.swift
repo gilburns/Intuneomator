@@ -50,6 +50,9 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
     /// Progress indicator shown while fetching discovered apps.
     @IBOutlet weak var progressIndicator: NSProgressIndicator!
 
+    /// Progress label shown while fetching discovered apps.
+    @IBOutlet weak var progressLabel: NSTextField!
+
     // MARK: - Properties
     
     /// Array of all discovered applications retrieved from Intune
@@ -88,6 +91,7 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
     override func viewDidAppear() {
         super.viewDidAppear()
         progressIndicator.startAnimation(nil)
+        progressLabel.isHidden = false
         if allApps.isEmpty {
             fetchDetectedApps()
         } else {
@@ -116,6 +120,7 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
                                 self.tableView?.reloadData()
                                 self.updateLabelShowCount()
                                 self.progressIndicator.stopAnimation(nil)
+                                self.progressLabel.isHidden = true
                             }
                         } else {
                             // handle error
@@ -240,7 +245,7 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
             return
         }
         progressIndicator.startAnimation(nil)
-
+        progressLabel.isHidden = false
         let selectedApp = filteredApps[tableView.selectedRow]
         let labelName = selectedApp.installomatorLabel
         
@@ -248,7 +253,7 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
             DispatchQueue.main.async {
                 if dirPath != nil {
                     self.progressIndicator.stopAnimation(nil)
-                    
+                    self.progressLabel.isHidden = true
                     NotificationCenter.default.post(
                         name: .newDirectoryAdded,
                         object: nil,
@@ -256,6 +261,7 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
                     )
                 } else {
                     self.progressIndicator.stopAnimation(nil)
+                    self.progressLabel.isHidden = true
                 }
             }
         }
