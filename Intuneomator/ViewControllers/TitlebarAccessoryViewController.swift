@@ -76,7 +76,7 @@ class TitlebarAccessoryViewController: NSTitlebarAccessoryViewController {
     func daemonStatusCheck() {
         let isRunning = checkXPCServiceRunning()
         DispatchQueue.main.async {
-            self.daemonRunningStatusButton.title = isRunning ? "Daemon 🟢" : "Daemon 🔴"
+            self.daemonRunningStatusButton.title = isRunning ? "Daemon: 🟢" : "Daemon: 🔴"
         }
     }
     
