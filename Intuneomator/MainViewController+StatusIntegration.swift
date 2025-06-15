@@ -244,7 +244,7 @@ extension MainViewController {
         
         switch operation.status {
         case .completed:
-            completionMessage = "\(operation.appName) uploaded successfully"
+            completionMessage = "\(operation.appName) action was successful"
         case .error:
             completionMessage = "\(operation.appName) failed: \(operation.errorMessage ?? "Unknown error")"
         case .cancelled:
