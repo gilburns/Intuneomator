@@ -10,8 +10,51 @@ set -e  # Exit on error
 
 # === Variables ===
 APP_NAME="Intuneomator"
-VERSION="1.0"
 IDENTIFIER="com.gilburns.Intuneomator"
+
+# === Version Information from Built Application ===
+# Read version from the actual built app to ensure consistency with build artifacts
+
+# Determine build path first (needed for version reading)
+if [ -d "../DerivedData/Build/Products/Release" ]; then
+    BUILD_PATH="../DerivedData/Build/Products/Release"
+    echo "Using Release_Build.sh output from: $BUILD_PATH"
+elif [ -d "/Users/gilburns/Library/Developer/Xcode/DerivedData/Intuneomator-goaiftwymseounhbjldcvcytweic/Build/Products/Release" ]; then
+    BUILD_PATH="/Users/gilburns/Library/Developer/Xcode/DerivedData/Intuneomator-goaiftwymseounhbjldcvcytweic/Build/Products/Release"
+    echo "Using Xcode default Release build from: $BUILD_PATH"
+else
+    BUILD_PATH="/Users/gilburns/Library/Developer/Xcode/DerivedData/Intuneomator-goaiftwymseounhbjldcvcytweic/Build/Products/Debug"
+    echo "Fallback to Debug build from: $BUILD_PATH"
+fi
+
+# Read version from the built application's Info.plist
+APP_INFO_PLIST="${BUILD_PATH}/${APP_NAME}.app/Contents/Info.plist"
+
+if [[ ! -f "$APP_INFO_PLIST" ]]; then
+    echo "❌ Error: Built application Info.plist not found at $APP_INFO_PLIST"
+    echo "Make sure to run Release_Build.sh first to build the applications"
+    exit 1
+fi
+
+# Extract version values from the built application
+MARKETING_VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$APP_INFO_PLIST" 2>/dev/null)
+BUILD_VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$APP_INFO_PLIST" 2>/dev/null)
+
+# Validate version extraction
+if [[ -z "$MARKETING_VERSION" || -z "$BUILD_VERSION" ]]; then
+    echo "❌ Error: Could not extract version values from built application"
+    echo "Marketing Version: '$MARKETING_VERSION'"
+    echo "Build Version: '$BUILD_VERSION'"
+    echo "Info.plist path: $APP_INFO_PLIST"
+    exit 1
+fi
+
+# Create full version string: MARKETING_VERSION.BUILD_VERSION
+VERSION="${MARKETING_VERSION}.${BUILD_VERSION}"
+
+echo "📦 Package version: $VERSION (Marketing: $MARKETING_VERSION, Build: $BUILD_VERSION)"
+echo "   (Read from built application: $APP_INFO_PLIST)"
+
 INSTALL_LOCATION="/Applications"
 TMP_DIR="./Root"
 SCRIPTS_DIR="./Scripts"
@@ -19,10 +62,9 @@ PKG_NAME="${APP_NAME}.pkg"
 SIGNED_PKG_NAME="${APP_NAME}-${VERSION}.pkg"
 COMPONENT_PLIST="component.plist"
 DIST_XML="Distribution.xml"
-SIGN_ID="Developer ID Installer: Gil Burns (G4MQ57TVLE)" # <-- Change this
+SIGN_ID="Developer ID Installer: Gil Burns (G4MQ57TVLE)"
 
-# Fix this path for the final release. This is for testing only
-BUILD_PATH="/Users/gilburns/Library/Developer/Xcode/DerivedData/Intuneomator-goaiftwymseounhbjldcvcytweic/Build/Products/Debug"
+# Build path was already determined above for version reading
 
 # Insure that the scripts are executable
 chmod 755 "${SCRIPTS_DIR}/preinstall"
@@ -88,7 +130,7 @@ if ! xcrun stapler staple "$SIGNED_PKG_NAME"; then
   exit 1
 fi
 
-echo "tNotarization and stapling complete."
+echo "Notarization and stapling complete."
 
 # === Output SHA256 hash of the final package ===
 echo "Calculating SHA256 hash..."
