@@ -100,6 +100,22 @@ class XPCManager {
     func checkXPCServiceRunning(completion: @escaping (Bool?) -> Void) {
         sendRequest({ $0.ping(completion: $1) }, completion: completion)
     }
+    
+    // MARK: - Status Management
+    
+    /// Cleans up stale operation status entries in the daemon
+    /// Removes old error, completed, and cancelled operations based on age
+    /// - Parameter completion: Callback with number of operations removed
+    func cleanupStaleOperations(completion: @escaping (Int?) -> Void) {
+        sendRequest({ $0.cleanupStaleOperations(completion: $1) }, completion: completion)
+    }
+    
+    /// Clears all error operation status entries in the daemon
+    /// Removes all failed operations regardless of age
+    /// - Parameter completion: Callback with number of operations removed  
+    func clearAllErrorOperations(completion: @escaping (Int?) -> Void) {
+        sendRequest({ $0.clearAllErrorOperations(completion: $1) }, completion: completion)
+    }
         
 }
 
