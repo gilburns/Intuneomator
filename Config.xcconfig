@@ -7,6 +7,9 @@
 
 // Configuration settings file format documentation can be found at:
 // https://help.apple.com/xcode/#/dev745c5c974
-GENERATE_INFOPLIST_FILE=YES
-CURRENT_PROJECT_VERSION=154
+MARKETING_VERSION = 1.0.0
+CURRENT_PROJECT_VERSION=160
 ENABLE_USER_SCRIPT_SANDBOXING=NO
+
+// Default for GUI apps
+GENERATE_INFOPLIST_FILE = YES
