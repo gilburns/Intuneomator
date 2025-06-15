@@ -9,6 +9,11 @@
 # Base path for LaunchDaemons
 DAEMON_DIR="/Library/LaunchDaemons"
 
+# Service settings restoration
+SERVICE_SETTINGS_PATH="/Library/Application Support/Intuneomator/IntuneomatorService.plist"
+BACKUP_DIR="/tmp/Intuneomator_Install_Backup"
+BACKUP_SETTINGS_PATH="$BACKUP_DIR/IntuneomatorService.plist"
+
 # Ondemand daemon queue directory
 /bin/mkdir -m 755 -p "/Library/Application Support/Intuneomator/ondemandQueue"
 /usr/sbin/chown -R root:wheel "/Library/Application Support/Intuneomator/ondemandQueue"
@@ -16,6 +21,23 @@ DAEMON_DIR="/Library/LaunchDaemons"
 # Service directory
 /usr/sbin/chown -R root:wheel "/Library/Application Support/Intuneomator"
 /bin/chmod +r "/Library/Application Support/Intuneomator"
+
+# === Restore Service Settings ===
+echo "Restoring service settings..."
+
+# Check if backup exists and restore if present
+if [[ -f "$BACKUP_SETTINGS_PATH" ]]; then
+  echo "Restoring service settings from: $BACKUP_SETTINGS_PATH"
+  cp "$BACKUP_SETTINGS_PATH" "$SERVICE_SETTINGS_PATH"
+  # Set proper permissions for the restored settings
+  chown root:wheel "$SERVICE_SETTINGS_PATH"
+  chmod 600 "$SERVICE_SETTINGS_PATH"
+  echo "Service settings restored to: $SERVICE_SETTINGS_PATH"
+elif [[ -f "$BACKUP_DIR/no_settings_existed" ]]; then
+  echo "No previous service settings existed, skipping restoration"
+else
+  echo "No backup found at: $BACKUP_SETTINGS_PATH"
+fi
 
 # List of daemon plist filenames
 daemons=(
@@ -44,3 +66,12 @@ for daemon in $daemons; do
 done
 
 echo "All LaunchDaemons processed."
+
+# === Cleanup Backup Directory ===
+echo "Cleaning up backup directory..."
+if [[ -d "$BACKUP_DIR" ]]; then
+  rm -rf "$BACKUP_DIR"
+  echo "Backup directory cleaned up: $BACKUP_DIR"
+fi
+
+echo "Postinstall complete."

@@ -9,6 +9,11 @@
 # Base path for LaunchDaemons
 DAEMON_DIR="/Library/LaunchDaemons"
 
+# Service settings backup
+SERVICE_SETTINGS_PATH="/Library/Application Support/Intuneomator/IntuneomatorService.plist"
+BACKUP_DIR="/tmp/Intuneomator_Install_Backup"
+BACKUP_SETTINGS_PATH="$BACKUP_DIR/IntuneomatorService.plist"
+
 # List of daemon plist filenames
 daemons=(
   "com.gilburns.intuneomator.automation.plist"
@@ -18,6 +23,26 @@ daemons=(
   "com.gilburns.intuneomator.service.plist"
   "com.gilburns.intuneomator.updatecheck.plist"
 )
+
+# === Backup Service Settings ===
+echo "Backing up service settings..."
+
+# Create backup directory
+mkdir -p "$BACKUP_DIR"
+
+# Backup service settings if they exist
+if [[ -f "$SERVICE_SETTINGS_PATH" ]]; then
+  echo "Backing up service settings from: $SERVICE_SETTINGS_PATH"
+  cp "$SERVICE_SETTINGS_PATH" "$BACKUP_SETTINGS_PATH"
+  echo "Service settings backed up to: $BACKUP_SETTINGS_PATH"
+else
+  echo "No existing service settings found at: $SERVICE_SETTINGS_PATH"
+  # Create empty marker file to indicate no settings existed
+  touch "$BACKUP_DIR/no_settings_existed"
+fi
+
+# === Unload Launch Daemons ===
+echo "Unloading launch daemons..."
 
 for daemon in $daemons; do
   plistPath="$DAEMON_DIR/$daemon"
