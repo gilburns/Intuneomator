@@ -49,17 +49,6 @@ playground.xcworkspace
 
 Carthage/Build/
 
-# fastlane
-#
-# It is recommended to not store the screenshots in the git repo.
-# Instead, use fastlane to re-generate the screenshots whenever they are needed.
-# For more information about the recommended setup visit:
-# https://docs.fastlane.tools/best-practices/source-control/#source-control
-
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots/**/*.png
-fastlane/test_output
 /Intuneomator.xcodeproj/xcuserdata
 /Intuneomator.xcodeproj/xcuserdata
 .DS_Store
@@ -67,8 +56,7 @@ Package/component.plist
 Package/Distribution.xml
 Package/Intuneomator-*.pkg
 Package/Intuneomator.pkg
-/Package/Root/Applications/Intuneomator.app
-/Package/Root/Library/Application Support/Intuneomator
+/Package/Root/*
 /wiki-pages
 /Archive
 /DerivedData
