@@ -333,6 +333,11 @@ class StatusNotificationManager {
             phaseDetail: "Operation failed",
             errorMessage: errorMessage
         )
+        
+        // Schedule automatic cleanup of this error operation after 10 minutes
+        queue.asyncAfter(deadline: .now() + 600.0) {
+            self.removeOperation(operationId: operationId)
+        }
     }
     
     /// Cancels an operation
@@ -392,6 +397,86 @@ class StatusNotificationManager {
     func getActiveOperationCount() -> Int {
         return queue.sync {
             return currentState.operations.values.filter { $0.status.isActive }.count
+        }
+    }
+    
+    /// Cleans up stale operations based on age and status
+    /// - Parameters:
+    ///   - maxAge: Maximum age for any operation (default: 1 hour)
+    ///   - errorMaxAge: Maximum age for error operations (default: 10 minutes)
+    ///   - completedMaxAge: Maximum age for completed operations (default: 30 seconds)
+    func cleanupStaleOperations(
+        maxAge: TimeInterval = 3600,           // 1 hour for any operation
+        errorMaxAge: TimeInterval = 600,       // 10 minutes for errors
+        completedMaxAge: TimeInterval = 30     // 30 seconds for completed
+    ) {
+        queue.async {
+            let now = Date()
+            let oldOperationsCount = self.currentState.operations.count
+            
+            self.currentState.operations = self.currentState.operations.filter { _, operation in
+                let age = now.timeIntervalSince(operation.lastUpdate)
+                
+                switch operation.status {
+                case .error:
+                    // Remove error operations after errorMaxAge
+                    return age <= errorMaxAge
+                case .completed:
+                    // Remove completed operations after completedMaxAge
+                    return age <= completedMaxAge
+                case .cancelled:
+                    // Remove cancelled operations after a short delay
+                    return age <= 60 // 1 minute
+                default:
+                    // Remove any other operations after maxAge
+                    return age <= maxAge
+                }
+            }
+            
+            let newOperationsCount = self.currentState.operations.count
+            let removedCount = oldOperationsCount - newOperationsCount
+            
+            if removedCount > 0 {
+                self.saveStateFile()
+                Logger.info("Cleaned up \(removedCount) stale operations (kept \(newOperationsCount))", category: .automation)
+                
+                // Send notification about cleanup
+                let userInfo: [String: Any] = [
+                    "action": "cleanup",
+                    "removedCount": removedCount,
+                    "remainingCount": newOperationsCount
+                ]
+                self.sendNotification(userInfo: userInfo)
+            }
+        }
+    }
+    
+    /// Removes all error operations regardless of age
+    func clearAllErrorOperations() {
+        queue.async {
+            let oldCount = self.currentState.operations.count
+            let errorOperations = self.currentState.operations.filter { _, operation in
+                operation.status == .error
+            }
+            
+            self.currentState.operations = self.currentState.operations.filter { _, operation in
+                operation.status != .error
+            }
+            
+            let removedCount = errorOperations.count
+            
+            if removedCount > 0 {
+                self.saveStateFile()
+                Logger.info("Cleared \(removedCount) error operations", category: .automation)
+                
+                // Send notification about cleanup
+                let userInfo: [String: Any] = [
+                    "action": "clearErrors",
+                    "removedCount": removedCount,
+                    "remainingCount": self.currentState.operations.count
+                ]
+                self.sendNotification(userInfo: userInfo)
+            }
         }
     }
     
@@ -499,13 +584,10 @@ class StatusNotificationManager {
             decoder.dateDecodingStrategy = .secondsSince1970
             currentState = try decoder.decode(SystemState.self, from: jsonData)
             
-            // Clean up any stale operations (older than 1 hour)
-            let cutoffTime = Date().addingTimeInterval(-3600)
-            currentState.operations = currentState.operations.filter { _, operation in
-                operation.lastUpdate > cutoffTime
-            }
-            
             Logger.info("Loaded \(currentState.operations.count) operations from state file", category: .automation)
+            
+            // Clean up stale operations using the new cleanup method
+            cleanupStaleOperations()
             
         } catch {
             Logger.error("Failed to load status file, starting fresh: \(error)", category: .automation)
