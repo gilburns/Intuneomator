@@ -195,5 +195,34 @@ extension XPCManager {
     func assignGroupsToLabel(_ groupAssignments: [[String : Any]], _ labelFolder: String, completion: @escaping (Bool?) -> Void) {
         sendRequest({ $0.saveGroupAssignmentsForLabel(groupAssignments, labelFolder, reply: $1) }, completion: completion)
     }
+    
+    // MARK: - Automation Trigger
+    
+    /// Triggers full automation for all managed labels
+    /// Creates trigger file for Launch Daemon to process all labels in queue
+    /// - Parameter completion: Callback with success status and optional message, or nil on XPC failure
+    func triggerFullAutomation(completion: @escaping ((Bool, String?)?) -> Void) {
+        // Custom implementation since sendRequest doesn't support tuple return types
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let service = self?.connection?.remoteObjectProxyWithErrorHandler({ error in
+                Logger.info("XPCManager: XPC connection error during automation trigger: \(error)", category: .core, toUserDirectory: true)
+                completion(nil)
+            }) as? XPCServiceProtocol else {
+                completion(nil)
+                return
+            }
+            
+            service.triggerAutomation { success, message in
+                completion((success, message))
+            }
+        }
+    }
+    
+    /// Checks if automation is currently running
+    /// Examines status files to determine if any automation operations are active
+    /// - Parameter completion: Callback with running status or nil on XPC failure
+    func isAutomationRunning(completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.isAutomationRunning(reply: $1) }, completion: completion)
+    }
 
 }
