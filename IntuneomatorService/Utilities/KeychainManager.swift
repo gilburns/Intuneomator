@@ -56,13 +56,13 @@ class KeychainManager {
         let keyLabel = "com.intuneomator.entrasecret"
         let secretData = secretKey.data(using: .utf8)!
 
-        // Prepare the keychain query
+        // Use standard keychain storage (reverting the access control approach that caused -25291)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: "EntraIDSecret",
             kSecAttrAccount as String: keyLabel,
             kSecValueData as String: secretData,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock  // Ensures access after reboot
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
         ]
 
         // Remove any existing entry before adding a new one
@@ -72,7 +72,12 @@ class KeychainManager {
         let status = SecItemAdd(query as CFDictionary, nil)
 
         if status == errSecSuccess {
-            Logger.info("Successfully stored Entra ID secret key in the system keychain.", category: .core)
+            Logger.info("Successfully stored Entra ID secret key in keychain.", category: .core)
+            
+            // Update ACL using the security command line tool to add explicit permissions
+            if !updateSecretKeyACLWithSecurityTool() {
+                Logger.warning("Secret key stored but ACL update failed - may have permission issues after updates", category: .core)
+            }
             
             // Save the import date for possible expiration notifications later
             let importDate = Date()
@@ -85,9 +90,50 @@ class KeychainManager {
             
             return true
         } else {
-            Logger.error("Failed to store Entra ID secret key: \(status)", category: .core)
+            // Add the error code to our error message function
+            let errorMessage = keychainErrorMessage(status)
+            Logger.error("Failed to store Entra ID secret key: \(status) (\(errorMessage))", category: .core)
             return false
         }
+    }
+    
+    /// Updates the ACL for the secret key using the security command line tool
+    /// - Returns: True if ACL update was successful, false otherwise
+    private static func updateSecretKeyACLWithSecurityTool() -> Bool {
+        let keyLabel = "com.intuneomator.entrasecret"
+        let servicePath = "/Library/Application Support/Intuneomator/IntuneomatorService"
+        
+        // Try to set the partition list to allow access from the daemon service
+        // Use correct parameters: -a account, -s service, -S partition-list
+        let result = runSecurityCommand(args: [
+            "set-generic-password-partition-list",
+            "-a", keyLabel,
+            "-s", "EntraIDSecret", 
+            "-S", servicePath,
+            "-k", ""  // Empty password will prompt, but we'll try without keychain access first
+        ])
+        
+        if result.success {
+            return true
+        }
+        
+        // Try alternative approach without specifying keychain password
+        let altResult = runSecurityCommand(args: [
+            "set-generic-password-partition-list",
+            "-a", keyLabel,
+            "-s", "EntraIDSecret", 
+            "-S", servicePath
+        ])
+        
+        if altResult.success {
+            return true
+        }
+        
+        // If both approaches fail, log the error but don't fail the import
+        Logger.warning("ACL update failed for secret key: \(result.output)", category: .core)
+        
+        // Consider it a non-critical failure since basic keychain storage succeeded
+        return false
     }
 
 
@@ -108,11 +154,57 @@ class KeychainManager {
         let status = SecItemCopyMatching(query as CFDictionary, &item)
         
         if status == errSecSuccess, let secretData = item as? Data, let secretKey = String(data: secretData, encoding: .utf8) {
-            Logger.info("Successfully retrieved Entra ID secret key from keychain.", category: .core)
             return secretKey
         } else {
-            Logger.error("Failed to retrieve Entra ID secret key: \(status)", category: .core)
+            // Provide detailed error information for troubleshooting
+            let errorMessage = keychainErrorMessage(status)
+            Logger.error("Failed to retrieve Entra ID secret key: \(status) (\(errorMessage))", category: .core)
+            
+            // For permission errors, suggest remediation
+            if status == errSecInteractionNotAllowed {
+                Logger.error("Keychain access denied - this may be caused by daemon updates. Re-importing the secret key may resolve this issue.", category: .core)
+            }
+            
+            
             return nil
+        }
+    }
+    
+    /// Converts keychain error codes to human-readable messages
+    /// - Parameter status: OSStatus error code from keychain operations
+    /// - Returns: Human-readable error description
+    private static func keychainErrorMessage(_ status: OSStatus) -> String {
+        switch status {
+        case errSecSuccess:
+            return "Success"
+        case errSecParam:
+            return "One or more parameters passed to the function were not valid"
+        case errSecAllocate:
+            return "Failed to allocate memory"
+        case errSecNotAvailable:
+            return "No keychain is available"
+        case errSecDuplicateItem:
+            return "The item already exists"
+        case errSecItemNotFound:
+            return "The item cannot be found"
+        case errSecInteractionNotAllowed:
+            return "Interaction with the Security Server is not allowed (permission denied)"
+        case errSecDecode:
+            return "Unable to decode the provided data"
+        case errSecAuthFailed:
+            return "Authorization/Authentication failed"
+        case -25293:  // errSecUserCancel
+            return "User canceled the operation"
+        case -25308:  // errSecInteractionNotAllowed (explicit for clarity)
+            return "Interaction not allowed (access denied)"
+        case -25299:  // errSecInvalidKeychain
+            return "Invalid keychain reference"
+        case -25300:  // errSecInvalidValue
+            return "Invalid value for parameter"
+        case -25291:  // errSecInvalidData
+            return "Invalid data provided"
+        default:
+            return "Unknown keychain error (\(status))"
         }
     }
 
@@ -393,7 +485,10 @@ class KeychainManager {
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
             
-            Logger.info("Security tool output: \(output)", category: .core)
+            // Only log security tool output if there's an error
+            if process.terminationStatus != 0 {
+                Logger.warning("Security tool failed: \(output)", category: .core)
+            }
             
             return (process.terminationStatus == 0, output)
         } catch {
