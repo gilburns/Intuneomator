@@ -404,4 +404,12 @@ import Foundation
     /// Clears all error operation status entries
     /// - Parameter completion: Callback with number of operations removed
     func clearAllErrorOperations(completion: @escaping (Int) -> Void)
+    
+    /// Gets the daemon service version string
+    /// - Parameter completion: Callback with version string (e.g., "1.0.0.163")
+    func getDaemonVersion(completion: @escaping (String) -> Void)
+    
+    /// Gets the updater tool version string
+    /// - Parameter completion: Callback with version string (e.g., "1.0.0.162") or "Unknown" if unavailable
+    func getUpdaterVersion(completion: @escaping (String) -> Void)
 }
