@@ -12,6 +12,13 @@ import CommonCrypto
 /// Supports both certificate-based and client secret authentication methods with token caching
 class EntraAuthenticator {
     
+    // MARK: - Singleton
+    /// Shared singleton instance to maintain token cache across all operations
+    static let shared = EntraAuthenticator()
+    
+    /// Private initializer to enforce singleton pattern
+    private init() {}
+    
     // MARK: - Token Cache
     /// Cached access token to avoid unnecessary authentication requests
     private var cachedToken: String?
@@ -55,10 +62,11 @@ class EntraAuthenticator {
     func getEntraIDToken() async throws -> String {
         // Check if a valid token is cached
         if let token = cachedToken, let expiration = tokenExpiration, expiration > Date() {
-            Logger.info("Returning cached Entra ID token.", category: .core)
             return token
         }
         
+        Logger.info("Retrieving a new Entra ID token.", category: .core)
+
         // Otherwise, request a new token
         let tenantId = ConfigManager.readPlistValue(key: "TenantID") ?? ""
         let clientId = ConfigManager.readPlistValue(key: "ApplicationID") ?? ""
@@ -81,10 +89,8 @@ class EntraAuthenticator {
         var newToken: String
         switch authMethod {
         case "certificate":
-//            Logger.info("Using certificate-based authentication", category: .core)
             newToken = try await authenticateWithCertificate(tenantId: tenantId, clientId: clientId)
         case "secret":
-//            Logger.info("Using client secret-based authentication", category: .core)
             newToken = try await authenticateWithSecretKey(tenantId: tenantId, clientId: clientId)
         default:
             Logger.info("Invalid authentication method: \(authMethod)", category: .core)
@@ -112,10 +118,7 @@ class EntraAuthenticator {
             Logger.error("Failed to retrieve Entra ID secret key from keychain", category: .core)
             throw EntraAuthError.keychainError(-1, "Secret key not found")
         }
-        
-//        Logger.info("authenticateWithSecretKey():", category: .core)
-//        Logger.info("tenantId: \(tenantId, category: .core), clientId: \(clientId)", logType: logType)
-        
+                
         let tokenUrl = URL(string: "https://login.microsoftonline.com/\(tenantId)/oauth2/v2.0/token")!
         var request = URLRequest(url: tokenUrl)
         request.httpMethod = "POST"
@@ -359,20 +362,37 @@ class EntraAuthenticator {
         do {
             // Step 1: Authenticate and get the token
             let authToken = try await self.getEntraIDToken()
-            
+
             // Step 2: Decode the JWT and verify permissions
             let claims = try decodeJWT(authToken)
-            if let roles = claims["roles"] as? [String], roles.contains("DeviceManagementApps.ReadWrite.All") {
-                Logger.info("Token contains the required permission: DeviceManagementApps.ReadWrite.All", category: .core)
+            let requiredRoles: Set<String> = [
+                "DeviceManagementApps.ReadWrite.All",
+                "DeviceManagementConfiguration.ReadWrite.All",
+                "DeviceManagementManagedDevices.Read.All",
+                //"DeviceManagementScripts.ReadWrite.All", // Add later when Script Management is added.
+                "Group.Read.All"
+            ]
+
+            if let roles = claims["roles"] as? [String] {
+                let matchedRoles = Set(roles).intersection(requiredRoles)
+                if !matchedRoles.isEmpty {
+                    Logger.info("Matched roles: \(matchedRoles)", category: .core)
+                } else {
+                    let missingRoles = requiredRoles.subtracting(Set(roles))
+                    Logger.error("Missing roles: \(missingRoles)", category: .core)
+                    throw NSError(domain: "GraphValidationError", code: 1, userInfo: [
+                        NSLocalizedDescriptionKey: "Token does not contain any of the required permissions. Missing roles: \(missingRoles.joined(separator: ", "))"
+                    ])
+                }
             } else {
                 throw NSError(domain: "GraphValidationError", code: 1, userInfo: [
-                    NSLocalizedDescriptionKey: "Token does not contain the required permission: DeviceManagementApps.ReadWrite.All"
+                    NSLocalizedDescriptionKey: "Token does not contain a roles claim or is malformed."
                 ])
             }
-            
+
             // Step 3: Test the token with the Graph API
             try await validateGraphApiToken(authToken: authToken)
-            
+
             return true
         } catch {
             Logger.error("Error validating credentials: \(error.localizedDescription)", category: .core)
@@ -430,7 +450,7 @@ class EntraAuthenticator {
         }
         
         return json
-    }    
+    }
 }
 
 extension String {
