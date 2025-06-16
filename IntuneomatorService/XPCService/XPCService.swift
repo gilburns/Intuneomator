@@ -98,5 +98,58 @@ class XPCService: NSObject, XPCServiceProtocol {
         completion(errorCount)
     }
     
+    /// Gets the daemon service version string
+    /// - Parameter completion: Callback with version string (e.g., "1.0.0.163")
+    func getDaemonVersion(completion: @escaping (String) -> Void) {
+        let version = VersionInfo.getVersionString()
+        Logger.info("XPC getDaemonVersion: returning \(version)", category: .core)
+        completion(version)
+    }
+    
+    /// Gets the updater tool version string
+    /// - Parameter completion: Callback with version string (e.g., "1.0.0.162") or "Unknown" if unavailable
+    func getUpdaterVersion(completion: @escaping (String) -> Void) {
+        let updaterPath = "/Library/Application Support/Intuneomator/IntuneomatorUpdater"
+        
+        // Check if updater exists
+        guard FileManager.default.fileExists(atPath: updaterPath) else {
+            Logger.info("XPC getUpdaterVersion: updater not found at \(updaterPath)", category: .core)
+            completion("Not Installed")
+            return
+        }
+        
+        // Execute updater with --version parameter
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: updaterPath)
+        process.arguments = ["--version"]
+        
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = Pipe() // Suppress error output
+        
+        do {
+            try process.run()
+            process.waitUntilExit()
+            
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            let output = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            
+            // Parse version from output like "IntuneomatorUpdater v1.0.0.162"
+            if let versionRange = output.range(of: "v"), 
+               versionRange.upperBound < output.endIndex {
+                let versionString = String(output[versionRange.upperBound...])
+                Logger.info("XPC getUpdaterVersion: returning \(versionString)", category: .core)
+                completion(versionString)
+            } else {
+                Logger.info("XPC getUpdaterVersion: could not parse version from output: \(output)", category: .core)
+                completion("Unknown")
+            }
+            
+        } catch {
+            Logger.error("XPC getUpdaterVersion: failed to execute updater: \(error)", category: .core)
+            completion("Unknown")
+        }
+    }
+    
 }
 
