@@ -46,7 +46,7 @@ extension LabelAutomation {
         
         // Validate input parameter
         guard !folderName.isEmpty else {
-            Logger.info("❌ Invalid folder name provided", category: .automation)
+            Logger.info("Invalid folder name provided", category: .automation)
             return ("Invalid folder name provided", "", "", false)
         }
         
@@ -103,11 +103,10 @@ extension LabelAutomation {
         // Obtain Microsoft Graph API token for Intune operations
         let authToken: String
         do {
-            let entraAuthenticator = EntraAuthenticator()
+            let entraAuthenticator = EntraAuthenticator.shared
             authToken = try await entraAuthenticator.getEntraIDToken()
-            Logger.info("✅ Successfully obtained Entra ID token", category: .automation)
         } catch {
-            Logger.error("❌ Failed to get Entra ID Token: \(error.localizedDescription)", category: .automation)
+            Logger.error("Failed to get Entra ID Token: \(error.localizedDescription)", category: .automation)
             let errorMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appTrackingID) failed to get Entra ID Token"
             statusManager.failOperation(operationId: operationId, errorMessage: errorMessage)
             return (errorMessage, processedAppResults.appDisplayName, "", false)
@@ -166,7 +165,7 @@ extension LabelAutomation {
         if let cacheURL = cacheURLCheck {
             // No download needed, use cached version
             applyCached(cacheURL, to: &processedAppResults)
-            Logger.info("✅ Used cached version for \(folderName)", category: .automation)
+            Logger.info("  Used cached version for \(folderName)", category: .automation)
         } else {
             // Download required before proceeding to next step
             do {
@@ -226,7 +225,7 @@ extension LabelAutomation {
                         processedAppResults.appVersionActual = version
 
                     default:
-                        Logger.info("❌ Unsupported download type: \(downloadType)", category: .automation)
+                        Logger.info("  Unsupported download type: \(downloadType)", category: .automation)
                         throw NSError(domain: "ProcessingError", code: 131, userInfo: [NSLocalizedDescriptionKey: "Unsupported file type: \(downloadType)"])
                     }
 
@@ -239,7 +238,7 @@ extension LabelAutomation {
                     let downloadURL: URL = armURL
                     guard let downloadURLx86_64 = x86URL else {
                         let errorMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) x86_64 binary not available"
-                        Logger.info("❌ \(errorMessage)", category: .automation)
+                        Logger.info("  \(errorMessage)", category: .automation)
                         statusManager.failOperation(operationId: operationId, errorMessage: errorMessage)
                         return (errorMessage, processedAppResults.appDisplayName, "", false)
                     }
@@ -262,7 +261,7 @@ extension LabelAutomation {
                 }
                 
             } catch {
-                Logger.info("❌ Download/processing failed: \(error.localizedDescription)", category: .automation)
+                Logger.info("  Download/processing failed: \(error.localizedDescription)", category: .automation)
                 statusManager.failOperation(operationId: operationId, errorMessage: "Download/processing failed: \(error.localizedDescription)")
 
                 // Attempt cleanup on processing failure
@@ -307,7 +306,7 @@ extension LabelAutomation {
                 
                 // Clean up the download before we bail
                 let deleteFolder = cleanUpTmpFiles(forAppLabel: appLabelName)
-                Logger.info("✅ Folder cleanup: \(deleteFolder)", category: .automation)
+                Logger.info("  Folder cleanup: \(deleteFolder)", category: .automation)
                 let successMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) already exists in Intune"
                 statusManager.failOperation(operationId: operationId, errorMessage: "Version \(processedAppResults.appVersionActual) already exists in Intune")
                 return (successMessage, processedAppResults.appDisplayName, "", true)
@@ -326,7 +325,7 @@ extension LabelAutomation {
            let localFilePath = processedAppResults.appLocalURL
 
             guard FileManager.default.fileExists(atPath: localFilePath) else {
-                Logger.info("❌ Upload file does not exist at path: \(localFilePath)", category: .automation)
+                Logger.info("  Upload file does not exist at path: \(localFilePath)", category: .automation)
                 let errorMessage = "Upload file does not exist at path. Please check the logs for file path and try again."
                 let messageResult = await TeamsNotifier.processNotification(for: processedAppResults, success: false, errorMessage: errorMessage)
                 Logger.info("📧 Teams notification sent: \(messageResult)", category: .automation)
@@ -352,7 +351,7 @@ extension LabelAutomation {
             }
             
         } catch {
-            Logger.info("❌ Upload to Intune failed: \(error.localizedDescription)", category: .automation)
+            Logger.info("  Upload to Intune failed: \(error.localizedDescription)", category: .automation)
             let errorMessage = "Error uploading \(processedAppResults.appLocalURL) to Intune: \(error.localizedDescription)"
             let messageResult = await TeamsNotifier.processNotification(for: processedAppResults, success: false, errorMessage: errorMessage)
             Logger.info("📧 Teams notification sent: \(messageResult)", category: .automation)
