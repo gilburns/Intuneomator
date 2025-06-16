@@ -341,15 +341,23 @@ func onDemandProcessLabels() {
 
 // Check for updates and update self
 func checkForUpdates() {
-    let group = DispatchGroup()
+    Logger.info("🔍 Starting update check...", category: .core)
     
-    group.enter()
-    Task {
-        DaemonUpdateManager.checkAndPerformUpdateIfNeeded()
-        group.leave()
-    }
-
-    group.wait()
+    // Since DaemonUpdateManager calls exit() internally, we need to run it directly
+    // The current design expects to run as a standalone process
+    Logger.info("📡 Calling DaemonUpdateManager.checkAndPerformUpdateIfNeeded()", category: .core)
+    Logger.info("⚠️ Note: This function will exit the process when complete", category: .core)
+    
+    // Call directly - this will exit the process with appropriate exit code
+    DaemonUpdateManager.checkAndPerformUpdateIfNeeded()
+    
+    // Keep the main thread alive to allow async network requests to complete
+    // The DaemonUpdateManager will call exit() when done
+    Logger.info("⏳ Keeping process alive for async operations...", category: .core)
+    RunLoop.main.run()
+    
+    // This line should never be reached due to exit() calls in DaemonUpdateManager
+    Logger.error("❌ Unexpected: DaemonUpdateManager returned without exiting", category: .core)
 }
 
 func testFunction() {
@@ -367,7 +375,7 @@ func login() {
     group.enter()
     Task {
         do {
-            isValid = try await EntraAuthenticator().ValidateCredentials()
+            isValid = try await EntraAuthenticator.shared.ValidateCredentials()
         } catch {
             Logger.error("❌ Credential validation error: \(error.localizedDescription)", category: .core)
             isValid = false
