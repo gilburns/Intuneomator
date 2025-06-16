@@ -1474,9 +1474,9 @@ Gw
                                 </textFieldCell>
                             </textField>
                             <button hidden="YES" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JcT-Qd-oIB">
-                                <rect key="frame" x="181" y="61" width="82" height="16"/>
+                                <rect key="frame" x="234" y="61" width="104" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="Update Labels" bezelStyle="rounded" alignment="center" controlSize="mini" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="jEe-Gi-Wj0">
+                                <buttonCell key="cell" type="push" title="Update Labels Now" bezelStyle="rounded" alignment="center" controlSize="mini" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="jEe-Gi-Wj0">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="miniSystem"/>
                                 </buttonCell>
@@ -1537,10 +1537,10 @@ Gw
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                             </progressIndicator>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4dn-28-xuy">
-                                <rect key="frame" x="18" y="62" width="159" height="17"/>
+                                <rect key="frame" x="18" y="62" width="159" height="14"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" title="Installomator Label Info:" id="YQ2-Ov-2U4">
-                                    <font key="font" metaFont="system" size="14"/>
+                                <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="Installomator Label Info:" id="YQ2-Ov-2U4">
+                                    <font key="font" metaFont="smallSystem"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
@@ -2229,6 +2229,17 @@ Gw
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                                 <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyUpOrDown" id="gAc-J8-6fQ"/>
                             </imageView>
+                            <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cfk-RJ-Trh">
+                                <rect key="frame" x="13" y="723" width="36" height="36"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="trash.square" catalog="system" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="WOT-mO-Ow7">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="removeLabelAutomation:" target="yFK-XC-1Jv" id="nsW-11-r7s"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <constraints>
                             <constraint firstAttribute="trailing" secondItem="YcY-FA-LRt" secondAttribute="trailing" constant="25" id="2yc-cW-uWc"/>
@@ -5906,5 +5917,6 @@ DQ
         <image name="gear" catalog="system" width="17" height="16"/>
         <image name="magnifyingglass.circle" catalog="system" width="15" height="15"/>
         <image name="questionmark.circle" catalog="system" width="15" height="15"/>
+        <image name="trash.square" catalog="system" width="15" height="14"/>
     </resources>
 </document>
