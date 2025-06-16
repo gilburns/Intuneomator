@@ -207,7 +207,7 @@ class LabelViewController: NSViewController {
     @IBAction func showHelpForInstallomator(_ sender: NSButton) {
         /// Displays a popover explaining what Installomator is and linking to the GitHub repo.
         // Build the attributed string with hyperlink styling for the GitHub URL.
-        let helpText = NSMutableAttributedString(string: "Intuneomator uses Installomator labels for the automation of software uploads to Intune. Installomator is an open-source project designed for macOS that automates the installation and updating of various applications by downloading the latest versions directly from vendor websites.\n\nLearn more here: https://github.com/Installomator/Installomator")
+        let helpText = NSMutableAttributedString(string: "Intuneomator uses Installomator labels for the automation of software uploads to Intune.\n\nInstallomator is an open-source project designed for macOS that automates the installation and updating of various applications by downloading the latest versions directly from vendor websites.\n\nLearn more here: https://github.com/Installomator/Installomator")
 
         // Style the hyperlink and the remaining text.
         let hyperlinkRange = (helpText.string as NSString).range(of: "https://github.com/Installomator/Installomator")
