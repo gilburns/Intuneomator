@@ -355,6 +355,78 @@ class TabViewController: NSViewController {
         }
     }
 
+    
+    // MARK: - Delete Action Method
+    
+    /**
+     * Removes the selected app automation entry after user confirmation.
+     *
+     * This method:
+     * 1. Gets the selected table row and validates selection
+     * 2. Shows a confirmation dialog with app details
+     * 3. Deletes the associated directory via XPC service
+     * 4. Updates the data arrays and refreshes the UI
+     *
+     * The deletion is permanent and cannot be undone.
+     *
+     * - Parameter sender: The UI control that triggered this action
+     */
+    @IBAction func removeLabelAutomation(_ sender: Any) {
+        
+        guard let itemLabel = appData?.label else { return }
+        guard let itemGuid = appData?.guid else { return }
+        guard let itemName = appData?.name else { return }
+        
+        let folderName = "\(itemLabel)_\(itemGuid)"
+        
+        // Get the name of the selected item for the confirmation dialog
+        Logger.info("Button clicked to delete '\(itemName)' directory.", category: .core, toUserDirectory: true)
+
+        // Create a confirmation dialog
+        let alert = NSAlert()
+        alert.messageText = "Confirm Deletion"
+        alert.informativeText = "Are you sure you want to delete '\(itemName) - \(itemLabel)'? This action cannot be undone."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Delete")
+        alert.addButton(withTitle: "Cancel")
+
+        // Show the dialog and handle the response
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            // User confirmed deletion
+            Logger.info("User confirmed deletion of '\(itemName)' directory.", category: .core, toUserDirectory: true)
+            // Remove the directory associated with the item
+            let directoryPath = (AppConstants.intuneomatorManagedTitlesFolderURL.path as NSString).appendingPathComponent("\(itemLabel)_\(itemGuid)")
+
+            
+            XPCManager.shared.removeLabelContent(directoryPath) { success in
+                if let success = success, success {
+                    
+                    Logger.info("Deleted directory: \(directoryPath)", category: .core, toUserDirectory: true)
+
+                    NotificationCenter.default.post(
+                        name: .labelDeleteCompleted,
+                        object: nil,
+                        userInfo: ["label": itemLabel, "guid": itemGuid]
+                    )
+                    
+                    DispatchQueue.main.async {
+                        self.dismiss(self)
+                    }
+
+                } else {
+                    Logger.info("Failed to delete directory: \(directoryPath)", category: .core, toUserDirectory: true)
+                    return
+                }
+            }
+    
+        } else {
+            // User canceled deletion
+            Logger.info("User canceled deletion", category: .core, toUserDirectory: true)
+        }
+    }
+
+    
     // MARK: - Alert Helper Methods
     
     /// Displays warning alert dialog with custom title and message
