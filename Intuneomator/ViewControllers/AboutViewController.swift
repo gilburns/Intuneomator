@@ -76,7 +76,7 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
         let appBuild = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
         
-        versionLabelApp.stringValue = "\(appVersion).\(appBuild)"
+        versionLabelApp.stringValue = "v\(appVersion).\(appBuild)"
         
         versionInfoUpdater()
         versionInfoService()
@@ -87,7 +87,7 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
         XPCManager.shared.getDaemonVersion { daemonVersion in
             DispatchQueue.main.async {
                 let version = daemonVersion ?? "Unknown"
-                self.versionLabelService.stringValue = "\(version)"
+                self.versionLabelService.stringValue = "v\(version)"
             }
         }
     }
@@ -97,7 +97,7 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
         XPCManager.shared.getUpdaterVersion { updaterVersion in
             DispatchQueue.main.async {
                 let version = updaterVersion ?? "Unknown"
-                self.versionLabelUpdater.stringValue = "\(version)"
+                self.versionLabelUpdater.stringValue = "v\(version)"
             }
         }
     }
