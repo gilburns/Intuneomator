@@ -474,7 +474,7 @@ extension MainViewController {
         let (_, graphMessage) = getGraphConnectivityStatus()
         
         // Log current state for debugging
-        Logger.info("UI State - Automation Available: \(automationAvailable), Ready Count: \(readyCount), Daemon Disabled: \(daemonDisabled), Graph Available: \(graphAvailable)", category: .core)
+        Logger.info("UI State - Automation Available: \(automationAvailable), Ready Count: \(readyCount), Daemon Disabled: \(daemonDisabled), Graph Available: \(graphAvailable)", category: .core, toUserDirectory: true)
         
         // Update automation control states
         automationTriggerButton?.isEnabled = automationAvailable
