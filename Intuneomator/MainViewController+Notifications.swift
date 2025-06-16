@@ -51,7 +51,9 @@ extension MainViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(handleNewDirectoryAdded(_:)), name: .newDirectoryAdded, object: nil)
 
         NotificationCenter.default.addObserver(self, selector: #selector(handleLabelEditCompleted(_:)), name: .labelEditCompleted, object: nil)
-        
+
+        NotificationCenter.default.addObserver(self, selector: #selector(handleLabelDeleteCompleted(_:)), name: .labelDeleteCompleted, object: nil)
+
         // register for potential Daemon status updates
         StatusMonitor.shared.startMonitoring()
         
@@ -151,7 +153,48 @@ extension MainViewController {
         tableView.reloadData()
         updateAutomationTriggerUIState()
     }
+
     
+    /**
+     * Handles completion of label deletion operations.
+     *
+     * This is triggered after an app is deleted in the label edit panel
+     * the editing interface closes. It updates the validation cache and refreshes the
+     * table view to reflect any changes in automation readiness.
+     *
+     * - Parameter notification: Edit completion notification with app details
+     *
+     * ## Notification UserInfo Keys:
+     * - `label`: The app's label identifier
+     * - `guid`: The app's unique identifier
+     *
+     * ## Validation Update Process:
+     * 1. Invalidates the existing validation cache entry
+     * 2. Removes from the appData
+     * 3. Reloads table view to remove from the table
+     */
+    @objc func handleLabelDeleteCompleted(_ notification: Notification) {
+        // Recheck after deletion
+        let deletedLabel = notification.userInfo?["label"] as? String ?? ""
+        let deletedGUID = notification.userInfo?["guid"] as? String ?? ""
+
+        // Remove the item from appData and reload the table view
+        if let appDataIndex = appData.firstIndex(where: { $0.guid == "\(deletedGUID)" }) {
+            // Remove from the original array
+            appData.remove(at: appDataIndex)
+        }
+
+        DispatchQueue.main.async {
+            // Also remove from the filtered array
+            self.filteredAppData = self.appData
+            self.tableView.reloadData()
+            self.setLabelCount()
+            self.updateAutomationTriggerUIState()
+
+            self.refreshUI()
+        }        
+    }
+
     /**
      * Handles notifications when new app directories are added.
      * 
