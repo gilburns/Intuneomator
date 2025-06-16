@@ -116,6 +116,18 @@ class XPCManager {
     func clearAllErrorOperations(completion: @escaping (Int?) -> Void) {
         sendRequest({ $0.clearAllErrorOperations(completion: $1) }, completion: completion)
     }
+    
+    /// Gets the daemon service version string
+    /// - Parameter completion: Callback with version string (e.g., "1.0.0.163")
+    func getDaemonVersion(completion: @escaping (String?) -> Void) {
+        sendRequest({ $0.getDaemonVersion(completion: $1) }, completion: completion)
+    }
+    
+    /// Gets the updater tool version string
+    /// - Parameter completion: Callback with version string (e.g., "1.0.0.162") or "Unknown"/"Not Installed" if unavailable
+    func getUpdaterVersion(completion: @escaping (String?) -> Void) {
+        sendRequest({ $0.getUpdaterVersion(completion: $1) }, completion: completion)
+    }
         
 }
 
