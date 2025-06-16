@@ -11,8 +11,33 @@ DAEMON_DIR="/Library/LaunchDaemons"
 
 # Service settings backup
 SERVICE_SETTINGS_PATH="/Library/Application Support/Intuneomator/IntuneomatorService.plist"
+SERVICE_STATUS_PATH="/Library/Application Support/Intuneomator/IntuneomatorStatus.json"
+TRIGGER_PATH="/Library/Application Support/Intuneomator"
 BACKUP_DIR="/tmp/Intuneomator_Install_Backup"
 BACKUP_SETTINGS_PATH="$BACKUP_DIR/IntuneomatorService.plist"
+
+# List of daemon watch path filenames
+triggers=(
+  ".automation.trigger"
+  ".cachecleaner.trigger"
+  ".labelupdater.trigger"
+  ".updatecheck.trigger"
+)
+
+# Clean out existing watch path items before upgrade so things are not triggered
+for trigger in $triggers; do
+  triggerFullPath="$TRIGGER_PATH/$trigger"
+
+  if [[ -f "$triggerFullPath" ]]; then
+    echo "Removing trigger file $trigger"
+    rm "$triggerFullPath" 2>/dev/null
+  else
+    echo "$trigger does not exist, skipping"
+  fi
+done
+
+# === Cleanup old status json ===
+rm "$SERVICE_STATUS_PATH"
 
 # List of daemon plist filenames
 daemons=(
