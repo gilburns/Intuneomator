@@ -62,6 +62,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Perform startup sequence in a single task to avoid nested task issues
         Task { @MainActor in
+                        
             // Step 1: Check network connectivity first - app is useless without internet
             let hasConnectivity = await checkNetworkConnectivity()
             
@@ -438,13 +439,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if let httpResponse = response as? HTTPURLResponse {
                 // Accept any response in the 200-399 range as "connected"
                 let isConnected = (200...399).contains(httpResponse.statusCode)
-                Logger.info("Connectivity test to \(urlString): \(isConnected ? "Success" : "Failed") (Status: \(httpResponse.statusCode))", category: .core)
+                Logger.info("Connectivity test to \(urlString): \(isConnected ? "Success" : "Failed") (Status: \(httpResponse.statusCode))", category: .core, toUserDirectory: true)
                 return isConnected
             }
             
             return false
         } catch {
-            Logger.info("Connectivity test to \(urlString) failed: \(error.localizedDescription)", category: .core)
+            Logger.info("Connectivity test to \(urlString) failed: \(error.localizedDescription)", category: .core, toUserDirectory: true)
             return false
         }
     }
