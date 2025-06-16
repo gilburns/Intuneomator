@@ -44,7 +44,7 @@ class StatusNotificationManager {
             case .idle: return "Ready"
             case .downloading: return "Downloading"
             case .processing: return "Processing"
-            case .uploading: return "Uploading to Intune"
+            case .uploading: return "Uploading"
             case .completed: return "Completed Successfully"
             case .error: return "Error Occurred"
             case .cancelled: return "Operation Cancelled"
@@ -295,7 +295,7 @@ class StatusNotificationManager {
         updateOperation(
             operationId: operationId,
             status: .uploading,
-            phaseName: "Uploading to Intune",
+            phaseName: "Upload Processing",
             phaseProgress: progress,
             phaseDetail: "Uploading to Microsoft Intune",
             overallProgress: 0.7 + (progress * 0.3) // Upload is ~30% of operation (70-100%)
