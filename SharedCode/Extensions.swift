@@ -18,6 +18,7 @@ extension Notification.Name {
     static let mainWindowDidLoad = Notification.Name("mainWindowDidLoad")
     static let newDirectoryAdded = Notification.Name("newDirectoryAdded")
     static let labelEditCompleted = Notification.Name("labelEditCompleted")
+    static let labelDeleteCompleted = Notification.Name("labelDeleteCompleted")
 }
 
 // MARK: - base64URLEncodedString encoding
