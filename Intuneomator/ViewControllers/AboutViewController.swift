@@ -28,6 +28,13 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
     /// Text view displaying a clickable hyperlink to the Intuneomator GitHub repository.
     @IBOutlet weak var intuneomatorLinkTextView: NSTextView!
 
+    
+    /// Text view displaying version information for the three components
+    @IBOutlet weak var versionLabelApp: NSTextField!
+    @IBOutlet weak var versionLabelService: NSTextField!
+    @IBOutlet weak var versionLabelUpdater: NSTextField!
+    
+    
     /// Popover used to display contextual help information.
     private var popover: NSPopover!
     
@@ -44,7 +51,9 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
         // Create the hyperlinks
         createIntuneomatorHyperlink()
         createInstallomatorHyperlink()
-                
+    
+        // Version info
+        updateVersionLabels()
     }
     
     /// Called when the view has appeared on screen.
@@ -60,6 +69,40 @@ class AboutViewController: NSViewController, NSTextViewDelegate {
         }
     }
 
+    // MARK: - Version Information
+    
+    func updateVersionLabels() {
+        
+        let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let appBuild = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+        
+        versionLabelApp.stringValue = "\(appVersion).\(appBuild)"
+        
+        versionInfoUpdater()
+        versionInfoService()
+    }
+    
+    
+    func versionInfoService() {
+        XPCManager.shared.getDaemonVersion { daemonVersion in
+            DispatchQueue.main.async {
+                let version = daemonVersion ?? "Unknown"
+                self.versionLabelService.stringValue = "\(version)"
+            }
+        }
+    }
+
+    
+    func versionInfoUpdater() {
+        XPCManager.shared.getUpdaterVersion { updaterVersion in
+            DispatchQueue.main.async {
+                let version = updaterVersion ?? "Unknown"
+                self.versionLabelUpdater.stringValue = "\(version)"
+            }
+        }
+    }
+    
+    // MARK: - Hyperlinks
     
     /// Configures `intuneomatorLinkTextView` with an attributed string that
     /// displays “Visit Intuneomator on GitHub” as a clickable hyperlink to the GitHub page.
