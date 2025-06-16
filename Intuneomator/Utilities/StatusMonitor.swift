@@ -51,7 +51,7 @@ class StatusMonitor: ObservableObject {
             case .idle: return "Ready"
             case .downloading: return "Downloading"
             case .processing: return "Processing"
-            case .uploading: return "Uploading to Intune"
+            case .uploading: return "Uploading"
             case .completed: return "Completed Successfully"
             case .error: return "Error Occurred"
             case .cancelled: return "Operation Cancelled"
