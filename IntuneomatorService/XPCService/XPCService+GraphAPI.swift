@@ -20,7 +20,7 @@ extension XPCService {
     func fetchMobileAppCategories(reply: @escaping ([[String : Any]]?) -> Void) {
         Task {
             do {
-                let entraAuthenticator = EntraAuthenticator()
+                let entraAuthenticator = EntraAuthenticator.shared
                 let authToken = try await entraAuthenticator.getEntraIDToken()
                 let categories = try await EntraGraphRequests.fetchMobileAppCategories(authToken: authToken)
                 reply(categories)
@@ -37,7 +37,7 @@ extension XPCService {
     func fetchEntraGroups(reply: @escaping ([[String : Any]]?) -> Void) {
         Task {
             do {
-                let entraAuthenticator = EntraAuthenticator()
+                let entraAuthenticator = EntraAuthenticator.shared
                 let authToken = try await entraAuthenticator.getEntraIDToken()
                 let categories = try await EntraGraphRequests.fetchEntraGroups(authToken: authToken)
                 reply(categories)
@@ -54,7 +54,7 @@ extension XPCService {
     func fetchAssignmentFiltersForMac(reply: @escaping ([[String: Any]]?) -> Void) {
         Task {
             do {
-                let entraAuthenticator = EntraAuthenticator()
+                let entraAuthenticator = EntraAuthenticator.shared
                 let authToken = try await entraAuthenticator.getEntraIDToken()
                 let filters = try await EntraGraphRequests.fetchMacAssignmentFiltersAsDictionaries(authToken: authToken)
                 reply(filters)

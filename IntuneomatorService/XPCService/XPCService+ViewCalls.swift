@@ -157,10 +157,12 @@ extension XPCService {
                         let labelName = folderName.components(separatedBy: "_")[0]
                         let trackingID = folderName.components(separatedBy: "_")[1]
 
+                        #if DEBUG
                         Logger.info("Checking for Intune automation in folder \(labelName) (GUID: \(trackingID))", category: .core)
+                        #endif
 
                         do {
-                            let entraAuthenticator = EntraAuthenticator()
+                            let entraAuthenticator = EntraAuthenticator.shared
                             let authToken = try await entraAuthenticator.getEntraIDToken()
 
                             let apps = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: trackingID)
@@ -170,14 +172,10 @@ extension XPCService {
                                 .appendingPathComponent(".uploaded")
 
                             if apps.count > 0 {
-                                Logger.info("Automation found for \(labelName) (GUID: \(trackingID))", category: .core)
-
                                 // Write app count to the file
                                 let appCountString = "\(apps.count)"
                                 try appCountString.write(to: uploadedFileURL, atomically: true, encoding: .utf8)
                             } else {
-                                Logger.info("No automation found for \(labelName) (GUID: \(trackingID))", category: .core)
-
                                 if FileManager.default.fileExists(atPath: uploadedFileURL.path) {
                                     try FileManager.default.removeItem(atPath: uploadedFileURL.path)
                                     Logger.info("Removed stale .uploaded file for \(labelName)", category: .core)
@@ -791,7 +789,7 @@ extension XPCService {
     func fetchDiscoveredMacApps(reply: @escaping (Data?) -> Void) {
         Task {
             do {
-                let entraAuthenticator = EntraAuthenticator()
+                let entraAuthenticator = EntraAuthenticator.shared
                 let authToken = try await entraAuthenticator.getEntraIDToken()
                 
                 let apps: [DetectedApp] = try await EntraGraphRequests.fetchMacOSDetectedApps(authToken: authToken)
@@ -819,7 +817,7 @@ extension XPCService {
     func fetchDevices(forAppID appID: String, reply: @escaping (Data?) -> Void) {
         Task {
             do {
-                let authToken = try await EntraAuthenticator().getEntraIDToken()
+                let authToken = try await EntraAuthenticator.shared.getEntraIDToken()
                 let rawDevices = try await EntraGraphRequests.fetchDevices(authToken: authToken, forAppID: appID)
                 
                 // Map the tuple array into an array of our Codable struct

@@ -57,7 +57,7 @@ extension XPCService {
     func validateCredentials(reply: @escaping (Bool) -> Void) {
         Task {
             do {
-                let authenticator = EntraAuthenticator()
+                let authenticator = EntraAuthenticator.shared
                 let result = try await authenticator.ValidateCredentials()
                 reply(result)
             } catch {

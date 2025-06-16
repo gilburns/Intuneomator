@@ -66,7 +66,7 @@ extension LabelAutomation {
         statusManager.updateProcessingStatus(operationId, "Fetching apps from Intune")
         
         do {
-            let entraAuthenticator = EntraAuthenticator()
+            let entraAuthenticator = EntraAuthenticator.shared
             let authToken = try await entraAuthenticator.getEntraIDToken()
             
             // Find all applications in Intune that match this tracking ID
@@ -94,7 +94,7 @@ extension LabelAutomation {
                 
                 // Remove individual application from Intune tenant
                 do {
-                    let entraAuthenticator = EntraAuthenticator()
+                    let entraAuthenticator = EntraAuthenticator.shared
                     let authToken = try await entraAuthenticator.getEntraIDToken()
                     
                     // Execute deletion via Microsoft Graph API

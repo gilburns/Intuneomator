@@ -289,7 +289,7 @@ extension EntraGraphRequests {
             Logger.info("Assigning categories to Intune app...", category: .core)
             
             do {
-                let entraAuthenticator = EntraAuthenticator()
+                let entraAuthenticator = EntraAuthenticator.shared
                 let authToken = try await entraAuthenticator.getEntraIDToken()
                 
                 try await assignCategoriesToIntuneApp(
@@ -303,7 +303,7 @@ extension EntraGraphRequests {
             
             // Step 11: Assign groups for deployment targeting
             do {
-                let entraAuthenticator = EntraAuthenticator()
+                let entraAuthenticator = EntraAuthenticator.shared
                 let authToken = try await entraAuthenticator.getEntraIDToken()
                 
                 try await EntraGraphRequests.assignGroupsToApp(
