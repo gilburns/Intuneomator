@@ -161,7 +161,7 @@ func processLabelQuiet(withParam folderName: String) async -> (String, String, S
 
 func labelUpdates() {
     Task {
-        let (isUpToDate, versionMessage) = await InstallomatorLabels.compareInstallomatorVersionAsync()
+        let (isUpToDate, versionMessage, sha) = await InstallomatorLabels.compareInstallomatorVersionAsync()
         Logger.info("🔍 Version Check: \(versionMessage)", category: .core)
 
         if isUpToDate {

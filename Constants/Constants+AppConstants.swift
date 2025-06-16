@@ -67,9 +67,9 @@ struct AppConstants {
         .appendingPathComponent("IntuneomatorStatus.json")
 
     /// File containing the current Installomator version
-    /// Location: /Library/Application Support/Intuneomator/Installomator/Version.txt
+    /// Location: /Library/Application Support/Intuneomator/Installomator/Version.json
     static let installomatorVersionFileURL = installomatorFolderURL
-        .appendingPathComponent("Version.txt")
+        .appendingPathComponent("Version.json")
     
     /// Unique temporary directory for the current process
     /// Location: /tmp/Intuneomator_{pid}_{guid8}

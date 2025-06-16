@@ -16,79 +16,126 @@ class InstallomatorLabels {
     // MARK: - Version Management
     
     /// Compares local Installomator version with remote repository version (async)
-    /// - Returns: Tuple indicating if local is current and version string or error message
-    static func compareInstallomatorVersionAsync() async -> (Bool, String) {
+    /// - Returns: Tuple indicating if local is current, version string or error message, and SHA
+    static func compareInstallomatorVersionAsync() async -> (Bool, String, String) {
         do {
-            let installomatorCurrentVersionURL = URL(string: "https://raw.githubusercontent.com/Installomator/Installomator/refs/heads/main/Installomator.sh")!
+            let installomatorBranchURL = URL(string: "https://api.github.com/repos/Installomator/Installomator/branches/main")!
             let installomatorLocalVersionPath = AppConstants.installomatorVersionFileURL.path
 
-            // Fetch current version from GitHub
-            let (data, _) = try await URLSession.shared.data(from: installomatorCurrentVersionURL)
-            guard let content = String(data: data, encoding: .utf8) else {
-                return (false, "Failed to decode web content")
+            // Fetch current commit info from GitHub API
+            let (data, _) = try await URLSession.shared.data(from: installomatorBranchURL)
+            guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                  let commit = json["commit"] as? [String: Any],
+                  let remoteSHA = commit["sha"] as? String,
+                  let commitInfo = commit["commit"] as? [String: Any],
+                  let author = commitInfo["author"] as? [String: Any],
+                  let remoteCommitDate = author["date"] as? String else {
+                return (false, "Failed to fetch remote commit info", "unknown")
             }
 
-            // Extract VERSIONDATE from Installomator.sh script
-            let regex = try NSRegularExpression(pattern: #"VERSIONDATE="([^"]*)"#)
-            guard let match = regex.firstMatch(in: content, options: [], range: NSRange(content.startIndex..<content.endIndex, in: content)),
-                  let versionRange = Range(match.range(at: 1), in: content) else {
-                return (false, "Failed to extract VERSIONDATE")
+            // Format the remote commit date for display
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+            let remoteDisplayDate: String
+            if let parsedDate = dateFormatter.date(from: remoteCommitDate) {
+                let outputFormatter = DateFormatter()
+                outputFormatter.dateFormat = "yyyy-MM-dd"
+                remoteDisplayDate = outputFormatter.string(from: parsedDate)
+            } else {
+                remoteDisplayDate = remoteCommitDate.components(separatedBy: "T").first ?? remoteCommitDate
             }
-
-            let installomatorCurrentVersion = content[versionRange]
 
             // Read local version file or use default
             let installomatorLocalVersion: String
+            let installomatorLocalSHA: String
             if FileManager.default.fileExists(atPath: installomatorLocalVersionPath) {
-                installomatorLocalVersion = try String(contentsOfFile: installomatorLocalVersionPath).trimmingCharacters(in: .whitespacesAndNewlines)
+                let jsonData = try Data(contentsOf: URL(fileURLWithPath: installomatorLocalVersionPath))
+                if let json = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: String],
+                   let date = json["date"],
+                   let sha = json["sha"] {
+                    // Extract just the date part from ISO 8601 format
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+                    if let parsedDate = dateFormatter.date(from: date) {
+                        let outputFormatter = DateFormatter()
+                        outputFormatter.dateFormat = "yyyy-MM-dd"
+                        installomatorLocalVersion = outputFormatter.string(from: parsedDate)
+                    } else {
+                        installomatorLocalVersion = date.components(separatedBy: "T").first ?? "1990-01-01"
+                    }
+                    installomatorLocalSHA = sha
+                } else {
+                    installomatorLocalVersion = "1990-01-01"
+                    installomatorLocalSHA = "unknown"
+                }
             } else {
                 installomatorLocalVersion = "1990-01-01"
+                installomatorLocalSHA = "unknown"
             }
 
-            // Compare version dates
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd"
-
-            guard let currentVersionDate = dateFormatter.date(from: String(installomatorCurrentVersion)),
-                  let localVersionDate = dateFormatter.date(from: installomatorLocalVersion) else {
-                return (false, "Failed to parse version dates")
-            }
-
-            if currentVersionDate > localVersionDate {
-                return (false, "New version available: \(installomatorCurrentVersion)")
+            // Compare SHA values directly
+            if remoteSHA != installomatorLocalSHA {
+                return (false, "New version available: \(remoteDisplayDate)", remoteSHA)
             } else {
-                return (true, "\(installomatorLocalVersion)")
+                return (true, "\(installomatorLocalVersion)", installomatorLocalSHA)
             }
         } catch {
-            return (false, "Error: \(error.localizedDescription)")
+            return (false, "Error: \(error.localizedDescription)", "unknown")
         }
     }
 
     /// Gets the locally installed Installomator version
     /// - Returns: Version string or fallback date if file doesn't exist
     static func getInstallomatorLocalVersion() -> String {
+        let (version, _) = getInstallomatorLocalVersionWithSHA()
+        return version
+    }
+    
+    /// Gets the locally installed Installomator version and SHA
+    /// - Returns: Tuple with (version string, SHA) or fallback values if file doesn't exist
+    static func getInstallomatorLocalVersionWithSHA() -> (String, String) {
         do {
             let installomatorLocalVersionPath = AppConstants.installomatorVersionFileURL.path
 
             let installomatorLocalVersion: String
+            let installomatorLocalSHA: String
             if FileManager.default.fileExists(atPath: installomatorLocalVersionPath) {
-                installomatorLocalVersion = try String(contentsOfFile: installomatorLocalVersionPath).trimmingCharacters(in: .whitespacesAndNewlines)
+                let jsonData = try Data(contentsOf: URL(fileURLWithPath: installomatorLocalVersionPath))
+                if let json = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: String],
+                   let date = json["date"],
+                   let sha = json["sha"] {
+                    // Extract just the date part from ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ -> YYYY-MM-DD)
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+                    if let parsedDate = dateFormatter.date(from: date) {
+                        let outputFormatter = DateFormatter()
+                        outputFormatter.dateFormat = "yyyy-MM-dd"
+                        installomatorLocalVersion = outputFormatter.string(from: parsedDate)
+                    } else {
+                        installomatorLocalVersion = date.components(separatedBy: "T").first ?? "1990-01-01"
+                    }
+                    installomatorLocalSHA = sha
+                } else {
+                    installomatorLocalVersion = "1990-01-01"
+                    installomatorLocalSHA = "unknown"
+                }
             } else {
                 installomatorLocalVersion = "1990-01-01"
+                installomatorLocalSHA = "unknown"
             }
 
-            return installomatorLocalVersion
+            return (installomatorLocalVersion, installomatorLocalSHA)
         } catch {
-            return "Failed to read version file"
+            return ("Failed to read version file", "unknown")
         }
     }
     
     /// Compares Installomator versions using completion handler pattern
-    /// - Parameter completion: Callback with (isUpToDate, versionOrError)
-    static func compareInstallomatorVersion(completion: @escaping (Bool, String) -> Void) {
+    /// - Parameter completion: Callback with (isUpToDate, versionOrError, sha)
+    static func compareInstallomatorVersion(completion: @escaping (Bool, String, String) -> Void) {
         Task {
             let result = await compareInstallomatorVersionAsync()
-            completion(result.0, result.1)
+            completion(result.0, result.1, result.2)
         }
     }
 
@@ -118,8 +165,11 @@ class InstallomatorLabels {
             let (data, _) = try await URLSession.shared.data(from: installomatorBranchURL)
             guard let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                   let commit = json["commit"] as? [String: Any],
-                  let sha = commit["sha"] as? String else {
-                return (false, "Failed to fetch branch SHA")
+                  let sha = commit["sha"] as? String,
+                  let commitInfo = commit["commit"] as? [String: Any],
+                  let author = commitInfo["author"] as? [String: Any],
+                  let commitDate = author["date"] as? String else {
+                return (false, "Failed to fetch branch SHA and commit info")
             }
 
             // Download repository archive
@@ -151,25 +201,15 @@ class InstallomatorLabels {
 
             try FileManager.default.copyItem(atPath: sourceDirectory.path, toPath: destinationDirectory)
 
-            // Extract and save version information
-            let installomatorShPath = extractedDirURL.appendingPathComponent("Installomator.sh")
+            // Create version JSON with commit information
+            let versionInfo: [String: String] = [
+                "date": commitDate,
+                "sha": sha
+            ]
             
-            let versionContent: String
-            if FileManager.default.fileExists(atPath: installomatorShPath.path) {
-                let shContent = try String(contentsOf: installomatorShPath)
-                let regex = try NSRegularExpression(pattern: #"VERSIONDATE="([^"]*)"#)
-                if let match = regex.firstMatch(in: shContent, options: [], range: NSRange(shContent.startIndex..<shContent.endIndex, in: shContent)),
-                   let versionRange = Range(match.range(at: 1), in: shContent) {
-                    versionContent = String(shContent[versionRange])
-                } else {
-                    versionContent = "1990-01-01"
-                }
-            } else {
-                versionContent = "1990-01-01"
-            }
-
+            let versionJsonData = try JSONSerialization.data(withJSONObject: versionInfo, options: .prettyPrinted)
             let versionFilePath = AppConstants.installomatorVersionFileURL.path
-            try versionContent.write(toFile: versionFilePath, atomically: true, encoding: .utf8)
+            try versionJsonData.write(to: URL(fileURLWithPath: versionFilePath))
 
             // Clean up temporary files
             try FileManager.default.removeItem(atPath: tempDir.path)
@@ -179,7 +219,19 @@ class InstallomatorLabels {
                 _ = try await updateInUseLabels()
             }
 
-            return (true, "\(versionContent)")
+            // Format the commit date to match expected format (YYYY-MM-DD)
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+            let formattedDate: String
+            if let parsedDate = dateFormatter.date(from: commitDate) {
+                let outputFormatter = DateFormatter()
+                outputFormatter.dateFormat = "yyyy-MM-dd"
+                formattedDate = outputFormatter.string(from: parsedDate)
+            } else {
+                formattedDate = commitDate.components(separatedBy: "T").first ?? "1990-01-01"
+            }
+            
+            return (true, "\(formattedDate)")
         } catch {
             return (false, "Error: \(error.localizedDescription)")
         }

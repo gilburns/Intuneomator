@@ -41,8 +41,12 @@ class LabelViewController: NSViewController {
     @IBOutlet weak var warningLabel: NSTextField!
     /// Text field displaying the current version of the Installomator labels.
     @IBOutlet weak var versionTextField: NSTextField!
+    /// Text field displaying the SHA of the current Installomator labels.
+    @IBOutlet weak var shaTextField: NSTextField!
     /// Text field indicating whether the label definitions are up to date, with status color.
     @IBOutlet weak var versionUpdateField: NSTextField!
+    /// Text field indicating whether the sha label definitions are up to date, with status color.
+    @IBOutlet weak var shaUpdateField: NSTextField!
 
     /// Button to add the selected label (or “Add Again” if it already exists locally).
     @IBOutlet weak var buttonAddLabel: NSButton!
@@ -80,10 +84,13 @@ class LabelViewController: NSViewController {
         setLabelCount()
 
         // Check if the local Installomator labels folder is up to date, then update UI accordingly.
-        InstallomatorLabels.compareInstallomatorVersion { isUpToDate, statusMessage in
+        InstallomatorLabels.compareInstallomatorVersion { isUpToDate, statusMessage, sha in
             DispatchQueue.main.async {
                 self.versionUpdateField.stringValue = statusMessage
                 self.versionUpdateField.textColor = isUpToDate ? .systemGreen : .systemRed
+                self.shaUpdateField.stringValue = String(sha.prefix(8)) // Show first 8 characters of SHA
+                self.shaUpdateField.toolTip = sha
+                self.shaUpdateField.textColor = isUpToDate ? .systemGreen : .systemRed
                 self.updateLabelsButton.isHidden = isUpToDate // Hide the button if up-to-date
             }
         }
@@ -139,9 +146,28 @@ class LabelViewController: NSViewController {
                     self.versionUpdateField.stringValue = "Labels updated successfully."
                     self.versionUpdateField.textColor = .systemGreen
                     self.updateLabelsButton.isHidden = true
+                    self.shaUpdateField.stringValue = "Success"
+                    self.shaUpdateField.textColor = .systemGreen
                     self.loadVersionFile()
                     self.loadLabelData() // Reload the table data after updating
                     self.setLabelCount()
+                    
+                    // Wait 5 seconds, then refresh the version fields with actual data
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                        self.loadVersionFile() // Refresh with new SHA and date
+                        
+                        // Also refresh the version comparison status
+                        InstallomatorLabels.compareInstallomatorVersion { isUpToDate, statusMessage, sha in
+                            DispatchQueue.main.async {
+                                self.versionUpdateField.stringValue = statusMessage
+                                self.versionUpdateField.textColor = isUpToDate ? .systemGreen : .systemRed
+                                self.shaUpdateField.stringValue = String(sha.prefix(8))
+                                self.shaUpdateField.toolTip = sha
+                                self.shaUpdateField.textColor = isUpToDate ? .systemGreen : .systemRed
+                                self.updateLabelsButton.isHidden = isUpToDate
+                            }
+                        }
+                    }
                 } else {
                     // On failure, display an error message in red.
                     self.versionUpdateField.stringValue = "Failed to update labels."
@@ -299,17 +325,42 @@ class LabelViewController: NSViewController {
         labelCount.stringValue = "Viewing \(visibleLabelsCount) of \(allLabelsCount) labels"
     }
     
-    /// Reads the `Version.txt` file from disk and updates `versionTextField`; shows an error if loading fails.
+    /// Reads the `Version.json` file from disk and updates `versionTextField` and `shaTextField`; shows an error if loading fails.
     private func loadVersionFile() {
         do {
-            // Attempt to read the version string from the file.
-            let versionContent = try String(contentsOfFile: AppConstants.installomatorVersionFileURL.path, encoding: .utf8)
-            // Trim whitespace and show the version in the UI.
-            versionTextField.stringValue = versionContent.trimmingCharacters(in: .whitespacesAndNewlines)
+            // Attempt to read the version JSON from the file.
+            let jsonData = try Data(contentsOf: URL(fileURLWithPath: AppConstants.installomatorVersionFileURL.path))
+            
+            if let json = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: String],
+               let date = json["date"],
+               let sha = json["sha"] {
+                
+                // Format the date for display (extract YYYY-MM-DD from ISO 8601)
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+                let displayDate: String
+                if let parsedDate = dateFormatter.date(from: date) {
+                    let outputFormatter = DateFormatter()
+                    outputFormatter.dateFormat = "yyyy-MM-dd"
+                    displayDate = outputFormatter.string(from: parsedDate)
+                } else {
+                    displayDate = date.components(separatedBy: "T").first ?? date
+                }
+                
+                // Update UI fields
+                versionTextField.stringValue = displayDate
+                shaTextField.stringValue = String(sha.prefix(8)) // Show first 8 characters of SHA
+                shaTextField.toolTip = sha 
+            } else {
+                // If JSON parsing fails, show fallback values
+                versionTextField.stringValue = "Unable to parse version data"
+                shaTextField.stringValue = "N/A"
+            }
         } catch {
-            // On failure, show an error message in `versionTextField` and log the error.
-            versionTextField.stringValue = "Failed to load version file: \(error.localizedDescription)"
-            Logger.error("Error loading Version.txt: \(error)", category: .core, toUserDirectory: true)
+            // On failure, show an error message in both fields and log the error.
+            versionTextField.stringValue = "Failed to load version file"
+            shaTextField.stringValue = "Error"
+            Logger.error("Error loading Version.json: \(error)", category: .core, toUserDirectory: true)
         }
     }
 }

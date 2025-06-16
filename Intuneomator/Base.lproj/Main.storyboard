@@ -1456,7 +1456,7 @@ Gw
                                 </textFieldCell>
                             </textField>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="O8V-jf-w3l">
-                                <rect key="frame" x="132" y="39" width="338" height="16"/>
+                                <rect key="frame" x="234" y="39" width="263" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" id="xIH-jG-mos">
                                     <font key="font" metaFont="system"/>
@@ -1465,7 +1465,7 @@ Gw
                                 </textFieldCell>
                             </textField>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="8Fx-vg-49Q">
-                                <rect key="frame" x="132" y="17" width="338" height="16"/>
+                                <rect key="frame" x="234" y="17" width="263" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" id="iYc-tE-uRc">
                                     <font key="font" metaFont="system"/>
@@ -1480,6 +1480,7 @@ Gw
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="miniSystem"/>
                                 </buttonCell>
+                                <color key="bezelColor" name="systemRedColor" catalog="System" colorSpace="catalog"/>
                                 <connections>
                                     <action selector="updateLabels:" target="g73-OC-Qev" id="qUA-kG-Het"/>
                                 </connections>
@@ -1514,19 +1515,19 @@ Gw
                                 </connections>
                             </button>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hxm-rS-aOz">
-                                <rect key="frame" x="40" y="39" width="89" height="16"/>
+                                <rect key="frame" x="38" y="39" width="71" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" title="Local Version:" id="a8u-op-lc5">
-                                    <font key="font" usesAppearanceFont="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="Local Sha:" id="a8u-op-lc5">
+                                    <font key="font" metaFont="systemBold"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="J3T-JW-vDH">
-                                <rect key="frame" x="30" y="17" width="99" height="16"/>
+                                <rect key="frame" x="28" y="17" width="82" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" title="GitHub Version:" id="8nz-IE-ctA">
-                                    <font key="font" usesAppearanceFont="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="GitHub Sha:" id="8nz-IE-ctA">
+                                    <font key="font" metaFont="systemBold"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
@@ -1571,6 +1572,42 @@ Gw
                                     <action selector="showHelpForInstallomator:" target="g73-OC-Qev" id="0ae-b0-wTh"/>
                                 </connections>
                             </button>
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="SnB-Dv-Z6n">
+                                <rect key="frame" x="113" y="39" width="70" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="abcdefgh" id="G50-xG-EPf">
+                                    <font key="font" usesAppearanceFont="YES"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cYt-2P-547">
+                                <rect key="frame" x="113" y="17" width="70" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="abcdefgh" id="5fE-by-M6m">
+                                    <font key="font" usesAppearanceFont="YES"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OGp-w7-eS5">
+                                <rect key="frame" x="191" y="39" width="39" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="Date:" id="a43-fz-pJ4">
+                                    <font key="font" metaFont="systemBold"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="5Nq-yA-jv6">
+                                <rect key="frame" x="191" y="17" width="39" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="Date:" id="0cC-ZV-Dsz">
+                                    <font key="font" metaFont="systemBold"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                     </view>
                     <connections>
@@ -1585,6 +1622,8 @@ Gw
                         <outlet property="labelSearchField" destination="hzb-HI-EcG" id="8bn-fK-mg1"/>
                         <outlet property="labelTableView" destination="eg2-Fs-6Kf" id="Teh-91-B9T"/>
                         <outlet property="progressIndicator" destination="cgk-UO-QAj" id="Fgw-05-N4I"/>
+                        <outlet property="shaTextField" destination="SnB-Dv-Z6n" id="b62-jU-G6u"/>
+                        <outlet property="shaUpdateField" destination="cYt-2P-547" id="Lqq-Mf-1jP"/>
                         <outlet property="updateLabelsButton" destination="JcT-Qd-oIB" id="RdX-JK-lXL"/>
                         <outlet property="versionTextField" destination="O8V-jf-w3l" id="0kF-sn-Ffn"/>
                         <outlet property="versionUpdateField" destination="8Fx-vg-49Q" id="Hm6-X9-E3p"/>
