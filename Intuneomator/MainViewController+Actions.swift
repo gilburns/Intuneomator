@@ -66,7 +66,7 @@ extension MainViewController {
         // Create a confirmation dialog
         let alert = NSAlert()
         alert.messageText = "Confirm Deletion"
-        alert.informativeText = "Are you sure you want to delete '\(itemName) - \(itemLabel)'? This action cannot be undone."
+        alert.informativeText = "Are you sure you want to delete?\n\nName: \(itemName)\nLabel: \(itemLabel)\n\nWARNING: There is no undo for this action."
         alert.alertStyle = .warning
         alert.addButton(withTitle: "Delete")
         alert.addButton(withTitle: "Cancel")
