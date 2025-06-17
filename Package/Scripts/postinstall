@@ -14,6 +14,9 @@ SERVICE_SETTINGS_PATH="/Library/Application Support/Intuneomator/IntuneomatorSer
 BACKUP_DIR="/tmp/Intuneomator_Install_Backup"
 BACKUP_SETTINGS_PATH="$BACKUP_DIR/IntuneomatorService.plist"
 
+# Reset the access to the Entra Secret
+security set-generic-password-partition-list -S apple-tool:,apple: -s "EntraIDSecret" -a "com.intuneomator.entrasecret" -k /Library/Keychains/System.keychain
+
 # Ondemand daemon queue directory
 /bin/mkdir -m 755 -p "/Library/Application Support/Intuneomator/ondemandQueue"
 /usr/sbin/chown -R root:wheel "/Library/Application Support/Intuneomator/ondemandQueue"
