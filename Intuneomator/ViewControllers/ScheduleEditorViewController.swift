@@ -108,7 +108,8 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         // Populate weekday popup
         popupWeekday.removeAllItems()
         popupWeekday.addItem(withTitle: "Daily")
-        popupWeekday.addItems(withTitles: Weekday.allCases.map { $0.name })
+        // Add weekdays in the traditional week order: Sunday through Saturday
+        popupWeekday.addItems(withTitles: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
         
         // Load existing plist if it exists
         loadScheduleFromPlist()
@@ -274,7 +275,7 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         do {
             return try NSKeyedArchiver.archivedData(withRootObject: schedules, requiringSecureCoding: true)
         } catch {
-            Logger.error("❌ Failed to encode schedules: \(error)", category: .core, toUserDirectory: true)
+            Logger.error("Failed to encode schedules: \(error)", category: .core, toUserDirectory: true)
             return nil
         }
     }
@@ -323,7 +324,21 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
         let hour = calendar.component(.hour, from: selectedDate)
         let minute = calendar.component(.minute, from: selectedDate)
         let weekdayIndex = popupWeekday.indexOfSelectedItem
-        let weekday = Weekday(rawValue: weekdayIndex)
+        
+        // Map popup index to Launch Daemon weekday values
+        let weekday: Weekday?
+        switch weekdayIndex {
+        case 0: weekday = nil // Daily option
+        case 1: weekday = .sunday    // Sunday = 7 in Launch Daemon
+        case 2: weekday = .monday    // Monday = 1 in Launch Daemon  
+        case 3: weekday = .tuesday   // Tuesday = 2 in Launch Daemon
+        case 4: weekday = .wednesday // Wednesday = 3 in Launch Daemon
+        case 5: weekday = .thursday  // Thursday = 4 in Launch Daemon
+        case 6: weekday = .friday    // Friday = 5 in Launch Daemon
+        case 7: weekday = .saturday  // Saturday = 6 in Launch Daemon
+        default: weekday = nil
+        }
+        
         return (hour, minute, weekday)
     }
     
@@ -422,7 +437,22 @@ class ScheduleEditorViewController: NSViewController, NSTableViewDataSource, NST
                 second: 0,
                 of: Date()
             ) ?? Date()
-            popupWeekday.selectItem(at: selected.weekday?.rawValue ?? 0)
+            // Map weekday back to popup index
+            let popupIndex: Int
+            if let weekday = selected.weekday {
+                switch weekday {
+                case .sunday: popupIndex = 1
+                case .monday: popupIndex = 2  
+                case .tuesday: popupIndex = 3
+                case .wednesday: popupIndex = 4
+                case .thursday: popupIndex = 5
+                case .friday: popupIndex = 6
+                case .saturday: popupIndex = 7
+                }
+            } else {
+                popupIndex = 0 // Daily
+            }
+            popupWeekday.selectItem(at: popupIndex)
         }
     }
     
