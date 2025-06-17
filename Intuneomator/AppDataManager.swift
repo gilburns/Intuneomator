@@ -302,6 +302,32 @@ class AppDataManager {
         }
     }
     
+    /// Reinitializes the AppDataManager after authentication configuration changes.
+    /// 
+    /// Clears all cached data and attempts to fetch fresh data from APIs. This method
+    /// is specifically designed for scenarios where authentication has been newly
+    /// configured (such as after completing the setup wizard) and the data that
+    /// previously failed to load should be retried.
+    /// 
+    /// - Throws: `AppDataManagerError` if any of the fetch operations fail
+    /// 
+    /// **Use Cases:**
+    /// - After completing the setup wizard
+    /// - After updating authentication credentials
+    /// - When switching between different Intune tenants
+    /// - After resolving authentication issues
+    func reinitializeAfterAuthSetup() async throws {
+        Logger.info("Reinitializing AppDataManager after authentication setup...", category: .core, toUserDirectory: true)
+        
+        // Clear any stale cached data first
+        clearAllData()
+        
+        // Fetch fresh data with newly configured authentication
+        try await refreshAllData()
+        
+        Logger.info("AppDataManager reinitialization completed successfully", category: .core, toUserDirectory: true)
+    }
+    
     /// Clears all cached data and resets freshness timestamps.
     /// 
     /// Removes all cached data and resets internal state. Useful when switching

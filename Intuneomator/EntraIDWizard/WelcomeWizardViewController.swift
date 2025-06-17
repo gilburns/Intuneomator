@@ -183,6 +183,7 @@ class WelcomeWizardViewController: NSViewController, NSTableViewDelegate, NSTabl
     
     /// Instantiates and displays the main application window after wizard completion
     /// Lazy-loads the main window controller from storyboard if not already created
+    /// Also triggers AppDataManager initialization since auth is now configured
     func showMainWindow() {
         // Create main window controller if not already instantiated
         if mainWindowController == nil {
@@ -194,8 +195,23 @@ class WelcomeWizardViewController: NSViewController, NSTableViewDelegate, NSTabl
         if let window = mainWindowController?.window {
             window.delegate = mainWindowController // Ensure delegate is properly set
             window.makeKeyAndOrderFront(nil)
+            
+            // Initialize AppDataManager now that authentication is configured
+            Task {
+                await loadInitialDataAfterSetup()
+            }
         } else {
             Logger.info("Error: mainWindowController has no window.", category: .core, toUserDirectory: true)
+        }
+    }
+    
+    /// Loads initial application data after wizard completion
+    /// Fetches essential data from Microsoft Graph API that was skipped during first run
+    private func loadInitialDataAfterSetup() async {
+        do {
+            try await AppDataManager.shared.reinitializeAfterAuthSetup()
+        } catch {
+            Logger.error("Error reinitializing AppDataManager after setup: \(error.localizedDescription)", category: .core, toUserDirectory: true)
         }
     }
 
