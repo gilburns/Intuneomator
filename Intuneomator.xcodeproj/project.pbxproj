@@ -8,28 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		1B2A4B9E2DD52F1800F85707 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 1B2A4B9D2DD52F1800F85707 /* Config.xcconfig */; };
-		1B7D2A422D8F94EE0062D053 /* process_label.sh in Resources */ = {isa = PBXBuildFile; fileRef = 1B7D2A412D8F94EE0062D053 /* process_label.sh */; };
 		1BB046FE2D899E64004B6F3E /* Ink in Frameworks */ = {isa = PBXBuildFile; productRef = 1BB046FD2D899E64004B6F3E /* Ink */; };
 		1BB0472A2D8A37F1004B6F3E /* LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = 1BB047292D8A37F1004B6F3E /* LICENSE.md */; };
 		1BB0472C2D8A406A004B6F3E /* entra-app-setup.md in Resources */ = {isa = PBXBuildFile; fileRef = 1BB0472B2D8A406A004B6F3E /* entra-app-setup.md */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		1B4FFF052DFA6BC700A1DC34 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1BB046482D81321F004B6F3E /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 1BB046652D81324E004B6F3E;
-			remoteInfo = IntuneomatorService;
-		};
-		1B4FFF072DFA6BC700A1DC34 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1BB046482D81321F004B6F3E /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 1B9DD88C2DDD759C005ECE05;
-			remoteInfo = IntuneomatorUpdater;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		1B9DD88B2DDD759C005ECE05 /* CopyFiles */ = {
@@ -54,7 +36,6 @@
 
 /* Begin PBXFileReference section */
 		1B2A4B9D2DD52F1800F85707 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
-		1B7D2A412D8F94EE0062D053 /* process_label.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = process_label.sh; sourceTree = "<group>"; };
 		1B9DD88D2DDD759C005ECE05 /* IntuneomatorUpdater */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = IntuneomatorUpdater; sourceTree = BUILT_PRODUCTS_DIR; };
 		1B9DD8952DDD798E005ECE05 /* libproc.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libproc.tbd; path = usr/lib/libproc.tbd; sourceTree = SDKROOT; };
 		1B9DD8962DDD79AC005ECE05 /* libswiftDarwin.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftDarwin.tbd; path = usr/lib/swift/libswiftDarwin.tbd; sourceTree = SDKROOT; };
@@ -273,7 +254,6 @@
 				1BB046512D81321F004B6F3E /* Products */,
 				1BB047292D8A37F1004B6F3E /* LICENSE.md */,
 				1BB0472B2D8A406A004B6F3E /* entra-app-setup.md */,
-				1B7D2A412D8F94EE0062D053 /* process_label.sh */,
 				1B9DD8942DDD798E005ECE05 /* Frameworks */,
 			);
 			sourceTree = "<group>";
@@ -325,8 +305,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				1B4FFF062DFA6BC700A1DC34 /* PBXTargetDependency */,
-				1B4FFF082DFA6BC700A1DC34 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				1B9DDA392DE9F085005ECE05 /* Constants */,
@@ -415,7 +393,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				1BB0472A2D8A37F1004B6F3E /* LICENSE.md in Resources */,
-				1B7D2A422D8F94EE0062D053 /* process_label.sh in Resources */,
 				1B2A4B9E2DD52F1800F85707 /* Config.xcconfig in Resources */,
 				1BB0472C2D8A406A004B6F3E /* entra-app-setup.md in Resources */,
 			);
@@ -440,7 +417,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\n\n# Path to your xcconfig file\nCONFIG_PATH=\"${PROJECT_DIR}/Config.xcconfig\"\necho \"Config path: $CONFIG_PATH\"\n\n# Check if file exists\nif [ ! -f \"$CONFIG_PATH\" ]; then\n    echo \"Error: Config.xcconfig file not found at $CONFIG_PATH\"\n    exit 1\nfi\n\n# Get the current version from the xcconfig file\ncurrentVersion=$(grep \"CURRENT_PROJECT_VERSION\" \"$CONFIG_PATH\" | cut -d'=' -f2)\necho \"Current version: $currentVersion\"\n\n# Remove any whitespace\ncurrentVersion=$(echo $currentVersion | tr -d '[:space:]')\n\n# Increment the version\nnewVersion=$(($currentVersion + 1))\necho \"New version: $newVersion\"\n\n# Replace the version in the file\nsed -i '' \"s/CURRENT_PROJECT_VERSION=$currentVersion/CURRENT_PROJECT_VERSION=$newVersion/\" \"$CONFIG_PATH\"\necho \"Version updated successfully in Config.xcconfig\"\n\n# Sync daemon version constants after version increment\necho \"Syncing daemon version constants...\"\nDAEMON_SYNC_SCRIPT=\"${PROJECT_DIR}/Scripts/sync-daemon-versions.sh\"\nif [ -f \"$DAEMON_SYNC_SCRIPT\" ]; then\n    \"$DAEMON_SYNC_SCRIPT\"\n    echo \"Daemon versions synced successfully\"\nelse\n    echo \"Warning: Daemon sync script not found at $DAEMON_SYNC_SCRIPT\"\nfi\n";
+			shellScript = "#!/bin/bash\n\n# Path to your xcconfig file\nCONFIG_PATH=\"${PROJECT_DIR}/Config.xcconfig\"\necho \"Config path: $CONFIG_PATH\"\n\n# Check if file exists\nif [ ! -f \"$CONFIG_PATH\" ]; then\n    echo \"Error: Config.xcconfig file not found at $CONFIG_PATH\"\n    exit 1\nfi\n\n# Get the current version from the xcconfig file\ncurrentVersion=$(grep \"CURRENT_PROJECT_VERSION\" \"$CONFIG_PATH\" | cut -d'=' -f2)\necho \"Current version: $currentVersion\"\n\n# Remove any whitespace\ncurrentVersion=$(echo $currentVersion | tr -d '[:space:]')\n\n# Increment the version\nnewVersion=$(($currentVersion + 1))\necho \"New version: $newVersion\"\n\n# Replace the version in the file\nsed -i '' \"s/CURRENT_PROJECT_VERSION=$currentVersion/CURRENT_PROJECT_VERSION=$newVersion/\" \"$CONFIG_PATH\"\necho \"Version updated successfully in Config.xcconfig\"\n\n# Sync daemon version constants after version increment\necho \"Syncing daemon version constants...\"\nDAEMON_SYNC_SCRIPT=\"${PROJECT_DIR}/Scripts/sync-daemon-versions.sh\"\nif [ -f \"$DAEMON_SYNC_SCRIPT\" ]; then\n    \"$DAEMON_SYNC_SCRIPT\"\n    echo \"Daemon versions synced successfully\"\nelse\n    echo \"Warning: Daemon sync script not found at $DAEMON_SYNC_SCRIPT\"\nfi\n\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -467,19 +444,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		1B4FFF062DFA6BC700A1DC34 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 1BB046652D81324E004B6F3E /* IntuneomatorService */;
-			targetProxy = 1B4FFF052DFA6BC700A1DC34 /* PBXContainerItemProxy */;
-		};
-		1B4FFF082DFA6BC700A1DC34 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 1B9DD88C2DDD759C005ECE05 /* IntuneomatorUpdater */;
-			targetProxy = 1B4FFF072DFA6BC700A1DC34 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1B9DD8922DDD759C005ECE05 /* Debug */ = {
