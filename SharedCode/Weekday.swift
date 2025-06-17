@@ -7,20 +7,20 @@
 
 import Foundation
 
-/// Represents a weekday (Sunday = 1 ... Saturday = 7).
+/// Represents a weekday (Monday = 1 ... Sunday = 7).
 enum Weekday: Int, CaseIterable, CustomStringConvertible {
-    case sunday = 1, monday, tuesday, wednesday, thursday, friday, saturday
+    case monday = 1, tuesday, wednesday, thursday, friday, saturday, sunday
 
     /// The full name of the weekday.
     var name: String {
         switch self {
-        case .sunday: return "Sunday"
         case .monday: return "Monday"
         case .tuesday: return "Tuesday"
         case .wednesday: return "Wednesday"
         case .thursday: return "Thursday"
         case .friday: return "Friday"
         case .saturday: return "Saturday"
+        case .sunday: return "Sunday"
         }
     }
 
