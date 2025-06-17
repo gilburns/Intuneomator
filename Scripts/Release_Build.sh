@@ -310,7 +310,7 @@ main() {
     
     # Execute build process
     cleanup_build_artifacts
-    sync_versions
+#    sync_versions
     
     # Build all targets (clean only on first build to preserve previous artifacts)
     build_target "$GUI_TARGET" "GUI Application" true
