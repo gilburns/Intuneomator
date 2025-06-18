@@ -44,6 +44,8 @@ class GroupSelectViewController: NSViewController, NSTableViewDelegate, NSTableV
     @IBOutlet weak var searchField: NSSearchField!
     
     @IBOutlet weak var clearAllButton: NSButton!
+    
+    @IBOutlet weak var groupCountLabel: NSTextField!
 
     
     // Input data
@@ -114,6 +116,7 @@ class GroupSelectViewController: NSViewController, NSTableViewDelegate, NSTableV
         
         // Reload the table view
         DispatchQueue.main.async {
+            self.setGroupCountLabel()
             self.tableView.reloadData()
             self.updateVirtualCheckboxState()
         }
@@ -164,7 +167,7 @@ class GroupSelectViewController: NSViewController, NSTableViewDelegate, NSTableV
         // Enable/disable based on assignment type restrictions and exclusions
         allDevicesButton.isEnabled = allDevicesAvailable && !allDevicesExcluded
         allUsersButton.isEnabled = !allUsersExcluded
-        
+                
         // Reload the table to update all checkboxes
         tableView.reloadData()
     }
@@ -188,9 +191,15 @@ class GroupSelectViewController: NSViewController, NSTableViewDelegate, NSTableV
             }
         }
         
+        setGroupCountLabel()
         tableView.reloadData()
     }
     
+    func setGroupCountLabel() {
+        let filteredGroupsCount = filteredGroups.count
+        let allGroupsCount = allGroups.count
+        groupCountLabel.stringValue = String(format: "%d of %d", filteredGroupsCount, allGroupsCount)
+    }
     
     // MARK: - Actions
     // IBAction for the Save button to gather the selections and pass them back via the delegate:

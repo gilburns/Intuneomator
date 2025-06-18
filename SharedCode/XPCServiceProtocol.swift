@@ -255,6 +255,20 @@ import Foundation
     /// - Parameter reply: Callback with array of group dictionaries or nil on error
     func fetchEntraGroups(reply: @escaping ([[String: Any]]?) -> Void)
     
+    /// Searches Azure AD groups by name with startswith filtering
+    /// - Parameters:
+    ///   - searchQuery: Text to search for in group display names
+    ///   - maxResults: Maximum number of results to return
+    ///   - reply: Callback with array of matching group dictionaries or nil on error
+    func searchEntraGroups(searchQuery: String, maxResults: Int, reply: @escaping ([[String: Any]]?) -> Void)
+    
+    /// Searches Azure AD groups by name with contains filtering for broader matching
+    /// - Parameters:
+    ///   - searchQuery: Text to search for anywhere in group display names
+    ///   - maxResults: Maximum number of results to return
+    ///   - reply: Callback with array of matching group dictionaries or nil on error
+    func searchEntraGroupsContains(searchQuery: String, maxResults: Int, reply: @escaping ([[String: Any]]?) -> Void)
+    
     /// Fetches macOS assignment filters from Microsoft Graph
     /// - Parameter reply: Callback with array of filter dictionaries or nil on error
     func fetchAssignmentFiltersForMac(reply: @escaping ([[String: Any]]?) -> Void)
