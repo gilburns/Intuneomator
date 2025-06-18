@@ -28,6 +28,26 @@ extension XPCManager {
         sendRequest({ $0.fetchEntraGroups(reply: $1) }, completion: completion)
     }
     
+    /// Searches for security-enabled groups by name using startswith filtering
+    /// More efficient than loading all groups for large environments with 1000+ groups
+    /// - Parameters:
+    ///   - searchQuery: Text to search for in group display names
+    ///   - maxResults: Maximum number of results to return
+    ///   - completion: Callback with array of matching group dictionaries or nil on failure
+    func searchEntraGroups(searchQuery: String, maxResults: Int = 50, completion: @escaping ([[String: Any]]?) -> Void) {
+        sendRequest({ $0.searchEntraGroups(searchQuery: searchQuery, maxResults: maxResults, reply: $1) }, completion: completion)
+    }
+    
+    /// Searches for security-enabled groups by name using contains filtering for broader matching
+    /// Alternative search method when startswith doesn't return enough results
+    /// - Parameters:
+    ///   - searchQuery: Text to search for anywhere in group display names
+    ///   - maxResults: Maximum number of results to return
+    ///   - completion: Callback with array of matching group dictionaries or nil on failure
+    func searchEntraGroupsContains(searchQuery: String, maxResults: Int = 50, completion: @escaping ([[String: Any]]?) -> Void) {
+        sendRequest({ $0.searchEntraGroupsContains(searchQuery: searchQuery, maxResults: maxResults, reply: $1) }, completion: completion)
+    }
+    
     /// Retrieves macOS-specific assignment filters from Microsoft Intune
     /// Filters enable conditional assignment based on device properties and attributes
     /// - Parameter completion: Callback with array of filter dictionaries or nil on failure
