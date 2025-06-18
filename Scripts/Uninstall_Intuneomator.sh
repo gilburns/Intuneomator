@@ -15,6 +15,19 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+# Get the currently logged-in user
+LOGGED_IN_USER=$(ls -l /dev/console | awk '{print $3}')
+# Current User home folder - do it this way in case the folder isn't in /Users
+LOGGED_IN_USERHOME=$(dscl . -read /users/${LOGGED_IN_USER} NFSHomeDirectory | cut -d " " -f 2)
+
+if [[ -z "$LOGGED_IN_USER" || "$LOGGED_IN_USER" == "root" ]]; then
+    echo "⚠️  Warning: Could not determine the logged-in user or running in headless mode"
+    echo "    Will only clean system-level items"
+    LOGGED_IN_USERHOME=""
+else
+    echo "🔍 Detected logged-in user: $LOGGED_IN_USER ($LOGGED_IN_USERHOME)"
+fi
+
 echo "🗑️  Intuneomator Uninstaller"
 echo "=================================="
 
@@ -25,11 +38,18 @@ DAEMON_DIR="/Library/LaunchDaemons"
 APPLICATION_PATH="/Applications/Intuneomator.app"
 SERVICE_PATH="/Library/Application Support/Intuneomator"
 LOGGING_PATH="/Library/Logs/Intuneomator"
-USER_LOGGING_PATH="$HOME/Library/Logs/Intuneomator"
+
+# User-specific paths (only if we can determine the logged-in user)
+if [[ -n "$LOGGED_IN_USERHOME" ]]; then
+    USER_LOGGING_PATH="$LOGGED_IN_USERHOME/Library/Logs/Intuneomator"
+    USER_TEMP_FOLDERS="$LOGGED_IN_USERHOME/tmp/Intuneomator*"
+else
+    USER_LOGGING_PATH=""
+    USER_TEMP_FOLDERS=""
+fi
 
 # Additional paths that may contain data
 TEMP_FOLDERS="/tmp/Intuneomator*"
-USER_TEMP_FOLDERS="$HOME/tmp/Intuneomator*"
 
 # List of daemon plist filenames (actual daemons found in project)
 daemons=(
@@ -102,20 +122,36 @@ fi
 
 # === Step 6: Remove user log directory ===
 echo "🔄 Removing user logs..."
-if [[ -d "$USER_LOGGING_PATH" ]]; then
-  rm -rf "$USER_LOGGING_PATH" && echo "  ✅ Removed $USER_LOGGING_PATH" || echo "  ❌ Failed to remove $USER_LOGGING_PATH"
+if [[ -n "$USER_LOGGING_PATH" ]]; then
+  if [[ -d "$USER_LOGGING_PATH" ]]; then
+    rm -rf "$USER_LOGGING_PATH" && echo "  ✅ Removed $USER_LOGGING_PATH" || echo "  ❌ Failed to remove $USER_LOGGING_PATH"
+  else
+    echo "  ℹ️  User log directory not found at $USER_LOGGING_PATH"
+  fi
 else
-  echo "  ℹ️  User log directory not found at $USER_LOGGING_PATH"
+  echo "  ℹ️  Skipping user logs (could not determine logged-in user)"
 fi
 
 # === Step 7: Remove temporary directories ===
 echo "🔄 Cleaning up temporary files..."
 temp_removed=false
-for temp_dir in $TEMP_FOLDERS $USER_TEMP_FOLDERS; do
+
+# Remove system temp directories
+for temp_dir in $TEMP_FOLDERS; do
   if [[ -d "$temp_dir" ]]; then
     rm -rf "$temp_dir" && echo "  ✅ Removed $temp_dir" && temp_removed=true
   fi
 done
+
+# Remove user temp directories (if we know the actual user)
+if [[ -n "$USER_TEMP_FOLDERS" ]]; then
+  for temp_dir in $USER_TEMP_FOLDERS; do
+    if [[ -d "$temp_dir" ]]; then
+      rm -rf "$temp_dir" && echo "  ✅ Removed $temp_dir" && temp_removed=true
+    fi
+  done
+fi
+
 if [[ "$temp_removed" == "false" ]]; then
   echo "  ℹ️  No temporary directories found"
 fi
