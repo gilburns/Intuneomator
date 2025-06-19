@@ -164,7 +164,10 @@ class ValidationViewController: NSViewController, WizardStepProtocol {
         Please ensure that the enterprise application has been assigned the following Microsoft Graph API permissions:
 
         - DeviceManagementApps.ReadWrite.All
-
+        - DeviceManagementConfiguration.ReadWrite.All
+        - DeviceManagementManagedDevices.Read.All
+        - Group.Read.All
+        
         After granting permissions, an admin must consent to them in Entra ID.
         """
         alert.alertStyle = .critical
