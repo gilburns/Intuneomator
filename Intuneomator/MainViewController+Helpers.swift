@@ -370,10 +370,11 @@ extension MainViewController {
         let groups = AppDataManager.shared.getEntraGroups()
         let filters = AppDataManager.shared.getEntraFilters()
         
+        Logger.info("Graph Status - Categories: \(categories.count), Groups: \(groups.count), Filters: \(filters.count)", toUserDirectory: true)
         if categories.isEmpty && groups.isEmpty {
             return (false, "No connection to Microsoft Graph - check internet connectivity and authentication")
         } else if categories.isEmpty {
-            return (false, "Unable to load app categories from Microsoft Graph")
+            return (false, "Unable to load Intune app categories from Microsoft Graph")
         } else if groups.isEmpty {
             return (false, "Unable to load Entra groups from Microsoft Graph")
         } else {
