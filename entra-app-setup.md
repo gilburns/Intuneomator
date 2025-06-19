@@ -29,8 +29,8 @@ Setting up the Enterprise application involves several key steps:
 5. Click **Register**
 
 Once registered, note down the following important values displayed on the Overview page:
-- **Application (client) ID**
 - **Directory (tenant) ID**
+- **Application (client) ID**
 
 These values will be required when configuring Intuneomator.
 
@@ -69,7 +69,7 @@ openssl x509 -req -days 365 -in intuneomator.csr -signkey intuneomator.key -out 
 openssl pkcs12 -export -out intuneomator.pfx -inkey intuneomator.key -in intuneomator.crt
 ```
 
-2. Upload the certificate to your application:
+2. Upload the certificate to your Entra application:
    - Navigate to your application in Entra admin center
    - Select **Certificates & secrets** from the left menu
    - Under **Certificates**, click **Upload certificate**
@@ -77,7 +77,7 @@ openssl pkcs12 -export -out intuneomator.pfx -inkey intuneomator.key -in intuneo
    - Optionally provide a description
    - Click **Add**
 
-3. Note the certificate thumbprint for reference
+3. Note the certificate thumbprint for reference (Should match what Intuneomator will also show)
 
 ### Option B: Using Client Secret
 
@@ -101,8 +101,7 @@ openssl pkcs12 -export -out intuneomator.pfx -inkey intuneomator.key -in intuneo
 5. Search for and select the following permissions:
    - *DeviceManagementApps.ReadWrite.All*
    - *DeviceManagementConfiguration.ReadWrite.All*
-   - *DeviceManagementManagedDevices.ReadWrite.All*
-   - *DeviceManagementScripts.ReadWrite.All*
+   - *DeviceManagementManagedDevices.Read.All*
    - *Group.Read.All*
 
 6. Click **Add permissions**
@@ -110,38 +109,20 @@ openssl pkcs12 -export -out intuneomator.pfx -inkey intuneomator.key -in intuneo
 
 ## Step 4: Configure Intuneomator
 
-### For Client Secret Authentication
+### Choose between Certificate and Client Secret Authentication
 
-Create a configuration file for Intuneomator with the following details:
+- In the Setup Wizard select the radion button that matches your Entra App choice.  
+- Click the import button that matches your choice.  
+- If you import a P12/PFX certificate, it will ask you for the password to open the file
+- If you import a Secret Key, it will ask you for the expiration date to send a reminder 
 
-```json
-{
-  "tenantId": "your-directory-tenant-id",
-  "clientId": "your-application-client-id",
-  "clientSecret": "your-client-secret-value"
-}
-```
-
-### For Certificate Authentication
-
-Create a configuration file for Intuneomator with the following details:
-
-```json
-{
-  "tenantId": "your-directory-tenant-id",
-  "clientId": "your-application-client-id",
-  "certificatePath": "/path/to/your/certificate.pfx",
-  "certificatePassword": "your-certificate-password"
-}
-```
 
 ## Step 5: Test the Connection
 
-Use Intuneomator's connection test functionality to verify the setup is working correctly:
-
-```bash
-intuneomator test-connection --config /path/to/your/config.json
-```
+- In the next panel of the Setup Wizard, enter the Entra ID info:
+- Enter the Entra Tenant ID
+- Enter the Entra Application ID.
+- Click the Test Connection button to confirm the connection 
 
 ## Troubleshooting
 
