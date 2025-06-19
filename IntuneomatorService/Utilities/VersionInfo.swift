@@ -12,7 +12,7 @@ struct VersionInfo {
     
     // MARK: - Version Constants (Update when preparing a release)
     private static let DAEMON_VERSION = "1.0.0"
-    private static let DAEMON_BUILD = "164"
+    private static let DAEMON_BUILD = "173"
     
     /// Gets the current daemon version information
     /// - Returns: Tuple containing version and build strings
