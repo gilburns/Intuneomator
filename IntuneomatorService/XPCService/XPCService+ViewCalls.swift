@@ -837,11 +837,21 @@ extension XPCService {
     
     // MARK: - Automation Trigger
     
-    /// Triggers automation by creating the trigger file for the Launch Daemon
-    /// Creates the `.automation.trigger` file that the Launch Daemon watches for automation start
-    /// - Parameter reply: Callback with success status and optional message
-    func triggerAutomation(reply: @escaping (Bool, String?) -> Void) {
-        let triggerFileURL = URL(fileURLWithPath: "/Library/Application Support/Intuneomator/.automation.trigger")
+    /// Triggers daemon by creating the appropriate trigger file for Launch Daemon processing
+    /// Creates trigger files that various Launch Daemons watch for specific operations
+    /// - Parameters:
+    ///   - triggerType: Type of trigger ("automation", "updatecheck", "cachecleaner", "labelupdater")
+    ///   - reply: Callback with success status and optional message
+    func triggerDaemon(triggerType: String, reply: @escaping (Bool, String?) -> Void) {
+        // Validate trigger type
+        let validTriggers = ["automation", "updatecheck", "cachecleaner", "labelupdater"]
+        guard validTriggers.contains(triggerType) else {
+            Logger.error("❌ Invalid trigger type: \(triggerType). Valid types: \(validTriggers.joined(separator: ", "))", category: .core)
+            reply(false, "Invalid trigger type: \(triggerType)")
+            return
+        }
+        
+        let triggerFileURL = URL(fileURLWithPath: "/Library/Application Support/Intuneomator/.\(triggerType).trigger")
         
         do {
             // Ensure the directory exists
@@ -851,15 +861,15 @@ extension XPCService {
             }
             
             // Create/touch the trigger file
-            let triggerContent = "Triggered by GUI at \(Date())\n"
+            let triggerContent = "Triggered by GUI at \(Date()) for \(triggerType)\n"
             try triggerContent.write(to: triggerFileURL, atomically: true, encoding: .utf8)
             
-            Logger.info("✅ Automation trigger file created successfully", category: .core)
-            reply(true, "Automation triggered successfully")
+            Logger.info("✅ \(triggerType.capitalized) trigger file created successfully", category: .core)
+            reply(true, "\(triggerType.capitalized) triggered successfully")
             
         } catch {
-            Logger.error("❌ Failed to create automation trigger file: \(error.localizedDescription)", category: .core)
-            reply(false, "Failed to trigger automation: \(error.localizedDescription)")
+            Logger.error("❌ Failed to create \(triggerType) trigger file: \(error.localizedDescription)", category: .core)
+            reply(false, "Failed to trigger \(triggerType): \(error.localizedDescription)")
         }
     }
     

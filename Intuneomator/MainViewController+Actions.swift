@@ -446,7 +446,8 @@ extension MainViewController {
                 self.statusLabel.stringValue = "Triggering automation for \(readyCount) ready labels..."
                 Logger.info("User confirmed automation trigger for \(readyCount) labels", category: .core, toUserDirectory: true)
                 
-                XPCManager.shared.triggerFullAutomation { [weak self] result in
+
+                XPCManager.shared.triggerDaemon(triggerType: "automation") { [weak self] result in
                     DispatchQueue.main.async {
                         guard let self = self else { return }
                         
