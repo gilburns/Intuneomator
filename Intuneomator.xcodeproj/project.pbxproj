@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		1B0194DE2E0475FA00FE32C6 /* entra-app-setup.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 1B0194DD2E0475FA00FE32C6 /* entra-app-setup.pdf */; };
-		1B2A4B9E2DD52F1800F85707 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 1B2A4B9D2DD52F1800F85707 /* Config.xcconfig */; };
 		1BB0472A2D8A37F1004B6F3E /* LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = 1BB047292D8A37F1004B6F3E /* LICENSE.md */; };
 		1BB0472C2D8A406A004B6F3E /* entra-app-setup.md in Resources */ = {isa = PBXBuildFile; fileRef = 1BB0472B2D8A406A004B6F3E /* entra-app-setup.md */; };
 /* End PBXBuildFile section */
@@ -58,6 +57,13 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Utilities/FolderScanner.swift,
+			);
+			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
+		};
+		1B0198472E047D2300FE32C6 /* Exceptions for "Intuneomator" folder in "Intuneomator" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
 			);
 			target = 1BB0464F2D81321F004B6F3E /* Intuneomator */;
 		};
@@ -173,6 +179,9 @@
 		};
 		1BB046522D81321F004B6F3E /* Intuneomator */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1B0198472E047D2300FE32C6 /* Exceptions for "Intuneomator" folder in "Intuneomator" target */,
+			);
 			path = Intuneomator;
 			sourceTree = "<group>";
 		};
@@ -392,7 +401,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				1BB0472A2D8A37F1004B6F3E /* LICENSE.md in Resources */,
-				1B2A4B9E2DD52F1800F85707 /* Config.xcconfig in Resources */,
 				1B0194DE2E0475FA00FE32C6 /* entra-app-setup.pdf in Resources */,
 				1BB0472C2D8A406A004B6F3E /* entra-app-setup.md in Resources */,
 			);

@@ -162,14 +162,14 @@ func processLabelQuiet(withParam folderName: String) async -> (String, String, S
 func labelUpdates() {
     Task {
         let (isUpToDate, versionMessage, sha) = await InstallomatorLabels.compareInstallomatorVersionAsync()
-        Logger.info("🔍 Version Check: \(versionMessage)", category: .core)
+        Logger.info("🔍 Version Check: \(versionMessage), SHA: \(sha)", category: .core)
 
         if isUpToDate {
             Logger.info("✅ No update needed.", category: .core)
             exit(EXIT_SUCCESS)
         }
 
-        let localVersionString = InstallomatorLabels.getInstallomatorLocalVersion()
+        let (versionLocal, shaLocal) = InstallomatorLabels.getInstallomatorLocalVersion()
         let parts = versionMessage.components(separatedBy: ": ")
         let currentVersionString: String
         if let dateString = parts.last {
@@ -187,18 +187,19 @@ func labelUpdates() {
                 updatedLabels = try await InstallomatorLabels.updateInUseLabels()
             } catch {
                 Logger.error("❌ Failed to get updated labels: \(error.localizedDescription)", category: .core)
-                await sendLabelUpdateTeamsNotifications(withPreviousVersion: localVersionString, andCurrentVersion: currentVersionString, updatedLabels: [], isSuccess: false)
+                await sendLabelUpdateTeamsNotifications(withPreviousVersion: versionLocal, andCurrentVersion: currentVersionString, updatedLabels: [], isSuccess: false)
                 exit(EXIT_FAILURE)
             }
-            Logger.info("Local version: \(localVersionString)", category: .core)
+            Logger.info("Local version: \(versionLocal)", category: .core)
+            Logger.info("Local sha: \(shaLocal)", category: .core)
             Logger.info("Current version: \(currentVersionString)", category: .core)
             Logger.info("Updated labels: \(updatedLabels)", category: .core)
 
-            await sendLabelUpdateTeamsNotifications(withPreviousVersion: localVersionString, andCurrentVersion: currentVersionString, updatedLabels: updatedLabels, isSuccess: success)
+            await sendLabelUpdateTeamsNotifications(withPreviousVersion: versionLocal, andCurrentVersion: currentVersionString, updatedLabels: updatedLabels, isSuccess: success)
             exit(EXIT_SUCCESS)
         } else {
             Logger.info("❌ \(updateMessage)", category: .core)
-            await sendLabelUpdateTeamsNotifications(withPreviousVersion: localVersionString, andCurrentVersion: currentVersionString, updatedLabels: [], isSuccess: success)
+            await sendLabelUpdateTeamsNotifications(withPreviousVersion: versionLocal, andCurrentVersion: currentVersionString, updatedLabels: [], isSuccess: success)
             exit(EXIT_FAILURE)
         }
     }

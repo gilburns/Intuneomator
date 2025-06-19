@@ -603,6 +603,7 @@ extension EditViewController {
             )
             
         case .failure(let error):
+            Logger.error("Processing failed: \(error)")
             cleanupAfterProcessing()
         }
     }

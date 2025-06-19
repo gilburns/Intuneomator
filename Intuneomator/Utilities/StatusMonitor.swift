@@ -355,7 +355,7 @@ class StatusMonitor: ObservableObject {
         }
         
         // Update operation from notification data
-        if var existingOperation = operations[operationId] {
+        if let existingOperation = operations[operationId] {
             // Update existing operation with notification data
             if let statusString = userInfo["status"] as? String,
                let status = OperationStatus(rawValue: statusString) {

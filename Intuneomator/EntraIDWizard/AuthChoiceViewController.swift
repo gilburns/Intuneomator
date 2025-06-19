@@ -194,7 +194,7 @@ class AuthChoiceViewController: NSViewController, WizardStepProtocol {
             selectedMethod = "certificate"
         }
         
-        XPCManager.shared.setAuthMethod(selectedMethod) { [self] success in
+        XPCManager.shared.setAuthMethod(selectedMethod) { success in
             #if DEBUG
             if success ?? false {
                 Logger.info("Successfully updated auth method to: \(selectedMethod)", category: .core, toUserDirectory: true)

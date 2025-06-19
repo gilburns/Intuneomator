@@ -396,7 +396,7 @@ class TabViewController: NSViewController {
             // User confirmed deletion
             Logger.info("User confirmed deletion of '\(itemName)' directory.", category: .core, toUserDirectory: true)
             // Remove the directory associated with the item
-            let directoryPath = (AppConstants.intuneomatorManagedTitlesFolderURL.path as NSString).appendingPathComponent("\(itemLabel)_\(itemGuid)")
+            let directoryPath = (AppConstants.intuneomatorManagedTitlesFolderURL.path as NSString).appendingPathComponent("\(folderName)")
 
             
             XPCManager.shared.removeLabelContent(directoryPath) { success in

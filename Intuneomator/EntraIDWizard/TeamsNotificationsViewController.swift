@@ -87,7 +87,7 @@ class TeamsNotificationsViewController: NSViewController, WizardStepProtocol {
         fieldTeamsWebhookURL.isEnabled = sender.state == .on
         
         let isEnabled = sender.state == .on
-        XPCManager.shared.setTeamsNotificationsEnabled(isEnabled) { [self] success in
+        XPCManager.shared.setTeamsNotificationsEnabled(isEnabled) { success in
             Logger.info("Teams notifications updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
@@ -97,7 +97,7 @@ class TeamsNotificationsViewController: NSViewController, WizardStepProtocol {
     /// - Parameter sender: The text field containing the updated webhook URL
     @IBAction func webhookURLChanged(_ sender: NSTextField) {
         let urlString = sender.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        XPCManager.shared.setTeamsWebhookURL(urlString) { [self] success in
+        XPCManager.shared.setTeamsWebhookURL(urlString) { success in
             Logger.info("Webhook URL updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }

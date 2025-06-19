@@ -167,7 +167,7 @@ class WelcomeWizardViewController: NSViewController, NSTableViewDelegate, NSTabl
         Logger.info("Wizard completed. Processing configuration...", category: .core, toUserDirectory: true)
         
         // Update first run completion status via XPC
-        XPCManager.shared.setFirstRunCompleted(true) { [self] success in
+        XPCManager.shared.setFirstRunCompleted(true) { success in
             Logger.info("First run updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
 

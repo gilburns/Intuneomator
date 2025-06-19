@@ -192,7 +192,9 @@ extension MainViewController {
             self.updateAutomationTriggerUIState()
 
             self.refreshUI()
-        }        
+            
+            Logger.info("Deleted label: \(deletedLabel), GUID: \(deletedGUID)", toUserDirectory: true)
+        }
     }
 
     /**

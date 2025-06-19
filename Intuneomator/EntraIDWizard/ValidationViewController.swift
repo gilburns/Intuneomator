@@ -182,7 +182,7 @@ class ValidationViewController: NSViewController, WizardStepProtocol {
     /// Trims whitespace and persists the application ID for authentication
     private func setApplicationID() {
         let appIDString = applicationIDTextField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        XPCManager.shared.setApplicationID(appIDString) { [self] success in
+        XPCManager.shared.setApplicationID(appIDString) { success in
             Logger.info("Application ID updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }
@@ -191,7 +191,7 @@ class ValidationViewController: NSViewController, WizardStepProtocol {
     /// Trims whitespace and persists the tenant ID for authentication
     private func setTenantID() {
         let tenantIDString = tenantIDTextField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        XPCManager.shared.setTenantID(tenantIDString) { [self] success in
+        XPCManager.shared.setTenantID(tenantIDString) { success in
             Logger.info("Tenant ID updated: \(success == true ? "✅" : "❌")", category: .core, toUserDirectory: true)
         }
     }

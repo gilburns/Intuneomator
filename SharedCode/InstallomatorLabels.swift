@@ -86,9 +86,9 @@ class InstallomatorLabels {
 
     /// Gets the locally installed Installomator version
     /// - Returns: Version string or fallback date if file doesn't exist
-    static func getInstallomatorLocalVersion() -> String {
-        let (version, _) = getInstallomatorLocalVersionWithSHA()
-        return version
+    static func getInstallomatorLocalVersion() -> (String, String) {
+        let (version, sha) = getInstallomatorLocalVersionWithSHA()
+        return (version, sha)
     }
     
     /// Gets the locally installed Installomator version and SHA
