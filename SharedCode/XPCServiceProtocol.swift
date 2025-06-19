@@ -391,9 +391,11 @@ import Foundation
     
     // MARK: - Automation Trigger
     
-    /// Triggers automation by creating the trigger file
-    /// - Parameter reply: Callback with success status and optional message
-    func triggerAutomation(reply: @escaping (Bool, String?) -> Void)
+    /// Triggers daemon by creating the appropriate trigger file for Launch Daemon processing
+    /// - Parameters:
+    ///   - triggerType: Type of trigger to create ("automation", "updatecheck", "cachecleaner", "labelupdater")
+    ///   - reply: Callback with success status and optional message
+    func triggerDaemon(triggerType: String, reply: @escaping (Bool, String?) -> Void)
     
     /// Checks if automation is currently running by examining the status file
     /// - Parameter reply: Callback indicating if automation is active

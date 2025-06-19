@@ -378,6 +378,352 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         mainViewController?.openDiscoveredAppsManagerWindow(sender)
     }
     
+    /// Handles the check for updates menu item action.
+    /// 
+    /// Checks the server for available updates and prompts user to proceed with update if available.
+    /// Shows appropriate dialogs for up-to-date status or update confirmation with warnings.
+    /// 
+    /// - Parameter sender: The menu item that triggered this action
+    @IBAction func checkForUpdatesFromMenu(_ sender: Any) {
+        Task { @MainActor in
+            await checkForUpdates()
+        }
+    }
+    
+    // MARK: - Update Checking
+    
+    /// Checks for available application updates from the server
+    /// 
+    /// Downloads the latest version information and compares with current app version.
+    /// Shows appropriate user dialogs for update status and confirmation.
+    /// Triggers update process if user confirms and update is available.
+    private func checkForUpdates() async {
+        do {
+            // Step 1: Check if automatic updates are enabled
+            let canAutoUpdate = await checkIfAutoUpdateIsEnabled()
+            
+            // Step 2: Get current app version info
+            guard let currentVersionInfo = getCurrentVersionInfo() else {
+                await showUpdateError("Unable to determine current application version")
+                return
+            }
+            
+            // Step 3: Fetch latest version from server
+            let latestVersionInfo = try await fetchLatestVersionInfo()
+            
+            // Step 4: Compare versions
+            let updateAvailable = isUpdateAvailable(current: currentVersionInfo, latest: latestVersionInfo)
+            
+            if !updateAvailable {
+                await showUpToDateDialog()
+                return
+            }
+            
+            // Step 5: Handle update based on auto-update capability
+            if !canAutoUpdate {
+                await showManualUpdateRequiredDialog(current: currentVersionInfo, latest: latestVersionInfo)
+                return
+            }
+            
+            // Step 6: Show update available dialog for automatic update
+            let shouldUpdate = await showUpdateAvailableDialog(current: currentVersionInfo, latest: latestVersionInfo)
+            if !shouldUpdate {
+                return
+            }
+            
+            // Step 7: Show final warning dialog
+            let proceedWithUpdate = await showUpdateWarningDialog()
+            if !proceedWithUpdate {
+                return
+            }
+            
+            // Step 8: Start update process
+            await startUpdateProcess()
+            
+        } catch {
+            Logger.error("Error checking for updates: \(error.localizedDescription)", category: .core, toUserDirectory: true)
+            await showUpdateError("Failed to check for updates: \(error.localizedDescription)")
+        }
+    }
+    
+    /// Gets the current application version information from the bundle
+    /// - Returns: Tuple containing (shortVersion, buildVersion) or nil if unable to read
+    private func getCurrentVersionInfo() -> (shortVersion: String, buildVersion: String)? {
+        guard let bundle = Bundle.main.infoDictionary else { return nil }
+        
+        let shortVersion = bundle["CFBundleShortVersionString"] as? String ?? ""
+        let buildVersion = bundle["CFBundleVersion"] as? String ?? ""
+        
+        guard !shortVersion.isEmpty && !buildVersion.isEmpty else { return nil }
+        
+        return (shortVersion: shortVersion, buildVersion: buildVersion)
+    }
+    
+    /// Fetches the latest version information from the server
+    /// - Returns: Tuple containing (shortVersion, buildVersion) from server
+    /// - Throws: URLError or other networking errors
+    private func fetchLatestVersionInfo() async throws -> (shortVersion: String, buildVersion: String) {
+        guard let url = URL(string: "https://intuneomator.org/downloads/latest-version.txt") else {
+            throw URLError(.badURL)
+        }
+        
+        let (data, response) = try await URLSession.shared.data(from: url)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        
+        let versionString = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        
+        // Parse version string like "1.0.0.164"
+        let components = versionString.split(separator: ".")
+        guard components.count == 4 else {
+            throw URLError(.cannotParseResponse)
+        }
+        
+        let shortVersion = "\(components[0]).\(components[1]).\(components[2])"
+        let buildVersion = String(components[3])
+        
+        return (shortVersion: shortVersion, buildVersion: buildVersion)
+    }
+    
+    /// Determines if an update is available by comparing version numbers
+    /// - Parameters:
+    ///   - current: Current app version info
+    ///   - latest: Latest available version info
+    /// - Returns: True if update is available, false if current is up-to-date or newer
+    private func isUpdateAvailable(current: (shortVersion: String, buildVersion: String), 
+                                 latest: (shortVersion: String, buildVersion: String)) -> Bool {
+        // Compare build versions as integers (more reliable than string comparison)
+        guard let currentBuild = Int(current.buildVersion),
+              let latestBuild = Int(latest.buildVersion) else {
+            // Fallback to string comparison if conversion fails
+            return latest.buildVersion > current.buildVersion
+        }
+        
+        return latestBuild > currentBuild
+    }
+    
+    /// Shows dialog indicating the app is up-to-date
+    @MainActor
+    private func showUpToDateDialog() {
+        let alert = NSAlert()
+        alert.messageText = "Intuneomator is Up-to-Date"
+        alert.informativeText = "You are running the latest version of Intuneomator."
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+    }
+    
+    /// Shows dialog with update available information and asks for user confirmation
+    /// - Parameters:
+    ///   - current: Current app version info
+    ///   - latest: Latest available version info
+    /// - Returns: True if user wants to update, false otherwise
+    @MainActor
+    private func showUpdateAvailableDialog(current: (shortVersion: String, buildVersion: String),
+                                         latest: (shortVersion: String, buildVersion: String)) async -> Bool {
+        return await withCheckedContinuation { continuation in
+            let alert = NSAlert()
+            alert.messageText = "Update Available"
+            alert.informativeText = """
+            A new version of Intuneomator is available.
+            
+            Current Version: \(current.shortVersion) (Build \(current.buildVersion))
+            Available Version: \(latest.shortVersion) (Build \(latest.buildVersion))
+            
+            Would you like to update the application and service?
+            """
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "Update")
+            alert.addButton(withTitle: "Cancel")
+            
+            let response = alert.runModal()
+            continuation.resume(returning: response == .alertFirstButtonReturn)
+        }
+    }
+    
+    /// Shows final warning dialog before proceeding with update
+    /// - Returns: True if user wants to proceed, false otherwise
+    @MainActor
+    private func showUpdateWarningDialog() async -> Bool {
+        return await withCheckedContinuation { continuation in
+            let alert = NSAlert()
+            alert.messageText = "Confirm Update"
+            alert.informativeText = """
+            ⚠️ Warning: The application will automatically quit and the update will proceed.
+            
+            The update process will:
+            • Close Intuneomator
+            • Update the application and service
+            • Restart the application when complete
+            
+            Do you want to continue?
+            """
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "Continue")
+            alert.addButton(withTitle: "Cancel")
+            
+            let response = alert.runModal()
+            continuation.resume(returning: response == .alertFirstButtonReturn)
+        }
+    }
+    
+    /// Shows error dialog for update checking failures
+    /// - Parameter message: Error message to display
+    @MainActor
+    private func showUpdateError(_ message: String) {
+        let alert = NSAlert()
+        alert.messageText = "Update Check Failed"
+        alert.informativeText = message
+        alert.alertStyle = .critical
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+    }
+    
+    /// Checks if automatic updates are enabled by examining launch daemon and update mode
+    /// - Returns: True if automatic updates can proceed, false if manual update is required
+    private func checkIfAutoUpdateIsEnabled() async -> Bool {
+        // Check 1: Verify launch daemon plist exists and is enabled
+        let launchDaemonPath = "/Library/LaunchDaemons/com.gilburns.intuneomator.updatecheck.plist"
+        
+        guard FileManager.default.fileExists(atPath: launchDaemonPath) else {
+            Logger.info("Launch daemon plist not found at \(launchDaemonPath)", category: .core, toUserDirectory: true)
+            return false
+        }
+        
+        // Read and parse the plist
+        guard let plistData = FileManager.default.contents(atPath: launchDaemonPath),
+              let plist = try? PropertyListSerialization.propertyList(from: plistData, options: [], format: nil) as? [String: Any] else {
+            Logger.info("Failed to read launch daemon plist", category: .core, toUserDirectory: true)
+            return false
+        }
+        
+        // Check if daemon is disabled in plist
+        if let disabled = plist["Disabled"] as? Bool, disabled {
+            Logger.info("Launch daemon is disabled in plist", category: .core, toUserDirectory: true)
+            return false
+        }
+        
+        // Check 2: Verify update mode is set to automatic (0) not notify-only (1)
+        let updateMode = await getUpdateMode()
+        if updateMode == 1 {
+            Logger.info("Update mode is set to notify-only (1)", category: .core, toUserDirectory: true)
+            return false
+        }
+        
+        Logger.info("Automatic updates are enabled", category: .core, toUserDirectory: true)
+        return true
+    }
+    
+    /// Gets the current update mode from XPC service
+    /// - Returns: Update mode integer (0: automatic, 1: notify only)
+    private func getUpdateMode() async -> Int {
+        return await withCheckedContinuation { continuation in
+            XPCManager.shared.getIntuneomatorUpdateMode { mode in
+                continuation.resume(returning: mode ?? 0)
+            }
+        }
+    }
+    
+    /// Shows dialog for manual update requirement with option to open releases page
+    /// - Parameters:
+    ///   - current: Current app version info
+    ///   - latest: Latest available version info
+    @MainActor
+    private func showManualUpdateRequiredDialog(current: (shortVersion: String, buildVersion: String),
+                                              latest: (shortVersion: String, buildVersion: String)) async {
+        await withCheckedContinuation { continuation in
+            let alert = NSAlert()
+            alert.messageText = "Update Available - Manual Update Required"
+            alert.informativeText = """
+            A new version of Intuneomator is available, but automatic updates are disabled.
+            
+            Current Version: \(current.shortVersion) (Build \(current.buildVersion))
+            Available Version: \(latest.shortVersion) (Build \(latest.buildVersion))
+            
+            Automatic updates are disabled either because:
+            • The update daemon is disabled
+            • Update mode is set to "Notify Only"
+            
+            Would you like to open the releases page to manually download the update?
+            """
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "Open Releases Page")
+            alert.addButton(withTitle: "Cancel")
+            
+            let response = alert.runModal()
+            if response == .alertFirstButtonReturn {
+                // Open releases page in default browser
+                if let url = URL(string: "https://github.com/gilburns/Intuneomator/releases") {
+                    NSWorkspace.shared.open(url)
+                    Logger.info("Opened releases page for manual update", category: .core, toUserDirectory: true)
+                }
+            }
+            
+            continuation.resume()
+        }
+    }
+    
+    /// Starts the update process by showing progress dialog and triggering update daemon
+    @MainActor
+    private func startUpdateProcess() async {
+        // Create and show progress window
+        let progressAlert = NSAlert()
+        progressAlert.messageText = "Update in Progress"
+        progressAlert.informativeText = "The update process has started. Please wait..."
+        progressAlert.alertStyle = .informational
+        
+        // Add progress indicator
+        let progressIndicator = NSProgressIndicator()
+        progressIndicator.style = .spinning
+        progressIndicator.translatesAutoresizingMaskIntoConstraints = false
+        progressIndicator.startAnimation(nil)
+        progressAlert.accessoryView = progressIndicator
+        
+        // Show the alert in a non-blocking way
+        DispatchQueue.main.async {
+            progressAlert.runModal()
+        }
+        
+        // Trigger the update daemon
+        XPCManager.shared.triggerDaemon(triggerType: "updatecheck") { result in
+            DispatchQueue.main.async {
+                if let (success, message) = result {
+                    if success {
+                        Logger.info("✅ Update process triggered successfully", category: .core, toUserDirectory: true)
+                        // The update daemon will handle quitting the app and updating
+                    } else {
+                        Logger.error("❌ Failed to trigger update process: \(message ?? "Unknown error")", category: .core, toUserDirectory: true)
+                        
+                        // Close progress alert and show error
+                        NSApp.abortModal()
+                        
+                        let errorAlert = NSAlert()
+                        errorAlert.messageText = "Update Failed"
+                        errorAlert.informativeText = "Failed to start update process: \(message ?? "Unknown error")"
+                        errorAlert.alertStyle = .critical
+                        errorAlert.addButton(withTitle: "OK")
+                        errorAlert.runModal()
+                    }
+                } else {
+                    Logger.error("❌ XPC connection failed during update trigger", category: .core, toUserDirectory: true)
+                    
+                    // Close progress alert and show error
+                    NSApp.abortModal()
+                    
+                    let errorAlert = NSAlert()
+                    errorAlert.messageText = "Update Failed"
+                    errorAlert.informativeText = "Unable to communicate with update service"
+                    errorAlert.alertStyle = .critical
+                    errorAlert.addButton(withTitle: "OK")
+                    errorAlert.runModal()
+                }
+            }
+        }
+    }
+    
     // MARK: - Network Connectivity Validation
     
     /// Checks for internet connectivity using multiple reliable methods.

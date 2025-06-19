@@ -198,21 +198,23 @@ extension XPCManager {
     
     // MARK: - Automation Trigger
     
-    /// Triggers full automation for all managed labels
-    /// Creates trigger file for Launch Daemon to process all labels in queue
-    /// - Parameter completion: Callback with success status and optional message, or nil on XPC failure
-    func triggerFullAutomation(completion: @escaping ((Bool, String?)?) -> Void) {
+    /// Triggers daemon for specific types
+    /// Creates trigger files for Launch Daemons to process various operations
+    /// - Parameters:
+    ///   - triggerType: Type of trigger ("automation", "updatecheck", "cachecleaner", "labelupdater")
+    ///   - completion: Callback with success status and optional message, or nil on XPC failure
+    func triggerDaemon(triggerType: String, completion: @escaping ((Bool, String?)?) -> Void) {
         // Custom implementation since sendRequest doesn't support tuple return types
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let service = self?.connection?.remoteObjectProxyWithErrorHandler({ error in
-                Logger.info("XPCManager: XPC connection error during automation trigger: \(error)", category: .core, toUserDirectory: true)
+                Logger.info("XPCManager: XPC connection error during \(triggerType) trigger: \(error)", category: .core, toUserDirectory: true)
                 completion(nil)
             }) as? XPCServiceProtocol else {
                 completion(nil)
                 return
             }
             
-            service.triggerAutomation { success, message in
+            service.triggerDaemon(triggerType: triggerType) { success, message in
                 completion((success, message))
             }
         }
