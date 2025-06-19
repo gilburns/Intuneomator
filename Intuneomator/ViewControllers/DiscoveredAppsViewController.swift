@@ -439,9 +439,16 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
         let ascending = sortDescriptor.ascending
 
         filteredApps.sort {
-            let firstValue = getSortableValue(for: $0, key: key)
-            let secondValue = getSortableValue(for: $1, key: key)
-            return ascending ? (firstValue < secondValue) : (firstValue > secondValue)
+            // Special handling for deviceCount to sort numerically
+            if key == "deviceCount" {
+                let firstValue = $0.deviceCount ?? 0
+                let secondValue = $1.deviceCount ?? 0
+                return ascending ? (firstValue < secondValue) : (firstValue > secondValue)
+            } else {
+                let firstValue = getSortableValue(for: $0, key: key)
+                let secondValue = getSortableValue(for: $1, key: key)
+                return ascending ? (firstValue < secondValue) : (firstValue > secondValue)
+            }
         }
         
         tableView.reloadData()
