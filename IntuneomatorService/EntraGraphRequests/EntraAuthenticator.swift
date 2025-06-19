@@ -365,7 +365,7 @@ class EntraAuthenticator {
 
             // Step 2: Decode the JWT and verify permissions
             let claims = try decodeJWT(authToken)
-            let requiredRoles: Set<String> = [
+            let requiredPermissions = [
                 "DeviceManagementApps.ReadWrite.All",
                 "DeviceManagementConfiguration.ReadWrite.All",
                 "DeviceManagementManagedDevices.Read.All",
@@ -374,14 +374,15 @@ class EntraAuthenticator {
             ]
 
             if let roles = claims["roles"] as? [String] {
-                let matchedRoles = Set(roles).intersection(requiredRoles)
-                if !matchedRoles.isEmpty {
-                    Logger.info("Matched roles: \(matchedRoles)", category: .core)
+                let grantedRoles = Set(roles)
+                let (satisfiedPermissions, missingSummary) = validatePermissions(required: requiredPermissions, granted: grantedRoles)
+                
+                if satisfiedPermissions.count == requiredPermissions.count {
+                    Logger.info("All required permissions satisfied: \(satisfiedPermissions)", category: .core)
                 } else {
-                    let missingRoles = requiredRoles.subtracting(Set(roles))
-                    Logger.error("Missing roles: \(missingRoles)", category: .core)
+                    Logger.error("Missing required permissions: \(missingSummary)", category: .core)
                     throw NSError(domain: "GraphValidationError", code: 1, userInfo: [
-                        NSLocalizedDescriptionKey: "Token does not contain any of the required permissions. Missing roles: \(missingRoles.joined(separator: ", "))"
+                        NSLocalizedDescriptionKey: "Token does not contain sufficient permissions. \(missingSummary)"
                     ])
                 }
             } else {
@@ -450,6 +451,76 @@ class EntraAuthenticator {
         }
         
         return json
+    }
+    
+    // MARK: - Permission Validation Helper
+    
+    /// Validates that granted permissions satisfy required permissions, accounting for over-permissions
+    /// - Parameters:
+    ///   - required: Array of required permission strings
+    ///   - granted: Set of granted permission strings from the JWT token
+    /// - Returns: Tuple containing (satisfied permissions array, missing permissions summary string)
+    private func validatePermissions(required: [String], granted: Set<String>) -> ([String], String) {
+        var satisfiedPermissions: [String] = []
+        var missingPermissions: [String] = []
+        
+        for requiredPermission in required {
+            if isPermissionSatisfied(required: requiredPermission, granted: granted) {
+                satisfiedPermissions.append(requiredPermission)
+            } else {
+                missingPermissions.append(requiredPermission)
+            }
+        }
+        
+        let missingSummary = missingPermissions.isEmpty ? 
+            "All permissions satisfied" : 
+            "Missing: \(missingPermissions.joined(separator: ", "))"
+        
+        return (satisfiedPermissions, missingSummary)
+    }
+    
+    /// Checks if a specific required permission is satisfied by any of the granted permissions
+    /// Handles over-permissions where ReadWrite.All satisfies Read.All requirements
+    /// - Parameters:
+    ///   - required: The required permission string
+    ///   - granted: Set of all granted permissions
+    /// - Returns: True if the requirement is satisfied by any granted permission
+    private func isPermissionSatisfied(required: String, granted: Set<String>) -> Bool {
+        // Direct match
+        if granted.contains(required) {
+            return true
+        }
+        
+        // Check for over-permissions (ReadWrite.All satisfies Read.All)
+        if required.hasSuffix(".Read.All") {
+            let basePermission = String(required.dropLast(9)) // Remove ".Read.All"
+            let writePermission = basePermission + ".ReadWrite.All"
+            if granted.contains(writePermission) {
+                Logger.info("Permission '\(required)' satisfied by higher permission '\(writePermission)'", category: .core)
+                return true
+            }
+        }
+        
+        // Special case: Check for broad permissions that might cover specific ones
+        // For example, "Application.ReadWrite.All" might cover more specific app permissions
+        let permissionComponents = required.split(separator: ".")
+        if permissionComponents.count >= 3 {
+            let resource = permissionComponents[0] // e.g., "DeviceManagementApps"
+            
+            // Look for broader permissions on the same resource
+            for grantedPermission in granted {
+                let grantedComponents = grantedPermission.split(separator: ".")
+                if grantedComponents.count >= 3 &&
+                   grantedComponents[0] == resource && // Same resource
+                   grantedPermission.hasSuffix(".ReadWrite.All") && // Broader write permission
+                   (required.hasSuffix(".Read.All") || required.hasSuffix(".ReadWrite.All")) {
+                    Logger.info("Permission '\(required)' satisfied by broader permission '\(grantedPermission)'", category: .core)
+                    return true
+                }
+            }
+        }
+        
+        return false
     }
 }
 
