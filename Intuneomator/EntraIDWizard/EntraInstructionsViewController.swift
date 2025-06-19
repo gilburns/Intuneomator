@@ -6,12 +6,10 @@
 //
 
 import Cocoa
-@preconcurrency import WebKit
-import Ink
 import PDFKit
 
 /// Wizard step for displaying Entra ID app registration instructions
-/// Renders markdown-based setup documentation in a web view with syntax highlighting
+/// Displays pre-generated PDF documentation with professional formatting
 /// Provides printing and PDF export capabilities for offline reference
 /// Implements WizardStepProtocol for integration with the multi-step wizard flow
 class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
@@ -26,16 +24,15 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
 
     // MARK: - Interface Builder Outlets
     
-    /// Web view for displaying markdown-rendered instructions with syntax highlighting
-    @IBOutlet weak var webView: WKWebView!
+    /// PDF view for displaying the bundled setup instructions PDF
+    @IBOutlet weak var pdfView: PDFView!
 
     
     /// Called after the view controller's view is loaded into memory
-    /// Configures web view navigation and loads markdown instructions
+    /// Configures PDF view and loads bundled setup instructions
     override func viewDidLoad() {
         super.viewDidLoad()
-        webView.navigationDelegate = self
-        loadMarkdownInstructions()
+        loadPDFInstructions()
     }
 
     /// Factory method for creating an instance from the Wizard storyboard
@@ -47,110 +44,77 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
     }
     
     
-    // MARK: - Markdown Content Loading
+    // MARK: - PDF Content Loading
     
-    /// Loads and displays the Entra ID setup instructions from bundled markdown file
-    /// Converts markdown to styled HTML and loads it in the web view
-    func loadMarkdownInstructions() {
-        guard let filePath = Bundle.main.path(forResource: "entra-app-setup", ofType: "md") else {
-            Logger.info("Markdown file not found in bundle", category: .core, toUserDirectory: true)
+    /// Loads and displays the Entra ID setup instructions from bundled PDF file
+    /// Uses the pre-generated PDF for consistent formatting and reliable display
+    func loadPDFInstructions() {
+        guard let pdfURL = Bundle.main.url(forResource: "entra-app-setup", withExtension: "pdf") else {
+            Logger.info("PDF file not found in bundle", category: .core, toUserDirectory: true)
             return
         }
 
-        do {
-            let markdownText = try String(contentsOfFile: filePath, encoding: .utf8)
-            let htmlText = convertMarkdownToHTML(markdownText)
-            webView.loadHTMLString(htmlText, baseURL: nil)
-        } catch {
-            Logger.info("Failed to load Markdown file.", category: .core, toUserDirectory: true)
+        guard let pdfDocument = PDFDocument(url: pdfURL) else {
+            Logger.info("Failed to load PDF document", category: .core, toUserDirectory: true)
+            return
         }
-    }
 
-    /// Converts markdown content to styled HTML with syntax highlighting
-    /// Applies professional styling and includes external libraries for code highlighting
-    /// - Parameter markdown: Raw markdown string content
-    /// - Returns: Complete HTML document with embedded CSS and JavaScript
-    func convertMarkdownToHTML(_ markdown: String) -> String {
-        let parser = MarkdownParser()
-        let htmlBody = parser.html(from: markdown)
-
-        // Create styled HTML with syntax highlighting and Apple system fonts
-        let styledHTML = """
-        <html>
-        <head>
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css">
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-            <script>hljs.highlightAll();</script>
-            <style>
-                body { font-family: -apple-system, sans-serif; padding: 20px; }
-                pre { background: #282c34; padding: 10px; border-radius: 5px; overflow-x: auto; }
-                code { font-family: monospace; font-size: 14px; color: #abb2bf; }
-            </style>
-        </head>
-        <body>
-            \(htmlBody)
-        </body>
-        </html>
-        """
+        // Configure PDF view for optimal display
+        pdfView.document = pdfDocument
+        pdfView.autoScales = true
+        pdfView.displayMode = .singlePageContinuous
+        pdfView.displayDirection = .vertical
         
-        return styledHTML
+        Logger.info("PDF instructions loaded successfully", category: .core, toUserDirectory: true)
     }
     
     
     // MARK: - Printing Operations
     
-    /// Handles print button action to generate and print instructions
-    /// Creates PDF from web view content and sends to system print dialog
+    /// Handles print button action to print the PDF instructions
+    /// Uses PDFDocument's built-in print operation for reliable multi-page printing
     /// - Parameter sender: The print button that triggered the action
     @IBAction func printInstructionsClicked(_ sender: NSButton) {
-        webView.createPDF { [self] result in
-            switch result {
-            case .success(let pdfData):
-                self.printPDFData(pdfData)
-            case .failure(let error):
-                Logger.info("Failed to create PDF for printing: \(error.localizedDescription)", category: .core, toUserDirectory: true)
-            }
+        guard let pdfDocument = pdfView.document else {
+            Logger.info("No PDF document loaded for printing", category: .core, toUserDirectory: true)
+            return
+        }
+        
+        // Create print info with appropriate settings
+        let printInfo = NSPrintInfo()
+        printInfo.paperSize = NSSize(width: 612, height: 792) // US Letter
+        printInfo.topMargin = 36    // 0.5 inch
+        printInfo.bottomMargin = 36 // 0.5 inch  
+        printInfo.leftMargin = 36   // 0.5 inch
+        printInfo.rightMargin = 36  // 0.5 inch
+        printInfo.horizontalPagination = .automatic
+        printInfo.verticalPagination = .automatic
+        printInfo.orientation = .portrait
+        
+        // Create print operation using PDF document
+        guard let printOperation = pdfDocument.printOperation(for: printInfo, scalingMode: .pageScaleToFit, autoRotate: true) else {
+            Logger.info("Failed to create print operation", category: .core, toUserDirectory: true)
+            return
+        }
+        
+        printOperation.showsPrintPanel = true
+        printOperation.showsProgressPanel = true
+        
+        // Run the operation
+        if let window = view.window {
+            printOperation.runModal(for: window, delegate: nil, didRun: nil, contextInfo: nil)
+        } else {
+            printOperation.run()
         }
     }
     
-    /// Configures and executes print operation for PDF data
-    /// Sets up proper page formatting and displays system print dialog
-    /// - Parameter pdfData: PDF data generated from web view content
-    func printPDFData(_ pdfData: Data) {
-        guard let pdfDocument = PDFDocument(data: pdfData) else {
-            Logger.info("Error: Failed to create PDF document from data", category: .core, toUserDirectory: true)
-            return
-        }
-
-        // Create PDF view with standard Letter size dimensions
-        let pdfView = PDFView(frame: NSRect(x: 0, y: 0, width: 612, height: 792))
-        pdfView.document = pdfDocument
-        pdfView.autoScales = true  // Ensures proper scaling and full content display
-
-        // Configure print settings with appropriate margins and pagination
-        let printInfo = NSPrintInfo.shared
-        printInfo.horizontalPagination = .automatic
-        printInfo.verticalPagination = .automatic
-        printInfo.isHorizontallyCentered = true
-        printInfo.isVerticallyCentered = true
-        printInfo.topMargin = 10
-        printInfo.bottomMargin = 10
-        printInfo.leftMargin = 10
-        printInfo.rightMargin = 10
-
-        // Execute print operation with user interaction
-        let printOperation = NSPrintOperation(view: pdfView, printInfo: printInfo)
-        printOperation.showsPrintPanel = true
-        printOperation.showsProgressPanel = true
-        printOperation.runModal(for: view.window!, delegate: nil, didRun: nil, contextInfo: nil)
-    }
     
     
     
     // MARK: - PDF Export Operations
     
     /// Handles save button action to export instructions as PDF file
-    /// Displays save dialog and exports web view content to user-selected location
+    /// Copies the bundled PDF to the user-selected location
     /// - Parameter sender: The save button that triggered the action
     @IBAction func saveInstructionsClicked(_ sender: NSButton) {
         let savePanel = NSSavePanel()
@@ -159,31 +123,31 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
 
         savePanel.begin { response in
             if response == .OK, let saveURL = savePanel.url {
-                self.exportWebViewToPDF(to: saveURL)
+                self.exportBundledPDF(to: saveURL)
             }
         }
     }
         
-    /// Exports web view content to PDF file at specified URL
-    /// Requires macOS 12.0 or later for WKWebView PDF creation capabilities
+    /// Exports the bundled PDF file to the specified URL
+    /// Simply copies the PDF from the app bundle to the user's chosen location
     /// - Parameter url: Destination URL for the exported PDF file
-    func exportWebViewToPDF(to url: URL) {
-        if #available(macOS 12.0, *) {
-            webView.createPDF { [self] result in
-                switch result {
-                case .success(let data):
-                    do {
-                        try data.write(to: url)
-                        Logger.info("PDF successfully saved at: \(url)", category: .core, toUserDirectory: true)
-                    } catch {
-                        Logger.info("Failed to save PDF: \(error)", category: .core, toUserDirectory: true)
-                    }
-                case .failure(let error):
-                    Logger.info("Failed to create PDF: \(error.localizedDescription)", category: .core, toUserDirectory: true)
-                }
+    func exportBundledPDF(to url: URL) {
+        guard let bundledPDFURL = Bundle.main.url(forResource: "entra-app-setup", withExtension: "pdf") else {
+            Logger.info("Bundled PDF file not found", category: .core, toUserDirectory: true)
+            return
+        }
+        
+        do {
+            // Remove destination file if it exists
+            if FileManager.default.fileExists(atPath: url.path) {
+                try FileManager.default.removeItem(at: url)
             }
-        } else {
-            Logger.info("PDF export is only supported on macOS 12 or later.", category: .core, toUserDirectory: true)
+            
+            // Copy the bundled PDF to the destination
+            try FileManager.default.copyItem(at: bundledPDFURL, to: url)
+            Logger.info("PDF successfully saved at: \(url)", category: .core, toUserDirectory: true)
+        } catch {
+            Logger.info("Failed to save PDF: \(error.localizedDescription)", category: .core, toUserDirectory: true)
         }
     }
     
@@ -216,27 +180,5 @@ class EntraInstructionsViewController: NSViewController, WizardStepProtocol {
     /// - Returns: Localized description string explaining the instructions step purpose
     func getStepDescription() -> String {
         return "App registration instructions"
-    }
-}
-
-// MARK: - WKNavigationDelegate Extension
-
-/// Extension implementing WKNavigationDelegate for handling web view navigation
-/// Ensures external links open in system browser while allowing internal HTML navigation
-extension EntraInstructionsViewController: WKNavigationDelegate {
-    
-    /// Handles navigation policy decisions for web view requests
-    /// Opens external links in system browser while allowing internal content
-    /// - Parameters:
-    ///   - webView: The web view requesting navigation policy
-    ///   - navigationAction: Details about the requested navigation
-    ///   - decisionHandler: Completion handler with policy decision
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        if let url = navigationAction.request.url, navigationAction.navigationType == .linkActivated {
-            NSWorkspace.shared.open(url) // Open external links in system browser
-            decisionHandler(.cancel) // Prevent loading in WKWebView
-            return
-        }
-        decisionHandler(.allow) // Allow other navigation (internal HTML content)
     }
 }

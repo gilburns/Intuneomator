@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1B0194DE2E0475FA00FE32C6 /* entra-app-setup.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 1B0194DD2E0475FA00FE32C6 /* entra-app-setup.pdf */; };
 		1B2A4B9E2DD52F1800F85707 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 1B2A4B9D2DD52F1800F85707 /* Config.xcconfig */; };
-		1BB046FE2D899E64004B6F3E /* Ink in Frameworks */ = {isa = PBXBuildFile; productRef = 1BB046FD2D899E64004B6F3E /* Ink */; };
 		1BB0472A2D8A37F1004B6F3E /* LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = 1BB047292D8A37F1004B6F3E /* LICENSE.md */; };
 		1BB0472C2D8A406A004B6F3E /* entra-app-setup.md in Resources */ = {isa = PBXBuildFile; fileRef = 1BB0472B2D8A406A004B6F3E /* entra-app-setup.md */; };
 /* End PBXBuildFile section */
@@ -35,6 +35,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1B0194DD2E0475FA00FE32C6 /* entra-app-setup.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "entra-app-setup.pdf"; sourceTree = "<group>"; };
 		1B2A4B9D2DD52F1800F85707 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		1B9DD88D2DDD759C005ECE05 /* IntuneomatorUpdater */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = IntuneomatorUpdater; sourceTree = BUILT_PRODUCTS_DIR; };
 		1B9DD8952DDD798E005ECE05 /* libproc.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libproc.tbd; path = usr/lib/libproc.tbd; sourceTree = SDKROOT; };
@@ -216,7 +217,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1BB046FE2D899E64004B6F3E /* Ink in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -253,6 +253,7 @@
 				1B0194BA2DFF142300FE32C6 /* Scripts */,
 				1BB046512D81321F004B6F3E /* Products */,
 				1BB047292D8A37F1004B6F3E /* LICENSE.md */,
+				1B0194DD2E0475FA00FE32C6 /* entra-app-setup.pdf */,
 				1BB0472B2D8A406A004B6F3E /* entra-app-setup.md */,
 				1B9DD8942DDD798E005ECE05 /* Frameworks */,
 			);
@@ -314,7 +315,6 @@
 			);
 			name = Intuneomator;
 			packageProductDependencies = (
-				1BB046FD2D899E64004B6F3E /* Ink */,
 			);
 			productName = Intuneomator;
 			productReference = 1BB046502D81321F004B6F3E /* Intuneomator.app */;
@@ -373,7 +373,6 @@
 			mainGroup = 1BB046472D81321F004B6F3E;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				1BB046FC2D899E64004B6F3E /* XCRemoteSwiftPackageReference "ink" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1BB046512D81321F004B6F3E /* Products */;
@@ -394,6 +393,7 @@
 			files = (
 				1BB0472A2D8A37F1004B6F3E /* LICENSE.md in Resources */,
 				1B2A4B9E2DD52F1800F85707 /* Config.xcconfig in Resources */,
+				1B0194DE2E0475FA00FE32C6 /* entra-app-setup.pdf in Resources */,
 				1BB0472C2D8A406A004B6F3E /* entra-app-setup.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -786,25 +786,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		1BB046FC2D899E64004B6F3E /* XCRemoteSwiftPackageReference "ink" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/johnsundell/ink.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.6.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		1BB046FD2D899E64004B6F3E /* Ink */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 1BB046FC2D899E64004B6F3E /* XCRemoteSwiftPackageReference "ink" */;
-			productName = Ink;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 1BB046482D81321F004B6F3E /* Project object */;
 }

@@ -3,7 +3,7 @@
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="23504"/>
-        <plugIn identifier="com.apple.WebKit2IBPlugin" version="23504"/>
+        <plugIn identifier="com.apple.pdfkit.ibplugin" version="23504"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -401,20 +401,18 @@ The Public certificate key should be uploaded to Entra ID under the Intuneomator
                         <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <wkWebView wantsLayer="YES" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="5Yc-b5-i9a">
+                            <pdfView autoresizesSubviews="NO" wantsLayer="YES" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Xae-Nn-CMj">
                                 <rect key="frame" x="20" y="44" width="410" height="142"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                <wkWebViewConfiguration key="configuration">
-                                    <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
-                                    <wkPreferences key="preferences"/>
-                                </wkWebViewConfiguration>
-                            </wkWebView>
+                            </pdfView>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="C7V-LO-96B">
                                 <rect key="frame" x="308" y="13" width="128" height="27"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                                 <buttonCell key="cell" type="push" title="Save Instructions…" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Qh2-1C-IOa">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="smallSystem"/>
+                                    <string key="keyEquivalent">s</string>
+                                    <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                                 </buttonCell>
                                 <connections>
                                     <action selector="saveInstructionsClicked:" target="Tca-k8-0wR" id="6Xp-aF-HkI"/>
@@ -429,12 +427,14 @@ The Public certificate key should be uploaded to Entra ID under the Intuneomator
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <button hidden="YES" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="76M-eo-u9b">
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="76M-eo-u9b">
                                 <rect key="frame" x="185" y="13" width="127" height="27"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                                 <buttonCell key="cell" type="push" title="Print Instructions…" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="obY-8K-v2z">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="smallSystem"/>
+                                    <string key="keyEquivalent">p</string>
+                                    <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                                 </buttonCell>
                                 <connections>
                                     <action selector="printInstructionsClicked:" target="Tca-k8-0wR" id="Jbm-YC-Kv9"/>
@@ -443,7 +443,7 @@ The Public certificate key should be uploaded to Entra ID under the Intuneomator
                         </subviews>
                     </view>
                     <connections>
-                        <outlet property="webView" destination="5Yc-b5-i9a" id="jsG-90-8gw"/>
+                        <outlet property="pdfView" destination="Xae-Nn-CMj" id="kAP-FH-i00"/>
                     </connections>
                 </viewController>
                 <customObject id="QIK-eT-sAa" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
