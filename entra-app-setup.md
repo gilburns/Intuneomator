@@ -111,7 +111,7 @@ openssl pkcs12 -export -out intuneomator.pfx -inkey intuneomator.key -in intuneo
 
 ### Choose between Certificate and Client Secret Authentication
 
-- In the Setup Wizard select the radion button that matches your Entra App choice.  
+- In the Setup Wizard select the radio button that matches your Entra App choice.  
 - Click the import button that matches your choice.  
 - If you import a P12/PFX certificate, it will ask you for the password to open the file
 - If you import a Secret Key, it will ask you for the expiration date to send a reminder 
