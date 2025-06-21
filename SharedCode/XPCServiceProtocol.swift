@@ -115,15 +115,16 @@ import Foundation
     ///   - reply: Callback with operation result message or nil on failure
     func addNewLabelContent(_ labelName: String, _ source: String, reply: @escaping (String?) -> Void)
     
-    /// Updates all Installomator labels from the official GitHub repository
-    /// - Parameter reply: Callback indicating if update was successful
-    func updateLabelsFromGitHub(reply: @escaping (Bool) -> Void)
-
     /// Removes label content and associated files
     /// - Parameters:
     ///   - labelDirectory: Directory path of the label to remove
     ///   - reply: Callback indicating if removal was successful
     func removeLabelContent(_ labelDirectory: String, reply: @escaping (Bool) -> Void)
+
+    /// Updates all Installomator labels from the official GitHub repository
+    /// - Parameter reply: Callback indicating if update was successful
+    func updateLabelsFromGitHub(reply: @escaping (Bool) -> Void)
+
     
     // MARK: - Label Configuration
     
@@ -178,6 +179,12 @@ import Foundation
     ///   - labelFolder: Target label folder name
     ///   - reply: Callback indicating if save was successful
     func savePostInstallScriptForLabel(_ script: String, _ labelFolder: String, reply: @escaping (Bool) -> Void)
+
+    // MARK: - Script Library Management
+    
+    /// Updates all Intuneomator Script Library from the official GitHub repository
+    /// - Parameter reply: Callback indicating if update was successful
+    func updateScriptLibraryFromGitHub(reply: @escaping (Bool) -> Void)
 
     
     // MARK: - Group Assignment Management

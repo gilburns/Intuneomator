@@ -322,6 +322,7 @@ extension EditViewController {
     /// Invokes `trackChanges()` to re-evaluate unsaved modifications.
     /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
     @IBAction func fieldIntuneIdDidChange(_ sender: NSTextField) {
+        AppDataManager.shared.currentAppBundleID = sender.stringValue
         trackChanges()
     }
 

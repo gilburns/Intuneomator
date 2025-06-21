@@ -353,6 +353,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         }
         
         fieldIntuneID.stringValue = appMetadata?.CFBundleIdentifier ?? ""
+        AppDataManager.shared.currentAppBundleID = appMetadata?.CFBundleIdentifier ?? ""
         buttonFeatureApp.state = appMetadata?.isFeatured ?? false ? .on : .off
         buttonManagedApp.state = appMetadata?.isManaged ?? false ? .on : .off
         radioYes.state = appMetadata?.ignoreVersionDetection ?? false ? .on : .off

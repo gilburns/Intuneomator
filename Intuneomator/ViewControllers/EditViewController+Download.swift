@@ -106,6 +106,7 @@ extension EditViewController {
                 // Populate the new fields
                 DispatchQueue.main.async {
                     self.fieldIntuneID.stringValue = pkgID
+                    AppDataManager.shared.currentAppBundleID = pkgID
                     self.fieldIntuneVersion.stringValue = pkgVersion
                     self.trackChanges()
                 }

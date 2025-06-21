@@ -59,6 +59,9 @@ class AppDataManager {
     /// Current application type being processed (used for context tracking)
     var currentAppType: String = ""
     
+    /// Current application bundle ID being processed (used for context tracking)
+    var currentAppBundleID: String = ""
+    
     /// Shared singleton instance providing centralized data access
     static let shared = AppDataManager()
     

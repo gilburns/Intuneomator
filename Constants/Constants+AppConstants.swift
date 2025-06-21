@@ -53,6 +53,11 @@ struct AppConstants {
 
     /// Directory used to store on-going automation download and upload statistics
     /// Location: /Library/Application Support/Intuneomator/Stats
+    static let intuneomatorScriptsURL = intuneomatorFolderURL
+        .appendingPathComponent("Scripts")
+
+    /// Directory used to store on-going automation download and upload statistics
+    /// Location: /Library/Application Support/Intuneomator/Stats
     static let intuneomatorUpDownStatsURL = intuneomatorFolderURL
         .appendingPathComponent("Stats")
 
@@ -71,6 +76,11 @@ struct AppConstants {
     static let installomatorVersionFileURL = installomatorFolderURL
         .appendingPathComponent("Version.json")
     
+    /// File containing the current Intuneomator Script Library version
+    /// Location: /Library/Application Support/Intuneomator/Scripts/Version.json
+    static let intuneomatorScriptsVersionFileURL = intuneomatorScriptsURL
+        .appendingPathComponent("Version.json")
+
     /// Unique temporary directory for the current process
     /// Location: /tmp/Intuneomator_{pid}_{guid8}
     static let intuneomatorTempFolderURL = FileManager.default.temporaryDirectory

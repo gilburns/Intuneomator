@@ -96,6 +96,7 @@ extension EditViewController {
             buttonPopUpMinimumOs.select(nil) // Clear selection if default item not found
         }
         fieldIntuneID.stringValue = ""
+        AppDataManager.shared.currentAppBundleID = ""
         radioYes.state = .off
         radioNo.state = .on
         buttonFeatureApp.state = .off
