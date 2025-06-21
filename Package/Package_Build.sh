@@ -77,6 +77,7 @@ rm -rf "$PKG_NAME" "$SIGNED_PKG_NAME" "$COMPONENT_PLIST" "$DIST_XML"
 mkdir -p "$TMP_DIR/Applications"
 mkdir -p "$TMP_DIR/Library/Application Support/Intuneomator"
 
+#ditto "${BUILD_PATH}/${APP_NAME}.app" "$TMP_DIR${INSTALL_LOCATION}/${APP_NAME}.app"
 cp -R "${BUILD_PATH}/${APP_NAME}.app" "$TMP_DIR${INSTALL_LOCATION}"
 cp "${BUILD_PATH}/IntuneomatorService" "$TMP_DIR/Library/Application Support/Intuneomator/"
 cp "${BUILD_PATH}/IntuneomatorUpdater" "$TMP_DIR/Library/Application Support/Intuneomator/"
