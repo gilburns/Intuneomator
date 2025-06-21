@@ -452,7 +452,7 @@ extension XPCService {
     /// Refreshes local label collection with latest versions and new applications
     /// - Parameter reply: Callback with success status of the download operation
     func updateLabelsFromGitHub(reply: @escaping (Bool) -> Void) {
-        InstallomatorLabels.installInstallomatorLabels { [self] success, message in
+        InstallomatorLabels.installInstallomatorLabels { success, message in
             if success {
                 Logger.info("Installomator labels downloaded successfully.", category: .core)
             } else {
@@ -747,7 +747,23 @@ extension XPCService {
         }
     }
 
+    // MARK: - Script Library Managemet
     
+    /// Downloads and updates Intuneomator Scripts Library from the official GitHub repository
+    /// Refreshes local script collection with latest versions and new scripts
+    /// - Parameter reply: Callback with success status of the download operation
+    func updateScriptLibraryFromGitHub(reply: @escaping (Bool) -> Void) {
+        ScriptLibraryManager.installIntuneomatorScripts { success, message in
+            if success {
+                Logger.info("Intuneomator scripts library downloaded successfully.", category: .core)
+            } else {
+                Logger.error("Failed to download Intuneomator scripts library: \(message)", category: .core)
+            }
+            reply(success)
+        }
+    }
+
+
     // MARK: - Group Assignment Management
     
     /// Saves group assignment configuration for a label

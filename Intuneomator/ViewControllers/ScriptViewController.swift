@@ -21,7 +21,7 @@ import UniformTypeIdentifiers
 /// - Implements custom tab interface with visual indicators for script presence
 /// - Handles deployment type restrictions (scripts unavailable for DMG and LOB apps)
 /// - Tracks unsaved changes with visual feedback
-class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, UnsavedChangesHandling {
+class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, UnsavedChangesHandling, ScriptLibraryDelegate {
     
     @IBOutlet weak var scriptsTabView: NSTabView!
     @IBOutlet weak var scriptsTabButtonsStackView: NSStackView! // A vertical stack view for buttons
@@ -31,6 +31,8 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
     @IBOutlet weak var warningLabel: NSTextField! // Label to show warnings about invalid scripts
     @IBOutlet weak var unavailableLabel: NSTextField!
     @IBOutlet weak var importButton: NSButton! // Outlet for the Import button
+    
+    @IBOutlet weak var scriptLibraryButton: NSButton!
 
     @IBOutlet weak var prePostHelpButton: NSButton!
 
@@ -272,7 +274,7 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
         }
         
     }
-    
+        
     /// Updates save button state based on script validation
     /// Performs validation for shebang requirements and character limits
     private func updateSaveButtonState() {
@@ -415,6 +417,55 @@ class ScriptViewController: NSViewController, NSTextViewDelegate, Configurable, 
 //        hasUnsavedChanges = true
 //        parentTabViewController?.updateSaveButtonState()
 //    }
+
+    
+    // MARK: - Script Library
+    /// Opens the script library accessory view
+    @IBAction func openScriptLibary(_ sender: Any) {
+        
+        let scriptLibraryVC = storyboard?.instantiateController(withIdentifier: "ScriptLibraryViewController") as! ScriptLibraryViewController
+
+        scriptLibraryVC.delegate = self
+        scriptLibraryVC.name = appData?.name
+        scriptLibraryVC.bundleId = AppDataManager.shared.currentAppBundleID
+        
+        // Determine the currently selected tab
+        guard let selectedTab = scriptsTabView.selectedTabViewItem else { return }
+        
+        // Get the target text field based on the tab
+        let targetScriptType: ScriptType
+        switch selectedTab.label {
+        case "Pre-install Script":
+            targetScriptType = .preInstall
+        case "Post-install Script":
+            targetScriptType = .postInstall
+        default:
+            return
+        }
+        scriptLibraryVC.scriptType = targetScriptType
+
+        // Show the modal
+        presentAsSheet(scriptLibraryVC)
+        
+    }
+    
+    func scriptLibrary(_ controller: ScriptLibraryViewController, didSelectScript content: String) {
+        // Determine the currently selected tab
+        guard let selectedTab = scriptsTabView.selectedTabViewItem else { return }
+
+        // Get the target text field based on the tab
+        switch selectedTab.label {
+        case "Pre-install Script":
+            fieldPreInstallScript.string = content
+        case "Post-install Script":
+            fieldPostInstallScript.string = content
+        default:
+            return
+        }
+        
+        textDidChange(Notification.init(name: NSNotification.Name("NSTextViewDidChange"), object: nil, userInfo: nil))
+    }
+
 
 
     // MARK: - Custom Tab Interface

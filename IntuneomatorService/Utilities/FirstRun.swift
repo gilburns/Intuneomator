@@ -16,18 +16,23 @@ class FirstRun {
     /// Sets up folder structure, downloads labels, and configures scheduled tasks
     static func checkFirstRun() -> Void {
         
-        if ConfigManager.readPlistValue(key: "FirstRunServiceCompleted") ?? false {
-//            Logger.info("Intuneomator first run has already run. Exiting...", category: .core)
-            return
-        }
         
         // Create folder structure
         setupSupportFolders()
         
+        if ConfigManager.readPlistValue(key: "FirstRunServiceCompleted") ?? false {
+//            Logger.info("Intuneomator first run has already run. Exiting...", category: .core)
+            return
+        }
+
         // Check if Installomator labels exist
         // Installs labels at first launch
         downloadInstallomatorLabels()
         
+        // Check if Intuneomator Script Library exist
+        // Installs Script Library at first launch
+        downloadIntuneomatorScriptLibrary()
+
         // Create additional LaunchDaemon's if not present
         setupOtherLaunchDaemons()
         
@@ -54,6 +59,7 @@ class FirstRun {
             AppConstants.installomatorCustomLabelsFolderURL.path,
             AppConstants.intuneomatorManagedTitlesFolderURL.path,
             AppConstants.intuneomatorOndemandTriggerURL.path,
+            AppConstants.intuneomatorScriptsURL.path,
         ]
         
         // Create required folders if they don't exist
@@ -105,7 +111,40 @@ class FirstRun {
             }
         }
     }
+
+    // MARK: - Setup Intuneomator Script Library
     
+    /// Downloads and installs Intuneomator Script Library from the official repository
+    /// Sets appropriate file permissions after successful download
+    static func downloadIntuneomatorScriptLibrary() {
+        ScriptLibraryManager.installIntuneomatorScripts { success, message in
+            DispatchQueue.main.async {
+                if success {
+                    Logger.info("Intuneomator Script Library downloaded successfully.", category: .core)
+
+                    if FileFolderManagerUtil.changePermissionsRecursively(
+                        at: AppConstants.intuneomatorScriptsVersionFileURL.path,
+                        to: 0o644,
+                        excludeHiddenFiles: true,
+                        skipDirectories: true
+                    ) {
+                        Logger.info("Permissions changed for files recursively!", category: .core)
+                    }
+                    if FileFolderManagerUtil.changePermissionsRecursively(
+                        at: AppConstants.intuneomatorScriptsVersionFileURL.path,
+                        to: 0o755,
+                        excludeHiddenFiles: true,
+                        skipDirectories: false
+                    ) {
+                        Logger.info("Permissions changed for directories recursively!", category: .core)
+                    }
+                } else {
+                    Logger.error("Failed to Intuneomator Script Library: \(message)", category: .core)
+                }
+            }
+        }
+    }
+
     
     /// Creates additional Launch Daemons for scheduled automation tasks
     /// Configures daemons for automation, cache cleanup, label updates, and update checks

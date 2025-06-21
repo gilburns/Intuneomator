@@ -183,6 +183,14 @@ extension XPCManager {
         sendRequest({ $0.savePostInstallScriptForLabel(script, labelFolder, reply: $1) }, completion: reply)
     }
     
+    // MARK: - Script Library Manager
+    
+    /// Downloads and updates Intuneomator Script Library from the official GitHub repository
+    /// Refreshes local Script collection with latest versions and new scripts
+    /// - Parameter completion: Callback with download success status or nil on XPC failure
+    func updateScriptLibraryFromGitHub(completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.updateScriptLibraryFromGitHub(reply: $1) }, completion: completion)
+    }
     
     // MARK: - Group Assignment Management
     

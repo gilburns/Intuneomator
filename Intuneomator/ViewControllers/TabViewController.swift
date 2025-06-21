@@ -105,6 +105,14 @@ class TabViewController: NSViewController {
             window.minSize = NSSize(width: 820, height: 730)
         }
 
+        let effectView = NSVisualEffectView(frame: view.bounds)
+        effectView.autoresizingMask = [.width, .height]
+        effectView.blendingMode = .withinWindow
+        effectView.material = .contentBackground
+        effectView.state = .active
+
+        self.view.addSubview(effectView, positioned: .below, relativeTo: nil)
+
         setCloudStatusIcon()
     }
 

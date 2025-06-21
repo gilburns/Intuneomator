@@ -37,6 +37,7 @@ extension EditViewController: PkgInspectorDelegate {
         // Update fields based on the returned data
         if let pkgID = pkgID {
             fieldIntuneID.stringValue = pkgID
+            AppDataManager.shared.currentAppBundleID = pkgID
         }
         if let pkgVersion = pkgVersion {
             fieldIntuneVersion.stringValue = pkgVersion
@@ -81,6 +82,7 @@ extension EditViewController: AppInspectorDelegate {
         // Update fields based on the returned data
         if let appID = appID {
             fieldIntuneID.stringValue = appID
+            AppDataManager.shared.currentAppBundleID = appID
         }
         if let appVersion = appVersion {
             fieldIntuneVersion.stringValue = appVersion
