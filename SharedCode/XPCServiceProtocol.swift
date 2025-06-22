@@ -186,6 +186,47 @@ import Foundation
     /// - Parameter reply: Callback indicating if update was successful
     func updateScriptLibraryFromGitHub(reply: @escaping (Bool) -> Void)
 
+    // MARK: - Intune Shell Script Management
+    
+    /// Fetches all Intune Shell Scripts from Microsoft Graph with pagination support
+    /// - Parameter reply: Callback with array of shell script dictionaries or nil on failure
+    func fetchIntuneShellScripts(reply: @escaping ([[String: Any]]?) -> Void)
+    
+    /// Uploads a shell script file to Microsoft Intune
+    /// - Parameters:
+    ///   - scriptPath: Absolute file path to the shell script file
+    ///   - scriptName: Display name for the script in Intune
+    ///   - runAsAccount: Execution context ("system" or "user")
+    ///   - retryCount: Number of retry attempts (1-5)
+    ///   - blockExecutionNotifications: Whether to suppress execution notifications
+    ///   - reply: Callback indicating if upload was successful
+    func uploadShellScript(scriptPath: String, scriptName: String, runAsAccount: String, retryCount: Int, blockExecutionNotifications: Bool, reply: @escaping (Bool) -> Void)
+    
+    /// Creates a new shell script in Intune with custom configuration data
+    /// - Parameters:
+    ///   - scriptData: Dictionary containing script configuration
+    ///   - reply: Callback with the script ID or nil on failure
+    func createNewShellScript(scriptData: [String: Any], reply: @escaping (String?) -> Void)
+    
+    /// Retrieves detailed information about a specific shell script
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the script
+    ///   - reply: Callback with script details dictionary or nil on failure
+    func getShellScriptDetails(scriptId: String, reply: @escaping ([String: Any]?) -> Void)
+    
+    /// Permanently deletes a shell script from Intune
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the script to delete
+    ///   - reply: Callback indicating if deletion was successful
+    func deleteShellScript(scriptId: String, reply: @escaping (Bool) -> Void)
+    
+    /// Updates an existing shell script with new configuration or content
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the script to update
+    ///   - updatedData: Dictionary containing properties to update
+    ///   - reply: Callback indicating if update was successful
+    func updateShellScript(scriptId: String, updatedData: [String: Any], reply: @escaping (Bool) -> Void)
+
     
     // MARK: - Group Assignment Management
     
