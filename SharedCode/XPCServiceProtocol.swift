@@ -186,6 +186,31 @@ import Foundation
     /// - Parameter reply: Callback indicating if update was successful
     func updateScriptLibraryFromGitHub(reply: @escaping (Bool) -> Void)
 
+    // MARK: - Intune App Category Management
+    
+    /// Fetches mobile app categories from Microsoft Graph
+    /// - Parameter reply: Callback with array of category dictionaries or nil on error
+    func fetchMobileAppCategories(reply: @escaping ([[String: Any]]?) -> Void)
+    
+    /// Creates a new mobile app category in Microsoft Intune
+    /// - Parameters:
+    ///   - categoryData: Dictionary containing category information (displayName is required)
+    ///   - reply: Callback with created category ID or nil on error
+    func createMobileAppCategory(categoryData: [String: Any], reply: @escaping (String?) -> Void)
+    
+    /// Updates an existing mobile app category in Microsoft Intune
+    /// - Parameters:
+    ///   - categoryId: Unique identifier (GUID) of the category to update
+    ///   - updatedData: Dictionary containing updated category information
+    ///   - reply: Callback indicating success (true) or failure (false)
+    func updateMobileAppCategory(categoryId: String, updatedData: [String: Any], reply: @escaping (Bool) -> Void)
+    
+    /// Deletes a mobile app category from Microsoft Intune
+    /// - Parameters:
+    ///   - categoryId: Unique identifier (GUID) of the category to delete
+    ///   - reply: Callback indicating success (true) or failure (false)
+    func deleteMobileAppCategory(categoryId: String, reply: @escaping (Bool) -> Void)
+
     // MARK: - Intune Shell Script Management
     
     /// Fetches all Intune Shell Scripts from Microsoft Graph with pagination support
@@ -228,6 +253,169 @@ import Foundation
     func updateShellScript(scriptId: String, updatedData: [String: Any], reply: @escaping (Bool) -> Void)
 
     
+    /// Fetches mobile app categories from Microsoft Graph
+    /// - Parameter reply: Callback with array of category dictionaries or nil on error
+    func fetchMobileAppCategories(reply: @escaping ([[String: Any]]?) -> Void)
+    
+    /// Creates a new mobile app category in Microsoft Intune
+    /// - Parameters:
+    ///   - categoryData: Dictionary containing category information (displayName is required)
+    ///   - reply: Callback with created category ID or nil on error
+    func createMobileAppCategory(categoryData: [String: Any], reply: @escaping (String?) -> Void)
+    
+    /// Updates an existing mobile app category in Microsoft Intune
+    /// - Parameters:
+    ///   - categoryId: Unique identifier (GUID) of the category to update
+    ///   - updatedData: Dictionary containing updated category information
+    ///   - reply: Callback indicating success (true) or failure (false)
+    func updateMobileAppCategory(categoryId: String, updatedData: [String: Any], reply: @escaping (Bool) -> Void)
+    
+    /// Deletes a mobile app category from Microsoft Intune
+    /// - Parameters:
+    ///   - categoryId: Unique identifier (GUID) of the category to delete
+    ///   - reply: Callback indicating success (true) or failure (false)
+    func deleteMobileAppCategory(categoryId: String, reply: @escaping (Bool) -> Void)
+
+    // MARK: - Intune Shell Script Management
+    
+    /// Fetches all Intune Shell Scripts from Microsoft Graph with pagination support
+    /// - Parameter reply: Callback with array of shell script dictionaries or nil on failure
+    func fetchIntuneShellScripts(reply: @escaping ([[String: Any]]?) -> Void)
+    
+    /// Uploads a shell script file to Microsoft Intune
+    /// - Parameters:
+    ///   - scriptPath: Absolute file path to the shell script file
+    ///   - scriptName: Display name for the script in Intune
+    ///   - runAsAccount: Execution context ("system" or "user")
+    ///   - retryCount: Number of retry attempts (1-5)
+    ///   - blockExecutionNotifications: Whether to suppress execution notifications
+    ///   - reply: Callback indicating if upload was successful
+    func uploadShellScript(scriptPath: String, scriptName: String, runAsAccount: String, retryCount: Int, blockExecutionNotifications: Bool, reply: @escaping (Bool) -> Void)
+    
+    /// Creates a new shell script in Intune with custom configuration data
+    /// - Parameters:
+    ///   - scriptData: Dictionary containing script configuration
+    ///   - reply: Callback with the script ID or nil on failure
+    func createNewShellScript(scriptData: [String: Any], reply: @escaping (String?) -> Void)
+    
+    /// Retrieves detailed information about a specific shell script
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the script
+    ///   - reply: Callback with script details dictionary or nil on failure
+    func getShellScriptDetails(scriptId: String, reply: @escaping ([String: Any]?) -> Void)
+    
+    /// Permanently deletes a shell script from Intune
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the script to delete
+    ///   - reply: Callback indicating if deletion was successful
+    func deleteShellScript(scriptId: String, reply: @escaping (Bool) -> Void)
+    
+    /// Updates an existing shell script with new configuration or content
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the script to update
+    ///   - updatedData: Dictionary containing properties to update
+    ///   - reply: Callback indicating if update was successful
+    func updateShellScript(scriptId: String, updatedData: [String: Any], reply: @escaping (Bool) -> Void)
+    
+    // MARK: - Shell Script Group Assignment Management
+    
+    /// Assigns Entra ID groups to a shell script in Microsoft Intune
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the shell script
+    ///   - groupAssignments: Array of assignment dictionaries containing group IDs
+    ///   - reply: Callback indicating if assignment was successful
+    func assignGroupsToShellScript(scriptId: String, groupAssignments: [[String: Any]], reply: @escaping (Bool) -> Void)
+    
+    /// Retrieves current group assignments for a shell script
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the shell script
+    ///   - reply: Callback with array of assignment dictionaries or nil on failure
+    func getShellScriptAssignments(scriptId: String, reply: @escaping ([[String: Any]]?) -> Void)
+    
+    /// Removes all group assignments from a shell script
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the shell script
+    ///   - reply: Callback indicating if removal was successful
+    func removeAllShellScriptAssignments(scriptId: String, reply: @escaping (Bool) -> Void)
+    
+    /// Removes a specific group assignment from a shell script
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the shell script
+    ///   - assignmentId: Unique identifier of the assignment to remove
+    ///   - reply: Callback indicating if removal was successful
+    func removeShellScriptAssignment(scriptId: String, assignmentId: String, reply: @escaping (Bool) -> Void)
+
+    // MARK: - Intune Custom Attribute Shell Script Management
+    
+    /// Fetches all Intune Custom Attribute Shell Scripts from Microsoft Graph with pagination support
+    /// - Parameter reply: Callback with array of custom attribute shell script dictionaries or nil on failure
+    func fetchIntuneCustomAttributeShellScripts(reply: @escaping ([[String: Any]]?) -> Void)
+    
+    /// Uploads a shell script file to Microsoft Intune
+    /// - Parameters:
+    ///   - customAttributeName: The name of the custom attribute
+    ///   - customAttributeType: The expected type of the custom attribute's value
+    ///   - displayName: Display name for the custom attribute script in Intune
+    ///   - description: Optional description for the device management script
+    ///   - runAsAccount: Execution context ("system" or "user")
+    ///   - retryCount: Number of retry attempts (1-5)
+    ///   - blockExecutionNotifications: Whether to suppress execution notifications
+    ///   - reply: Callback indicating if upload was successful
+    func uploadCustomAttributeShellScript(scriptPath: String, scriptName: String, runAsAccount: String, retryCount: Int, blockExecutionNotifications: Bool, reply: @escaping (Bool) -> Void)
+    
+    /// Creates a new shell script in Intune with custom configuration data
+    /// - Parameters:
+    ///   - scriptData: Dictionary containing script configuration
+    ///   - reply: Callback with the script ID or nil on failure
+    func createNewCustomAttributeShellScript(scriptData: [String: Any], reply: @escaping (String?) -> Void)
+    
+    /// Retrieves detailed information about a specific custom attribute shell script
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the script
+    ///   - reply: Callback with script details dictionary or nil on failure
+    func getCustomAttributeShellScriptDetails(scriptId: String, reply: @escaping ([String: Any]?) -> Void)
+    
+    /// Permanently deletes a custom attribute shell script from Intune
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the custom attribute script to delete
+    ///   - reply: Callback indicating if deletion was successful
+    func deleteCustomAttributeShellScript(scriptId: String, reply: @escaping (Bool) -> Void)
+    
+    /// Updates an existing custom attribute shell script with new configuration or content
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the custom attribute script to update
+    ///   - updatedData: Dictionary containing properties to update
+    ///   - reply: Callback indicating if update was successful
+    func updateCustomAttributeShellScript(scriptId: String, updatedData: [String: Any], reply: @escaping (Bool) -> Void)
+
+    // MARK: - Custom Attribute Shell Script Group Assignment Management
+    
+    /// Assigns Entra ID groups to a shell script in Microsoft Intune
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the shell script
+    ///   - groupAssignments: Array of assignment dictionaries containing group IDs
+    ///   - reply: Callback indicating if assignment was successful
+    func assignGroupsToCustomAttributeShellScript(scriptId: String, groupAssignments: [[String: Any]], reply: @escaping (Bool) -> Void)
+    
+    /// Retrieves current group assignments for a shell script
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the shell script
+    ///   - reply: Callback with array of assignment dictionaries or nil on failure
+    func getCustomAttributeShellScriptAssignments(scriptId: String, reply: @escaping ([[String: Any]]?) -> Void)
+    
+    /// Removes all group assignments from a shell script
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the shell script
+    ///   - reply: Callback indicating if removal was successful
+    func removeAllCustomAttributeShellScriptAssignments(scriptId: String, reply: @escaping (Bool) -> Void)
+    
+    /// Removes a specific group assignment from a shell script
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the shell script
+    ///   - assignmentId: Unique identifier of the assignment to remove
+    ///   - reply: Callback indicating if removal was successful
+    func removeCustomAttributeShellScriptAssignment(scriptId: String, assignmentId: String, reply: @escaping (Bool) -> Void)
+
     // MARK: - Group Assignment Management
     
     /// Saves Azure AD group assignments for a label
@@ -294,11 +482,7 @@ import Foundation
     )
     
     // MARK: - Microsoft Graph API
-    
-    /// Fetches mobile app categories from Microsoft Graph
-    /// - Parameter reply: Callback with array of category dictionaries or nil on error
-    func fetchMobileAppCategories(reply: @escaping ([[String: Any]]?) -> Void)
-    
+        
     /// Fetches Azure AD groups from Microsoft Graph
     /// - Parameter reply: Callback with array of group dictionaries or nil on error
     func fetchEntraGroups(reply: @escaping ([[String: Any]]?) -> Void)

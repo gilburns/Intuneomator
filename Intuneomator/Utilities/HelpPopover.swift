@@ -75,9 +75,6 @@ class HelpPopover {
         // Display the popover anchored to the specified view's right edge
         popover.show(relativeTo: anchorView.bounds, of: anchorView, preferredEdge: .maxX)
 
-        // Debug Logging
-//        print("Calculated Height: \(calculatedHeight)")
-//        print("Popover Height: \(popoverHeight)")
     }
 
     /// Programmatically closes the help popover

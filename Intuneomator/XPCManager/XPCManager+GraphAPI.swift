@@ -14,13 +14,6 @@ extension XPCManager {
     
     // MARK: - Microsoft Graph API Operations
 
-    /// Retrieves available mobile application categories from Microsoft Intune
-    /// Categories are used for organizing and classifying applications in the Intune console
-    /// - Parameter completion: Callback with array of category dictionaries or nil on failure
-    func fetchMobileAppCategories(completion: @escaping ([[String: Any]]?) -> Void) {
-        sendRequest({ $0.fetchMobileAppCategories(reply: $1) }, completion: completion)
-    }
-    
     /// Fetches security-enabled groups from Microsoft Entra ID (Azure AD)
     /// Groups are used for application assignment targeting and access control policies
     /// - Parameter completion: Callback with array of group dictionaries or nil on failure

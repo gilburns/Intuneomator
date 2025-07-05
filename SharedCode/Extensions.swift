@@ -19,6 +19,7 @@ extension Notification.Name {
     static let newDirectoryAdded = Notification.Name("newDirectoryAdded")
     static let labelEditCompleted = Notification.Name("labelEditCompleted")
     static let labelDeleteCompleted = Notification.Name("labelDeleteCompleted")
+    static let categoryManagerDidUpdateCategories = Notification.Name("categoryManagerDidUpdateCategories")
 }
 
 // MARK: - base64URLEncodedString encoding
