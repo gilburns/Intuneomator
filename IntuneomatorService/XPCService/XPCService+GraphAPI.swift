@@ -13,24 +13,7 @@ import Foundation
 extension XPCService {
     
     // MARK: - Graph API Methods
-    
-    /// Retrieves available mobile app categories from Microsoft Intune
-    /// Categories are used to organize and classify applications within the Intune console
-    /// - Parameter reply: Callback with array of category dictionaries or nil on failure
-    func fetchMobileAppCategories(reply: @escaping ([[String : Any]]?) -> Void) {
-        Task {
-            do {
-                let entraAuthenticator = EntraAuthenticator.shared
-                let authToken = try await entraAuthenticator.getEntraIDToken()
-                let categories = try await EntraGraphRequests.fetchMobileAppCategories(authToken: authToken)
-                reply(categories)
-            } catch {
-                Logger.error("Failed to fetch mobile app categories: \(error.localizedDescription)", category: .core)
-                reply(nil)
-            }
-        }
-    }
-    
+        
     /// Fetches security-enabled groups from Microsoft Entra ID (Azure AD)
     /// Groups are used for application assignment targeting and access control
     /// - Parameter reply: Callback with array of group dictionaries or nil on failure
