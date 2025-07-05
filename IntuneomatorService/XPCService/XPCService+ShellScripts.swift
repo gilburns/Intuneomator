@@ -137,4 +137,84 @@ extension XPCService {
             }
         }
     }
+    
+    // MARK: - Shell Script Group Assignment Management
+    
+    /// Assigns Entra ID groups to a shell script in Microsoft Intune via XPC
+    /// Creates group assignments allowing the script to execute on devices in specified groups
+    /// - Parameters:
+    ///   - scriptId: Unique identifier (GUID) of the shell script to assign groups to
+    ///   - groupAssignments: Array of assignment dictionaries containing group IDs and configuration
+    ///   - reply: Callback indicating if assignment was successful
+    func assignGroupsToShellScript(scriptId: String, groupAssignments: [[String: Any]], reply: @escaping (Bool) -> Void) {
+        Task {
+            do {
+                let entraAuthenticator = EntraAuthenticator.shared
+                let authToken = try await entraAuthenticator.getEntraIDToken()
+                let success = try await EntraGraphRequests.assignGroupsToShellScript(authToken: authToken, scriptId: scriptId, groupAssignments: groupAssignments)
+                reply(success)
+            } catch {
+                Logger.error("Failed to assign groups to shell script '\(scriptId)': \(error.localizedDescription)", category: .core)
+                reply(false)
+            }
+        }
+    }
+    
+    /// Retrieves current group assignments for a shell script from Microsoft Intune via XPC
+    /// Fetches all group assignments currently configured for the specified shell script
+    /// - Parameters:
+    ///   - scriptId: Unique identifier (GUID) of the shell script to retrieve assignments for
+    ///   - reply: Callback with array of assignment dictionaries or nil on failure
+    func getShellScriptAssignments(scriptId: String, reply: @escaping ([[String: Any]]?) -> Void) {
+        Task {
+            do {
+                let entraAuthenticator = EntraAuthenticator.shared
+                let authToken = try await entraAuthenticator.getEntraIDToken()
+                let assignments = try await EntraGraphRequests.getShellScriptAssignments(authToken: authToken, scriptId: scriptId)
+                reply(assignments)
+            } catch {
+                Logger.error("Failed to get assignments for shell script '\(scriptId)': \(error.localizedDescription)", category: .core)
+                reply(nil)
+            }
+        }
+    }
+    
+    /// Removes all group assignments from a shell script in Microsoft Intune via XPC
+    /// ⚠️ Warning: This removes ALL assignments - the script will no longer execute on any devices
+    /// - Parameters:
+    ///   - scriptId: Unique identifier (GUID) of the shell script to remove all assignments from
+    ///   - reply: Callback indicating if removal was successful
+    func removeAllShellScriptAssignments(scriptId: String, reply: @escaping (Bool) -> Void) {
+        Task {
+            do {
+                let entraAuthenticator = EntraAuthenticator.shared
+                let authToken = try await entraAuthenticator.getEntraIDToken()
+                let success = try await EntraGraphRequests.removeAllShellScriptAssignments(authToken: authToken, scriptId: scriptId)
+                reply(success)
+            } catch {
+                Logger.error("Failed to remove all assignments for shell script '\(scriptId)': \(error.localizedDescription)", category: .core)
+                reply(false)
+            }
+        }
+    }
+    
+    /// Removes a specific group assignment from a shell script in Microsoft Intune via XPC
+    /// Removes the script from a specific group assignment while preserving other assignments
+    /// - Parameters:
+    ///   - scriptId: Unique identifier (GUID) of the shell script
+    ///   - assignmentId: Unique identifier (GUID) of the specific assignment to remove
+    ///   - reply: Callback indicating if removal was successful
+    func removeShellScriptAssignment(scriptId: String, assignmentId: String, reply: @escaping (Bool) -> Void) {
+        Task {
+            do {
+                let entraAuthenticator = EntraAuthenticator.shared
+                let authToken = try await entraAuthenticator.getEntraIDToken()
+                let success = try await EntraGraphRequests.removeShellScriptAssignment(authToken: authToken, scriptId: scriptId, assignmentId: assignmentId)
+                reply(success)
+            } catch {
+                Logger.error("Failed to remove assignment '\(assignmentId)' for shell script '\(scriptId)': \(error.localizedDescription)", category: .core)
+                reply(false)
+            }
+        }
+    }
 }

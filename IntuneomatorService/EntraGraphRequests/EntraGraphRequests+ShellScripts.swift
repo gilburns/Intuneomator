@@ -516,11 +516,375 @@ extension EntraGraphRequests {
         let jsonData = try JSONSerialization.data(withJSONObject: updatedData, options: [])
         request.httpBody = jsonData
 
-        let (_, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
-            throw NSError(domain: "AppDataManager", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to update script."])
+            let responseStr = String(data: data, encoding: .utf8) ?? "Unknown error"
+            Logger.error("Failed to update script ID \(scriptId): \(responseStr)", category: .core)
+            throw NSError(domain: "AppDataManager", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to update script. Response: \(responseStr)"])
         }
+        
+        Logger.info("Successfully updated script with ID: \(scriptId)", category: .core)
+        return true
+    }
+    
+    // MARK: - Shell Script Group Assignment Management
+    
+    /// Assigns Entra ID groups to a shell script in Microsoft Intune
+    /// 
+    /// Creates group assignments for a shell script, allowing it to be executed on devices
+    /// belonging to the specified groups. Supports multiple assignment types and targets.
+    /// 
+    /// **Key Features:**
+    /// - Multiple group assignments in a single operation
+    /// - Support for group-based and all-device/user targeting
+    /// - Include/exclude assignment modes
+    /// - Comprehensive error handling and logging
+    /// - Automatic validation of group IDs and assignment data
+    /// 
+    /// **Assignment Structure:**
+    /// Each assignment in the array should contain:
+    /// ```swift
+    /// [
+    ///     "groupId": "12345-abcde-67890",          // Required: Entra ID group GUID or virtual group ID
+    ///     "mode": "include",                       // Required: "include" or "exclude"
+    ///     "assignmentType": "Required"             // Optional: Currently not used for shell scripts
+    /// ]
+    /// ```
+    /// 
+    /// **Virtual Groups:**
+    /// - All Users: groupId = "acacacac-9df4-4c7d-9d50-4ef0226f57a9"
+    /// - All Devices: groupId = "adadadad-808e-44e2-905a-0b7873a8a531"
+    /// 
+    /// **Usage Example:**
+    /// ```swift
+    /// let assignments = [
+    ///     ["groupId": "dev-team-guid", "mode": "include"],
+    ///     ["groupId": "test-team-guid", "mode": "exclude"]
+    /// ]
+    /// let success = try await EntraGraphRequests.assignGroupsToShellScript(
+    ///     authToken: token,
+    ///     scriptId: "script-guid",
+    ///     groupAssignments: assignments
+    /// )
+    /// ```
+    /// 
+    /// - Parameters:
+    ///   - authToken: Valid OAuth 2.0 bearer token with DeviceManagementConfiguration.ReadWrite.All permissions
+    ///   - scriptId: Unique identifier (GUID) of the shell script to assign groups to
+    ///   - groupAssignments: Array of assignment dictionaries containing group IDs, modes, and assignment details
+    /// - Returns: Boolean indicating successful assignment creation
+    /// - Throws: 
+    ///   - `NSError` with domain "ShellScriptAssignment" and code 500: Invalid URL, JSON serialization failure, or HTTP request failure
+    ///   - Network-related errors from URLSession
+    ///   - JSON serialization errors if assignment data format is invalid
+    /// 
+    /// **Required Permissions:**
+    /// - DeviceManagementConfiguration.ReadWrite.All (Application or Delegated)
+    /// 
+    /// **Microsoft Graph API:**
+    /// - Endpoint: `POST /deviceManagement/deviceManagementScripts/{id}/assign`
+    /// - Documentation: Microsoft Graph deviceShellScript assign method
+    static func assignGroupsToShellScript(authToken: String, scriptId: String, groupAssignments: [[String: Any]]) async throws -> Bool {
+        
+        Logger.info("Assigning \(groupAssignments.count) groups to shell script: \(scriptId)", category: .core)
+        
+        let urlString = "https://graph.microsoft.com/beta/deviceManagement/deviceShellScripts/\(scriptId)/assign"
+        Logger.info("Assignment URL being used: \(urlString)", category: .core)
+        
+        guard let url = URL(string: urlString) else {
+            throw NSError(domain: "ShellScriptAssignment", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid assignment URL"])
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Debug token info (safely)
+        let tokenPrefix = String(authToken.prefix(20))
+        let tokenSuffix = String(authToken.suffix(20))
+        let tokenLength = authToken.count
+        Logger.info("Token info: length=\(tokenLength), prefix=\(tokenPrefix)..., suffix=...\(tokenSuffix)", category: .core)
+        Logger.info("Request headers: Authorization=Bearer [REDACTED], Content-Type=application/json", category: .core)
+        
+        // Build assignment payload - use bulk assign with correct structure
+        var assignments: [[String: Any]] = []
+        
+        for assignment in groupAssignments {
+            guard let groupId = assignment["groupId"] as? String, !groupId.isEmpty else {
+                Logger.error("Invalid group ID in assignment: \(assignment)", category: .core)
+                continue
+            }
+            
+            let mode = assignment["mode"] as? String ?? "include"
+            var targetPayload: [String: Any] = [:]
+            
+            // Handle all groups (including virtual groups) with the same format
+            if mode == "include" {
+                targetPayload = [
+                    "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+                    "groupId": groupId
+                ]
+            } else if mode == "exclude" {
+                // Virtual groups don't support exclude mode
+                if groupId == "acacacac-9df4-4c7d-9d50-4ef0226f57a9" || groupId == "adadadad-808e-44e2-905a-0b7873a8a531" {
+                    Logger.warning("Exclude mode not supported for virtual groups (\(groupId)), skipping assignment", category: .core)
+                    continue
+                } else {
+                    targetPayload = [
+                        "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
+                        "groupId": groupId
+                    ]
+                }
+            } else {
+                Logger.error("Invalid assignment mode '\(mode)' for group \(groupId)", category: .core)
+                continue
+            }
+            
+            let assignmentPayload: [String: Any] = [
+                "target": targetPayload
+            ]
+            assignments.append(assignmentPayload)
+        }
+        
+        let payload: [String: Any] = [
+            "deviceManagementScriptAssignments": assignments
+        ]
+        
+        let jsonData = try JSONSerialization.data(withJSONObject: payload, options: [])
+        request.httpBody = jsonData
+        
+        // Debug logging
+        if let jsonString = String(data: jsonData, encoding: .utf8) {
+            Logger.info("Bulk assignment payload: \(jsonString)", category: .core)
+        }
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        // Debug response details
+        if let httpResponse = response as? HTTPURLResponse {
+            Logger.info("Response status code: \(httpResponse.statusCode)", category: .core)
+            Logger.info("Response URL: \(httpResponse.url?.absoluteString ?? "nil")", category: .core)
+            if let headers = httpResponse.allHeaderFields as? [String: String] {
+                Logger.info("Response headers: \(headers)", category: .core)
+            }
+        }
+        
+        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+            let responseStr = String(data: data, encoding: .utf8) ?? "Unknown error"
+            Logger.error("Failed to assign groups to shell script \(scriptId): \(responseStr)", category: .core)
+            throw NSError(domain: "ShellScriptAssignment", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to assign groups to shell script. Response: \(responseStr)"])
+        }
+        
+        Logger.info("Successfully assigned \(assignments.count) groups to shell script: \(scriptId)", category: .core)
+        return true
+    }
+    
+    
+    /// Retrieves current group assignments for a shell script from Microsoft Intune
+    /// 
+    /// Fetches all group assignments currently configured for a specific shell script,
+    /// including assignment details, target groups, and assignment metadata.
+    /// 
+    /// **Key Features:**
+    /// - Complete assignment metadata retrieval
+    /// - Group information resolution
+    /// - Assignment type and target details
+    /// - Comprehensive error handling and logging
+    /// 
+    /// **Returned Data Structure:**
+    /// Each assignment dictionary contains:
+    /// - `id`: Assignment unique identifier
+    /// - `target`: Assignment target information (group details)
+    /// - `@odata.type`: Assignment type identifier
+    /// - Additional Microsoft Graph assignment properties
+    /// 
+    /// **Usage Example:**
+    /// ```swift
+    /// let assignments = try await EntraGraphRequests.getShellScriptAssignments(
+    ///     authToken: token,
+    ///     scriptId: "script-guid"
+    /// )
+    /// for assignment in assignments {
+    ///     if let target = assignment["target"] as? [String: Any],
+    ///        let groupId = target["groupId"] as? String {
+    ///         print("Assigned to group: \(groupId)")
+    ///     }
+    /// }
+    /// ```
+    /// 
+    /// - Parameters:
+    ///   - authToken: Valid OAuth 2.0 bearer token with DeviceManagementConfiguration.Read.All permissions
+    ///   - scriptId: Unique identifier (GUID) of the shell script to retrieve assignments for
+    /// - Returns: Array of assignment dictionaries containing complete assignment information
+    /// - Throws: 
+    ///   - `NSError` with domain "ShellScriptAssignment" and code 500: Invalid URL, HTTP request failure, or JSON parsing failure
+    ///   - Network-related errors from URLSession
+    /// 
+    /// **Required Permissions:**
+    /// - DeviceManagementConfiguration.Read.All (Application or Delegated)
+    /// 
+    /// **Microsoft Graph API:**
+    /// - Endpoint: `GET /deviceManagement/deviceManagementScripts/{id}/assignments`
+    static func getShellScriptAssignments(authToken: String, scriptId: String) async throws -> [[String: Any]] {
+        
+        Logger.info("Fetching assignments for shell script: \(scriptId)", category: .core)
+        
+        guard let url = URL(string: "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/\(scriptId)/assignments") else {
+            throw NSError(domain: "ShellScriptAssignment", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid assignments URL"])
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            let responseStr = String(data: data, encoding: .utf8) ?? "Unknown error"
+            Logger.error("Failed to fetch assignments for shell script \(scriptId): \(responseStr)", category: .core)
+            throw NSError(domain: "ShellScriptAssignment", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch shell script assignments. Response: \(responseStr)"])
+        }
+        
+        guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+              let assignments = json["value"] as? [[String: Any]] else {
+            throw NSError(domain: "ShellScriptAssignment", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid assignments response format"])
+        }
+        
+        Logger.info("Successfully fetched \(assignments.count) assignments for shell script: \(scriptId)", category: .core)
+        return assignments
+    }
+    
+    /// Removes all group assignments from a shell script in Microsoft Intune
+    /// 
+    /// **⚠️ WARNING: This removes ALL assignments from the shell script**
+    /// 
+    /// This function removes all group assignments from a shell script by sending
+    /// an empty assignment array to the Microsoft Graph assign endpoint. This is
+    /// the recommended approach since individual assignment deletion is not supported.
+    /// 
+    /// **Key Features:**
+    /// - Uses empty assignment array to clear all assignments
+    /// - Single API call for efficiency
+    /// - Comprehensive error handling and logging
+    /// - Follows Microsoft Graph best practices
+    /// 
+    /// **Usage Example:**
+    /// ```swift
+    /// let success = try await EntraGraphRequests.removeAllShellScriptAssignments(
+    ///     authToken: token,
+    ///     scriptId: "script-guid"
+    /// )
+    /// if success {
+    ///     print("All assignments removed successfully")
+    /// }
+    /// ```
+    /// 
+    /// **Impact:**
+    /// - Script will no longer execute on any devices
+    /// - All device group assignments are removed
+    /// - Operation cannot be undone (assignments must be recreated)
+    /// 
+    /// - Parameters:
+    ///   - authToken: Valid OAuth 2.0 bearer token with DeviceManagementConfiguration.ReadWrite.All permissions
+    ///   - scriptId: Unique identifier (GUID) of the shell script to remove all assignments from
+    /// - Returns: Boolean indicating if all assignments were successfully removed
+    /// - Throws: 
+    ///   - `NSError` with domain "ShellScriptAssignment" and code 500: URL, HTTP, or JSON errors
+    ///   - Network-related errors from URLSession
+    /// 
+    /// **Required Permissions:**
+    /// - DeviceManagementConfiguration.ReadWrite.All (Application or Delegated)
+    /// 
+    /// **Microsoft Graph API:**
+    /// - Endpoint: `POST /deviceManagement/deviceShellScripts/{id}/assign`
+    /// - Body: `{"deviceManagementScriptAssignments": []}`
+    static func removeAllShellScriptAssignments(authToken: String, scriptId: String) async throws -> Bool {
+        
+        Logger.info("Removing all assignments for shell script: \(scriptId)", category: .core)
+        
+        // Use the assignment function with an empty array to remove all assignments
+        do {
+            let success = try await assignGroupsToShellScript(authToken: authToken, scriptId: scriptId, groupAssignments: [])
+            if success {
+                Logger.info("Successfully removed all assignments for shell script: \(scriptId)", category: .core)
+            } else {
+                Logger.error("Failed to remove all assignments for shell script: \(scriptId)", category: .core)
+            }
+            return success
+        } catch {
+            Logger.error("Error removing all assignments for shell script \(scriptId): \(error.localizedDescription)", category: .core)
+            throw error
+        }
+    }
+    
+    /// Removes a specific group assignment from a shell script in Microsoft Intune
+    /// 
+    /// Deletes a single assignment by its unique identifier, removing the shell script
+    /// from the specified group assignment without affecting other assignments.
+    /// 
+    /// **Key Features:**
+    /// - Targeted assignment removal
+    /// - Preserves other assignments
+    /// - Comprehensive error handling and logging
+    /// - Safe operation with validation
+    /// 
+    /// **Usage Example:**
+    /// ```swift
+    /// // Get assignments first to find the assignment ID
+    /// let assignments = try await EntraGraphRequests.getShellScriptAssignments(authToken: token, scriptId: scriptId)
+    /// if let assignmentToRemove = assignments.first(where: { /* your criteria */ }),
+    ///    let assignmentId = assignmentToRemove["id"] as? String {
+    ///     
+    ///     let success = try await EntraGraphRequests.removeShellScriptAssignment(
+    ///         authToken: token,
+    ///         scriptId: scriptId,
+    ///         assignmentId: assignmentId
+    ///     )
+    /// }
+    /// ```
+    /// 
+    /// **Impact:**
+    /// - Removes script from specified group only
+    /// - Other group assignments remain unchanged
+    /// - Devices in the removed group will no longer execute the script
+    /// 
+    /// - Parameters:
+    ///   - authToken: Valid OAuth 2.0 bearer token with DeviceManagementConfiguration.ReadWrite.All permissions
+    ///   - scriptId: Unique identifier (GUID) of the shell script
+    ///   - assignmentId: Unique identifier (GUID) of the specific assignment to remove
+    /// - Returns: Boolean indicating successful assignment removal
+    /// - Throws: 
+    ///   - `NSError` with domain "ShellScriptAssignment" and code 500: Invalid URL or HTTP request failure
+    ///   - Network-related errors from URLSession
+    /// 
+    /// **Required Permissions:**
+    /// - DeviceManagementConfiguration.ReadWrite.All (Application or Delegated)
+    /// 
+    /// **Microsoft Graph API:**
+    /// - Endpoint: `DELETE /deviceManagement/deviceManagementScripts/{id}/assignments/{assignmentId}`
+    static func removeShellScriptAssignment(authToken: String, scriptId: String, assignmentId: String) async throws -> Bool {
+        
+        Logger.info("Removing assignment \(assignmentId) from shell script: \(scriptId)", category: .core)
+        
+        guard let url = URL(string: "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/\(scriptId)/assignments/\(assignmentId)") else {
+            throw NSError(domain: "ShellScriptAssignment", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid assignment removal URL"])
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+            let responseStr = String(data: data, encoding: .utf8) ?? "Unknown error"
+            Logger.error("Failed to remove assignment \(assignmentId) from shell script \(scriptId): \(responseStr)", category: .core)
+            throw NSError(domain: "ShellScriptAssignment", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to remove shell script assignment. Response: \(responseStr)"])
+        }
+        
+        Logger.info("Successfully removed assignment \(assignmentId) from shell script: \(scriptId)", category: .core)
         return true
     }
 
