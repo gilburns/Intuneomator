@@ -96,7 +96,38 @@ class AppDataManager {
     /// Indicates whether Entra filters are currently being fetched
     private(set) var isLoadingFilters = false
 
-    private init() {}
+    private init() {
+        setupNotificationObservers()
+    }
+    
+    /// Sets up notification observers for data updates from other components
+    private func setupNotificationObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleCategoryUpdate),
+            name: .categoryManagerDidUpdateCategories,
+            object: nil
+        )
+    }
+    
+    /// Handles category update notifications from the AppCategoryManagerViewController
+    /// This ensures the AppDataManager cache is refreshed when categories are modified
+    @objc private func handleCategoryUpdate(_ notification: Notification) {
+        Logger.info("Category update notification received, refreshing cached categories", category: .core, toUserDirectory: true)
+        
+        Task { @MainActor in
+            do {
+                try await self.fetchMobileAppCategories(forceRefresh: true)
+                Logger.info("Categories successfully refreshed after external update", category: .core, toUserDirectory: true)
+            } catch {
+                Logger.error("Failed to refresh categories after update notification: \(error)", category: .core, toUserDirectory: true)
+            }
+        }
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 
     // MARK: - Data Fetching Methods
     
