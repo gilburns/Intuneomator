@@ -48,6 +48,48 @@ class DaemonUpdateManager {
         return "\(version).\(build)"
     }
     
+    /// Determines if an update is available by comparing version numbers
+    /// - Parameters:
+    ///   - current: Current app version string (format: "major.minor.patch.build")
+    ///   - latest: Latest available version string (format: "major.minor.patch.build")
+    /// - Returns: True if update is available, false if current is up-to-date or newer
+    static func isUpdateAvailable(current: String, latest: String) -> Bool {
+        let currentComponents = parseVersionComponents(current)
+        let latestComponents = parseVersionComponents(latest)
+        
+        // Compare major version
+        if latestComponents.major != currentComponents.major {
+            return latestComponents.major > currentComponents.major
+        }
+        
+        // Compare minor version
+        if latestComponents.minor != currentComponents.minor {
+            return latestComponents.minor > currentComponents.minor
+        }
+        
+        // Compare patch version
+        if latestComponents.patch != currentComponents.patch {
+            return latestComponents.patch > currentComponents.patch
+        }
+        
+        // Compare build version
+        return latestComponents.build > currentComponents.build
+    }
+    
+    /// Parses a version string into major, minor, patch, and build components
+    /// - Parameter versionString: Version string in format "major.minor.patch.build"
+    /// - Returns: Tuple with major, minor, patch, and build version numbers
+    static func parseVersionComponents(_ versionString: String) -> (major: Int, minor: Int, patch: Int, build: Int) {
+        let components = versionString.split(separator: ".").compactMap { Int($0) }
+        
+        let major = components.count > 0 ? components[0] : 0
+        let minor = components.count > 1 ? components[1] : 0
+        let patch = components.count > 2 ? components[2] : 0
+        let build = components.count > 3 ? components[3] : 0
+        
+        return (major: major, minor: minor, patch: patch, build: build)
+    }
+    
     /// Checks for available updates and performs the update if a newer version is found
     /// Handles both automatic updates and Teams notification modes based on configuration
     static func checkAndPerformUpdateIfNeeded() {
@@ -61,7 +103,7 @@ class DaemonUpdateManager {
             
             Logger.info("📡 Remote version: \(remoteVersion), Local version: \(localCombinedVersion)", category: .core)
 
-            if remoteVersion.compare(localCombinedVersion, options: .numeric) == .orderedDescending {
+            if isUpdateAvailable(current: localCombinedVersion, latest: remoteVersion) {
                 Logger.info("⬇️ New version available: \(remoteVersion)", category: .core)
                 
                 // Check if we should self update or just send a teams notification
@@ -126,9 +168,9 @@ class DaemonUpdateManager {
 
         do {
             signatureResult = try SignatureInspector.inspectPackageSignature(pkgPath: pkgURL)
-            print("Package Signature Inspection Result: \(signatureResult)")
+            Logger.info("Package Signature Inspection Result: \(signatureResult)", category: .core)
         } catch {
-            print("Error inspecting package signature: \(error)")
+            Logger.error("Error inspecting package signature: \(error)", category: .core)
         }
 
         let resultAccepted = signatureResult["Accepted"] as? Bool ?? false
