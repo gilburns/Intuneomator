@@ -24,37 +24,6 @@ class EntraGraphRequests {
         case resourceNotFound(String)
     }
     
-    // MARK: - Fetch Mobile App Categories
-    // https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappcategory-list?view=graph-rest-1.0&tabs=http
-    
-    /// Fetches all mobile app categories from Microsoft Graph API
-    /// - Parameter authToken: Valid access token for Microsoft Graph API
-    /// - Returns: Array of dictionaries containing category ID and display name, sorted alphabetically
-    /// - Throws: NSError for API failures or invalid response format
-    static func fetchMobileAppCategories(authToken: String) async throws -> [[String: Any]] {
-        let url = URL(string: "https://graph.microsoft.com/v1.0/deviceAppManagement/mobileAppCategories?$select=id,displayName")!
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            throw NSError(domain: "AppDataManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch mobile app categories"])
-        }
-        
-        if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-           let values = json["value"] as? [[String: Any]] {
-            return values.sorted {
-                guard let name1 = $0["displayName"] as? String, let name2 = $1["displayName"] as? String else { return false }
-                return name1.localizedCaseInsensitiveCompare(name2) == .orderedAscending
-            }
-        }
-        throw NSError(domain: "AppDataManager", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid response format for mobile app categories"])
-    }
-    
-    
-    
     // MARK: - Fetch device filters from Graph
     //https://learn.microsoft.com/en-us/graph/api/intune-policyset-deviceandappmanagementassignmentfilter-list?view=graph-rest-beta
     
