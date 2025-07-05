@@ -186,8 +186,6 @@ import Foundation
     /// - Parameter reply: Callback indicating if update was successful
     func updateScriptLibraryFromGitHub(reply: @escaping (Bool) -> Void)
 
-<<<<<<< Updated upstream
-=======
     // MARK: - Intune App Category Management
     
     /// Fetches mobile app categories from Microsoft Graph
