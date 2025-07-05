@@ -495,7 +495,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// - Returns: True if update is available, false if current is up-to-date or newer
     private func isUpdateAvailable(current: (shortVersion: String, buildVersion: String), 
                                  latest: (shortVersion: String, buildVersion: String)) -> Bool {
-        // Compare build versions as integers (more reliable than string comparison)
+        // First compare semantic versions (major.minor.patch)
+        let currentSemanticVersion = parseSemanticVersion(current.shortVersion)
+        let latestSemanticVersion = parseSemanticVersion(latest.shortVersion)
+        
+        // Compare major version
+        if latestSemanticVersion.major != currentSemanticVersion.major {
+            return latestSemanticVersion.major > currentSemanticVersion.major
+        }
+        
+        // Compare minor version
+        if latestSemanticVersion.minor != currentSemanticVersion.minor {
+            return latestSemanticVersion.minor > currentSemanticVersion.minor
+        }
+        
+        // Compare patch version
+        if latestSemanticVersion.patch != currentSemanticVersion.patch {
+            return latestSemanticVersion.patch > currentSemanticVersion.patch
+        }
+        
+        // If semantic versions are identical, compare build numbers
         guard let currentBuild = Int(current.buildVersion),
               let latestBuild = Int(latest.buildVersion) else {
             // Fallback to string comparison if conversion fails
@@ -503,6 +522,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         return latestBuild > currentBuild
+    }
+    
+    /// Parses a semantic version string into major, minor, and patch components
+    /// - Parameter versionString: Version string in format "major.minor.patch"
+    /// - Returns: Tuple with major, minor, and patch version numbers
+    private func parseSemanticVersion(_ versionString: String) -> (major: Int, minor: Int, patch: Int) {
+        let components = versionString.split(separator: ".").compactMap { Int($0) }
+        
+        let major = components.count > 0 ? components[0] : 0
+        let minor = components.count > 1 ? components[1] : 0
+        let patch = components.count > 2 ? components[2] : 0
+        
+        return (major: major, minor: minor, patch: patch)
     }
     
     /// Shows dialog indicating the app is up-to-date
