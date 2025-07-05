@@ -201,6 +201,65 @@ extension MainViewController {
     
     // MARK: - Window Management Actions
 
+    
+    
+    @IBAction func openAppsCategoryManagerWindow(_ sender: Any) {
+        // First check if Graph connectivity is available
+        guard isGraphConnectivityAvailable() else {
+            let (_, message) = getGraphConnectivityStatus()
+            
+            let alert = NSAlert()
+            alert.messageText = "Microsoft Graph Not Available"
+            alert.informativeText = "\(message)\n\nThe App Category Manager requires a working connection to Microsoft Graph to fetch application data. Please check your authentication settings and internet connectivity."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        
+        // Check if there's an existing App Category Manager window
+        if let existingWindowController = appCategoryManagerWindowControllers.first(where: { $0.window?.isVisible == true }) {
+            existingWindowController.window?.makeKeyAndOrderFront(nil) // Bring to front
+            return
+        }
+
+        let storyboard = NSStoryboard(name: "AppCategories", bundle: nil)
+
+        guard let appsCategoriesManagerVC = storyboard.instantiateController(withIdentifier: "AppCategoryManagerViewController") as? AppCategoryManagerViewController else {
+            Logger.error("Failed to instantiate AppCategoryManagerViewController", category: .core, toUserDirectory: true)
+            return
+        }
+
+        let windowWidth: CGFloat = 650
+        let windowHeight: CGFloat = 500
+
+        let appsCategoriesManagerWindow = NSWindow(
+            contentRect: NSMakeRect(0, 0, windowWidth, windowHeight),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        
+        appsCategoriesManagerWindow.contentViewController = appsCategoriesManagerVC
+        appsCategoriesManagerWindow.title = "Intune App Categories"
+
+        // Explicitly set the window frame to fix initial sizing issue
+        appsCategoriesManagerWindow.setFrame(NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight), display: true)
+
+        // Set minimum window size
+        appsCategoriesManagerWindow.minSize = NSSize(width: windowWidth, height: windowHeight)
+
+        // Center the window on the screen
+        appsCategoriesManagerWindow.center()
+
+        let windowController = NSWindowController(window: appsCategoriesManagerWindow)
+        windowController.showWindow(self)
+
+        // Keep reference to prevent deallocation
+        appCategoryManagerWindowControllers.append(windowController)
+    }
+
+    
     /**
      * Opens or focuses the Discovered Apps Manager window.
      * 
@@ -237,7 +296,7 @@ extension MainViewController {
         let storyboard = NSStoryboard(name: "Main", bundle: nil)
 
         guard let discoveredAppsManagerVC = storyboard.instantiateController(withIdentifier: "DiscoveredAppsViewController") as? DiscoveredAppsViewController else {
-            print("Failed to instantiate DiscoveredAppsViewController")
+            Logger.error("Failed to instantiate DiscoveredAppsViewController", category: .core, toUserDirectory: true)
             return
         }
 
@@ -268,6 +327,146 @@ extension MainViewController {
 
         // Keep reference to prevent deallocation
         discoveredAppsManagerWindowControllers.append(windowController)
+    }
+
+    
+    /**
+     * Opens or focuses the Intune Shell Scripts Manager window.
+     *
+     * This method manages a separate window for viewing and managing shell
+     * scripts in the Intune tenant. It implements singleton behavior:
+     * - If window already exists and is visible, brings it to front
+     * - Otherwise creates a new window with proper sizing and configuration
+     *
+     * The window is tracked in shellScriptsManagerWindowControllers to
+     * prevent multiple instances and ensure proper memory management.
+     *
+     * - Parameter sender: The UI control that triggered this action
+     */
+    @IBAction func openShellScriptsManagerWindow(_ sender: Any) {
+        // First check if Graph connectivity is available
+        guard isGraphConnectivityAvailable() else {
+            let (_, message) = getGraphConnectivityStatus()
+            
+            let alert = NSAlert()
+            alert.messageText = "Microsoft Graph Not Available"
+            alert.informativeText = "\(message)\n\nThe Shell Scripts Manager requires a working connection to Microsoft Graph to fetch application data. Please check your authentication settings and internet connectivity."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        
+        // Check if there's an existing Shell Scripts Manager window
+        if let existingWindowController = shellScriptManagerWindowControllers.first(where: { $0.window?.isVisible == true }) {
+            existingWindowController.window?.makeKeyAndOrderFront(nil) // Bring to front
+            return
+        }
+
+        let storyboard = NSStoryboard(name: "ShellScripts", bundle: nil)
+
+        guard let shellScriptsManagerVC = storyboard.instantiateController(withIdentifier: "ScriptManagerViewController") as? ScriptManagerViewController else {
+            Logger.error("Failed to instantiate ScriptManagerViewController", category: .core, toUserDirectory: true)
+            return
+        }
+
+        let windowWidth: CGFloat = 820
+        let windowHeight: CGFloat = 410
+
+        let shellScriptsManagerWindow = NSWindow(
+            contentRect: NSMakeRect(0, 0, windowWidth, windowHeight),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        
+        shellScriptsManagerWindow.contentViewController = shellScriptsManagerVC
+        shellScriptsManagerWindow.title = "Intune Shell Scripts"
+
+        // Explicitly set the window frame to fix initial sizing issue
+        shellScriptsManagerWindow.setFrame(NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight), display: true)
+
+        // Set minimum window size
+        shellScriptsManagerWindow.minSize = NSSize(width: windowWidth, height: windowHeight)
+
+        // Center the window on the screen
+        shellScriptsManagerWindow.center()
+
+        let windowController = NSWindowController(window: shellScriptsManagerWindow)
+        windowController.showWindow(self)
+
+        // Keep reference to prevent deallocation
+        shellScriptManagerWindowControllers.append(windowController)
+    }
+
+    
+    /**
+     * Opens or focuses the Intune Custom Attribute Manager window.
+     *
+     * This method manages a separate window for viewing and managing custom
+     * attributes in the Intune tenant. It implements singleton behavior:
+     * - If window already exists and is visible, brings it to front
+     * - Otherwise creates a new window with proper sizing and configuration
+     *
+     * The window is tracked in customAttributeManagerWindowControllers to
+     * prevent multiple instances and ensure proper memory management.
+     *
+     * - Parameter sender: The UI control that triggered this action
+     */
+    @IBAction func openCustomAttributeManagerWindow(_ sender: Any) {
+        // First check if Graph connectivity is available
+        guard isGraphConnectivityAvailable() else {
+            let (_, message) = getGraphConnectivityStatus()
+            
+            let alert = NSAlert()
+            alert.messageText = "Microsoft Graph Not Available"
+            alert.informativeText = "\(message)\n\nThe Custom Attribute Manager requires a working connection to Microsoft Graph to fetch application data. Please check your authentication settings and internet connectivity."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        
+        // Check if there's an existing Custom Attribute Manager window
+        if let existingWindowController = customAttributeManagerWindowControllers.first(where: { $0.window?.isVisible == true }) {
+            existingWindowController.window?.makeKeyAndOrderFront(nil) // Bring to front
+            return
+        }
+
+        let storyboard = NSStoryboard(name: "CustomAttributes", bundle: nil)
+
+        guard let customAttributeManagerVC = storyboard.instantiateController(withIdentifier: "CustomAttributeManagerViewController") as? CustomAttributeManagerViewController else {
+            Logger.error("Failed to instantiate CustomAttributeManagerViewController", category: .core, toUserDirectory: true)
+            return
+        }
+
+        let windowWidth: CGFloat = 820
+        let windowHeight: CGFloat = 410
+
+        let customAttributeManagerWindow = NSWindow(
+            contentRect: NSMakeRect(0, 0, windowWidth, windowHeight),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        
+        customAttributeManagerWindow.contentViewController = customAttributeManagerVC
+        customAttributeManagerWindow.title = "Intune Custom Attributes"
+
+        // Explicitly set the window frame to fix initial sizing issue
+        customAttributeManagerWindow.setFrame(NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight), display: true)
+
+        // Set minimum window size
+        customAttributeManagerWindow.minSize = NSSize(width: windowWidth, height: windowHeight)
+
+        // Center the window on the screen
+        customAttributeManagerWindow.center()
+
+        let windowController = NSWindowController(window: customAttributeManagerWindow)
+        windowController.showWindow(self)
+
+        // Keep reference to prevent deallocation
+        customAttributeManagerWindowControllers.append(windowController)
     }
 
     

@@ -107,17 +107,17 @@ class MainViewController: NSViewController {
 
     // MARK: - Window Management
     
-    /// Array tracking script manager window controllers to prevent duplication
-    var scriptManagerWindowControllers: [NSWindowController] = []
-    
-    /// Array tracking custom attribute manager window controllers
-    var customAttributeManagerWindowControllers: [NSWindowController] = []
-    
     /// Array tracking app category manager window controllers
     var appCategoryManagerWindowControllers: [NSWindowController] = []
-    
+
+    /// Array tracking custom attribute manager window controllers
+    var customAttributeManagerWindowControllers: [NSWindowController] = []
+        
     /// Array tracking discovered apps manager window controllers
     var discoveredAppsManagerWindowControllers: [NSWindowController] = []
+
+    /// Array tracking script manager window controllers to prevent duplication
+    var shellScriptManagerWindowControllers: [NSWindowController] = []
 
     
     // MARK: - Lifecycle
@@ -225,11 +225,25 @@ class MainViewController: NSViewController {
     // MARK: - Window Management
     
     /**
-     * Handles cleanup when a discovered apps manager window is closed.
-     * 
+     * Handles cleanup when a app categories manager window is closed.
+     *
      * Removes the closed window controller from the tracking array to prevent
      * memory leaks and ensure proper window management.
-     * 
+     *
+     * - Parameter notification: Window close notification containing the closed window
+     */
+    @objc func appCategoriesManagerWindowClosed(_ notification: Notification) {
+        if let closedWindow = notification.object as? NSWindow {
+            appCategoryManagerWindowControllers.removeAll { $0.window == closedWindow }
+        }
+    }
+
+    /**
+     * Handles cleanup when a discovered apps manager window is closed.
+     *
+     * Removes the closed window controller from the tracking array to prevent
+     * memory leaks and ensure proper window management.
+     *
      * - Parameter notification: Window close notification containing the closed window
      */
     @objc func appDiscoveredAppsManagerWindowClosed(_ notification: Notification) {
@@ -237,6 +251,35 @@ class MainViewController: NSViewController {
             discoveredAppsManagerWindowControllers.removeAll { $0.window == closedWindow }
         }
     }
+
+    /**
+     * Handles cleanup when a custom attribute manager window is closed.
+     *
+     * Removes the closed window controller from the tracking array to prevent
+     * memory leaks and ensure proper window management.
+     *
+     * - Parameter notification: Window close notification containing the closed window
+     */
+    @objc func customAttributeManagerWindowClosed(_ notification: Notification) {
+        if let closedWindow = notification.object as? NSWindow {
+            customAttributeManagerWindowControllers.removeAll { $0.window == closedWindow }
+        }
+    }
+
+    /**
+     * Handles cleanup when a shell script manager window is closed.
+     *
+     * Removes the closed window controller from the tracking array to prevent
+     * memory leaks and ensure proper window management.
+     *
+     * - Parameter notification: Window close notification containing the closed window
+     */
+    @objc func shellScriptsManagerWindowClosed(_ notification: Notification) {
+        if let closedWindow = notification.object as? NSWindow {
+            shellScriptManagerWindowControllers.removeAll { $0.window == closedWindow }
+        }
+    }
+
 
 }
 
