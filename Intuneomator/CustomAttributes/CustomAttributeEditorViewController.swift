@@ -40,28 +40,35 @@ class CustomAttributeEditorViewController: NSViewController, TabbedSheetChildPro
         setupPopups()
     }
     
+    // Track if view has been configured to avoid repeating setup
+    private var viewConfigured = false
+    
     override func viewWillAppear() {
         super.viewWillAppear()
 
-        populateFields()
-
-        // Lock immutable fields if editing an existing attribute
-        let editingExisting = !isNewScript
-        displayNameTextField.isEnabled = !editingExisting
-        customAttributeTypePopup.isEnabled = !editingExisting
-        runAsAccountPopup.isEnabled = !editingExisting
-
-        
-        let effectView = NSVisualEffectView(frame: view.bounds)
-        effectView.autoresizingMask = [.width, .height]
-        effectView.blendingMode = .withinWindow
-        effectView.material = .windowBackground
-        effectView.state = .active
-
-        self.view.addSubview(effectView, positioned: .below, relativeTo: nil)
-
-        if let sheetWindow = view.window {
-            sheetWindow.minSize = NSSize(width: 700, height: 650) // Set minimum size
+        // Only do one-time setup, not on every tab switch
+        if !viewConfigured {
+            populateFields()
+            
+            // Lock immutable fields if editing an existing attribute
+            let editingExisting = !isNewScript
+            displayNameTextField.isEnabled = !editingExisting
+            customAttributeTypePopup.isEnabled = !editingExisting
+            runAsAccountPopup.isEnabled = !editingExisting
+            
+            let effectView = NSVisualEffectView(frame: view.bounds)
+            effectView.autoresizingMask = [.width, .height]
+            effectView.blendingMode = .withinWindow
+            effectView.material = .windowBackground
+            effectView.state = .active
+            
+            self.view.addSubview(effectView, positioned: .below, relativeTo: nil)
+            
+            if let sheetWindow = view.window {
+                sheetWindow.minSize = NSSize(width: 700, height: 650) // Set minimum size
+            }
+            
+            viewConfigured = true
         }
     }
 
