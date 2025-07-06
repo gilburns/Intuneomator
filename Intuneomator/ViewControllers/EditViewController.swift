@@ -60,6 +60,9 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     @IBOutlet weak var menuItemDMGType: NSMenuItem!
     /// Menu item representing LOB deployment type.
     @IBOutlet weak var menuItemLOBType: NSMenuItem!
+    /// Label shown when adobe cc label is used.
+    @IBOutlet weak var fieldDeloyAsAdobeCCPkg: NSTextField!
+
 
     /// Menu item representing universal PKG deployment type.
     @IBOutlet weak var menuItemUniversalPkg: NSMenuItem!
@@ -234,6 +237,11 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     override func viewWillAppear() {
         super.viewWillAppear()
         buttonDeploymentTypeDidChange(buttonDeploymentType)
+        
+        guard let appLabel = appData?.label as NSString? else { return }
+        if appLabel == "adobecreativeclouddesktop" {
+            adobeCCDesktopSpecialHandling()
+        }
     }
     
     /// View lifecycle callback invoked when the view is about to disappear.
@@ -383,6 +391,11 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         
     }
     
+    private func adobeCCDesktopSpecialHandling() {
+        buttonDeploymentType.isHidden = true
+        fieldDeloyAsAdobeCCPkg.isHidden = false
+        buttonDeployAsArch.item(at: 2)?.isHidden = true
+    }
     
     /// Checks whether the label supports dual-architecture (universal/i386).
     /// - Returns: true if an _i386.plist exists in the label folder.

@@ -31,6 +31,14 @@ extension EditViewController {
     /// - Parameter sender: The control that triggered the download action.
     @IBAction func inspectDownload(_ sender: Any) {
         
+        guard let appLabel = appData?.label else {
+            return
+        }
+        if appLabel == "adobecreativeclouddesktop" {
+            showError(message: "Adobe Creative Cloud Desktop is not supported for inspection.\n\nThere is a separate workflow for this app.")
+            return
+        }
+        
         guard let downloadURL = URL(string: fieldDownloadURL.stringValue) else {
             showError(message: "Invalid download URL")
             self.cleanupAfterProcessing()
