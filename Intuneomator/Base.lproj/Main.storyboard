@@ -643,7 +643,7 @@
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="eu3-7i-yIM"/>
-                                        <menuItem title="App Categories Manager…" id="Sio-Iq-pzP">
+                                        <menuItem title="App Category Manager…" id="Sio-Iq-pzP">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="openAppsCategoryManagerWindow:" target="Ady-hI-5gd" id="PnK-BE-wjR"/>
