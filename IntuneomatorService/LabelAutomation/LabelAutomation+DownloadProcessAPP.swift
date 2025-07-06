@@ -227,15 +227,48 @@ extension LabelAutomation {
         // MARK: - DMG/Package Creation
         
         // Create version-specific output directory
-        finalDestinationFolder = downloadFolder
-            .appendingPathComponent(downloadedVersion)
-        
-        try FileManager.default.createDirectory(at: finalDestinationFolder, withIntermediateDirectories: true)
+        if labelName != "adobecreativeclouddesktop" {
+            finalDestinationFolder = downloadFolder
+                .appendingPathComponent(downloadedVersion)
+            
+            try FileManager.default.createDirectory(at: finalDestinationFolder, withIntermediateDirectories: true)
+        } else {
+            finalDestinationFolder = downloadFolder
+            try FileManager.default.createDirectory(at: finalDestinationFolder, withIntermediateDirectories: true)
+        }
         
         Logger.info("Deployment type: \(deploymentType)", category: .automation)
         
+        // Special handling for Adobe Creative Cloud non-standard installation
+        if labelName == "adobecreativeclouddesktop" {
+            // Create DMG package for Intune deployment
+            Logger.info("Creating Adobe CC PKG package for Intune deployment", category: .automation)
+            let adobeCCPkgCreator = AdobeCCPkgCreator()
+            do {
+                let (outputURLResult, outputAppNameResult, outputAppBundleIDResult, outputAppVersionResult) = await adobeCCPkgCreator.createPackage(inputPath: downloadURL.path, outputDir: finalDestinationFolder.path)!
+                
+                Logger.info("Created PKG at \(outputURLResult) for \(outputAppNameResult) (\(outputAppBundleIDResult)) version \(outputAppVersionResult)", category: .automation)
+                
+                guard let outputName = URL(string: outputURLResult)?.lastPathComponent else {
+                    Logger.error("Failed to extract filename from path: \(outputURLResult)", category: .automation)
+                    return (nil, "" ,"", "")
+                }
+
+                finalDestinationFolder = downloadFolder
+                    .appendingPathComponent(outputAppVersionResult)
+                try FileManager.default.createDirectory(at: finalDestinationFolder, withIntermediateDirectories: true)
+                let finalDestinationFileURL = finalDestinationFolder
+                    .appendingPathComponent(outputName)
+                
+                try FileManager.default.moveItem(atPath: outputURLResult, toPath: finalDestinationFileURL.path)
+                
+                outputURL = finalDestinationFileURL
+                outputAppName = outputAppNameResult
+                outputAppBundleID = outputAppBundleIDResult
+                outputAppVersion = outputAppVersionResult
+            }
         // Create deployment package based on specified type
-        if deploymentType == 0 {
+        } else if deploymentType == 0 {
             // Create DMG package for Intune deployment
             Logger.info("Creating DMG package for Intune deployment", category: .automation)
             let dmgCreator = DMGCreator()

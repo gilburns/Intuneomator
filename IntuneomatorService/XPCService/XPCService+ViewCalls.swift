@@ -346,12 +346,13 @@ extension XPCService {
                 }
                 
                 var deploymentTypeTag: Int = 0
-                if ["pkg", "pkgInDmg", "pkgInZip", "pkgInDmgInZip"].contains(sourceType) {
+                if labelName == "adobecreativeclouddesktop" {
+                    deploymentTypeTag = 1
+                } else if ["pkg", "pkgInDmg", "pkgInZip", "pkgInDmgInZip"].contains(sourceType) {
                     deploymentTypeTag = 2
                 } else if ["dmg", "zip", "tbz", "appInDmgInZip"].contains(sourceType) {
                     deploymentTypeTag = 0
                 }
-                
                 let metadataJSONURL = newDirectoryURL
                     .appendingPathComponent("metadata.json")
                 

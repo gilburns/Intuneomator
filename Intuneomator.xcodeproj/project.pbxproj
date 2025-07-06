@@ -121,6 +121,7 @@
 		1BB046722D822B48004B6F3E /* Exceptions for "SharedCode" folder in "IntuneomatorService" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"App Dmg Pkg/AdobeCCPkgCreator.swift",
 				"App Dmg Pkg/AppInspector.swift",
 				"App Dmg Pkg/DMGCreator.swift",
 				"App Dmg Pkg/PKGCreator.swift",
