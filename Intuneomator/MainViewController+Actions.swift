@@ -241,7 +241,7 @@ extension MainViewController {
         )
         
         appsCategoriesManagerWindow.contentViewController = appsCategoriesManagerVC
-        appsCategoriesManagerWindow.title = "Intune App Categories"
+        appsCategoriesManagerWindow.title = "App Category Manager"
 
         // Explicitly set the window frame to fix initial sizing issue
         appsCategoriesManagerWindow.setFrame(NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight), display: true)
@@ -381,7 +381,7 @@ extension MainViewController {
         )
         
         shellScriptsManagerWindow.contentViewController = shellScriptsManagerVC
-        shellScriptsManagerWindow.title = "Intune Shell Scripts"
+        shellScriptsManagerWindow.title = "Shell Script Manager"
 
         // Explicitly set the window frame to fix initial sizing issue
         shellScriptsManagerWindow.setFrame(NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight), display: true)
@@ -451,7 +451,7 @@ extension MainViewController {
         )
         
         customAttributeManagerWindow.contentViewController = customAttributeManagerVC
-        customAttributeManagerWindow.title = "Intune Custom Attributes"
+        customAttributeManagerWindow.title = "Custom Attribute Manager"
 
         // Explicitly set the window frame to fix initial sizing issue
         customAttributeManagerWindow.setFrame(NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight), display: true)
