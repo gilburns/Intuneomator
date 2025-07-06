@@ -519,14 +519,8 @@ class CustomAttributeManagerViewController: NSViewController, NSTableViewDelegat
             // Build update data with only changed properties
             var updateData: [String: Any] = [:]
             
-            if let displayName = updatedCustomAttribute["displayName"] as? String {
-                updateData["displayName"] = displayName
-            }
             if let description = updatedCustomAttribute["description"] as? String {
                 updateData["description"] = description
-            }
-            if let runAsAccount = updatedCustomAttribute["runAsAccount"] as? String {
-                updateData["runAsAccount"] = runAsAccount
             }
             
             // Always update custom attribute content
