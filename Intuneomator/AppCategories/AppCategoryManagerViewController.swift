@@ -26,7 +26,7 @@ class AppCategoryManagerViewController: NSViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        title = "Intune App Categories"
+        title = "App Category Manager"
         setupUI()
         loadCategories()
         
