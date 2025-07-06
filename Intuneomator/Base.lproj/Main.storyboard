@@ -612,25 +612,6 @@
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="hB3-LF-h0Y"/>
-                                        <menuItem title="Show App Categories Manager…" id="Sio-Iq-pzP">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="openAppsCategoryManagerWindow:" target="Ady-hI-5gd" id="PnK-BE-wjR"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Show Custom Attribute Manager…" id="mad-PN-Gcx" userLabel="Show Custom Attribute Manager…">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="openCustomAttributeManagerWindow:" target="Ady-hI-5gd" id="yxQ-0R-Sx4"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Show Shell Script Manager…" id="cLj-aq-chy">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="openShellScriptsManagerWindow:" target="Ady-hI-5gd" id="Azu-EM-1Hj"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem isSeparatorItem="YES" id="YWd-tr-jkW"/>
                                         <menuItem title="Show Sidebar" keyEquivalent="s" id="kIP-vf-haE">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
                                             <connections>
@@ -662,6 +643,25 @@
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="eu3-7i-yIM"/>
+                                        <menuItem title="App Categories Manager…" id="Sio-Iq-pzP">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="openAppsCategoryManagerWindow:" target="Ady-hI-5gd" id="PnK-BE-wjR"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Custom Attribute Manager…" id="mad-PN-Gcx" userLabel="Show Custom Attribute Manager…">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="openCustomAttributeManagerWindow:" target="Ady-hI-5gd" id="yxQ-0R-Sx4"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Shell Script Manager…" id="cLj-aq-chy">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="openShellScriptsManagerWindow:" target="Ady-hI-5gd" id="Azu-EM-1Hj"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="YWd-tr-jkW"/>
                                         <menuItem title="Bring All to Front" id="LE2-aR-0XJ">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
