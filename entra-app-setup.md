@@ -102,6 +102,7 @@ openssl pkcs12 -export -out intuneomator.pfx -inkey intuneomator.key -in intuneo
    - *DeviceManagementApps.ReadWrite.All*
    - *DeviceManagementConfiguration.ReadWrite.All*
    - *DeviceManagementManagedDevices.Read.All*
+   - *DeviceManagementScripts.ReadWrite.All*
    - *Group.Read.All*
 
 6. Click **Add permissions**
