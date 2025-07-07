@@ -8,6 +8,12 @@
 
 Intuneomator is a powerful macOS enterprise application that bridges the gap between the open-source [Installomator](https://github.com/Installomator/Installomator) project and Microsoft Intune, providing IT administrators with comprehensive automation capabilities for macOS application lifecycle management.
 
+#### As mentioned in [MC1066336](https://mc.merill.net/message/MC1066336), starting July 31, 2025, or soon after, the following Graph APIs will require either DeviceManagementScripts.Read.All or DeviceManagementScripts.ReadWrite.All permissions to continue working:  
+~/deviceManagement/deviceShellScripts  
+~/deviceManagement/deviceCustomAttributeShellScripts  
+~/deviceManagement/deviceManagementScripts
+
+Since **Intuneomator** utilizes there API, you should add **DeviceManagementScripts.ReadWrite** permissions to your app registration to continue using the built in Shell Script and Custom Attribute managers.
 ## 🚀 Features
 
 ### **Automated Application Management**
