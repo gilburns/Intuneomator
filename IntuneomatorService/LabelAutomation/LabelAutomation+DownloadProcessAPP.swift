@@ -241,7 +241,7 @@ extension LabelAutomation {
         
         // Special handling for Adobe Creative Cloud non-standard installation
         if labelName == "adobecreativeclouddesktop" {
-            // Create DMG package for Intune deployment
+            // Create package for Intune deployment
             Logger.info("Creating Adobe CC PKG package for Intune deployment", category: .automation)
             let adobeCCPkgCreator = AdobeCCPkgCreator()
             do {
@@ -259,7 +259,9 @@ extension LabelAutomation {
                 try FileManager.default.createDirectory(at: finalDestinationFolder, withIntermediateDirectories: true)
                 let finalDestinationFileURL = finalDestinationFolder
                     .appendingPathComponent(outputName)
-                
+                if FileManager.default.fileExists(atPath: finalDestinationFileURL.path) {
+                    try FileManager.default.removeItem(at: finalDestinationFileURL)
+                }
                 try FileManager.default.moveItem(atPath: outputURLResult, toPath: finalDestinationFileURL.path)
                 
                 outputURL = finalDestinationFileURL
