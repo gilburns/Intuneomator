@@ -661,6 +661,12 @@
                                                 <action selector="openShellScriptsManagerWindow:" target="Ady-hI-5gd" id="Azu-EM-1Hj"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Web Clips Manager…" id="aqX-Mj-gOn">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="openWebClipsManagerWindow:" target="Ady-hI-5gd" id="guc-zX-mAp"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem isSeparatorItem="YES" id="YWd-tr-jkW"/>
                                         <menuItem title="Bring All to Front" id="LE2-aR-0XJ">
                                             <modifierMask key="keyEquivalentModifierMask"/>

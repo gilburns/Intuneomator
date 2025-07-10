@@ -211,6 +211,47 @@ import Foundation
     ///   - reply: Callback indicating success (true) or failure (false)
     func deleteMobileAppCategory(categoryId: String, reply: @escaping (Bool) -> Void)
 
+    // MARK: - Intune Web Clip Management
+    
+    /// Fetches all macOS Web Clips from Microsoft Intune
+    /// - Parameter reply: Callback with array of web clip dictionaries or nil on failure
+    func fetchIntuneWebClips(reply: @escaping ([[String: Any]]?) -> Void)
+    
+    /// Creates a new macOS Web Clip in Microsoft Intune with full assignment support
+    /// Automatically handles categories and group assignments if provided in the data
+    /// - Parameters:
+    ///   - webClipData: Dictionary containing web clip information (displayName and appUrl are required)
+    ///                  May optionally include "categories" and "assignments" for automatic assignment
+    ///   - reply: Callback with created web clip ID or nil on failure
+    func createIntuneWebClip(webClipData: [String: Any], reply: @escaping (String?) -> Void)
+    
+    /// Updates an existing macOS Web Clip in Microsoft Intune
+    /// - Parameters:
+    ///   - webClipId: Unique identifier (GUID) of the web clip to update
+    ///   - updatedData: Dictionary containing updated web clip information
+    ///   - reply: Callback indicating success (true) or failure (false)
+    func updateWebClip(webClipId: String, updatedData: [String: Any], reply: @escaping (Bool) -> Void)
+    
+    /// Deletes a macOS Web Clip from Microsoft Intune
+    /// - Parameters:
+    ///   - webClipId: Unique identifier (GUID) of the web clip to delete
+    ///   - reply: Callback indicating success (true) or failure (false)
+    func deleteWebClip(webClipId: String, reply: @escaping (Bool) -> Void)
+    
+    /// Fetches complete web clip details, group assignments, and category assignments for a specific web clip
+    /// Returns full web clip data including largeIcon for editing purposes
+    /// - Parameters:
+    ///   - webClipId: Unique identifier (GUID) of the web clip
+    ///   - reply: Callback with complete web clip data including assignments and categories, or nil on failure
+    func fetchWebClipAssignmentsAndCategories(webClipId: String, reply: @escaping ([String: Any]?) -> Void)
+    
+    /// Updates an existing web clip with categories and group assignments in a comprehensive workflow
+    /// Handles the complete update sequence: PATCH web clip → update categories → update assignments
+    /// - Parameters:
+    ///   - webClipData: Complete web clip data including properties, categories, and assignments
+    ///   - reply: Callback indicating if the complete update workflow was successful
+    func updateWebClipWithAssignments(webClipData: [String: Any], reply: @escaping (Bool) -> Void)
+
     // MARK: - Intune Shell Script Management
     
     /// Fetches all Intune Shell Scripts from Microsoft Graph with pagination support

@@ -469,6 +469,62 @@ extension MainViewController {
         customAttributeManagerWindowControllers.append(windowController)
     }
 
+    @IBAction func openWebClipsManagerWindow(_ sender: Any) {
+        // First check if Graph connectivity is available
+        guard isGraphConnectivityAvailable() else {
+            let (_, message) = getGraphConnectivityStatus()
+            
+            let alert = NSAlert()
+            alert.messageText = "Microsoft Graph Not Available"
+            alert.informativeText = "\(message)\n\nThe Web Clips Manager requires a working connection to Microsoft Graph to fetch application data. Please check your authentication settings and internet connectivity."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        
+        // Check if there's an existing Web Clips Manager window
+        if let existingWindowController = webClipsManagerWindowControllers.first(where: { $0.window?.isVisible == true }) {
+            existingWindowController.window?.makeKeyAndOrderFront(nil) // Bring to front
+            return
+        }
+
+        let storyboard = NSStoryboard(name: "WebClips", bundle: nil)
+
+        guard let webClipsManagerVC = storyboard.instantiateController(withIdentifier: "WebClipsManagerViewController") as? WebClipsManagerViewController else {
+            Logger.error("Failed to instantiate WebClipsManagerViewController", category: .core, toUserDirectory: true)
+            return
+        }
+
+        let windowWidth: CGFloat = 820
+        let windowHeight: CGFloat = 410
+
+        let webClipsManagerWindow = NSWindow(
+            contentRect: NSMakeRect(0, 0, windowWidth, windowHeight),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        
+        webClipsManagerWindow.contentViewController = webClipsManagerVC
+        webClipsManagerWindow.title = "Web Clip Manager"
+
+        // Explicitly set the window frame to fix initial sizing issue
+        webClipsManagerWindow.setFrame(NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight), display: true)
+
+        // Set minimum window size
+        webClipsManagerWindow.minSize = NSSize(width: windowWidth, height: windowHeight)
+
+        // Center the window on the screen
+        webClipsManagerWindow.center()
+
+        let windowController = NSWindowController(window: webClipsManagerWindow)
+        windowController.showWindow(self)
+
+        // Keep reference to prevent deallocation
+        webClipsManagerWindowControllers.append(windowController)
+    }
+
     
     // MARK: - Folder Access Actions
     

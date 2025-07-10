@@ -114,6 +114,8 @@ class TabbedSheetViewController: NSViewController {
                 scriptEditor.parentTabViewController = self
             } else if let customAttributeScriptEditor = childVC as? CustomAttributeEditorViewController {
                 customAttributeScriptEditor.parentTabViewController = self
+            } else if let webClipEditor = childVC as? WebClipsEditorViewController {
+                webClipEditor.parentTabViewController = self
             } else if let groupAssignment = childVC as? GroupAssignmentViewController {
                 groupAssignment.parentTabbedSheetViewController = self
             }
@@ -131,7 +133,6 @@ class TabbedSheetViewController: NSViewController {
         self.tabChildViewControllers = children
         self.tabLabels = labels
         self.initialData = initialData
-        
         // If view is already loaded, refresh the tab view
         if isViewLoaded {
             setupTabView()
@@ -156,6 +157,8 @@ class TabbedSheetViewController: NSViewController {
                 childHasChanges = groupAssignment.hasUnsavedChanges
             } else if let customAttributeEditor = childVC as? CustomAttributeEditorViewController {
                 childHasChanges = customAttributeEditor.hasUnsavedChanges
+            } else if let webClipEditor = childVC as? WebClipsEditorViewController {
+                childHasChanges = webClipEditor.hasUnsavedChanges
             }
             
             if childHasChanges {
@@ -184,7 +187,6 @@ class TabbedSheetViewController: NSViewController {
                 }
             }
         }
-        
         return combinedData
     }
     
@@ -347,6 +349,53 @@ extension TabbedSheetViewController {
         tabbedVC.configure(
             children: [editorVC, groupsVC],
             labels: ["Custom Attribute", "Groups"],
+            initialData: initialData
+        )
+        
+        tabbedVC.saveHandler = saveHandler
+        tabbedVC.cancelHandler = cancelHandler
+        
+        return tabbedVC
+    }
+    
+    /// Creates a configured tabbed sheet for web clip editing
+    /// - Parameters:
+    ///   - webClipData: Initial web clip data
+    ///   - isNewWebClip: Whether this is a new web clip
+    ///   - saveHandler: Called when user saves with combined data
+    ///   - cancelHandler: Called when user cancels
+    /// - Returns: Configured TabbedSheetViewController
+    static func createWebClipEditor(
+        webClipData: [String: Any],
+        isNewWebClip: Bool,
+        saveHandler: @escaping ([String: Any]) -> Void,
+        cancelHandler: (() -> Void)? = nil
+    ) -> TabbedSheetViewController? {
+        
+        // Load the XIB file
+        let tabbedVC = TabbedSheetViewController(nibName: "TabbedSheetViewController", bundle: nil)
+        
+        // Load child view controllers
+        let webClipsStoryboard = NSStoryboard(name: "WebClips", bundle: nil)
+        guard let editorVC = webClipsStoryboard.instantiateController(withIdentifier: "WebClipsEditorViewController") as? WebClipsEditorViewController else {
+            Logger.error("Failed to load WebClipsEditorViewController", category: .core, toUserDirectory: true)
+            return nil
+        }
+        
+        let groupsStoryboard = NSStoryboard(name: "GroupAssignment", bundle: nil)
+        guard let groupsVC = groupsStoryboard.instantiateController(withIdentifier: "GroupAssignmentViewController") as? GroupAssignmentViewController else {
+            Logger.error("Failed to load GroupAssignmentViewController", category: .core, toUserDirectory: true)
+            return nil
+        }
+        
+        // Configure the child view controllers
+        var initialData = webClipData
+        initialData["isNewWebClip"] = isNewWebClip
+        
+        // Configure the tabbed view controller
+        tabbedVC.configure(
+            children: [editorVC, groupsVC],
+            labels: ["Web Clip", "Groups"],
             initialData: initialData
         )
         

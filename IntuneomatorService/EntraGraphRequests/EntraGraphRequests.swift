@@ -333,7 +333,8 @@ class EntraGraphRequests {
     
     /// Set of app types that support assignment filters in Microsoft Intune
     private static let assignmentFilterSupportedAppTypes: Set<String> = [
-        "macOSLobApp" // Currently supported
+        "macOSLobApp", // Currently supported
+        "macOSWebClip"
         // If Microsoft adds support later:
         // "macOSPkgApp",
         // "macOSDmgApp"
