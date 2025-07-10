@@ -119,6 +119,9 @@ class MainViewController: NSViewController {
     /// Array tracking script manager window controllers to prevent duplication
     var shellScriptManagerWindowControllers: [NSWindowController] = []
 
+    /// Array tracking web clips manager window controllers to prevent duplication
+    var webClipsManagerWindowControllers: [NSWindowController] = []
+
     
     // MARK: - Lifecycle
     

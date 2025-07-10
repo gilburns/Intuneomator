@@ -38,6 +38,15 @@ class GroupAssignmentViewController: NSViewController, Configurable, UnsavedChan
 
     /// Button to assign a filter to the selected group assignment (only for LOB apps).
     @IBOutlet weak var assignFilterButton: NSButton!
+    
+    /// Column to show group assignment mode
+    @IBOutlet weak var modeColumn: NSTableColumn!
+
+    /// Column to show group assignment type
+    @IBOutlet weak var typeColumn: NSTableColumn!
+
+    /// Column to show group assignment filter
+    @IBOutlet weak var filterColumn: NSTableColumn!
 
     /// Label displaying status or informational messages about group assignments.
     @IBOutlet weak var statusLabel: NSTextField!
@@ -59,6 +68,9 @@ class GroupAssignmentViewController: NSViewController, Configurable, UnsavedChan
         
     /// Array of dictionaries representing current group assignments and their properties.
     var groupAssignments: [[String: Any]] = []
+    
+    /// Stores the initial data payload containing @odata.type and other metadata
+    var initialData: [String: Any]?
 
     /// Array of dictionaries representing filter assignments associated with groups.
     var filterAssignments: [[String: Any]] = []
@@ -89,6 +101,7 @@ class GroupAssignmentViewController: NSViewController, Configurable, UnsavedChan
     ///   - data: Expected to be an currentAssignment object.
     ///   - parent: Reference to the parent TabViewController for save state updates.
     func configure(with data: Any, parent: TabViewController) {
+        print("Configuring GroupAssignmentViewController")
         guard let currentAssignments = data as? [[String: Any]] else {
             return
         }
@@ -124,36 +137,30 @@ class GroupAssignmentViewController: NSViewController, Configurable, UnsavedChan
                     // All Devices virtual group
                     normalizedAssignment["displayName"] = "All Devices"
                     normalizedAssignment["isVirtual"] = true
-                    // Preserve existing mode and assignmentType, or set defaults
+                    // Preserve existing mode, but don't default assignmentType 
                     if normalizedAssignment["mode"] == nil {
                         normalizedAssignment["mode"] = "include"
                     }
-                    if normalizedAssignment["assignmentType"] == nil {
-                        normalizedAssignment["assignmentType"] = "Required"
-                    }
+                    // Don't default assignmentType - it should be explicitly set by the calling code
                 } else if groupId == "acacacac-9df4-4c7d-9d50-4ef0226f57a9" {
                     // All Users virtual group
                     normalizedAssignment["displayName"] = "All Users"
                     normalizedAssignment["isVirtual"] = true
-                    // Preserve existing mode and assignmentType, or set defaults
+                    // Preserve existing mode, but don't default assignmentType 
                     if normalizedAssignment["mode"] == nil {
                         normalizedAssignment["mode"] = "include"
                     }
-                    if normalizedAssignment["assignmentType"] == nil {
-                        normalizedAssignment["assignmentType"] = "Required"
-                    }
+                    // Don't default assignmentType - it should be explicitly set by the calling code
                 } else {
                     // Regular group - ensure isVirtual is false
                     if normalizedAssignment["isVirtual"] == nil {
                         normalizedAssignment["isVirtual"] = false
                     }
-                    // Set defaults for mode and assignmentType if missing
+                    // Set defaults for mode if missing, but preserve existing assignmentType
                     if normalizedAssignment["mode"] == nil {
                         normalizedAssignment["mode"] = "include"
                     }
-                    if normalizedAssignment["assignmentType"] == nil {
-                        normalizedAssignment["assignmentType"] = "Required"
-                    }
+                    // Don't default assignmentType - it should be explicitly set by the calling code
                 }
             }
             
@@ -215,6 +222,63 @@ class GroupAssignmentViewController: NSViewController, Configurable, UnsavedChan
                bool1 != bool2 {
                 return false
             }
+            
+            // Compare filter values
+            if !areFiltersEqual(assignment1["filter"] as? [String: Any], assignment2["filter"] as? [String: Any]) {
+                return false
+            }
+        }
+        
+        return true
+    }
+    
+    /// Compares two filter dictionaries for equality
+    /// - Parameters:
+    ///   - filter1: First filter dictionary (can be nil)
+    ///   - filter2: Second filter dictionary (can be nil)
+    /// - Returns: True if both filters are equivalent
+    private func areFiltersEqual(_ filter1: [String: Any]?, _ filter2: [String: Any]?) -> Bool {
+        // Handle nil cases
+        if filter1 == nil && filter2 == nil {
+            return true
+        }
+        
+        // Handle empty dictionary cases (which are equivalent to nil for our purposes)
+        let isEmpty1 = filter1 == nil || filter1!.isEmpty
+        let isEmpty2 = filter2 == nil || filter2!.isEmpty
+        
+        if isEmpty1 && isEmpty2 {
+            return true
+        }
+        
+        if isEmpty1 != isEmpty2 {
+            return false
+        }
+        
+        // Both are non-empty, compare the actual filter contents
+        guard let f1 = filter1, let f2 = filter2 else {
+            return false
+        }
+        
+        // Compare filter ID
+        let id1 = f1["id"] as? String ?? ""
+        let id2 = f2["id"] as? String ?? ""
+        if id1 != id2 {
+            return false
+        }
+        
+        // Compare filter mode
+        let mode1 = f1["mode"] as? String ?? ""
+        let mode2 = f2["mode"] as? String ?? ""
+        if mode1 != mode2 {
+            return false
+        }
+        
+        // Compare display name (optional, but good for completeness)
+        let name1 = f1["displayName"] as? String ?? ""
+        let name2 = f2["displayName"] as? String ?? ""
+        if name1 != name2 {
+            return false
         }
         
         return true
@@ -256,44 +320,98 @@ class GroupAssignmentViewController: NSViewController, Configurable, UnsavedChan
         groupAssignmentsTableView.reloadData()
         
         
-        updateAssignFilterButtonVisibility()
-        updateInstallTypeButtonVisibility()
-        
+        updateGUIElementVisibility()
+
     }
     
     /// Lifecycle callback invoked after the view appears.
     /// Updates visibility of filter and uninstall buttons based on current app type.
     override func viewDidAppear() {
         super.viewDidAppear()
-        updateAssignFilterButtonVisibility()
-        updateInstallTypeButtonVisibility()
+        updateGUIElementVisibility()
     }
     
-    
-    /// Toggles the filter assignment button visibility based on whether the app is a LOB app.
-    private func updateAssignFilterButtonVisibility() {
-        let appType = AppDataManager.shared.currentAppType
-        assignFilterButton.isHidden = (appType != "macOSLobApp")
-    }
-
-    /// Toggles the uninstall assignment button visibility based on app type (LOB vs. PKG vs. DMG).
-    private func updateInstallTypeButtonVisibility() {
-        let appType = AppDataManager.shared.currentAppType
-        switch appType {
-        case "macOSLobApp":
-            assignUninstallGroupButton.isHidden = false
-        case "macOSPkgApp":
-            assignUninstallGroupButton.isHidden = true
-        case "macOSDmgApp":
-            assignUninstallGroupButton.isHidden = false
-        case "shellScript":
+    /// Toggles the install assignment buttons and filter assignment button visibility based on @odata.type from the payload.
+    private func updateGUIElementVisibility() {
+        // Get the @odata.type from the initial data payload
+        guard let initialData = self.initialData,
+              let odataType = initialData["@odata.type"] as? String else {
+            // Fallback to hiding uninstall and available buttons if no @odata.type is found
             assignUninstallGroupButton.isHidden = true
             assignAvailableGroupButton.isHidden = true
-        case "customAttribute":
+            
+            assignFilterButton.isHidden = true
+            
+            modeColumn.isHidden = false
+            typeColumn.isHidden = true
+            filterColumn.isHidden = true
+            return
+        }
+        
+        switch odataType {
+        case "#microsoft.graph.macOSLobApp":
+            assignUninstallGroupButton.isHidden = false
+            assignAvailableGroupButton.isHidden = false
+            
+            assignFilterButton.isHidden = false
+            
+            modeColumn.isHidden = false
+            typeColumn.isHidden = false
+            filterColumn.isHidden = false
+        case "#microsoft.graph.macOSPkgApp":
+            assignUninstallGroupButton.isHidden = true
+            assignAvailableGroupButton.isHidden = false
+            
+            assignFilterButton.isHidden = true
+            
+            modeColumn.isHidden = false
+            typeColumn.isHidden = false
+            filterColumn.isHidden = true
+        case "#microsoft.graph.macOSDmgApp":
+            assignUninstallGroupButton.isHidden = false
+            assignAvailableGroupButton.isHidden = false
+            
+            assignFilterButton.isHidden = true
+            
+            modeColumn.isHidden = false
+            typeColumn.isHidden = false
+            filterColumn.isHidden = true
+        case "#microsoft.graph.deviceManagementScript":
             assignUninstallGroupButton.isHidden = true
             assignAvailableGroupButton.isHidden = true
+            
+            assignFilterButton.isHidden = true
+            
+            modeColumn.isHidden = false
+            typeColumn.isHidden = true
+            filterColumn.isHidden = true
+        case "#microsoft.graph.deviceManagementConfigurationPolicy":
+            assignUninstallGroupButton.isHidden = true
+            assignAvailableGroupButton.isHidden = true
+            
+            assignFilterButton.isHidden = true
+            
+            modeColumn.isHidden = false
+            typeColumn.isHidden = true
+            filterColumn.isHidden = true
+        case "#microsoft.graph.macOSWebClip":
+            assignUninstallGroupButton.isHidden = false
+            assignAvailableGroupButton.isHidden = false
+            
+            assignFilterButton.isHidden = false
+            
+            modeColumn.isHidden = false
+            typeColumn.isHidden = false
+            filterColumn.isHidden = false
         default:
             assignUninstallGroupButton.isHidden = true
+            assignAvailableGroupButton.isHidden = true
+            
+            assignFilterButton.isHidden = true
+            
+            modeColumn.isHidden = false
+            typeColumn.isHidden = true
+            filterColumn.isHidden = true
         }
     }
 
@@ -388,15 +506,13 @@ class GroupAssignmentViewController: NSViewController, Configurable, UnsavedChan
             return
         }
         
-        
-
-        // Determine the assignment type based on the selected row
-        let assignment = (groupAssignments[groupAssignmentsTableView.selectedRow]["displayName"])
+        // Get the selected assignment and extract its displayName
+        let selectedAssignment = groupAssignments[groupAssignmentsTableView.selectedRow]
+        let assignmentDisplayName = selectedAssignment["displayName"] as? String ?? ""
         let displayName = ""
         
-        
-        // Present the modal for required group selection
-        self.presentFilterSelectionModal(displayName: displayName, assignment: assignment as! String)
+        // Present the modal for filter selection, passing the selected assignment directly
+        self.presentFilterSelectionModal(displayName: displayName, assignment: assignmentDisplayName, selectedAssignment: selectedAssignment)
         
     }
 
@@ -404,9 +520,9 @@ class GroupAssignmentViewController: NSViewController, Configurable, UnsavedChan
     /// - Parameters:
     ///   - displayName: The human-readable name of the app for display in the modal.
     ///   - assignment: The displayName of the selected group assignment to filter.
+    ///   - selectedAssignment: The complete assignment object that was selected.
 
-    // Filters not supported yet
-    private func presentFilterSelectionModal(displayName: String, assignment: String) {
+    private func presentFilterSelectionModal(displayName: String, assignment: String, selectedAssignment: [String: Any]) {
         let storyboard = NSStoryboard(name: "GroupAssignment", bundle: nil)
         let filterSelectVC = storyboard.instantiateController(withIdentifier: "FilterSelectionViewController") as! FilterSelectionViewController
 
@@ -416,9 +532,12 @@ class GroupAssignmentViewController: NSViewController, Configurable, UnsavedChan
         filterSelectVC.delegate = self
 
         // Pass the current filter assigned to this group, if one exists
-        if let current = groupAssignments.first(where: { ($0["displayName"] as? String) == assignment }),
-           let filter = current["filter"] as? [String: Any] {
+        // Use the selected assignment directly instead of searching for it
+        if let filter = selectedAssignment["filter"] as? [String: Any] {
             filterSelectVC.existingFilter = filter
+            Logger.info("🔎 Found existing filter for assignment: \(filter)", toUserDirectory: true)
+        } else {
+            Logger.info("ℹ️ No existing filter found for assignment: \(assignment)", toUserDirectory: true)
         }
 
         // Show the modal
@@ -728,8 +847,11 @@ extension GroupAssignmentViewController: FilterSelectionViewControllerDelegate {
         
         // Find the index of the group assignment matching the type
         if let index = groupAssignments.firstIndex(where: { ($0["displayName"] as? String) == group }) {
+            let oldFilter = groupAssignments[index]["filter"] as? [String: Any]
+            
             // Update the assignment with the filter dictionary
             groupAssignments[index]["filter"] = filter
+            
         }
 
         // Reload the table view on the main thread and mark unsaved changes
@@ -744,12 +866,44 @@ extension GroupAssignmentViewController: FilterSelectionViewControllerDelegate {
 
 extension GroupAssignmentViewController {
     
+    /// Cleans up filters from assignments to prevent API issues
+    /// Ensures that empty filter dictionaries are removed completely
+    /// - Parameter assignments: Array of group assignments to clean
+    /// - Returns: Cleaned assignments array with proper filter handling
+    private func cleanupFiltersFromAssignments(_ assignments: [[String: Any]]) -> [[String: Any]] {
+        return assignments.map { assignment in
+            var cleanedAssignment = assignment
+            
+            // Check if there's a filter field
+            if let filter = assignment["filter"] as? [String: Any] {
+                // If the filter is empty or missing required fields, remove it completely
+                let filterId = filter["id"] as? String ?? ""
+                let filterMode = filter["mode"] as? String ?? ""
+                
+                if filterId.isEmpty || filterMode.isEmpty {
+                    // Remove the filter completely if it's empty or incomplete
+                    cleanedAssignment.removeValue(forKey: "filter")
+                } else {
+                    // Keep the filter as-is if it has valid data
+                }
+            }
+            
+            return cleanedAssignment
+        }
+    }
+    
     func getDataForSave() -> [String: Any]? {
-        // Return the current group assignments for the shell script
-        return ["groupAssignments": groupAssignments]
+        // Clean up any remaining filters from assignments that might cause API issues
+        let cleanedAssignments = cleanupFiltersFromAssignments(groupAssignments)
+        
+        // Return the current group assignments
+        return ["groupAssignments": cleanedAssignments]
     }
     
     func setInitialData(_ data: [String: Any]) {
+        // Store the initial data payload for @odata.type access
+        self.initialData = data
+        
         // Load existing group assignments if available
         if let assignments = data["groupAssignments"] as? [[String: Any]] {
             // Validate and normalize assignment data to ensure virtual groups are properly formatted
@@ -775,6 +929,8 @@ extension GroupAssignmentViewController {
             DispatchQueue.main.async {
                 self.groupAssignmentsTableView.reloadData()
                 self.updateTableViewAppearance()
+                self.updateGUIElementVisibility()
+
             }
         }
     }

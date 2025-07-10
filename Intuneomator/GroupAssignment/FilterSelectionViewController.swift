@@ -109,6 +109,7 @@ class FilterSelectionViewController: NSViewController, NSTableViewDelegate, NSTa
 
         if let filter = existingFilter, let id = filter["id"] as? String, let mode = filter["mode"] as? String {
             filterSelectionModes[id] = mode
+        } else {
         }
         
         // Reload the table view
@@ -217,7 +218,9 @@ class FilterSelectionViewController: NSViewController, NSTableViewDelegate, NSTa
                 let selectedMode = filterSelectionModes[filterId]
                 
                 // Set the checkbox state based on current selection
-                checkbox.state = (selectedMode == "include") ? .on : .off
+                let isIncludeSelected = selectedMode == "include"
+                checkbox.state = isIncludeSelected ? .on : .off
+                
                 
                 // Enable only if not in "exclude" mode
                 checkbox.isEnabled = selectedMode != "exclude"
@@ -235,7 +238,9 @@ class FilterSelectionViewController: NSViewController, NSTableViewDelegate, NSTa
                 let selectedMode = filterSelectionModes[filterId]
                 
                 // Set the checkbox state based on current selection
-                checkbox.state = (selectedMode == "exclude") ? .on : .off
+                let isExcludeSelected = selectedMode == "exclude"
+                checkbox.state = isExcludeSelected ? .on : .off
+                
                 
                 // Enable only if not in "include" mode
                 checkbox.isEnabled = selectedMode != "include"
@@ -290,15 +295,20 @@ class FilterSelectionViewController: NSViewController, NSTableViewDelegate, NSTa
     /// Dismisses the sheet after notifying the delegate.
     /// - Parameter sender: The "Save" button that was clicked.
     @IBAction func saveButtonClicked(_ sender: NSButton) {
-        guard let selectedEntry = filterSelectionModes.first,
-              let selectedFilter = allFilters.first(where: { ($0["id"] as? String) == selectedEntry.key }) else {
-            return
+        if let selectedEntry = filterSelectionModes.first,
+           let selectedFilter = allFilters.first(where: { ($0["id"] as? String) == selectedEntry.key }) {
+            // User has selected a filter
+            var result = selectedFilter
+            result["mode"] = selectedEntry.value // include or exclude
+            
+            delegate?.filterSelectionViewController(self, didSelectFilter: result, forGroup: assignment)
+        } else {
+            // User wants to remove/clear the filter (no selections in filterSelectionModes)
+            // Pass an empty dictionary to indicate filter removal
+            let result: [String: Any] = [:]
+            
+            delegate?.filterSelectionViewController(self, didSelectFilter: result, forGroup: assignment)
         }
-        
-        var result = selectedFilter
-        result["mode"] = selectedEntry.value // include or exclude
-        
-        delegate?.filterSelectionViewController(self, didSelectFilter: result, forGroup: assignment)
         
         dismiss(self)
     }
