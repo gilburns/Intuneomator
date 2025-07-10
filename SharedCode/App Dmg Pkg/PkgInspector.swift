@@ -119,27 +119,44 @@ class PkgInspector {
         let fileManager = FileManager.default
         var bundleURLs: [URL] = []
         
-        guard let enumerator = fileManager.enumerator(
-            at: directory,
-            includingPropertiesForKeys: [.isDirectoryKey],
-            options: [.skipsHiddenFiles]
-        ) else {
-            return []
-        }
-        
-        for case let fileURL as URL in enumerator {
+        // Enhanced recursive search with more comprehensive directory traversal
+        func searchDirectory(_ searchURL: URL, depth: Int = 0) {
+            // Prevent infinite recursion by limiting search depth
+            guard depth < 20 else { return }
+            
             do {
-                let resourceValues = try fileURL.resourceValues(forKeys: [.isDirectoryKey])
-                if resourceValues.isDirectory == true {
-                    let pathExtension = fileURL.pathExtension.lowercased()
-                    if pathExtension == "app" || pathExtension == "framework" {
-                        bundleURLs.append(fileURL)
+                let contents = try fileManager.contentsOfDirectory(
+                    at: searchURL,
+                    includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey],
+                    options: [.skipsHiddenFiles]
+                )
+                
+                for fileURL in contents {
+                    let resourceValues = try fileURL.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+                    
+                    // Check if this is a bundle we're looking for
+                    if resourceValues.isDirectory == true {
+                        let pathExtension = fileURL.pathExtension.lowercased()
+                        if pathExtension == "app" || pathExtension == "framework" {
+                            bundleURLs.append(fileURL)
+                            // Don't recurse into found bundles to avoid finding nested bundles
+                            continue
+                        }
+                    }
+                    
+                    // Recurse into directories (but not symbolic links to avoid loops)
+                    if resourceValues.isDirectory == true && resourceValues.isSymbolicLink != true {
+                        searchDirectory(fileURL, depth: depth + 1)
                     }
                 }
             } catch {
-                print("Error reading resource values: \(error)")
+                print("Error reading directory \(searchURL.path): \(error)")
             }
         }
+        
+        // Start the recursive search
+        searchDirectory(directory)
+        
         return bundleURLs
     }
     

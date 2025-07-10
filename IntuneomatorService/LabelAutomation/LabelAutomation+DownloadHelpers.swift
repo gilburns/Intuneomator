@@ -365,11 +365,11 @@ extension LabelAutomation {
     // MARK: - File Discovery Operations
     
     /// Recursively searches for files with a specific extension in a given folder
-    /// Handles special cases like .app bundles and provides sorted results by path length
+    /// Handles special cases like .app bundles and provides intelligently sorted results
     /// - Parameters:
     ///   - folderURL: The directory URL to search within
     ///   - ext: The file extension to search for (without the dot)
-    /// - Returns: An array of URLs for files matching the extension, sorted by shortest path first
+    /// - Returns: An array of URLs for files matching the extension, sorted by intelligent priority
     /// - Throws: File system errors if directory enumeration fails
     static func findFiles(inFolder folderURL: URL, withExtension ext: String) throws -> [URL] {
         let fileManager = FileManager.default
@@ -400,12 +400,51 @@ extension LabelAutomation {
             Logger.info("   - \(file.lastPathComponent)", category: .automation)
         }
         
-        // Sort by shortest path length (typically finds files at root level first)
-        foundFiles.sort { $0.path.count < $1.path.count }
+        // Intelligent sorting for file selection priority
+        foundFiles.sort { file1, file2 in
+            let name1 = file1.lastPathComponent.lowercased()
+            let name2 = file2.lastPathComponent.lowercased()
+            
+            // For PKG files, apply special logic to prefer install-related files over uninstall-related ones
+            if ext.lowercased() == "pkg" {
+                // Define priority keywords for install vs uninstall
+                let installKeywords = ["install", "setup", "installer", "main", "primary"]
+                let uninstallKeywords = ["uninstall", "remove", "remover", "cleanup", "delete"]
+                
+                let name1HasInstall = installKeywords.contains { name1.contains($0) }
+                let name1HasUninstall = uninstallKeywords.contains { name1.contains($0) }
+                let name2HasInstall = installKeywords.contains { name2.contains($0) }
+                let name2HasUninstall = uninstallKeywords.contains { name2.contains($0) }
+                
+                // Prefer install files over uninstall files
+                if name1HasInstall && name2HasUninstall {
+                    return true
+                } else if name1HasUninstall && name2HasInstall {
+                    return false
+                }
+                
+                // If both are install or both are uninstall, proceed to other criteria
+                // If one is generic and the other is specific, prefer the specific one
+                if name1HasInstall && !name2HasInstall && !name2HasUninstall {
+                    return true
+                } else if name2HasInstall && !name1HasInstall && !name1HasUninstall {
+                    return false
+                }
+            }
+            
+            // Primary sort: shortest path (files at root level first)
+            let pathDepth1 = file1.path.components(separatedBy: "/").count
+            let pathDepth2 = file2.path.components(separatedBy: "/").count
+            
+            if pathDepth1 != pathDepth2 {
+                return pathDepth1 < pathDepth2
+            }
+            
+            // Secondary sort: alphabetical order for consistent results
+            return name1 < name2
+        }
 
         return foundFiles
     }
-
-
 
 }
