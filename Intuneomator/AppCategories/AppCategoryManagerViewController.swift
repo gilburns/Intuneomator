@@ -214,7 +214,7 @@ class AppCategoryManagerViewController: NSViewController {
         
         let alert = NSAlert()
         alert.messageText = "Edit Category"
-        alert.informativeText = "Update the display name for this category:"
+        alert.informativeText = "(\(categoryId))\n\nUpdate the display name for this category:"
         
         let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 300, height: 24))
         textField.stringValue = category["displayName"] as? String ?? ""

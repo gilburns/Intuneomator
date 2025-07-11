@@ -321,6 +321,12 @@ import Foundation
     ///   - reply: Callback indicating if removal was successful
     func removeShellScriptAssignment(scriptId: String, assignmentId: String, reply: @escaping (Bool) -> Void)
 
+    /// Retrieves device run states for a specific shell script
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the shell script
+    ///   - reply: Callback with array of device run state dictionaries or nil on failure
+    func getShellScriptDeviceRunStates(scriptId: String, reply: @escaping ([[String: Any]]?) -> Void)
+
     // MARK: - Intune Custom Attribute Shell Script Management
     
     /// Fetches all Intune Custom Attribute Shell Scripts from Microsoft Graph with pagination support
@@ -391,6 +397,12 @@ import Foundation
     ///   - assignmentId: Unique identifier of the assignment to remove
     ///   - reply: Callback indicating if removal was successful
     func removeCustomAttributeShellScriptAssignment(scriptId: String, assignmentId: String, reply: @escaping (Bool) -> Void)
+    
+    /// Retrieves device run states for a specific custom attribute shell script
+    /// - Parameters:
+    ///   - scriptId: Unique identifier of the custom attribute shell script
+    ///   - reply: Callback with array of device run state dictionaries or nil on failure
+    func getCustomAttributeShellScriptDeviceRunStates(scriptId: String, reply: @escaping ([[String: Any]]?) -> Void)
 
     // MARK: - Group Assignment Management
     

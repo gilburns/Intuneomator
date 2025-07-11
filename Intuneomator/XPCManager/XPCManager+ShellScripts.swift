@@ -536,4 +536,133 @@ extension XPCManager {
             service.removeShellScriptAssignment(scriptId: scriptId, assignmentId: assignmentId, reply: reply)
         }, completion: completion)
     }
+    
+    // MARK: - Shell Script Device Run States
+    
+    /// Retrieves device run states for a specific shell script from Microsoft Intune
+    ///
+    /// This function fetches detailed execution results for a shell script across all assigned devices,
+    /// providing comprehensive insights into script performance, device compliance, and execution outcomes.
+    /// Essential for monitoring shell script deployment effectiveness and troubleshooting execution issues.
+    ///
+    /// **Key Features:**
+    /// - Complete device execution history and status
+    /// - Detailed script output and error information
+    /// - Device information with names and platform details
+    /// - Execution timestamps for performance analysis
+    /// - Automatic pagination support for large device fleets
+    /// - Sorted results by device name for consistent presentation
+    ///
+    /// **Returned Data Structure:**
+    /// Each device run state dictionary contains rich execution information:
+    /// - `runState`: Execution status ("pending", "success", "fail", "scriptError", "unknown")
+    /// - `resultMessage`: Complete script output or detailed error message
+    /// - `lastRunDateTime`: ISO 8601 timestamp of script execution (formatted with .formatIntuneDate())
+    /// - `lastStateUpdateDateTime`: ISO 8601 timestamp of last status update
+    /// - `errorCode`: Numeric error code for failed executions
+    /// - `errorDescription`: Human-readable error explanation
+    /// - `managedDevice`: Expanded device information including:
+    ///   - `deviceName`: Device hostname for identification
+    ///   - `platform`: Operating system platform
+    ///   - Additional device management properties
+    ///
+    /// **Run State Interpretation:**
+    /// - `pending`: Script queued for execution but not yet run on device
+    /// - `success`: Script executed successfully with zero exit code
+    /// - `fail`: Script execution failed due to system/network/permission issues
+    /// - `scriptError`: Script ran but returned non-zero exit code
+    /// - `unknown`: Execution status could not be determined
+    ///
+    /// **Usage Example:**
+    /// ```swift
+    /// XPCManager.shared.getShellScriptDeviceRunStates(scriptId: "script-guid") { deviceStates in
+    ///     if let deviceStates = deviceStates {
+    ///         print("Execution results for \(deviceStates.count) devices:")
+    ///
+    ///         // Analyze execution outcomes
+    ///         let successCount = deviceStates.filter { ($0["runState"] as? String) == "success" }.count
+    ///         let failureCount = deviceStates.filter { ($0["runState"] as? String)?.contains("fail") == true }.count
+    ///         let pendingCount = deviceStates.filter { ($0["runState"] as? String) == "pending" }.count
+    ///
+    ///         print("Success: \(successCount), Failures: \(failureCount), Pending: \(pendingCount)")
+    ///
+    ///         // Display detailed results
+    ///         for deviceState in deviceStates {
+    ///             let runState = deviceState["runState"] as? String ?? "unknown"
+    ///             let deviceInfo = deviceState["managedDevice"] as? [String: Any]
+    ///             let deviceName = deviceInfo?["deviceName"] as? String ?? "Unknown Device"
+    ///             let lastRun = (deviceState["lastRunDateTime"] as? String ?? "Never").formatIntuneDate()
+    ///
+    ///             print("\(deviceName): \(runState) (Last run: \(lastRun))")
+    ///
+    ///             // Show script output for successful executions
+    ///             if runState == "success", let output = deviceState["resultMessage"] as? String {
+    ///                 print("  Output: \(output)")
+    ///             }
+    ///
+    ///             // Show error details for failed executions
+    ///             if runState.contains("fail"), let error = deviceState["errorDescription"] as? String {
+    ///                 print("  Error: \(error)")
+    ///             }
+    ///         }
+    ///     } else {
+    ///         print("Failed to retrieve device run states")
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// **Advanced Usage - Compliance Reporting:**
+    /// ```swift
+    /// XPCManager.shared.getShellScriptDeviceRunStates(scriptId: scriptId) { deviceStates in
+    ///     guard let deviceStates = deviceStates else { return }
+    ///
+    ///     // Generate compliance report
+    ///     let complianceData = deviceStates.compactMap { deviceState -> [String: Any]? in
+    ///         guard let deviceInfo = deviceState["managedDevice"] as? [String: Any],
+    ///               let deviceName = deviceInfo["deviceName"] as? String else { return nil }
+    ///
+    ///         let runState = deviceState["runState"] as? String ?? "unknown"
+    ///         let lastRun = deviceState["lastRunDateTime"] as? String ?? ""
+    ///         let isCompliant = runState == "success"
+    ///
+    ///         return [
+    ///             "deviceName": deviceName,
+    ///             "compliant": isCompliant,
+    ///             "status": runState,
+    ///             "lastExecution": lastRun.formatIntuneDate()
+    ///         ]
+    ///     }
+    ///
+    ///     // Export or display compliance report
+    ///     exportComplianceReport(complianceData)
+    /// }
+    /// ```
+    ///
+    /// **Common Use Cases:**
+    /// - Monitoring shell script deployment across device fleet
+    /// - Troubleshooting script execution failures on specific devices
+    /// - Generating compliance and execution reports for management
+    /// - Identifying devices requiring attention or intervention
+    /// - Performance analysis of script execution timing
+    /// - Audit trail for shell script execution activities
+    ///
+    /// **Performance Considerations:**
+    /// - Results are automatically paginated for large device environments
+    /// - Device information is efficiently expanded in single API call
+    /// - Results are pre-sorted by device name for UI consistency
+    /// - Consider caching results for frequently accessed data
+    ///
+    /// **Required Permissions:**
+    /// - DeviceManagementConfiguration.Read.All (Application or Delegated)
+    /// - DeviceManagementManagedDevices.Read.All (for device information expansion)
+    ///
+    /// - Parameters:
+    ///   - scriptId: Unique identifier (GUID) of the shell script to get device run states for
+    ///   - completion: Callback with array of device run state dictionaries or nil on failure (including XPC failure)
+    func getShellScriptDeviceRunStates(scriptId: String, completion: @escaping ([[String: Any]]?) -> Void) {
+        sendRequest({ service, reply in
+            service.getShellScriptDeviceRunStates(scriptId: scriptId, reply: reply)
+        }, completion: completion)
+    }
+
 }

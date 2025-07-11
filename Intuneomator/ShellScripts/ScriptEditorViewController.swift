@@ -10,6 +10,10 @@ import Cocoa
 class ScriptEditorViewController: NSViewController, TabbedSheetChildProtocol, NSTextViewDelegate {
     @IBOutlet weak var displayNameTextField: NSTextField!
     @IBOutlet weak var descriptionTextView: NSTextView!
+    
+    @IBOutlet weak var dateCreated: NSTextField!
+    @IBOutlet weak var dateLastModified: NSTextField!
+
     @IBOutlet weak var scriptContentTextView: NSTextView!
     @IBOutlet weak var blockExecutionNotificationsPopup: NSPopUpButton!
     @IBOutlet weak var executionFrequencyPopup: NSPopUpButton!
@@ -89,6 +93,9 @@ class ScriptEditorViewController: NSViewController, TabbedSheetChildProtocol, NS
         
         displayNameTextField.stringValue = script["displayName"] as? String ?? ""
         descriptionTextView.string = script["description"] as? String ?? ""
+
+        dateCreated.stringValue = (script["createdDateTime"] as? String ?? "").formatIntuneDate()
+        dateLastModified.stringValue = (script["lastModifiedDateTime"] as? String ?? "").formatIntuneDate()
 
         if isNewScript, let content = script["scriptContent"] as? String {
             scriptContentTextView.string = content

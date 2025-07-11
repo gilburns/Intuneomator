@@ -204,4 +204,23 @@ extension XPCService {
             }
         }
     }
+    
+    /// Retrieves device run states for a specific custom attribute shell script from Microsoft Intune via XPC
+    /// Fetches detailed execution results across all assigned devices including status, output, and device information
+    /// - Parameters:
+    ///   - scriptId: Unique identifier (GUID) of the custom attribute shell script to get device run states for
+    ///   - reply: Callback with array of device run state dictionaries or nil on failure
+    func getCustomAttributeShellScriptDeviceRunStates(scriptId: String, reply: @escaping ([[String : Any]]?) -> Void) {
+        Task {
+            do {
+                let entraAuthenticator = EntraAuthenticator.shared
+                let authToken = try await entraAuthenticator.getEntraIDToken()
+                let deviceStates = try await EntraGraphRequests.getCustomAttributeShellScriptDeviceRunStates(authToken: authToken, scriptId: scriptId)
+                reply(deviceStates)
+            } catch {
+                Logger.error("Failed to get device run states for custom attribute '\(scriptId)': \(error.localizedDescription)", category: .core)
+                reply(nil)
+            }
+        }
+    }
 }
