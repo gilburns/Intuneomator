@@ -47,6 +47,14 @@ class CustomAttributeReportingViewController: NSViewController {
     override func viewWillAppear() {
         super.viewWillAppear()
         
+        let effectView = NSVisualEffectView(frame: view.bounds)
+        effectView.autoresizingMask = [.width, .height]
+        effectView.blendingMode = .withinWindow
+        effectView.material = .windowBackground
+        effectView.state = .active
+        
+        self.view.addSubview(effectView, positioned: .below, relativeTo: nil)
+
         // Set up sheet window properties
         if let window = view.window {
             window.title = "Custom Attribute Device Report"
