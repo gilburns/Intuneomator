@@ -13,6 +13,9 @@ class WebClipsEditorViewController: NSViewController, TabbedSheetChildProtocol, 
     @IBOutlet weak var displayNameTextField: NSTextField!
     @IBOutlet weak var descriptionTextView: NSTextView!
     
+    @IBOutlet weak var dateCreated: NSTextField!
+    @IBOutlet weak var dateLastModified: NSTextField!
+
     @IBOutlet weak var publisherTextField: NSTextField!
     @IBOutlet weak var appUrlTextField: NSTextField!
     
@@ -131,6 +134,9 @@ class WebClipsEditorViewController: NSViewController, TabbedSheetChildProtocol, 
         } else {
             descriptionTextView.string = ""
         }
+
+        dateCreated.stringValue = (webClip["createdDateTime"] as? String ?? "").formatIntuneDate()
+        dateLastModified.stringValue = (webClip["lastModifiedDateTime"] as? String ?? "").formatIntuneDate()
 
         // Set notes if available
         if let notes = webClip["notes"] as? String {

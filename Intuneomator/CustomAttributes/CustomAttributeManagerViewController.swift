@@ -12,6 +12,7 @@ class CustomAttributeManagerViewController: NSViewController, NSTableViewDelegat
     @IBOutlet weak var tableView: NSTableView!
     @IBOutlet weak var deleteButton: NSButton!
     @IBOutlet weak var editButton: NSButton!
+    @IBOutlet weak var reportButton: NSButton!
         
     var allCustomAttributes: [[String: Any]] = []
     
@@ -61,6 +62,7 @@ class CustomAttributeManagerViewController: NSViewController, NSTableViewDelegat
         // Initial button state
         deleteButton.isEnabled = false
         editButton.isEnabled = false
+        reportButton.isEnabled = false
 
         loadCustomAttributes()
     }
@@ -70,6 +72,7 @@ class CustomAttributeManagerViewController: NSViewController, NSTableViewDelegat
         DispatchQueue.main.async {
             self.deleteButton.isEnabled = false
             self.editButton.isEnabled = false
+            self.reportButton.isEnabled = false
         }
         
         // First ensure Entra groups are loaded for assignment display name lookup
@@ -123,7 +126,8 @@ class CustomAttributeManagerViewController: NSViewController, NSTableViewDelegat
                         let hasSelection = selectedRow >= 0 && selectedRow < customAttributes.count
                         self.deleteButton.isEnabled = hasSelection
                         self.editButton.isEnabled = hasSelection
-                        
+                        self.reportButton.isEnabled = hasSelection
+
                     } else {
                         Logger.error("Failed to fetch custom attributes from Intune", category: .core, toUserDirectory: true)
                         self.showError(message: "Failed to load custom attributes from Intune. Please check your connection and authentication.")
@@ -340,9 +344,10 @@ class CustomAttributeManagerViewController: NSViewController, NSTableViewDelegat
             presentEditor(with: newScript, isNew: true)
         } else if let customAttributeId = customAttribute["id"] as? String {
             // Show loading state - disable buttons during fetch
-            editButton.isEnabled = false
             deleteButton.isEnabled = false
-            
+            editButton.isEnabled = false
+            reportButton.isEnabled = false
+
             XPCManager.shared.getCustomAttributeShellScriptDetails(scriptId: customAttributeId) { details in
                 DispatchQueue.main.async {
                     // Re-enable buttons
@@ -350,7 +355,8 @@ class CustomAttributeManagerViewController: NSViewController, NSTableViewDelegat
                     let hasSelection = selectedRow >= 0 && selectedRow < self.allCustomAttributes.count
                     self.deleteButton.isEnabled = hasSelection
                     self.editButton.isEnabled = hasSelection
-                    
+                    self.reportButton.isEnabled = hasSelection
+
                     if let details = details {
                         Logger.info("Successfully loaded custom attribute details for: \(details["displayName"] as? String ?? "Unknown")", category: .core, toUserDirectory: true)
                         var customAttributeDetails = details
@@ -460,6 +466,7 @@ class CustomAttributeManagerViewController: NSViewController, NSTableViewDelegat
 
         deleteButton.isEnabled = hasSelection
         editButton.isEnabled = hasSelection
+        reportButton.isEnabled = hasSelection
     }
     
         
@@ -604,7 +611,8 @@ class CustomAttributeManagerViewController: NSViewController, NSTableViewDelegat
             // Disable buttons during deletion
             deleteButton.isEnabled = false
             editButton.isEnabled = false
-            
+            reportButton.isEnabled = false
+
             XPCManager.shared.deleteCustomAttributeShellScript(scriptId: customAttributeId) { success in
                 DispatchQueue.main.async {
                     if success == true {
@@ -620,6 +628,7 @@ class CustomAttributeManagerViewController: NSViewController, NSTableViewDelegat
                         let hasSelection = selectedRow >= 0 && selectedRow < self.allCustomAttributes.count
                         self.deleteButton.isEnabled = hasSelection
                         self.editButton.isEnabled = hasSelection
+                        self.reportButton.isEnabled = hasSelection
                     }
                 }
             }
@@ -708,6 +717,21 @@ class CustomAttributeManagerViewController: NSViewController, NSTableViewDelegat
                 self.showErrorAlert("Failed to import Jamf Extension Attribute", info: error.localizedDescription)
             }
         }
+    }
+
+    @IBAction func showDeviceReport(_ sender: NSButton) {
+        let selectedRow = tableView.selectedRow
+        guard selectedRow >= 0 && selectedRow < allCustomAttributes.count else {
+            showError(message: "Please select a custom attribute to edit.")
+            return
+        }
+        let customAttribute = allCustomAttributes[selectedRow]
+
+        let storyboard = NSStoryboard(name: "CustomAttributes", bundle: nil)
+        let reportVC = storyboard.instantiateController(withIdentifier: "CustomAttributeReportingViewController") as! CustomAttributeReportingViewController
+
+        reportVC.configure(with: customAttribute)
+        presentAsSheet(reportVC)
     }
 
     // MARK: - JAMF Import Handling

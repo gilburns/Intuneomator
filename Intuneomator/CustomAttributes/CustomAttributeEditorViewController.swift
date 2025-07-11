@@ -12,7 +12,9 @@ class CustomAttributeEditorViewController: NSViewController, TabbedSheetChildPro
     @IBOutlet weak var descriptionTextView: NSTextView!
     @IBOutlet weak var scriptContentTextView: NSTextView!
     
-    
+    @IBOutlet weak var dateCreated: NSTextField!
+    @IBOutlet weak var dateLastModified: NSTextField!
+
     @IBOutlet weak var runAsAccountPopup: NSPopUpButton!
     @IBOutlet weak var customAttributeTypePopup: NSPopUpButton!
     
@@ -90,6 +92,10 @@ class CustomAttributeEditorViewController: NSViewController, TabbedSheetChildPro
         isNewScript = script["isNewScript"] as? Bool ?? false
 
         displayNameTextField.stringValue = script["displayName"] as? String ?? ""
+
+        dateCreated.stringValue = (script["createdDateTime"] as? String ?? "").formatIntuneDate()
+        dateLastModified.stringValue = (script["lastModifiedDateTime"] as? String ?? "").formatIntuneDate()
+
         descriptionTextView.string = script["description"] as? String ?? ""
         
         //        if let tagIds = script["roleScopeTagIds"] as? [String] {

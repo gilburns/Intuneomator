@@ -12,7 +12,8 @@ class ScriptManagerViewController: NSViewController, NSTableViewDelegate, NSTabl
     @IBOutlet weak var tableView: NSTableView!
     @IBOutlet weak var deleteButton: NSButton!
     @IBOutlet weak var editButton: NSButton!
-        
+    @IBOutlet weak var reportButton: NSButton!
+
     var allScripts: [[String: Any]] = []
     
     // Date formatter for human-friendly dates
@@ -61,6 +62,7 @@ class ScriptManagerViewController: NSViewController, NSTableViewDelegate, NSTabl
         // Initial button state
         deleteButton.isEnabled = false
         editButton.isEnabled = false
+        reportButton.isEnabled = false
 
         loadScripts()
     }
@@ -70,6 +72,7 @@ class ScriptManagerViewController: NSViewController, NSTableViewDelegate, NSTabl
         DispatchQueue.main.async {
             self.deleteButton.isEnabled = false
             self.editButton.isEnabled = false
+            self.reportButton.isEnabled = false
         }
         
         // First ensure Entra groups are loaded for assignment display name lookup
@@ -123,7 +126,8 @@ class ScriptManagerViewController: NSViewController, NSTableViewDelegate, NSTabl
                         let hasSelection = selectedRow >= 0 && selectedRow < scripts.count
                         self.deleteButton.isEnabled = hasSelection
                         self.editButton.isEnabled = hasSelection
-                        
+                        self.reportButton.isEnabled = hasSelection
+
                     } else {
                         Logger.error("Failed to fetch shell scripts from Intune", category: .core, toUserDirectory: true)
                         self.showError(message: "Failed to load shell scripts from Intune. Please check your connection and authentication.")
@@ -342,9 +346,10 @@ class ScriptManagerViewController: NSViewController, NSTableViewDelegate, NSTabl
             presentEditor(with: newScript, isNew: true)
         } else if let scriptId = script["id"] as? String {
             // Show loading state - disable buttons during fetch
-            editButton.isEnabled = false
             deleteButton.isEnabled = false
-            
+            editButton.isEnabled = false
+            reportButton.isEnabled = false
+
             XPCManager.shared.getShellScriptDetails(scriptId: scriptId) { details in
                 DispatchQueue.main.async {
                     // Re-enable buttons
@@ -352,7 +357,8 @@ class ScriptManagerViewController: NSViewController, NSTableViewDelegate, NSTabl
                     let hasSelection = selectedRow >= 0 && selectedRow < self.allScripts.count
                     self.deleteButton.isEnabled = hasSelection
                     self.editButton.isEnabled = hasSelection
-                    
+                    self.reportButton.isEnabled = hasSelection
+
                     if let details = details {
                         Logger.info("Successfully loaded script details for: \(details["displayName"] as? String ?? "Unknown")", category: .core, toUserDirectory: true)
                         
@@ -463,6 +469,7 @@ class ScriptManagerViewController: NSViewController, NSTableViewDelegate, NSTabl
 
         deleteButton.isEnabled = hasSelection
         editButton.isEnabled = hasSelection
+        reportButton.isEnabled = hasSelection
     }
     
         
@@ -624,7 +631,8 @@ class ScriptManagerViewController: NSViewController, NSTableViewDelegate, NSTabl
             // Disable buttons during deletion
             deleteButton.isEnabled = false
             editButton.isEnabled = false
-            
+            reportButton.isEnabled = false
+
             XPCManager.shared.deleteShellScript(scriptId: scriptId) { success in
                 DispatchQueue.main.async {
                     if success == true {
@@ -640,6 +648,7 @@ class ScriptManagerViewController: NSViewController, NSTableViewDelegate, NSTabl
                         let hasSelection = selectedRow >= 0 && selectedRow < self.allScripts.count
                         self.deleteButton.isEnabled = hasSelection
                         self.editButton.isEnabled = hasSelection
+                        self.reportButton.isEnabled = hasSelection
                     }
                 }
             }
@@ -681,6 +690,21 @@ class ScriptManagerViewController: NSViewController, NSTableViewDelegate, NSTabl
                 }
             }
         }
+    }
+
+    @IBAction func showDeviceReport(_ sender: NSButton) {
+        let selectedRow = tableView.selectedRow
+        guard selectedRow >= 0 && selectedRow < allScripts.count else {
+            showError(message: "Please select a shell script to edit.")
+            return
+        }
+        let shellScript = allScripts[selectedRow]
+
+        let storyboard = NSStoryboard(name: "ShellScripts", bundle: nil)
+        let reportVC = storyboard.instantiateController(withIdentifier: "ScriptReportingViewController") as! ScriptReportingViewController
+
+        reportVC.configure(with: shellScript)
+        presentAsSheet(reportVC)
     }
 
     // MARK: - User Feedback

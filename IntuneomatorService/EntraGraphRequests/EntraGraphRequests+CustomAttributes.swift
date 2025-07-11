@@ -883,4 +883,156 @@ extension EntraGraphRequests {
         return true
     }
     
+    // MARK: - Custom Attribute Shell Script Device Run States
+    
+    /// Retrieves device run states for a specific custom attribute shell script from Microsoft Intune
+    ///
+    /// Fetches detailed execution results for a custom attribute shell script across all assigned devices,
+    /// including execution status, output, error information, and device details.
+    ///
+    /// **Key Features:**
+    /// - Complete device execution history
+    /// - Execution status, output, and error details
+    /// - Device information including name, platform, and compliance status
+    /// - Last execution timestamps and duration
+    /// - Comprehensive error handling and logging
+    /// - Automatic pagination support for large device counts
+    ///
+    /// **Returned Data Structure:**
+    /// Each device run state dictionary contains:
+    /// - `id`: Unique run state identifier
+    /// - `runState`: Execution status ("pending", "success", "fail", "scriptError", "unknown")
+    /// - `resultMessage`: Script output or error message
+    /// - `lastStateUpdateDateTime`: ISO 8601 timestamp of last execution
+    /// - `errorCode`: Numeric error code if execution failed
+    /// - `errorDescription`: Human-readable error description
+    /// - `managedDevice`: Expanded device information including:
+    ///   - `deviceName`: Device hostname
+    ///   - `platform`: Operating system platform
+    /// - `lastRunDateTime`: ISO 8601 timestamp of script execution
+    /// - `preRemediationDetectionScriptOutput`: Detection script output
+    /// - `remediationScriptOutput`: Remediation script output
+    ///
+    /// **Run State Values:**
+    /// - `pending`: Script queued for execution but not yet run
+    /// - `success`: Script executed successfully without errors
+    /// - `fail`: Script execution failed due to system/network issues
+    /// - `scriptError`: Script completed but returned non-zero exit code
+    /// - `unknown`: Execution status could not be determined
+    ///
+    /// **Usage Example:**
+    /// ```swift
+    /// let deviceStates = try await EntraGraphRequests.getCustomAttributeShellScriptDeviceRunStates(
+    ///     authToken: token,
+    ///     scriptId: "script-guid"
+    /// )
+    ///
+    /// for deviceState in deviceStates {
+    ///     let runState = deviceState["runState"] as? String ?? "unknown"
+    ///     let deviceInfo = deviceState["managedDevice"] as? [String: Any]
+    ///     let deviceName = deviceInfo?["deviceName"] as? String ?? "Unknown Device"
+    ///     let lastRun = deviceState["lastRunDateTime"] as? String ?? "Never"
+    ///     
+    ///     print("Device: \(deviceName), Status: \(runState), Last Run: \(lastRun)")
+    ///     
+    ///     if let resultMessage = deviceState["resultMessage"] as? String {
+    ///         print("Output: \(resultMessage)")
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// **Common Use Cases:**
+    /// - Monitoring script execution across device fleet
+    /// - Troubleshooting failed script executions
+    /// - Generating compliance reports
+    /// - Identifying devices requiring attention
+    /// - Audit trail for custom attribute collection
+    ///
+    /// **Performance Considerations:**
+    /// - Uses `$expand=managedDevice` for efficient device data retrieval
+    /// - Supports pagination for environments with many devices
+    /// - Results are sorted by device name for consistent ordering
+    ///
+    /// - Parameters:
+    ///   - authToken: Valid OAuth 2.0 bearer token with DeviceManagementConfiguration.Read.All permissions
+    ///   - scriptId: Unique identifier (GUID) of the custom attribute shell script to get device run states for
+    /// - Returns: Array of device run state dictionaries containing execution results and device information
+    /// - Throws:
+    ///   - `NSError` with domain "CustomAttributeDeviceStates" and code 500: Invalid URL, HTTP request failure, or JSON parsing failure
+    ///   - Network-related errors from URLSession
+    ///
+    /// **Required Permissions:**
+    /// - DeviceManagementConfiguration.Read.All (Application or Delegated)
+    /// - DeviceManagementManagedDevices.Read.All (for device information expansion)
+    ///
+    /// **Microsoft Graph API:**
+    /// - Endpoint: `GET /deviceManagement/deviceCustomAttributeShellScripts/{id}/deviceRunStates?$expand=managedDevice`
+    /// - Documentation: Microsoft Graph deviceManagementScriptDeviceState resource type
+    static func getCustomAttributeShellScriptDeviceRunStates(authToken: String, scriptId: String) async throws -> [[String: Any]] {
+        
+        Logger.info("Fetching device run states for custom attribute shell script: \(scriptId)", category: .core)
+        
+        var allDeviceStates: [[String: Any]] = []
+        var nextPageUrl: String? = "https://graph.microsoft.com/beta/deviceManagement/deviceCustomAttributeShellScripts/\(scriptId)/deviceRunStates?$expand=managedDevice"
+        var pageCount = 0
+        
+        // Follow pagination until all device run states are fetched
+        while let urlString = nextPageUrl {
+            guard let url = URL(string: urlString) else {
+                throw NSError(domain: "CustomAttributeDeviceStates", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid pagination URL: \(urlString)"])
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw NSError(domain: "CustomAttributeDeviceStates", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid response type"])
+            }
+            
+            guard httpResponse.statusCode == 200 else {
+                let responseStr = String(data: data, encoding: .utf8) ?? "Unknown error"
+                Logger.error("Failed to fetch device run states for custom attribute shell script \(scriptId) (page \(pageCount + 1)): \(responseStr)", category: .core)
+                throw NSError(domain: "CustomAttributeDeviceStates", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch device run states (page \(pageCount + 1)). Status: \(httpResponse.statusCode), Response: \(responseStr)"])
+            }
+            
+            // Parse JSON response
+            guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
+                throw NSError(domain: "CustomAttributeDeviceStates", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON response format for device run states (page \(pageCount + 1))"])
+            }
+            
+            // Extract device run states from this page
+            guard let pageDeviceStates = json["value"] as? [[String: Any]] else {
+                throw NSError(domain: "CustomAttributeDeviceStates", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid response format for device run states (page \(pageCount + 1))"])
+            }
+            
+            allDeviceStates.append(contentsOf: pageDeviceStates)
+            pageCount += 1
+            
+            // Check for next page
+            nextPageUrl = json["@odata.nextLink"] as? String
+            
+            Logger.info("Fetched page \(pageCount) with \(pageDeviceStates.count) device run states (total: \(allDeviceStates.count))", category: .core)
+            
+            // Safety check to prevent infinite loops
+            if pageCount > 100 {
+                Logger.error("Safety limit reached: stopping after 100 pages of device run states", category: .core)
+                break
+            }
+        }
+        
+        Logger.info("Successfully fetched \(allDeviceStates.count) device run states for custom attribute shell script \(scriptId) across \(pageCount) pages", category: .core)
+        
+        // Sort device states by device name for consistent ordering
+        return allDeviceStates.sorted { deviceState1, deviceState2 in
+            let device1 = deviceState1["managedDevice"] as? [String: Any]
+            let device2 = deviceState2["managedDevice"] as? [String: Any]
+            let name1 = device1?["deviceName"] as? String ?? ""
+            let name2 = device2?["deviceName"] as? String ?? ""
+            return name1.localizedCaseInsensitiveCompare(name2) == .orderedAscending
+        }
+    }
+    
 }

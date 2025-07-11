@@ -120,3 +120,103 @@ extension NSImage {
 extension UTType {
     public static let p12 = UTType(importedAs: "com.gilburns.Intuneomator.p12")
 }
+
+// MARK: - String Extensions for Date Formatting
+
+extension String {
+    
+    /// Formats an Intune ISO 8601 date string into a human-readable format
+    /// - Returns: Formatted date string (e.g., "July 9, 2025 at 3:06 PM") or original string if parsing fails
+    func formatIntuneDate() -> String {
+        // Return empty string if input is empty
+        guard !self.isEmpty else { return "" }
+        
+        // Create ISO 8601 date formatter for parsing Intune dates
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
+        // Try parsing with fractional seconds first, then without
+        var date: Date?
+        if let parsedDate = isoFormatter.date(from: self) {
+            date = parsedDate
+        } else {
+            // Try without fractional seconds
+            isoFormatter.formatOptions = [.withInternetDateTime]
+            date = isoFormatter.date(from: self)
+        }
+        
+        guard let validDate = date else {
+            // If parsing fails, return the original string
+            return self
+        }
+        
+        // Create a user-friendly date formatter
+        let displayFormatter = DateFormatter()
+        displayFormatter.dateStyle = .long
+        displayFormatter.timeStyle = .short
+        displayFormatter.locale = Locale.current
+        
+        return displayFormatter.string(from: validDate)
+    }
+    
+    /// Formats an Intune ISO 8601 date string into a compact format
+    /// - Returns: Compact date string (e.g., "7/9/25, 3:06 PM") or original string if parsing fails
+    func formatIntuneDateCompact() -> String {
+        // Return empty string if input is empty
+        guard !self.isEmpty else { return "" }
+        
+        // Create ISO 8601 date formatter for parsing Intune dates
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
+        // Try parsing with fractional seconds first, then without
+        var date: Date?
+        if let parsedDate = isoFormatter.date(from: self) {
+            date = parsedDate
+        } else {
+            // Try without fractional seconds
+            isoFormatter.formatOptions = [.withInternetDateTime]
+            date = isoFormatter.date(from: self)
+        }
+        
+        guard let validDate = date else {
+            // If parsing fails, return the original string
+            return self
+        }
+        
+        // Create a compact date formatter
+        let displayFormatter = DateFormatter()
+        displayFormatter.dateStyle = .short
+        displayFormatter.timeStyle = .short
+        displayFormatter.locale = Locale.current
+        
+        return displayFormatter.string(from: validDate)
+    }
+}
+
+// MARK: - Date Extensions
+
+extension Date {
+    
+    /// Formats a Date into the standard Intune display format
+    /// - Returns: Formatted date string (e.g., "July 9, 2025 at 3:06 PM")
+    func formatForIntuneDisplay() -> String {
+        let displayFormatter = DateFormatter()
+        displayFormatter.dateStyle = .long
+        displayFormatter.timeStyle = .short
+        displayFormatter.locale = Locale.current
+        
+        return displayFormatter.string(from: self)
+    }
+    
+    /// Formats a Date into a compact Intune display format
+    /// - Returns: Compact date string (e.g., "7/9/25, 3:06 PM")
+    func formatForIntuneDisplayCompact() -> String {
+        let displayFormatter = DateFormatter()
+        displayFormatter.dateStyle = .short
+        displayFormatter.timeStyle = .short
+        displayFormatter.locale = Locale.current
+        
+        return displayFormatter.string(from: self)
+    }
+}
