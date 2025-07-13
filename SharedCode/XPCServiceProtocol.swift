@@ -211,6 +211,18 @@ import Foundation
     ///   - reply: Callback indicating success (true) or failure (false)
     func deleteMobileAppCategory(categoryId: String, reply: @escaping (Bool) -> Void)
 
+    // MARK: - Intune Mac App Reporting
+    
+    /// Fetches all macOS Mac Apps from Microsoft Intune
+    /// - Parameter reply: Callback with array of web clip dictionaries or nil on failure
+    func fetchIntuneApps(reply: @escaping ([[String: Any]]?) -> Void)
+    
+    /// Retrieves device app installation status report for a specific app from Microsoft Graph reports endpoint
+    /// - Parameters:
+    ///   - appId: Unique identifier (GUID) of the app to get installation status for
+    ///   - reply: Callback with array of device installation status dictionaries or nil on failure
+    func getDeviceAppInstallationStatusReport(appId: String, reply: @escaping ([[String: Any]]?) -> Void)
+
     // MARK: - Intune Web Clip Management
     
     /// Fetches all macOS Web Clips from Microsoft Intune
