@@ -20,6 +20,12 @@ class InstallationStatusPieChartView: NSView {
     private var notApplicableCount: Int = 0
     private var totalCount: Int = 0
     
+    // Custom labels for chart segments
+    private var installedLabel: String = "Installed"
+    private var failedLabel: String = "Failed"
+    private var pendingLabel: String = "Pending"
+    private var notApplicableLabel: String = "Not Applicable"
+    
     // Color scheme for different installation states
     private let installedColor = NSColor.systemGreen
     private let failedColor = NSColor.systemRed
@@ -52,12 +58,21 @@ class InstallationStatusPieChartView: NSView {
     ///   - pending: Number of devices with pending installation
     ///   - notApplicable: Number of devices where app is not applicable
     ///   - total: Total number of devices
-    func updateData(installed: Int, failed: Int, pending: Int, notApplicable: Int, total: Int) {
+    ///   - labels: Optional custom labels for chart segments. If nil, uses default labels.
+    func updateData(installed: Int, failed: Int, pending: Int, notApplicable: Int, total: Int, labels: (installed: String, failed: String, pending: String, notApplicable: String)? = nil) {
         self.installedCount = installed
         self.failedCount = failed
         self.pendingCount = pending
         self.notApplicableCount = notApplicable
         self.totalCount = total
+        
+        // Update labels if provided, otherwise keep defaults
+        if let labels = labels {
+            self.installedLabel = labels.installed
+            self.failedLabel = labels.failed
+            self.pendingLabel = labels.pending
+            self.notApplicableLabel = labels.notApplicable
+        }
         
         needsDisplay = true
     }
@@ -145,10 +160,10 @@ class InstallationStatusPieChartView: NSView {
         
         // Legend items
         let legendItems = [
-            (color: installedColor, label: "Installed", count: installedCount),
-            (color: failedColor, label: "Failed", count: failedCount),
-            (color: pendingColor, label: "Pending", count: pendingCount),
-            (color: notApplicableColor, label: "Not Applicable", count: notApplicableCount)
+            (color: installedColor, label: installedLabel, count: installedCount),
+            (color: failedColor, label: failedLabel, count: failedCount),
+            (color: pendingColor, label: pendingLabel, count: pendingCount),
+            (color: notApplicableColor, label: notApplicableLabel, count: notApplicableCount)
         ]
         
         // Filter to only show items with data

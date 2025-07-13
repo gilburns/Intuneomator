@@ -271,7 +271,8 @@ class AppsReportingViewController: NSViewController {
             failed: failedCount,
             pending: pendingCount,
             notApplicable: notApplicableCount,
-            total: totalDevices
+            total: totalDevices,
+            labels: (installed: "Installed", failed: "Failed", pending: "Pending", notApplicable: "Not Applicable")
         )
     }
     
