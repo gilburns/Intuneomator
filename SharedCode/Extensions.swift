@@ -133,16 +133,48 @@ extension String {
         
         // Create ISO 8601 date formatter for parsing Intune dates
         let isoFormatter = ISO8601DateFormatter()
-        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         
-        // Try parsing with fractional seconds first, then without
+        // Try multiple parsing options in order of preference
         var date: Date?
+        
+        // Option 1: Full internet date-time with fractional seconds (e.g., "2025-07-09T15:06:11.123Z")
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         if let parsedDate = isoFormatter.date(from: self) {
             date = parsedDate
         } else {
-            // Try without fractional seconds
+            // Option 2: Internet date-time without fractional seconds (e.g., "2025-07-09T15:06:11Z")
             isoFormatter.formatOptions = [.withInternetDateTime]
-            date = isoFormatter.date(from: self)
+            if let parsedDate = isoFormatter.date(from: self) {
+                date = parsedDate
+            } else {
+                // Option 3: Date and time without timezone info (e.g., "2025-05-21T00:33:27")
+                isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                isoFormatter.timeZone = TimeZone.current // Assume local timezone
+                if let parsedDate = isoFormatter.date(from: self + "Z") { // Add Z to make it valid
+                    date = parsedDate
+                } else {
+                    // Option 4: Try standard DateFormatter for various formats
+                    let standardFormatter = DateFormatter()
+                    standardFormatter.locale = Locale(identifier: "en_US_POSIX")
+                    standardFormatter.timeZone = TimeZone.current
+                    
+                    // Try different format patterns
+                    let patterns = [
+                        "yyyy-MM-dd'T'HH:mm:ss",
+                        "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                        "yyyy-MM-dd HH:mm:ss",
+                        "yyyy-MM-dd"
+                    ]
+                    
+                    for pattern in patterns {
+                        standardFormatter.dateFormat = pattern
+                        if let parsedDate = standardFormatter.date(from: self) {
+                            date = parsedDate
+                            break
+                        }
+                    }
+                }
+            }
         }
         
         guard let validDate = date else {

@@ -81,11 +81,6 @@
                                                 <action selector="addRow:" target="Ady-hI-5gd" id="eEk-d5-6kW"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="New Automation from Discovered Apps" keyEquivalent="o" id="cU7-xn-gM1">
-                                            <connections>
-                                                <action selector="openDiscoveredAppsFromMenu:" target="Voe-Tx-rLC" id="M0r-qg-noh"/>
-                                            </connections>
-                                        </menuItem>
                                         <menuItem isSeparatorItem="YES" id="m54-Is-iLE"/>
                                         <menuItem title="Force unscheduled automation run…" id="3De-CM-AxW">
                                             <modifierMask key="keyEquivalentModifierMask"/>
@@ -643,7 +638,22 @@
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="eu3-7i-yIM"/>
-                                        <menuItem title="Intune Management" id="v3Y-hK-1Qj">
+                                        <menuItem title="Intune Reporting" id="v3Y-hK-1Qj">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                        </menuItem>
+                                        <menuItem title="App Installation Status…" indentationLevel="1" id="dVf-GS-AET">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="openAppsReportingManagerWindow:" target="Ady-hI-5gd" id="w2d-Ow-yUQ"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Discovered Apps…" indentationLevel="1" id="cU7-xn-gM1" userLabel="Discovered Apps">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="openDiscoveredAppsFromMenu:" target="Voe-Tx-rLC" id="M0r-qg-noh"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Intune Management" id="OI9-GC-YtT">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                         </menuItem>
                                         <menuItem title="App Category Manager…" indentationLevel="1" id="Sio-Iq-pzP">
@@ -652,7 +662,7 @@
                                                 <action selector="openAppsCategoryManagerWindow:" target="Ady-hI-5gd" id="PnK-BE-wjR"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Custom Attribute Manager…" indentationLevel="1" id="mad-PN-Gcx" userLabel="Show Custom Attribute Manager…">
+                                        <menuItem title="Custom Attribute Manager…" indentationLevel="1" id="mad-PN-Gcx">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="openCustomAttributeManagerWindow:" target="Ady-hI-5gd" id="yxQ-0R-Sx4"/>

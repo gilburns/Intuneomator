@@ -35,7 +35,7 @@ extension MainViewController {
     
     /**
      * Initiates a background check for Intune automation status.
-     * 
+     *
      * This method calls the XPC service to perform a scan of the Intune tenant
      * and check the current automation status. Results are logged but not
      * directly returned to the UI.
@@ -52,11 +52,11 @@ extension MainViewController {
     
     /**
      * Configures the table view's right-click context menu.
-     * 
+     *
      * Sets up an empty menu with this controller as the delegate.
      * The actual menu items are populated dynamically in the
      * ContextMenu extension based on the selected row.
-     * 
+     *
      * Also configures the double-click action for table rows.
      */
     func setupTableViewRightClickMenu() {
@@ -67,10 +67,9 @@ extension MainViewController {
         tableView.doubleAction = #selector(handleTableViewDoubleClick(_:))
     }
     
-
     /**
      * Sets the initial state of UI controls.
-     * 
+     *
      * Disables edit and remove buttons since no row is initially selected.
      * Called during view setup and after operations that clear selection.
      */
@@ -81,7 +80,7 @@ extension MainViewController {
 
     /**
      * Refreshes the entire user interface.
-     * 
+     *
      * Reloads the table view data and resets the UI to its initial state.
      * This is typically called after data changes or major UI updates.
      */
@@ -93,7 +92,7 @@ extension MainViewController {
     
     /**
      * Updates the label count display.
-     * 
+     *
      * Shows the number of currently visible labels versus the total number
      * of labels loaded. Format: "X of Y" where X is filtered count and Y is total.
      */
@@ -102,16 +101,15 @@ extension MainViewController {
         let visibleLabels = filteredAppData.count
         labelCountField.stringValue = "\(visibleLabels) of \(allLabels)"
     }
-
     
     // MARK: - Icon Utilities
     
     /**
      * Returns the system icon for a given file extension.
-     * 
+     *
      * Uses the Uniform Type Identifiers framework to get the appropriate
      * icon that macOS associates with the file type.
-     * 
+     *
      * - Parameter fileExtension: The file extension (e.g., "pkg", "dmg")
      * - Returns: The system icon for the file type, or nil if not found
      */
@@ -124,9 +122,9 @@ extension MainViewController {
     
     /**
      * Returns the icon for an application given its bundle identifier.
-     * 
+     *
      * Looks up the application by bundle ID and returns its icon.
-     * 
+     *
      * - Parameter bundleIdentifier: The app's bundle identifier (e.g., "com.apple.Safari")
      * - Returns: The application's icon, or nil if app not found
      */
@@ -137,17 +135,16 @@ extension MainViewController {
         return nil
     }
 
-    
     /**
      * Returns the appropriate icon and label for an item based on its type and delivery method.
-     * 
+     *
      * This method determines the visual representation for different app packaging formats
      * and delivery mechanisms in the table view.
-     * 
+     *
      * - Parameter itemType: The source item type (pkg, dmg, zip, etc.)
      * - Parameter deliveryType: How the app will be delivered (0=DMG, 1=PKG, 2=LOB)
      * - Returns: A tuple containing the icon image and text label
-     * 
+     *
      * ## Delivery Types:
      * - 0: DMG delivery (traditional disk image)
      * - 1: PKG delivery (installer package)
@@ -160,7 +157,7 @@ extension MainViewController {
             } else if deliveryType == 2 {
                 // Try to load custom Company Portal icon, fallback to system icon
                 if let cpIconPath = Bundle.main.path(forResource: "CP", ofType: "png"),
-                    let icon = NSImage(contentsOfFile: cpIconPath) {
+                   let icon = NSImage(contentsOfFile: cpIconPath) {
                     return (icon, "LOB")
                 }
                 return (iconForApp(bundleIdentifier: "com.microsoft.CompanyPortalMac"), "LOB")
@@ -184,11 +181,11 @@ extension MainViewController {
     
     /**
      * Displays an alert dialog for missing Microsoft Graph API permissions.
-     * 
+     *
      * This alert is shown when the application cannot access Intune data due to
      * insufficient permissions. It provides specific guidance on which permissions
      * are required and how to resolve the issue.
-     * 
+     *
      * The alert includes:
      * - Clear explanation of the permission issue
      * - List of required Microsoft Graph API permissions
@@ -216,13 +213,13 @@ extension MainViewController {
     
     /**
      * Formats the application version string from the bundle information.
-     * 
+     *
      * Reads both the short version string and build number from the app's Info.plist
      * and combines them into a user-friendly format.
-     * 
-     * - Returns: Formatted version string in the format "vX.Y.Z.Build" 
+     *
+     * - Returns: Formatted version string in the format "vX.Y.Z.Build"
      *           (e.g., "v1.2.3.456")
-     * 
+     *
      * ## Info.plist Keys Used:
      * - CFBundleShortVersionString: The marketing version (e.g., "1.2.3")
      * - CFBundleVersion: The build number (e.g., "456")
@@ -239,15 +236,15 @@ extension MainViewController {
     
     /**
      * Animates a status message with fade in/out effects.
-     * 
+     *
      * Displays a temporary status message to the user with smooth animations.
      * The message fades in, remains visible for a specified duration, then fades out.
-     * 
+     *
      * - Parameter message: The status message to display
      * - Parameter fadeInDuration: Time for fade-in animation (default: 0.25s)
      * - Parameter visibleDuration: Time message remains visible (default: 5.0s)
      * - Parameter fadeOutDuration: Time for fade-out animation (default: 0.25s)
-     * 
+     *
      * The animation sequence:
      * 1. Sets message text and makes label visible at 0% opacity
      * 2. Animates opacity to 100% over fadeInDuration
@@ -256,9 +253,9 @@ extension MainViewController {
      * 5. Hides label and clears text
      */
     func animateStatusUpdate(_ message: String,
-                                     fadeInDuration: TimeInterval = 0.25,
-                                     visibleDuration: TimeInterval = 5.0,
-                                     fadeOutDuration: TimeInterval = 0.25) {
+                             fadeInDuration: TimeInterval = 0.25,
+                             visibleDuration: TimeInterval = 5.0,
+                             fadeOutDuration: TimeInterval = 0.25) {
         statusUpdateLabel.alphaValue = 0
         statusUpdateLabel.isHidden = false
         statusUpdateLabel.stringValue = message
@@ -278,23 +275,22 @@ extension MainViewController {
             })
         }
     }
-
     
     // MARK: - SF Symbols Utilities
     
     /**
      * Creates a tinted SF Symbol image with custom color and size.
-     * 
+     *
      * This utility method generates colored SF Symbol images for use in the UI.
      * It's particularly useful for creating status indicators and custom icons
      * that match the app's color scheme.
-     * 
+     *
      * - Parameter name: The SF Symbol name (e.g., "cloud", "circle.fill")
      * - Parameter color: The tint color to apply
      * - Parameter size: The desired image size
      * - Parameter config: Symbol configuration (weight, point size, etc.)
      * - Returns: A tinted symbol image, or nil if the symbol couldn't be created
-     * 
+     *
      * ## Implementation Details:
      * - Uses high-quality image interpolation for crisp rendering
      * - Applies color using sourceAtop blend mode for proper tinting
@@ -322,11 +318,11 @@ extension MainViewController {
     
     /**
      * Checks if automation can be triggered based on folder readiness and daemon status.
-     * 
+     *
      * This method performs local validation checks without requiring XPC communication:
      * 1. Counts folders ready for automation using AutomationCheck validation
      * 2. Checks if the automation daemon is disabled in the launch daemon plist
-     * 
+     *
      * - Returns: True if automation can be triggered, false otherwise
      */
     func isAutomationAvailable() -> Bool {
@@ -340,11 +336,11 @@ extension MainViewController {
     
     /**
      * Checks if Graph API-dependent features are available.
-     * 
+     *
      * This method validates that essential Microsoft Graph data has been successfully
      * loaded during app startup, indicating that authentication and network connectivity
      * are working properly. Features like Discovered Apps require valid Graph connectivity.
-     * 
+     *
      * - Returns: True if Graph API features are likely to work, false otherwise
      */
     func isGraphConnectivityAvailable() -> Bool {
@@ -359,10 +355,10 @@ extension MainViewController {
     
     /**
      * Gets a detailed status of Graph connectivity for user feedback.
-     * 
+     *
      * Provides specific information about which Graph data sources are missing,
      * helping users understand why Graph-dependent features might not be available.
-     * 
+     *
      * - Returns: A tuple with availability status and descriptive message
      */
     func getGraphConnectivityStatus() -> (available: Bool, message: String) {
@@ -384,10 +380,10 @@ extension MainViewController {
     
     /**
      * Counts the number of folders ready for automation using local validation.
-     * 
+     *
      * Uses the same validation logic as FolderScanner and AutomationCheck to determine
      * how many managed title folders are properly configured for automation.
-     * 
+     *
      * - Returns: The number of folders that pass validation checks
      */
     func getAutomationReadyCount() -> Int {
@@ -413,10 +409,10 @@ extension MainViewController {
     
     /**
      * Checks if the automation daemon is disabled in the launch daemon plist.
-     * 
+     *
      * Reads the automation daemon plist file to check for the Disabled key.
      * This is a local file read that doesn't require elevated privileges.
-     * 
+     *
      * - Returns: True if daemon is disabled or plist doesn't exist, false if enabled
      */
     func isAutomationDaemonDisabled() -> Bool {
@@ -444,21 +440,21 @@ extension MainViewController {
     
     /**
      * Updates UI control states based on current system readiness.
-     * 
+     *
      * This method manages the enabled/disabled state of all system-dependent UI controls:
      * - Automation trigger controls (based on folder readiness and daemon status)
      * - Graph API-dependent controls (based on Microsoft Graph connectivity)
-     * 
+     *
      * It automatically manages button/menu item states when they're connected and provides
      * helpful status messages to users about why certain features might not be available.
-     * 
+     *
      * ## Usage:
      * Call this method:
      * - After loading app data
      * - After adding/removing labels
      * - After configuration changes
      * - Periodically to keep UI state current
-     * 
+     *
      * ## UI Controls Updated:
      * - automationTriggerButton/MenuItem (automation readiness)
      * - discoveredAppsButton/MenuItem (Graph connectivity)
@@ -502,5 +498,25 @@ extension MainViewController {
             statusLabel.stringValue = "\(readyCount) labels ready for automation • Graph connectivity OK"
         }
     }
-
+    
+    // MARK: - Saved Size for windows or panels
+    /// Loads the saved size from UserDefaults
+    /// - Returns: Saved size if found, nil to use default size
+    func restoredWindowFrame(forElement element: String, defaultSize: NSSize) -> NSRect {
+        if let sizeDict = UserDefaults.standard.dictionary(forKey: element),
+           let width = sizeDict["width"] as? CGFloat,
+           let height = sizeDict["height"] as? CGFloat,
+           let x = sizeDict["x"] as? CGFloat,
+           let y = sizeDict["y"] as? CGFloat {
+            return NSRect(x: x, y: y, width: width, height: height)
+        }
+        
+        // Center default size on screen
+        let screenFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1024, height: 768)
+        let centeredOrigin = NSPoint(
+            x: screenFrame.midX - defaultSize.width / 2,
+            y: screenFrame.midY - defaultSize.height / 2
+        )
+        return NSRect(origin: centeredOrigin, size: defaultSize)
+    }
 }

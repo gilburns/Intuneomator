@@ -259,7 +259,69 @@ extension MainViewController {
         appCategoryManagerWindowControllers.append(windowController)
     }
 
-    
+    /**
+     * Opens or focuses the App Installation Reporting window.
+     *
+     * This method manages a separate window for viewing Intune apps
+     * It implements singleton behavior:
+     * - If window already exists and is visible, brings it to front
+     * - Otherwise creates a new window with proper sizing and configuration
+     *
+     * The window is tracked in appsReportingManagerWindowControllers to
+     * prevent multiple instances and ensure proper memory management.
+     *
+     * - Parameter sender: The UI control that triggered this action
+     */
+    @IBAction func openAppsReportingManagerWindow(_ sender: Any) {
+        // First check if Graph connectivity is available
+        guard isGraphConnectivityAvailable() else {
+            let (_, message) = getGraphConnectivityStatus()
+            
+            let alert = NSAlert()
+            alert.messageText = "Microsoft Graph Not Available"
+            alert.informativeText = "\(message)\n\nThe App Installation Reporting requires a working connection to Microsoft Graph to fetch application data. Please check your authentication settings and internet connectivity."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        
+        // Check if there's an existing App Installation Reporting window
+        if let existingWindowController = appsReportingManagerWindowControllers.first(where: { $0.window?.isVisible == true }) {
+            existingWindowController.window?.makeKeyAndOrderFront(nil) // Bring to front
+            return
+        }
+
+        let storyboard = NSStoryboard(name: "AppsReporting", bundle: nil)
+
+        guard let appsReportingManagerVC = storyboard.instantiateController(withIdentifier: "AppsReportingManagerViewController") as? AppsReportingManagerViewController else {
+            Logger.error("Failed to instantiate AppsReportingManagerViewController", category: .core, toUserDirectory: true)
+            return
+        }
+
+        let frame = restoredWindowFrame(forElement: "AppsReportingManagerViewController", defaultSize: NSSize(width: 820, height: 410))
+
+        let appsReportingManagerWindow = NSWindow(
+            contentRect: frame,
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+
+        appsReportingManagerWindow.contentViewController = appsReportingManagerVC
+        appsReportingManagerWindow.title = "App Installation Status"
+
+        // Set minimum window size
+        appsReportingManagerWindow.minSize = NSSize(width: 820, height: 410)
+        appsReportingManagerWindow.setFrame(frame, display: true)
+
+        let windowController = NSWindowController(window: appsReportingManagerWindow)
+        windowController.showWindow(self)
+        
+        // Keep reference to prevent deallocation
+        appsReportingManagerWindowControllers.append(windowController)
+    }
+
     /**
      * Opens or focuses the Discovered Apps Manager window.
      * 
@@ -329,7 +391,6 @@ extension MainViewController {
         discoveredAppsManagerWindowControllers.append(windowController)
     }
 
-    
     /**
      * Opens or focuses the Intune Shell Scripts Manager window.
      *
