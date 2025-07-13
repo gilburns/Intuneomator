@@ -17,6 +17,9 @@ class CustomAttributeReportingViewController: NSViewController {
     @IBOutlet weak var tableView: NSTableView!
     @IBOutlet weak var scriptNameLabel: NSTextField!
     @IBOutlet weak var summaryLabel: NSTextField!
+    @IBOutlet weak var dateCreatedLabel: NSTextField!
+    @IBOutlet weak var dateModifiedLabel: NSTextField!
+    @IBOutlet weak var pieChartView: NSView!
     @IBOutlet weak var refreshButton: NSButton!
     @IBOutlet weak var exportButton: NSButton!
     @IBOutlet weak var progressIndicator: NSProgressIndicator!
@@ -35,12 +38,16 @@ class CustomAttributeReportingViewController: NSViewController {
     /// Current sort descriptor for table columns
     var currentSortDescriptor: NSSortDescriptor?
     
+    /// Custom pie chart view for displaying script execution status
+    private var installationStatusPieChart: InstallationStatusPieChartView?
+    
     // MARK: - View Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTableView()
         setupUI()
+        setupPieChart()
         loadDeviceRunStates()
     }
     
@@ -61,8 +68,26 @@ class CustomAttributeReportingViewController: NSViewController {
             window.minSize = NSSize(width: 900, height: 600)
             window.setContentSize(NSSize(width: 1200, height: 700))
         }
+        
+        // Make view accept key events for ESC handling
+        view.window?.makeFirstResponder(self)
     }
     
+    // MARK: - Key Event Handling
+    
+    override var acceptsFirstResponder: Bool {
+        return true
+    }
+    
+    override func keyDown(with event: NSEvent) {
+        // Handle ESC key to close the sheet
+        if event.keyCode == 53 { // ESC key code
+            closeSheet(self)
+        } else {
+            super.keyDown(with: event)
+        }
+    }
+
     // MARK: - Setup Methods
     
     /// Configures the table view with appropriate columns and delegates
@@ -95,10 +120,16 @@ class CustomAttributeReportingViewController: NSViewController {
     private func setupUI() {
         // Set script name
         if let scriptData = scriptData,
-           let displayName = scriptData["displayName"] as? String {
+           let displayName = scriptData["displayName"] as? String,
+           let createDateString = scriptData["createdDateTime"] as? String,
+           let lastModifiedDateString = scriptData["lastModifiedDateTime"] as? String {
             scriptNameLabel.stringValue = "Device Report for: \(displayName)"
+            dateCreatedLabel.stringValue = "\(createDateString.formatIntuneDate())"
+            dateModifiedLabel.stringValue = "\(lastModifiedDateString.formatIntuneDate())"
         } else {
             scriptNameLabel.stringValue = "Device Report for Custom Attribute"
+            dateCreatedLabel.stringValue = "Not Available"
+            dateModifiedLabel.stringValue = "Not Available"
         }
         
         // Initial UI state
@@ -107,6 +138,41 @@ class CustomAttributeReportingViewController: NSViewController {
         exportButton.isEnabled = false
         progressIndicator.isHidden = false
         progressIndicator.startAnimation(nil)
+    }
+    
+    /// Sets up the pie chart for script execution status visualization
+    private func setupPieChart() {
+        guard let pieChartView = pieChartView else { return }
+        
+        // Create custom pie chart view
+        installationStatusPieChart = InstallationStatusPieChartView(frame: pieChartView.bounds)
+        installationStatusPieChart?.autoresizingMask = [.width, .height]
+        
+        // Add to container view
+        pieChartView.addSubview(installationStatusPieChart!)
+    }
+    
+    /// Updates the pie chart with current script execution status data
+    private func updatePieChart() {
+        guard let pieChart = installationStatusPieChart else { return }
+        
+        let totalDevices = deviceRunStates.count
+        let successCount = deviceRunStates.filter { ($0["runState"] as? String) == "success" }.count
+        let failureCount = deviceRunStates.filter { 
+            let state = $0["runState"] as? String ?? ""
+            return state == "fail" || state == "scriptError"
+        }.count
+        let pendingCount = deviceRunStates.filter { ($0["runState"] as? String) == "pending" }.count
+        
+        // Update pie chart data
+        pieChart.updateData(
+            installed: successCount,
+            failed: failureCount,
+            pending: pendingCount,
+            notApplicable: 0, // Custom attributes don't have "not applicable" state
+            total: totalDevices,
+            labels: (installed: "Success", failed: "Failed", pending: "Pending", notApplicable: "")
+        )
     }
     
     // MARK: - Data Loading
@@ -137,6 +203,7 @@ class CustomAttributeReportingViewController: NSViewController {
             self.deviceRunStates = deviceStates
             self.filteredDeviceRunStates = deviceStates
             updateSummaryLabel()
+            updatePieChart()
             exportButton.isEnabled = !deviceStates.isEmpty
             tableView.reloadData()
         } else {
@@ -177,10 +244,36 @@ class CustomAttributeReportingViewController: NSViewController {
     }
     
     /// Closes the reporting sheet
-    @IBAction func closeSheet(_ sender: NSButton) {
+    @IBAction func closeSheet(_ sender: Any) {
         dismiss(self)
     }
     
+    /// Opens the selected app in the Intune web console
+    @IBAction func openInIntuneButtonClicked(_ sender: NSButton) {
+        guard let scriptData = scriptData,
+              let scriptId = scriptData["id"] as? String,
+              let scriptDisplayName = scriptData["displayName"] as? String else {
+            showError("No app ID available for Intune console link")
+            return
+        }
+        
+        openAppInIntuneConsole(scriptId: scriptId, scriptDisplayName: scriptDisplayName.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "Unknown")
+    }
+    
+    /// Opens the specified app in the Intune web console using the default browser
+    /// - Parameter appId: The app GUID to open in the console
+    private func openAppInIntuneConsole(scriptId: String, scriptDisplayName: String) {
+        let intuneURL = "https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/ConfigureCustomAttributesPolicyMenuBladeViewModel/~/deviceExecutionStatus/id/\(scriptId)/displayName/\(scriptDisplayName)"
+        
+        guard let url = URL(string: intuneURL) else {
+            showError("Failed to create valid Intune console URL")
+            return
+        }
+        
+        NSWorkspace.shared.open(url)
+        Logger.info("Opened app \(scriptId) in Intune console: \(intuneURL)", category: .core)
+    }
+
     // MARK: - Export Functionality
     
     /// Exports device run states data to CSV format
