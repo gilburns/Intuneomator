@@ -1,5 +1,5 @@
 //
-//  XPCManager+AppsReporting.swift
+//  XPCManager+Reporting.swift
 //  Intuneomator
 //
 //  Created by Gil Burns on 7/11/25.
