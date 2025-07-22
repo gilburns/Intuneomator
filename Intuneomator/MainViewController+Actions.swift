@@ -323,6 +323,119 @@ extension MainViewController {
     }
 
     /**
+     * Opens or focuses the Configuration Profile Reporting window.
+     *
+     * This method manages a separate window for viewing Intune config profiles
+     * It implements singleton behavior:
+     * - If window already exists and is visible, brings it to front
+     * - Otherwise creates a new window with proper sizing and configuration
+     *
+     * The window is tracked in configReportingManagerWindowControllers to
+     * prevent multiple instances and ensure proper memory management.
+     *
+     * - Parameter sender: The UI control that triggered this action
+     */
+    @IBAction func openConfigReportingManagerWindow(_ sender: Any) {
+        // First check if Graph connectivity is available
+        guard isGraphConnectivityAvailable() else {
+            let (_, message) = getGraphConnectivityStatus()
+            
+            let alert = NSAlert()
+            alert.messageText = "Microsoft Graph Not Available"
+            alert.informativeText = "\(message)\n\nThe Configuration Installation Reporting requires a working connection to Microsoft Graph to fetch application data. Please check your authentication settings and internet connectivity."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        
+        // Check if there's an existing Config Reporting window
+        if let existingWindowController = configReportingManagerWindowControllers.first(where: { $0.window?.isVisible == true }) {
+            existingWindowController.window?.makeKeyAndOrderFront(nil) // Bring to front
+            return
+        }
+
+        let storyboard = NSStoryboard(name: "ConfigReporting", bundle: nil)
+
+        guard let configReportingManagerVC = storyboard.instantiateController(withIdentifier: "ConfigReportingManagerViewController") as? ConfigReportingManagerViewController else {
+            Logger.error("Failed to instantiate ConfigReportingManagerViewController", category: .core, toUserDirectory: true)
+            return
+        }
+
+        let frame = restoredWindowFrame(forElement: "ConfigReportingManagerViewController", defaultSize: NSSize(width: 820, height: 410))
+
+        let configReportingManagerWindow = NSWindow(
+            contentRect: frame,
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+
+        configReportingManagerWindow.contentViewController = configReportingManagerVC
+        configReportingManagerWindow.title = "Config Installation Status"
+
+        // Set minimum window size
+        configReportingManagerWindow.minSize = NSSize(width: 820, height: 410)
+        configReportingManagerWindow.setFrame(frame, display: true)
+
+        let windowController = NSWindowController(window: configReportingManagerWindow)
+        windowController.showWindow(self)
+        
+        // Keep reference to prevent deallocation
+        configReportingManagerWindowControllers.append(windowController)
+    }
+
+    @IBAction func openDevicesManagerWindow(_ sender: Any) {
+        // First check if Graph connectivity is available
+        guard isGraphConnectivityAvailable() else {
+            let (_, message) = getGraphConnectivityStatus()
+            
+            let alert = NSAlert()
+            alert.messageText = "Microsoft Graph Not Available"
+            alert.informativeText = "\(message)\n\nThe Devices window requires a working connection to Microsoft Graph to fetch application data. Please check your authentication settings and internet connectivity."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        
+        // Check if there's an existing Devices manager window
+        if let existingWindowController = devicesManagerWindowControllers.first(where: { $0.window?.isVisible == true }) {
+            existingWindowController.window?.makeKeyAndOrderFront(nil) // Bring to front
+            return
+        }
+
+        let storyboard = NSStoryboard(name: "DevicesManager", bundle: nil)
+
+        guard let devicesManagerVC = storyboard.instantiateController(withIdentifier: "DevicesViewController") as? DevicesViewController else {
+            Logger.error("Failed to instantiate DevicesViewController", category: .core, toUserDirectory: true)
+            return
+        }
+
+        let frame = restoredWindowFrame(forElement: "DevicesViewController", defaultSize: NSSize(width: 950, height: 600))
+
+        let devicesManagerWindow = NSWindow(
+            contentRect: frame,
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+
+        devicesManagerWindow.contentViewController = devicesManagerVC
+        devicesManagerWindow.title = "Intune Devices"
+
+        // Set minimum window size
+        devicesManagerWindow.minSize = NSSize(width: 950, height: 600)
+        devicesManagerWindow.setFrame(frame, display: true)
+
+        let windowController = NSWindowController(window: devicesManagerWindow)
+        windowController.showWindow(self)
+        
+        // Keep reference to prevent deallocation
+        devicesManagerWindowControllers.append(windowController)
+    }
+
+    /**
      * Opens or focuses the Discovered Apps Manager window.
      * 
      * This method manages a separate window for viewing and managing apps
@@ -390,6 +503,86 @@ extension MainViewController {
         // Keep reference to prevent deallocation
         discoveredAppsManagerWindowControllers.append(windowController)
     }
+    
+    /**
+     * Opens or focuses the Reports Export window.
+     *
+     * This method manages a separate window for viewing Intune report export
+     * It implements singleton behavior:
+     * - If window already exists and is visible, brings it to front
+     * - Otherwise creates a new window with proper sizing and configuration
+     *
+     * The window is tracked in configReportExportManagerWindowControllers to
+     * prevent multiple instances and ensure proper memory management.
+     *
+     * - Parameter sender: The UI control that triggered this action
+     */
+    @IBAction func openReportsExportManagerWindow(_ sender: Any) {
+        openReportsExportManagerWindow(preselectedReportType: nil)
+    }
+    
+    /// Opens the Reports Export window with optional preselection of report type
+    /// - Parameter preselectedReportType: The report type to preselect (e.g., "Devices with Inventory")
+    func openReportsExportManagerWindow(preselectedReportType: String?) {
+        // First check if Graph connectivity is available
+        guard isGraphConnectivityAvailable() else {
+            let (_, message) = getGraphConnectivityStatus()
+            
+            let alert = NSAlert()
+            alert.messageText = "Microsoft Graph Not Available"
+            alert.informativeText = "\(message)\n\nThe Reports Export feature requires a working connection to Microsoft Graph to fetch application data. Please check your authentication settings and internet connectivity."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+        
+        // Check if there's an existing Reports Export window
+        if let existingWindowController = reportExportManagerWindowControllers.first(where: { $0.window?.isVisible == true }) {
+            // If we have a preselected report type, update the existing window
+            if let reportType = preselectedReportType,
+               let reportsVC = existingWindowController.window?.contentViewController as? IntuneReportsViewController {
+                reportsVC.preselectReportType(reportType)
+            }
+            existingWindowController.window?.makeKeyAndOrderFront(nil) // Bring to front
+            return
+        }
+
+        let storyboard = NSStoryboard(name: "IntuneReports", bundle: nil)
+
+        guard let reportsExportManagerVC = storyboard.instantiateController(withIdentifier: "IntuneReportsViewController") as? IntuneReportsViewController else {
+            Logger.error("Failed to instantiate IntuneReportsViewController", category: .core, toUserDirectory: true)
+            return
+        }
+
+        let frame = restoredWindowFrame(forElement: "IntuneReportsViewController", defaultSize: NSSize(width: 400, height: 250))
+
+        let reportsExportWindow = NSWindow(
+            contentRect: frame,
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+
+        reportsExportWindow.contentViewController = reportsExportManagerVC
+        reportsExportWindow.title = "Intune Reports Export"
+
+        // Set minimum window size
+        reportsExportWindow.minSize = NSSize(width: 400, height: 250)
+        reportsExportWindow.setFrame(frame, display: true)
+        
+        // Preselect report type if specified
+        if let reportType = preselectedReportType {
+            reportsExportManagerVC.preselectReportType(reportType)
+        }
+
+        let windowController = NSWindowController(window: reportsExportWindow)
+        windowController.showWindow(self)
+        
+        // Keep reference to prevent deallocation
+        reportExportManagerWindowControllers.append(windowController)
+    }
+
 
     /**
      * Opens or focuses the Intune Shell Scripts Manager window.

@@ -113,6 +113,15 @@ class MainViewController: NSViewController {
     /// Array tracking apps reporting manager window controllers to prevent duplication
     var appsReportingManagerWindowControllers: [NSWindowController] = []
 
+    /// Array tracking config reporting manager window controllers to prevent duplication
+    var configReportingManagerWindowControllers: [NSWindowController] = []
+
+    /// Array tracking devices window controllers to prevent duplication
+    var devicesManagerWindowControllers: [NSWindowController] = []
+
+    /// Array tracking config report export window controllers to prevent duplication
+    var reportExportManagerWindowControllers: [NSWindowController] = []
+    
     /// Array tracking custom attribute manager window controllers
     var customAttributeManagerWindowControllers: [NSWindowController] = []
         

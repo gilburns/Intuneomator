@@ -27,10 +27,10 @@ class GroupAssignmentViewController: NSViewController, Configurable, UnsavedChan
 
     @IBOutlet weak var groupAssignmentsTableView: NSTableView!
     
-    /// Button to assign Azure AD groups to the “Required” assignment type.
+    /// Button to assign Entra ID groups to the “Required” assignment type.
     @IBOutlet weak var assignRequiredGroupButton: NSButton!
 
-    /// Button to assign Azure AD groups to the “Available” assignment type.
+    /// Button to assign Entra ID groups to the “Available” assignment type.
     @IBOutlet weak var assignAvailableGroupButton: NSButton!
 
     /// Button to assign Azure AD groups to the “Uninstall” assignment type.

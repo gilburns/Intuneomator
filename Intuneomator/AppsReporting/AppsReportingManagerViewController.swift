@@ -574,7 +574,7 @@ class AppsReportingManagerViewController: NSViewController {
     @objc private func openInIntuneButtonClicked(_ sender: NSButton) {
         let row = sender.tag
         guard row >= 0 && row < filteredIntuneApps.count else {
-            Logger.error("Invalid row index for opening in Intune: \(row)", category: .core)
+            Logger.error("Invalid row index for opening in Intune: \(row)", category: .core, toUserDirectory: true)
             return
         }
         
@@ -598,7 +598,7 @@ class AppsReportingManagerViewController: NSViewController {
         }
         
         NSWorkspace.shared.open(url)
-        Logger.info("Opened app \(appId) in Intune console: \(intuneURL)", category: .core)
+        Logger.info("Opened app \(appId) in Intune console: \(intuneURL)", category: .core, toUserDirectory: true)
     }
     
     private func showDeviceReport() {
@@ -920,9 +920,9 @@ extension AppsReportingManagerViewController: NSTableViewDelegate {
             return "Android LOB"
         case "#microsoft.graph.androidStoreApp":
             return "Android Store"
-        case "#microsoft.graph.managedAndroidLobApp":
+        case "#microsoft.graph.managedAndroidLobApp", "#microsoft.graph.androidManagedLobApp":
             return "Managed Android LOB"
-        case "#microsoft.graph.managedAndroidStoreApp":
+        case "#microsoft.graph.managedAndroidStoreApp", "#microsoft.graph.androidManagedStoreApp":
             return "Managed Android Store"
         case "#microsoft.graph.webApp":
             return "Web App"

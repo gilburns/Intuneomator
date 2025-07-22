@@ -647,10 +647,28 @@
                                                 <action selector="openAppsReportingManagerWindow:" target="Ady-hI-5gd" id="w2d-Ow-yUQ"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Config Installation Status…" indentationLevel="1" id="euf-bv-jGA">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="openConfigReportingManagerWindow:" target="Ady-hI-5gd" id="m3d-bH-FwT"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem title="Discovered Apps…" indentationLevel="1" id="cU7-xn-gM1" userLabel="Discovered Apps">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="openDiscoveredAppsFromMenu:" target="Voe-Tx-rLC" id="M0r-qg-noh"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Intune Devices…" indentationLevel="1" id="swm-eN-GIv">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="openDevicesManagerWindow:" target="Ady-hI-5gd" id="JJ3-UL-RTg"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Intune Reports Export…" indentationLevel="1" id="pXL-6b-MKZ">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="openReportsExportManagerWindow:" target="Ady-hI-5gd" id="UQn-m2-p4D"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Intune Management" id="OI9-GC-YtT">
@@ -4965,14 +4983,14 @@ Gw
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <scrollView fixedFrame="YES" autohidesScrollers="YES" horizontalLineScroll="30" horizontalPageScroll="10" verticalLineScroll="30" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2eS-ue-fWs">
-                                <rect key="frame" x="20" y="54" width="760" height="296"/>
+                                <rect key="frame" x="20" y="47" width="760" height="303"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <clipView key="contentView" id="1PV-AL-mbL">
-                                    <rect key="frame" x="1" y="1" width="758" height="294"/>
+                                    <rect key="frame" x="1" y="1" width="758" height="301"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="reverseSequential" columnReordering="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="30" rowSizeStyle="automatic" headerView="AP5-rz-Fey" viewBased="YES" id="3Xg-hp-elc">
-                                            <rect key="frame" x="0.0" y="0.0" width="960" height="266"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="960" height="273"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <size key="intercellSpacing" width="17" height="0.0"/>
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -5152,7 +5170,7 @@ Gw
                                     </subviews>
                                 </clipView>
                                 <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="oia-eh-bVp">
-                                    <rect key="frame" x="1" y="279" width="758" height="16"/>
+                                    <rect key="frame" x="1" y="286" width="758" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="sL3-4R-SP9">
@@ -5177,17 +5195,6 @@ Gw
                                     <outlet property="delegate" destination="t8m-Bm-uz5" id="8cw-xK-cHA"/>
                                 </connections>
                             </searchField>
-                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Glq-BF-xVW">
-                                <rect key="frame" x="636" y="16" width="151" height="32"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
-                                <buttonCell key="cell" type="push" title="Automate Label" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ahc-GW-NQ0">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="saveNewContent:" target="t8m-Bm-uz5" id="eJK-iE-s7T"/>
-                                </connections>
-                            </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="MxA-JN-WNN">
                                 <rect key="frame" x="122" y="360" width="257" height="18"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -5213,7 +5220,7 @@ Gw
                                 <autoresizingMask key="autoresizingMask"/>
                             </progressIndicator>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="6bs-7D-svh">
-                                <rect key="frame" x="607" y="19" width="28" height="28"/>
+                                <rect key="frame" x="607" y="16" width="28" height="28"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                                 <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSQuickLookTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="biW-fK-lp3">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -5224,7 +5231,7 @@ Gw
                                 </connections>
                             </button>
                             <textField hidden="YES" focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OLq-AU-zBa">
-                                <rect key="frame" x="207" y="25" width="387" height="16"/>
+                                <rect key="frame" x="207" y="23" width="387" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" alignment="center" title="Loading app information from Intune…" id="2Gw-Za-jgy">
                                     <font key="font" metaFont="system"/>
@@ -5233,14 +5240,25 @@ Gw
                                 </textFieldCell>
                             </textField>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zb9-r8-cPc">
-                                <rect key="frame" x="13" y="13" width="86" height="32"/>
+                                <rect key="frame" x="13" y="13" width="143" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <buttonCell key="cell" type="push" title="Report…" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="19c-KF-vrx">
+                                <buttonCell key="cell" type="push" title="Device with App…" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="19c-KF-vrx">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <connections>
                                     <action selector="viewDevicesForSelectedApp:" target="t8m-Bm-uz5" id="8PW-VB-75E"/>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Glq-BF-xVW">
+                                <rect key="frame" x="636" y="13" width="151" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                <buttonCell key="cell" type="push" title="Automate Label" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ahc-GW-NQ0">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="saveNewContent:" target="t8m-Bm-uz5" id="eJK-iE-s7T"/>
                                 </connections>
                             </button>
                         </subviews>

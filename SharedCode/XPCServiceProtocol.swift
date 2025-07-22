@@ -222,6 +222,235 @@ import Foundation
     ///   - appId: Unique identifier (GUID) of the app to get installation status for
     ///   - reply: Callback with array of device installation status dictionaries or nil on failure
     func getDeviceAppInstallationStatusReport(appId: String, reply: @escaping ([[String: Any]]?) -> Void)
+    
+    /// Fetches all configuration profiles from Microsoft Intune across all platforms with assignment status
+    /// - Parameter reply: Callback with array of configuration profile dictionaries or nil on failure
+    func fetchIntuneConfigurationProfiles(reply: @escaping ([[String: Any]]?) -> Void)
+    
+    /// Retrieves device configuration profile deployment status report for a specific profile
+    /// - Parameters:
+    ///   - profileId: Unique identifier (GUID) of the configuration profile to get deployment status for
+    ///   - reply: Callback with array of device deployment status dictionaries or nil on failure
+    func getDeviceConfigProfileDeploymentStatusReport(profileId: String, reply: @escaping ([[String: Any]]?) -> Void)
+    
+    // MARK: - Microsoft Graph Export Jobs API
+    
+    /// Creates a new export job for a specific report type
+    /// - Parameters:
+    ///   - reportName: Name of the report to export (e.g., "DeviceInstallStatusByApp")
+    ///   - filter: Optional OData filter string
+    ///   - select: Optional array of column names to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createExportJob(reportName: String, filter: String?, select: [String]?, format: String, reply: @escaping (String?) -> Void)
+    
+    /// Checks the status of an export job
+    /// - Parameters:
+    ///   - jobId: Export job ID to check
+    ///   - reply: Callback with job status dictionary or nil on failure
+    func getExportJobStatus(jobId: String, reply: @escaping ([String: Any]?) -> Void)
+    
+    /// Downloads completed export job data
+    /// - Parameters:
+    ///   - downloadUrl: Download URL from completed export job
+    ///   - reply: Callback with downloaded data or nil on failure
+    func downloadExportJobData(downloadUrl: String, reply: @escaping (Data?) -> Void)
+    
+    /// Polls an export job until completion and downloads the result
+    /// - Parameters:
+    ///   - jobId: Export job ID to poll
+    ///   - maxWaitTimeSeconds: Maximum time to wait for completion (default: 300)
+    ///   - pollIntervalSeconds: Interval between status checks (default: 5)
+    ///   - reply: Callback with downloaded data or nil on failure
+    func pollAndDownloadExportJob(jobId: String, maxWaitTimeSeconds: Int, pollIntervalSeconds: Int, reply: @escaping (Data?) -> Void)
+
+    // MARK: - Microsoft Graph Export Job Reports
+    /// Creates a DeviceInstallStatusByApp export job with filtering options
+    /// - Parameters:
+    ///   - applicationId: Optional filter by specific application ID
+    ///   - deviceName: Optional filter by device name
+    ///   - userName: Optional filter by user name
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createDeviceInstallStatusByAppExportJob(applicationId: String?, deviceName: String?, userName: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+
+    /// Creates a UserInstallStatusAggregateByApp export job with filtering options
+    /// - Parameters:
+    ///   - applicationId: Optional filter by specific application ID
+    ///   - deviceName: Optional filter by device name
+    ///   - userName: Optional filter by user name
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - reply: Callback with export job ID or nil on failure
+    func createUserInstallStatusAggregateByAppExportJob(applicationId: String?, deviceName: String?, userName: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+
+    /// Creates a AppInvByDevice export job with filtering options
+    /// - Parameters:
+    ///   - deviceId: Optional filter by specific device ID
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createAppInvByDeviceExportJob(deviceId: String, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+
+    /// Creates an AllAppsList export job
+    /// - Parameters:
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createAllAppsListExportJob(includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+    
+    /// Creates an AppInstallStatusAggregate export job
+    /// - Parameters:
+    ///   - platform: Optional filter by platform
+    ///   - failedDevicePercentage: Optional filter by failed device percentage
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createAppInstallStatusAggregateExportJob(platform: String?, failedDevicePercentage: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+    
+    /// Creates an AppInvAggregate export job
+    /// - Parameters:
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createAppInvAggregateExportJob(includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+
+    /// Creates an AppInvRawData export job with filtering options
+    /// - Parameters:
+    ///   - applicationName: Optional filter by application name
+    ///   - applicationPublisher: Optional filter by application publisher
+    ///   - applicationShortVersion: Optional filter by application short version
+    ///   - applicationVersion: Optional filter by application version
+    ///   - deviceId: Optional filter by device ID
+    ///   - deviceName: Optional filter by device name
+    ///   - osDescription: Optional filter by OS description
+    ///   - osVersion: Optional filter by OS version
+    ///   - platform: Optional filter by platform
+    ///   - userId: Optional filter by user ID
+    ///   - emailAddress: Optional filter by email address
+    ///   - userName: Optional filter by user name
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createAppInvRawDataExportJob(applicationName: String?, applicationPublisher: String?, applicationShortVersion: String?, applicationVersion: String?, deviceId: String?, deviceName: String?, osDescription: String?, osVersion: String?, platform: String?, userId: String?, emailAddress: String?, userName: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+
+    /// Creates a DeviceCompliance export job with filtering options
+    /// - Parameters:
+    ///   - complianceState: Optional filter by compliance state
+    ///   - os: Optional filter by OS
+    ///   - ownerType: Optional filter by owner type
+    ///   - deviceType: Optional filter by device type
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createDeviceComplianceExportJob(complianceState: String?, os: String?, ownerType: String?, deviceType: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+
+    /// Creates a DeviceNonCompliance export job with filtering options
+    /// - Parameters:
+    ///   - complianceState: Optional filter by compliance state
+    ///   - os: Optional filter by OS
+    ///   - ownerType: Optional filter by owner type
+    ///   - deviceType: Optional filter by device type
+    ///   - userId: Optional filter by user ID
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createDeviceNonComplianceExportJob(complianceState: String?, os: String?, ownerType: String?, deviceType: String?, userId: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+
+    /// Creates a Devices export job with filtering options
+    /// - Parameters:
+    ///   - ownerType: Optional filter by owner type
+    ///   - deviceType: Optional filter by device type
+    ///   - managementAgents: Optional filter by management agents
+    ///   - categoryName: Optional filter by category name
+    ///   - managementState: Optional filter by management state
+    ///   - compliantState: Optional filter by compliant state
+    ///   - jailBroken: Optional filter by jail broken status
+    ///   - enrollmentType: Optional filter by enrollment type
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createDevicesExportJob(ownerType: String?, deviceType: String?, managementAgents: String?, categoryName: String?, managementState: String?, compliantState: String?, jailBroken: String?, enrollmentType: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+    
+    /// Creates a DevicesWithInventory export job with filtering options
+    /// - Parameters:
+    ///   - createdDate: Optional filter by created date
+    ///   - lastContact: Optional filter by last contact
+    ///   - categoryName: Optional filter by category name
+    ///   - compliantState: Optional filter by management agents
+    ///   - managementAgents: Optional filter by management agents
+    ///   - ownerType: Optional filter by specific owner type
+    ///   - managementState: Optional filter by management state
+    ///   - deviceType: Optional filter by device type
+    ///   - jailBroken: Optional filter by jail broken state
+    ///   - enrollmentType: Optional filter by enrollment type
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createDevicesWithInventoryExportJob(createdDate: String?, lastContact: String?, categoryName: String?, compliantState: String?, managementAgents: String?, ownerType: String?, managementState: String?, deviceType: String?, jailBroken: String?, enrollmentType: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+
+    /// Creates a DefenderAgents export job with filtering options
+    /// - Parameters:
+    ///   - deviceState: Optional filter by device state
+    ///   - signatureUpdateOverdue: Optional filter by signature update overdue
+    ///   - malwareProtectionEnabled: Optional filter by malware protection enabled
+    ///   - realTimeProtectionEnabled: Optional filter by real-time protection enabled
+    ///   - networkInspectionSystemEnabled: Optional filter by network inspection system enabled
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reportType: Report type ("DefenderAgents" or "UnhealthyDefenderAgents")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createDefenderAgentsExportJob(deviceState: String?, signatureUpdateOverdue: String?, malwareProtectionEnabled: String?, realTimeProtectionEnabled: String?, networkInspectionSystemEnabled: String?, includeColumns: [String]?, format: String, reportType: String, reply: @escaping (String?) -> Void)
+
+    /// Creates a FirewallStatus export job with filtering options
+    /// - Parameters:
+    ///   - firewallStatus: Optional filter by firewall status
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createFirewallStatusExportJob(firewallStatus: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+
+    /// Creates a Malware export job with filtering options
+    /// - Parameters:
+    ///   - severity: Optional filter by severity
+    ///   - executionState: Optional filter by execution state
+    ///   - state: Optional filter by state
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reportType: Report type ("Malware" or "ActiveMalware")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createMalwareExportJob(severity: String?, executionState: String?, state: String?, includeColumns: [String]?, format: String, reportType: String, reply: @escaping (String?) -> Void)
+
+    /// Creates a MAMAppProtectionStatus export job
+    /// - Parameters:
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createMAMAppProtectionStatusExportJob(includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+
+    /// Creates a MAMAppConfigurationStatus export job
+    /// - Parameters:
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createMAMAppConfigurationStatusExportJob(includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+
+    /// Creates a FeatureUpdatePolicyFailuresAggregate export job
+    /// - Parameters:
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createFeatureUpdatePolicyFailuresAggregateExportJob(includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+
+    /// Creates a QualityUpdateDeviceStatusByPolicy export job with filtering options
+    /// - Parameters:
+    ///   - policyID: Required filter by policy ID
+    ///   - aggregateState: Optional filter by aggregate state
+    ///   - ownerType: Optional filter by owner type
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createQualityUpdateDeviceStatusByPolicyExportJob(policyID: String, aggregateState: String?, ownerType: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
 
     // MARK: - Intune Web Clip Management
     
@@ -427,6 +656,33 @@ import Foundation
     
     // MARK: - Device and App Discovery
     
+    /// Fetches managed devices from Intune
+    /// - Parameter reply: Callback with JSON-encoded managed devices data or nil on error
+    func fetchManagedDevices(reply: @escaping ([[String : Any]]?) -> Void)
+
+    
+    /// Get details of a  managed devices from Intune
+    /// - Parameter reply: Callback with JSON-encoded managed device details or nil on error
+    func getManagedDeviceDetails(deviceId: String, reply: @escaping ([String : Any]?) -> Void)
+
+    /// Retrieves device compliance policy states for a specific managed device
+    /// - Parameters:
+    ///   - deviceId: Unique identifier (GUID) of the managed device
+    ///   - reply: Callback with array of compliance policy state dictionaries or nil on failure
+    func getDeviceCompliancePolicyStates(deviceId: String, reply: @escaping ([[String: Any]]?) -> Void)
+
+    /// Retrieves device configuration states for a specific managed device
+    /// - Parameters:
+    ///   - deviceId: Unique identifier (GUID) of the managed device
+    ///   - reply: Callback with array of configuration state dictionaries or nil on failure
+    func getDeviceConfigurationStates(deviceId: String, reply: @escaping ([[String: Any]]?) -> Void)
+
+    /// Retrieves Windows protection state for a specific managed Windows device
+    /// - Parameters:
+    ///   - deviceId: Unique identifier (GUID) of the managed Windows device
+    ///   - reply: Callback with Windows protection state dictionary or nil on failure
+    func getWindowsProtectionState(deviceId: String, reply: @escaping ([String: Any]?) -> Void)
+
     /// Fetches discovered macOS applications from Intune
     /// - Parameter reply: Callback with JSON-encoded app data or nil on error
     func fetchDiscoveredMacApps(reply: @escaping (Data?) -> Void)

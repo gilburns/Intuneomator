@@ -319,7 +319,7 @@ class FilterSelectionViewController: NSViewController, NSTableViewDelegate, NSTa
     /// - Parameter sender: The help button that was clicked.
     @IBAction func showHelpForVirtualGroups(_ sender: NSButton) {
         // Create the full string
-        let helpText = NSMutableAttributedString(string: "Built-In groups:\n\nThese are not manually created groups in your Azure Active Directory, but rather built-in virtual groups that automatically update with all relevant users or devices.")
+        let helpText = NSMutableAttributedString(string: "Built-In groups:\n\nThese are not manually created groups in your Entra ID Directory, but rather built-in virtual groups that automatically update with all relevant users or devices.")
         
         // Add custom styling for the rest of the text
         helpText.addAttributes([
@@ -331,11 +331,11 @@ class FilterSelectionViewController: NSViewController, NSTableViewDelegate, NSTa
         helpPopover.showHelp(anchorView: sender, helpText: helpText)
     }
     
-    /// Shows a popover explaining real Azure AD groups (security, Office 365 groups, etc.).
+    /// Shows a popover explaining real Entra ID groups (security, Office 365 groups, etc.).
     /// - Parameter sender: The help button that was clicked.
     @IBAction func showHelpForRealGroups(_ sender: NSButton) {
         // Create the full string
-        let helpText = NSMutableAttributedString(string: "Real groups:\n\nThese are manually created groups in your Azure Active Directory. The might be static group or dynamic groups.\n\nThese can also be any type of group that is 'Security Group' enabled. That includes traditional security groups, 365 groups, or even security enabled distribution groups.")
+        let helpText = NSMutableAttributedString(string: "Real groups:\n\nThese are manually created groups in your Entra ID Directory. The might be static group or dynamic groups.\n\nThese can also be any type of group that is 'Security Group' enabled. That includes traditional security groups, 365 groups, or even security enabled distribution groups.")
         
         // Add custom styling for the rest of the text
         helpText.addAttributes([
