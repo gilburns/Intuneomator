@@ -13,7 +13,7 @@ class DeviceDetailsViewController: NSViewController, NSTabViewDelegate, NSTableV
     @IBOutlet weak var tabView: NSTabView!
     @IBOutlet weak var deviceNameLabel: NSTextField!
     @IBOutlet weak var deviceIdLabel: NSTextField!
-    
+        
     // Device Overview Tab
     @IBOutlet weak var overviewScrollView: NSScrollView!
     @IBOutlet weak var overviewContentView: NSView!
@@ -28,7 +28,9 @@ class DeviceDetailsViewController: NSViewController, NSTabViewDelegate, NSTableV
     @IBOutlet weak var appsStatusLabel: NSTextField!
     @IBOutlet weak var appsCountLabel: NSTextField!
     @IBOutlet weak var exportAppsButton: NSButton!
-    
+    @IBOutlet weak var exportAppsFullReportButton: NSButton!
+    @IBOutlet weak var appsExportingIndicator: NSProgressIndicator!
+
     // Compliance Policy Tab
     @IBOutlet weak var complianceScrollView: NSScrollView!
     @IBOutlet weak var complianceContentView: NSView!
@@ -1167,6 +1169,253 @@ class DeviceDetailsViewController: NSViewController, NSTabViewDelegate, NSTableV
         alert.runModal()
     }
     
+    // MARK: - Export Full Report Functionality
+    
+    /// Shows the export full report dialog with format and save location options
+    private func showExportFullReportDialog() {
+        guard let deviceIdLabel = deviceIdLabel?.stringValue else {
+            showError("No device ID available for export")
+            return
+        }
+        
+        let uuidString: String?
+        if let range = deviceIdLabel.range(of: #"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"#, options: .regularExpression) {
+            uuidString = String(deviceIdLabel[range])
+            print("Found UUID: \(uuidString ?? "Unknown")")
+        } else {
+            print("No UUID found")
+            return
+        }
+        
+        guard let deviceId = uuidString else {
+            return
+        }
+        
+        let alert = NSAlert()
+        alert.messageText = "Export Full Report"
+        alert.informativeText = "Export the complete application installation status report for this device from Microsoft Graph. This will include more columns of data than currently displayed."
+        
+        // Create accessory view for format selection
+        let accessoryView = NSView(frame: NSRect(x: 0, y: 0, width: 300, height: 50))
+        
+        // Format label
+        let formatLabel = NSTextField(labelWithString: "Export Format:")
+        formatLabel.frame = NSRect(x: 0, y: 20, width: 100, height: 20)
+        accessoryView.addSubview(formatLabel)
+        
+        // Format popup button
+        let formatPopup = NSPopUpButton(frame: NSRect(x: 110, y: 18, width: 80, height: 25))
+        formatPopup.addItem(withTitle: "CSV")
+        formatPopup.addItem(withTitle: "JSON")
+        formatPopup.selectItem(at: 0) // Default to CSV
+        accessoryView.addSubview(formatPopup)
+        
+        alert.accessoryView = accessoryView
+        alert.addButton(withTitle: "Export")
+        alert.addButton(withTitle: "Cancel")
+        
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            let format = formatPopup.titleOfSelectedItem?.lowercased() ?? "csv"
+            
+            // Show save panel
+            showSavePanelForFullReport(deviceId: deviceId, format: format)
+        }
+    }
+    
+    /// Shows save panel for full report export
+    /// - Parameters:
+    ///   - appId: The app ID to export
+    ///   - format: Export format (csv or json)
+    private func showSavePanelForFullReport(deviceId: String, format: String) {
+        let savePanel = NSSavePanel()
+        savePanel.title = "Export Full Installation Report"
+        
+        // Set appropriate file type based on format
+        if format == "csv" {
+            savePanel.allowedContentTypes = [.commaSeparatedText]
+        } else {
+            savePanel.allowedContentTypes = [.json]
+        }
+        
+        // Generate default filename
+        guard let deviceName = deviceName?.replacingOccurrences(of: " ", with: "") else {
+            return }
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+        let timestamp = formatter.string(from: Date())
+        let fileExtension = format == "csv" ? "csv" : "json"
+        savePanel.nameFieldStringValue = "\(deviceName)_FullAppReport_\(timestamp).\(fileExtension)"
+        
+        savePanel.begin { [weak self] response in
+            if response == .OK, let url = savePanel.url {
+                self?.performFullReportExport(deviceId: deviceId, format: format, saveUrl: url)
+            }
+        }
+    }
+    
+    /// Performs the full report export using Microsoft Graph export jobs API
+    /// - Parameters:
+    ///   - appId: The app ID to export
+    ///   - format: Export format (csv or json)
+    ///   - saveUrl: The file URL to save to
+    private func performFullReportExport(deviceId: String, format: String, saveUrl: URL) {
+        // Show progress
+        appsExportingIndicator.isHidden = false
+        appsExportingIndicator.startAnimation(nil)
+        exportAppsFullReportButton?.isEnabled = false
+        exportAppsFullReportButton?.title = "Creating Export..."
+        
+        Logger.info("Starting full report export for app \(deviceId) in \(format) format", category: .core, toUserDirectory: true)
+        
+        // Create export job
+        XPCManager.shared.createAppInvByDeviceExportJob(
+            deviceId: deviceId,
+            includeColumns: nil,
+            format: format
+        ) { [weak self] jobId in
+            DispatchQueue.main.async {
+                guard let self = self, let jobId = jobId else {
+                    self?.handleExportError("Failed to create export job")
+                    return
+                }
+                
+                Logger.info("Export job created with ID: \(jobId)", category: .core, toUserDirectory: true)
+                
+                // Update UI to show polling status
+                self.exportAppsFullReportButton?.title = "Processing Export..."
+                
+                // Poll and download the export job
+                XPCManager.shared.pollAndDownloadExportJob(
+                    jobId: jobId,
+                    maxWaitTimeSeconds: 600, // 10 minutes
+                    pollIntervalSeconds: 5
+                ) { [weak self] data in
+                    DispatchQueue.main.async {
+                        guard let self = self else { return }
+                        
+                        if let data = data {
+                            self.saveExportJobData(data, to: saveUrl, format: format)
+                        } else {
+                            self.handleExportError("Export job failed or timed out")
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    /// Saves export job data to the specified file
+    /// - Parameters:
+    ///   - data: The export job data (ZIP file from Microsoft Graph)
+    ///   - saveUrl: The file URL to save to
+    ///   - format: The export format for user feedback
+    private func saveExportJobData(_ data: Data, to saveUrl: URL, format: String) {
+        do {
+            // Microsoft Graph export jobs return ZIP files, so we need to extract the content
+            let extractedData = try extractExportDataFromZip(data, expectedFormat: format)
+            
+            // Save the extracted CSV/JSON data
+            try extractedData.write(to: saveUrl)
+            
+            // Hide progress and reset button
+            appsExportingIndicator.isHidden = true
+            appsExportingIndicator?.stopAnimation(nil)
+            exportAppsFullReportButton?.isEnabled = true
+            exportAppsFullReportButton?.title = "Export Full Report"
+            
+            let dataSize = ByteCountFormatter.string(fromByteCount: Int64(extractedData.count), countStyle: .file)
+            Logger.info("Full report export completed: \(dataSize) extracted and saved to \(saveUrl.lastPathComponent)", category: .core, toUserDirectory: true)
+            
+            // Show success and offer to open file
+            let alert = NSAlert()
+            alert.alertStyle = .informational
+            alert.messageText = "Export Completed"
+            alert.informativeText = "Full installation report (\(dataSize)) exported successfully to \(saveUrl.lastPathComponent)"
+            alert.addButton(withTitle: "Open File")
+            alert.addButton(withTitle: "Show in Finder")
+            alert.addButton(withTitle: "OK")
+            
+            let response = alert.runModal()
+            if response == .alertFirstButtonReturn {
+                NSWorkspace.shared.open(saveUrl)
+            } else if response == .alertSecondButtonReturn {
+                NSWorkspace.shared.selectFile(saveUrl.path, inFileViewerRootedAtPath: "")
+            }
+
+        } catch {
+            handleExportError("Failed to save export file: \(error.localizedDescription)")
+        }
+    }
+    
+    /// Extracts the actual CSV/JSON data from the ZIP file returned by Microsoft Graph export jobs
+    /// - Parameters:
+    ///   - zipData: The ZIP file data from the export job
+    ///   - expectedFormat: The expected format (csv or json)
+    /// - Returns: The extracted CSV/JSON data
+    /// - Throws: Extraction or file format errors
+    private func extractExportDataFromZip(_ zipData: Data, expectedFormat: String) throws -> Data {
+        // Create a temporary directory to extract the ZIP
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        
+        defer {
+            // Clean up temporary directory
+            try? FileManager.default.removeItem(at: tempDir)
+        }
+        
+        // Write ZIP data to temporary file
+        let tempZipFile = tempDir.appendingPathComponent("export.zip")
+        try zipData.write(to: tempZipFile)
+        
+        // Extract ZIP file using NSTask (unzip command)
+        let unzipProcess = Process()
+        unzipProcess.launchPath = "/usr/bin/unzip"
+        unzipProcess.arguments = ["-j", tempZipFile.path, "-d", tempDir.path] // -j flattens directory structure
+        unzipProcess.launch()
+        unzipProcess.waitUntilExit()
+        
+        guard unzipProcess.terminationStatus == 0 else {
+            throw NSError(domain: "ExportExtraction", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to extract ZIP file"])
+        }
+        
+        // Find the extracted file with the expected format
+        let extractedFiles = try FileManager.default.contentsOfDirectory(at: tempDir, includingPropertiesForKeys: nil)
+        let targetExtension = expectedFormat.lowercased()
+        
+        // Look for a file with the expected extension
+        guard let extractedFile = extractedFiles.first(where: { $0.pathExtension.lowercased() == targetExtension }) else {
+            // If no file with expected extension, try to find any CSV or JSON file
+            let fallbackFile = extractedFiles.first { url in
+                let ext = url.pathExtension.lowercased()
+                return ext == "csv" || ext == "json"
+            }
+            
+            guard let fallbackFile = fallbackFile else {
+                throw NSError(domain: "ExportExtraction", code: 2, userInfo: [NSLocalizedDescriptionKey: "No \(targetExtension.uppercased()) file found in export ZIP"])
+            }
+            
+            Logger.warning("Expected \(targetExtension) file not found, using \(fallbackFile.lastPathComponent)", category: .core, toUserDirectory: true)
+            return try Data(contentsOf: fallbackFile)
+        }
+        
+        Logger.info("Extracted \(extractedFile.lastPathComponent) from export ZIP", category: .core, toUserDirectory: true)
+        return try Data(contentsOf: extractedFile)
+    }
+    
+    /// Handles export errors by showing appropriate UI feedback
+    /// - Parameter message: The error message to display
+    private func handleExportError(_ message: String) {
+        appsExportingIndicator.isHidden = true
+        appsExportingIndicator.stopAnimation(nil)
+        exportAppsFullReportButton?.isEnabled = true
+        exportAppsFullReportButton?.title = "Export Full Report"
+        
+        Logger.error("Full report export error: \(message)", category: .core, toUserDirectory: true)
+        showError(message)
+    }
+
     // MARK: - Actions
     @IBAction func refreshButtonClicked(_ sender: Any) {
         loadDeviceDetails()
@@ -1176,6 +1425,10 @@ class DeviceDetailsViewController: NSViewController, NSTabViewDelegate, NSTableV
         exportDetectedAppsToCSV()
     }
     
+    @IBAction func exportFullReport(_ sender: NSButton) {
+        showExportFullReportDialog()
+    }
+
     // MARK: - Apps Table Management
     private func updateAppsDisplay() {
         if searchText.isEmpty {
