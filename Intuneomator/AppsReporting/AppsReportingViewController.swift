@@ -831,13 +831,16 @@ class AppsReportingViewController: NSViewController {
             alert.messageText = "Export Completed"
             alert.informativeText = "Full installation report (\(dataSize)) exported successfully to \(saveUrl.lastPathComponent)"
             alert.addButton(withTitle: "Open File")
+            alert.addButton(withTitle: "Show in Finder")
             alert.addButton(withTitle: "OK")
             
             let response = alert.runModal()
             if response == .alertFirstButtonReturn {
                 NSWorkspace.shared.open(saveUrl)
+            } else if response == .alertSecondButtonReturn {
+                NSWorkspace.shared.selectFile(saveUrl.path, inFileViewerRootedAtPath: "")
             }
-            
+
         } catch {
             handleExportError("Failed to save export file: \(error.localizedDescription)")
         }
