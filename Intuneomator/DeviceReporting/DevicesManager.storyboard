@@ -709,6 +709,21 @@ DQ
                                                         <action selector="exportAppsButtonClicked:" target="tZc-dI-xqM" id="6vO-7J-OEc"/>
                                                     </connections>
                                                 </button>
+                                                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="euw-GZ-hD9">
+                                                    <rect key="frame" x="212" y="406" width="157" height="27"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                                                    <buttonCell key="cell" type="push" title="Export Detailed Report…" bezelStyle="rounded" alignment="center" controlSize="small" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="hC7-2E-MGu">
+                                                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                        <font key="font" metaFont="smallSystem"/>
+                                                    </buttonCell>
+                                                    <connections>
+                                                        <action selector="exportFullReport:" target="tZc-dI-xqM" id="ebq-5f-rqi"/>
+                                                    </connections>
+                                                </button>
+                                                <progressIndicator fixedFrame="YES" maxValue="100" displayedWhenStopped="NO" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="jco-5R-UNY">
+                                                    <rect key="frame" x="194" y="413" width="16" height="16"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                                                </progressIndicator>
                                             </subviews>
                                         </view>
                                     </tabViewItem>
@@ -835,6 +850,7 @@ DQ
                     <connections>
                         <outlet property="appsContentView" destination="3Da-9L-pZv" id="6jn-7o-kkF"/>
                         <outlet property="appsCountLabel" destination="eqH-Gr-BlH" id="fr8-iO-YW7"/>
+                        <outlet property="appsExportingIndicator" destination="jco-5R-UNY" id="V1J-JC-DxA"/>
                         <outlet property="appsLoadingIndicator" destination="2fO-xq-Jeb" id="Fsw-gM-3x9"/>
                         <outlet property="appsScrollView" destination="wTi-wR-0YJ" id="bA5-hI-PMB"/>
                         <outlet property="appsSearchField" destination="AEQ-Of-sxa" id="ymh-EH-SW8"/>
@@ -851,6 +867,7 @@ DQ
                         <outlet property="deviceIdLabel" destination="x2Z-q1-PuJ" id="b9E-cE-mZ6"/>
                         <outlet property="deviceNameLabel" destination="Tez-un-1Mg" id="kEx-5i-u4e"/>
                         <outlet property="exportAppsButton" destination="Ivj-ab-RyM" id="tkq-37-o9o"/>
+                        <outlet property="exportAppsFullReportButton" destination="euw-GZ-hD9" id="KfB-PV-6CX"/>
                         <outlet property="overviewContentView" destination="Voz-sZ-g9w" id="kxG-J7-hl4"/>
                         <outlet property="overviewLoadingIndicator" destination="XFE-dZ-AdA" id="cTt-Ee-2SR"/>
                         <outlet property="overviewScrollView" destination="Lfr-li-FLV" id="u3O-Zp-BRD"/>
