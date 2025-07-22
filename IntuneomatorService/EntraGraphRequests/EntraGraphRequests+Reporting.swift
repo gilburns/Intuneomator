@@ -918,7 +918,7 @@ extension EntraGraphRequests {
         // Build filter string if any filters are provided
         var filterComponents: [String] = []
         
-        filterComponents.append("deviceId eq '\(deviceId)'")
+        filterComponents.append("DeviceId eq '\(deviceId)'")
 
         let filter = filterComponents.isEmpty ? nil : filterComponents.joined(separator: " and ")
 
