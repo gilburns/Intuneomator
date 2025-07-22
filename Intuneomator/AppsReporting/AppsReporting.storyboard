@@ -401,7 +401,7 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                             </customView>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bK0-oG-oBv">
-                                <rect key="frame" x="124" y="13" width="133" height="32"/>
+                                <rect key="frame" x="276" y="13" width="133" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <buttonCell key="cell" type="push" title="Open in Intune…" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="TtX-EO-Ozf">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -757,8 +757,8 @@ DQ
                                 </textFieldCell>
                             </textField>
                             <progressIndicator fixedFrame="YES" maxValue="100" indeterminate="YES" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="bgj-sC-mQl">
-                                <rect key="frame" x="284" y="360" width="32" height="32"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <rect key="frame" x="284" y="14" width="32" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </progressIndicator>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="eLh-gq-BNB">
                                 <rect key="frame" x="94" y="395" width="200" height="12"/>
@@ -796,6 +796,17 @@ DQ
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Je9-iR-yuK">
+                                <rect key="frame" x="124" y="13" width="154" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <buttonCell key="cell" type="push" title="Export Full Report…" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="eAC-eT-1MO">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="exportFullReport:" target="Xw9-Vh-dJM" id="5MI-Jy-fKW"/>
+                                </connections>
+                            </button>
                         </subviews>
                     </view>
                     <connections>
@@ -806,6 +817,7 @@ DQ
                         <outlet property="dateCreatedLabel" destination="eLh-gq-BNB" id="IKC-am-8VT"/>
                         <outlet property="dateModifiedLabel" destination="gRM-qL-DOZ" id="PCX-O0-gkb"/>
                         <outlet property="exportButton" destination="nKc-3V-RKl" id="2pV-CR-TTH"/>
+                        <outlet property="exportFullReportButton" destination="Je9-iR-yuK" id="Da2-4B-Kzf"/>
                         <outlet property="openInIntuneButton" destination="bK0-oG-oBv" id="VvF-f3-sJz"/>
                         <outlet property="pieChartView" destination="Py4-Ue-P9Q" id="MBj-Ky-Xn1"/>
                         <outlet property="progressIndicator" destination="bgj-sC-mQl" id="nHj-h6-Bhq"/>
