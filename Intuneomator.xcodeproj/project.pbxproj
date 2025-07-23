@@ -49,6 +49,7 @@
 		1B0194AC2DFDBB3400FE32C6 /* Exceptions for "IntuneomatorService" folder in "IntuneomatorService" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				AzureStorageRequests/AzureStorageExample.swift,
 				Examples/StatusNotificationExample.swift,
 			);
 			target = 1BB046652D81324E004B6F3E /* IntuneomatorService */;

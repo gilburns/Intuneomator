@@ -390,6 +390,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
+    /// Opens the Azure Storage test interface window.
+    /// 
+    /// Provides a temporary interface for testing Azure Storage upload, download link generation,
+    /// and Teams notification functionality. This is intended for development and testing purposes.
+    /// 
+    /// - Parameter sender: The menu item that triggered this action
+    @IBAction func openAzureStorageTestInterface(_ sender: Any) {
+        let testController = AzureStorageTestViewController()
+        
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 800, height: 700),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        
+        window.title = "Azure Storage Test Interface"
+        window.contentViewController = testController
+        window.center()
+        window.makeKeyAndOrderFront(self)
+    }
+    
     // MARK: - Update Checking
     
     /// Checks for available application updates from the server

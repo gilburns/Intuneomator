@@ -73,6 +73,11 @@ struct Settings: Codable {
     
     /// Maximum size for log files before rotation (e.g., "100MB")
     var logSizeMax: String = ""
+    
+    // MARK: - Azure Storage Configuration
+    
+    /// Array of Azure Storage configurations for report distribution
+    var azureStorageConfigurations: [AzureStorageConfiguration] = []
 
     /// Default initializer with empty values
     init() {}
@@ -92,5 +97,77 @@ struct Settings: Codable {
         teamsWebhookURL = try container.decodeIfPresent(String.self, forKey: .teamsWebhookURL) ?? ""
         logAgeMax = try container.decodeIfPresent(String.self, forKey: .logAgeMax) ?? ""
         logSizeMax = try container.decodeIfPresent(String.self, forKey: .logSizeMax) ?? ""
+        azureStorageConfigurations = try container.decodeIfPresent([AzureStorageConfiguration].self, forKey: .azureStorageConfigurations) ?? []
+    }
+}
+
+// MARK: - Azure Storage Configuration Structure
+
+/// Configuration structure for individual Azure Storage connections
+/// Supports multiple authentication methods for flexible deployment scenarios
+struct AzureStorageConfiguration: Codable, Identifiable {
+    /// Unique identifier for the configuration
+    let id = UUID()
+    
+    /// User-friendly name for the configuration
+    var name: String
+    
+    /// Optional description of the configuration's purpose
+    var description: String
+    
+    /// Azure storage account name
+    var accountName: String
+    
+    /// Container name within the storage account
+    var containerName: String
+    
+    /// Authentication method type
+    var authenticationMethod: AuthenticationMethod
+    
+    /// Creation timestamp
+    var created: Date
+    
+    /// Last modification timestamp
+    var modified: Date
+    
+    /// Whether this configuration has been validated
+    var isValid: Bool
+    
+    /// Authentication method enumeration
+    enum AuthenticationMethod: Codable {
+        case storageKey(String)
+        case sasToken(String)
+        case azureAD(tenantId: String, clientId: String, clientSecret: String)
+        
+        /// Display name for UI
+        var displayName: String {
+            switch self {
+            case .storageKey:
+                return "Storage Key"
+            case .sasToken:
+                return "SAS Token"
+            case .azureAD:
+                return "Azure AD OAuth"
+            }
+        }
+    }
+    
+    /// Default initializer
+    init(name: String = "",
+         description: String = "",
+         accountName: String = "",
+         containerName: String = "",
+         authenticationMethod: AuthenticationMethod = .storageKey(""),
+         created: Date = Date(),
+         modified: Date = Date(),
+         isValid: Bool = false) {
+        self.name = name
+        self.description = description
+        self.accountName = accountName
+        self.containerName = containerName
+        self.authenticationMethod = authenticationMethod
+        self.created = created
+        self.modified = modified
+        self.isValid = isValid
     }
 }

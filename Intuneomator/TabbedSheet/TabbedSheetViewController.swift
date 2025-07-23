@@ -118,6 +118,14 @@ class TabbedSheetViewController: NSViewController {
                 webClipEditor.parentTabViewController = self
             } else if let groupAssignment = childVC as? GroupAssignmentViewController {
                 groupAssignment.parentTabbedSheetViewController = self
+            } else if let applicationSettings = childVC as? ApplicationSettingsViewController {
+                applicationSettings.parentTabbedSheetViewController = self
+            } else if let notificationsSettings = childVC as? NotificationsSettingsViewController {
+                notificationsSettings.parentTabbedSheetViewController = self
+            } else if let entraIDSettings = childVC as? EntraIDSettingsViewController {
+                entraIDSettings.parentTabbedSheetViewController = self
+            } else if let azureStorageSettings = childVC as? AzureStorageSettingsViewController {
+                azureStorageSettings.parentTabbedSheetViewController = self
             }
         }
     }
@@ -397,6 +405,57 @@ extension TabbedSheetViewController {
             children: [editorVC, groupsVC],
             labels: ["Web Clip", "Groups"],
             initialData: initialData
+        )
+        
+        tabbedVC.saveHandler = saveHandler
+        tabbedVC.cancelHandler = cancelHandler
+        
+        return tabbedVC
+    }
+    
+    /// Creates a configured tabbed sheet for settings editing
+    /// - Parameters:
+    ///   - settingsData: Initial settings data
+    ///   - saveHandler: Called when user saves with combined data
+    ///   - cancelHandler: Called when user cancels
+    /// - Returns: Configured TabbedSheetViewController
+    static func createSettingsEditor(
+        settingsData: [String: Any],
+        saveHandler: @escaping ([String: Any]) -> Void,
+        cancelHandler: (() -> Void)? = nil
+    ) -> TabbedSheetViewController? {
+        
+        // Load the XIB file
+        let tabbedVC = TabbedSheetViewController(nibName: "TabbedSheetViewController", bundle: nil)
+        
+        // Load child view controllers from Settings storyboard
+        let settingsStoryboard = NSStoryboard(name: "Settings", bundle: nil)
+        
+        guard let applicationVC = settingsStoryboard.instantiateController(withIdentifier: "ApplicationSettingsViewController") as? ApplicationSettingsViewController else {
+            Logger.error("Failed to load ApplicationSettingsViewController", category: .core, toUserDirectory: true)
+            return nil
+        }
+        
+        guard let notificationsVC = settingsStoryboard.instantiateController(withIdentifier: "NotificationsSettingsViewController") as? NotificationsSettingsViewController else {
+            Logger.error("Failed to load NotificationsSettingsViewController", category: .core, toUserDirectory: true)
+            return nil
+        }
+        
+        guard let entraIDVC = settingsStoryboard.instantiateController(withIdentifier: "EntraIDSettingsViewController") as? EntraIDSettingsViewController else {
+            Logger.error("Failed to load EntraIDSettingsViewController", category: .core, toUserDirectory: true)
+            return nil
+        }
+        
+        guard let azureStorageVC = settingsStoryboard.instantiateController(withIdentifier: "AzureStorageSettingsViewController") as? AzureStorageSettingsViewController else {
+            Logger.error("Failed to load AzureStorageSettingsViewController", category: .core, toUserDirectory: true)
+            return nil
+        }
+        
+        // Configure the tabbed view controller
+        tabbedVC.configure(
+            children: [applicationVC, notificationsVC, entraIDVC, azureStorageVC],
+            labels: ["🔧 Application", "📢 Notifications", "🔐 Entra ID", "☁️ Azure Storage"],
+            initialData: settingsData
         )
         
         tabbedVC.saveHandler = saveHandler

@@ -353,6 +353,94 @@ class EntraAuthenticator {
         }
     }
     
+    // MARK: - Test Methods
+    
+    /// Tests authentication with provided credentials without affecting cached tokens
+    /// - Parameters:
+    ///   - tenantId: Azure AD tenant identifier
+    ///   - clientId: Application (client) ID
+    ///   - authMethod: Authentication method ("certificate" or "secret")
+    ///   - clientSecret: Client secret (required if authMethod is "secret")
+    /// - Returns: True if authentication succeeds
+    func testAuthentication(tenantId: String, clientId: String, authMethod: String, clientSecret: String? = nil) async -> Bool {
+        do {
+            var token: String
+            
+            switch authMethod {
+            case "certificate":
+                token = try await authenticateWithCertificate(tenantId: tenantId, clientId: clientId)
+            case "secret":
+                guard let secret = clientSecret else {
+                    Logger.error("Client secret required for secret authentication", category: .core)
+                    return false
+                }
+                token = try await testAuthenticateWithSecretKey(tenantId: tenantId, clientId: clientId, clientSecret: secret)
+            default:
+                Logger.error("Invalid authentication method: \(authMethod)", category: .core)
+                return false
+            }
+            
+            return !token.isEmpty
+        } catch {
+            Logger.error("Test authentication failed: \(error.localizedDescription)", category: .core)
+            return false
+        }
+    }
+    
+    /// Test version of authenticateWithSecretKey that accepts a secret parameter
+    /// - Parameters:
+    ///   - tenantId: Azure AD tenant identifier
+    ///   - clientId: Application (client) ID from Azure AD app registration
+    ///   - clientSecret: Client secret to test with
+    /// - Returns: Access token for Microsoft Graph API
+    /// - Throws: EntraAuthError for authentication failures
+    private func testAuthenticateWithSecretKey(tenantId: String, clientId: String, clientSecret: String) async throws -> String {
+        let tokenUrl = URL(string: "https://login.microsoftonline.com/\(tenantId)/oauth2/v2.0/token")!
+        var request = URLRequest(url: tokenUrl)
+        request.httpMethod = "POST"
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        
+        // Form parameters for client secret authentication
+        let formData = [
+            "client_id": clientId,
+            "client_secret": clientSecret,
+            "scope": "https://graph.microsoft.com/.default",
+            "grant_type": "client_credentials"
+        ]
+        
+        let formString = formData.map { key, value in
+            let encodedKey = key.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? key
+            let encodedValue = value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? value
+            return "\(encodedKey)=\(encodedValue)"
+        }.joined(separator: "&")
+        
+        request.httpBody = formString.data(using: .utf8)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        if let httpResponse = response as? HTTPURLResponse,
+           httpResponse.statusCode != 200 {
+            Logger.error("HTTP error: \(httpResponse.statusCode)", category: .core)
+            if let responseText = String(data: data, encoding: .utf8) {
+                Logger.info("Response: \(responseText)", category: .core)
+            }
+            throw EntraAuthError.authenticationFailed("HTTP error: \(httpResponse.statusCode)")
+        }
+        
+        do {
+            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let accessToken = json["access_token"] as? String {
+                return accessToken
+            } else {
+                throw EntraAuthError.authenticationFailed("Failed to retrieve access token from response")
+            }
+            
+        } catch {
+            Logger.error("JSON parsing error: \(error)", category: .core)
+            throw EntraAuthError.authenticationFailed("JSON parsing error")
+        }
+    }
+    
     // MARK: - Validate Credentials
     
     /// Validates that the configured credentials can successfully authenticate and have required permissions

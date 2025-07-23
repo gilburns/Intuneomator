@@ -323,6 +323,75 @@ extension XPCManager {
     func getIntuneomatorUpdateMode(completion: @escaping (Int?) -> Void) {
         sendRequest({ $0.getIntuneomatorUpdateMode(reply: $1) }, completion: completion)
     }
+    
+    // MARK: - New Settings Management Methods
+    
+    /// Retrieves all settings as a dictionary
+    /// Used by the new tabbed settings interface
+    /// - Parameter completion: Callback with settings dictionary or nil on XPC failure
+    func getSettings(completion: @escaping ([String: Any]?) -> Void) {
+        sendRequest({ $0.getSettings(reply: $1) }, completion: completion)
+    }
+    
+    /// Saves settings from dictionary format
+    /// Used by the new tabbed settings interface to persist changes
+    /// - Parameters:
+    ///   - settingsData: Dictionary containing all settings data
+    ///   - completion: Callback with success status or nil on XPC failure
+    func saveSettingsFromDictionary(_ settingsData: [String: Any], completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.saveSettingsFromDictionary(settingsData, reply: $1) }, completion: completion)
+    }
+    
+    /// Tests Entra ID connection with provided settings
+    /// Used by the Entra ID settings tab to validate configuration
+    /// - Parameters:
+    ///   - testData: Dictionary containing authentication settings to test
+    ///   - completion: Callback with connection success status or nil on XPC failure
+    func testEntraIDConnection(with testData: [String: Any], completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.testEntraIDConnection(testData, reply: $1) }, completion: completion)
+    }
+    
+    // MARK: - Azure Storage Configuration Methods
+    
+    /// Creates a new Azure Storage configuration
+    /// - Parameters:
+    ///   - configuration: Dictionary containing the configuration data
+    ///   - completion: Callback with success status or nil on XPC failure
+    func createAzureStorageConfiguration(_ configuration: [String: Any], completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.createAzureStorageConfiguration(configuration, reply: $1) }, completion: completion)
+    }
+    
+    /// Updates an existing Azure Storage configuration
+    /// - Parameters:
+    ///   - configuration: Dictionary containing the updated configuration data
+    ///   - completion: Callback with success status or nil on XPC failure
+    func updateAzureStorageConfiguration(_ configuration: [String: Any], completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.updateAzureStorageConfiguration(configuration, reply: $1) }, completion: completion)
+    }
+    
+    /// Removes an Azure Storage configuration by name
+    /// - Parameters:
+    ///   - name: Name of the configuration to remove
+    ///   - completion: Callback with success status or nil on XPC failure
+    func removeAzureStorageConfiguration(name: String, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.removeAzureStorageConfiguration(name, reply: $1) }, completion: completion)
+    }
+    
+    /// Tests an Azure Storage configuration by name
+    /// - Parameters:
+    ///   - name: Name of the configuration to test
+    ///   - completion: Callback with connection success status or nil on XPC failure
+    func testAzureStorageConfiguration(name: String, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.testAzureStorageConfiguration(name, reply: $1) }, completion: completion)
+    }
+    
+    /// Tests an Azure Storage configuration directly without saving
+    /// - Parameters:
+    ///   - configuration: Dictionary containing the configuration data to test
+    ///   - completion: Callback with connection success status or nil on XPC failure
+    func testAzureStorageConfigurationDirect(_ configuration: [String: Any], completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.testAzureStorageConfigurationDirect(configuration, reply: $1) }, completion: completion)
+    }
 
 }
 
