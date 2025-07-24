@@ -955,9 +955,6 @@ extension EntraGraphRequests {
     /// Convenience function to create a AllAppsList export job with common parameters
     /// - Parameters:
     ///   - authToken: Valid access token for Microsoft Graph API
-    ///   - applicationId: Optional filter by specific application ID
-    ///   - deviceName: Optional filter by device name
-    ///   - userName: Optional filter by user name
     ///   - includeColumns: Optional array of specific columns to include
     ///   - format: Export format ("csv" or "json", defaults to "csv")
     /// - Returns: Export job ID that can be used to check status and download results
@@ -998,6 +995,51 @@ extension EntraGraphRequests {
         return try await createExportJob(
             authToken: authToken,
             reportName: "AllAppsList",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: AllDeviceCertificates
+    /// Convenience function to create a AllDeviceCertificates export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createAllDeviceCertificatesExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating AllDeviceCertificates export job", category: .core)
+                
+        // Default columns for AllDeviceCertificates if none specified
+        // Based on Microsoft Graph API documentation for AllDeviceCertificates report
+        let defaultColumns = [
+            "CertificateStatus",
+            "DeviceId",
+            "DeviceName",
+            "EnhancedKeyUsage",
+            "IssuerName",
+            "KeyUsage",
+            "PolicyId",
+            "SerialNumber",
+            "SubjectName",
+            "Thumbprint",
+            "UPN",
+            "UserId",
+            "ValidFrom",
+            "ValidTo"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "AllDeviceCertificates",
             filter: nil,
             select: columnsToInclude,
             format: format
@@ -1214,6 +1256,310 @@ extension EntraGraphRequests {
         )
     }
 
+    // MARK: AutopilotV1DeploymentStatus
+    /// Convenience function to create a AutopilotV1DeploymentStatus export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createAutopilotV1DeploymentStatusExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating AutopilotV1DeploymentStatus export job", category: .core)
+                
+        // Default columns for AutopilotV1DeploymentStatus if none specified
+        // Based on Microsoft Graph API documentation for AutopilotV1DeploymentStatus report
+        let defaultColumns = [
+            "AccountSetupDuration",
+            "AutopilotProfileName",
+            "DeploymentDuration",
+            "DeploymentEndDateTime",
+            "DeploymentStartDateTime",
+            "DeploymentState",
+            "DeploymentTotalDuration",
+            "DeviceId",
+            "DeviceName",
+            "DeviceRegisteredDateTime",
+            "DeviceSerialNumber",
+            "DeviceSetupDuration",
+            "DeviceSetupStatus",
+            "EnrollmentDateTime",
+            "EnrollmentMethod",
+            "EnrollmentStatus",
+            "ESPPolicyId",
+            "ESPPolicyName",
+            "EspDeviceSetupFailureDetails",
+            "EspUserSetupFailureDetails",
+            "FailureDetails",
+            "FailureReason",
+            "OS",
+            "OSVersion",
+            "UPN",
+            "UserId",
+            "UserSetupStatus"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "AutopilotV1DeploymentStatus",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: AutopilotV2DeploymentStatus
+    /// Convenience function to create a AutopilotV2DeploymentStatus export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createAutopilotV2DeploymentStatusExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating AutopilotV2DeploymentStatus export job", category: .core)
+                
+        // Default columns for AutopilotV2DeploymentStatus if none specified
+        // Based on Microsoft Graph API documentation for AutopilotV2DeploymentStatus report
+        let defaultColumns = [
+            "CurrentProvisioningPhase",
+            "DeploymentDurationTimeInSeconds",
+            "DeploymentStatus",
+            "DeviceId",
+            "DeviceName",
+            "EnrollmentTimeInUtc",
+            "Phase",
+            "ResultCode",
+            "SerialNumber",
+            "UPN"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "AutopilotV2DeploymentStatus",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: AutopilotV2DeploymentStatusDetailedAppInfo
+    /// Convenience function to create a AutopilotV2DeploymentStatusDetailedAppInfo export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createAutopilotV2DeploymentStatusDetailedAppInfoExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating AutopilotV2DeploymentStatusDetailedAppInfo export job", category: .core)
+                
+        // Default columns for AutopilotV2DeploymentStatusDetailedAppInfo if none specified
+        // Based on Microsoft Graph API documentation for AutopilotV2DeploymentStatusDetailedAppInfo report
+        let defaultColumns = [
+            "ApplicationId",
+            "ApplicationName",
+            "AppType",
+            "DeviceId",
+            "IsAdminSelected",
+            "PolicyInstallStatus"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "AutopilotV2DeploymentStatusDetailedAppInfo",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: AutopilotV2DeploymentStatusDetailedScriptInfo
+    /// Convenience function to create a AutopilotV2DeploymentStatusDetailedScriptInfo export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createAutopilotV2DeploymentStatusDetailedScriptInfoExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating AutopilotV2DeploymentStatusDetailedAppInfo export job", category: .core)
+                
+        // Default columns for AutopilotV2DeploymentStatusDetailedScriptInfo if none specified
+        // Based on Microsoft Graph API documentation for AutopilotV2DeploymentStatusDetailedScriptInfo report
+        let defaultColumns = [
+            "ApplicationId",
+            "ApplicationName",
+            "AppType",
+            "DeviceId",
+            "IsAdminSelected",
+            "PolicyInstallStatus"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "AutopilotV2DeploymentStatusDetailedScriptInfo",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: CatalogAppsUpdateList
+    /// Convenience function to create a CatalogAppsUpdateList export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createCatalogAppsUpdateListExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating CatalogAppsUpdateList export job", category: .core)
+                
+        // Default columns for CatalogAppsUpdateList if none specified
+        // Based on Microsoft Graph API documentation for CatalogAppsUpdateList report
+        let defaultColumns = [
+            "ApplicationId",
+            "ApplicationName",
+            "CurrentAppVersion",
+            "CurrentRevisionId",
+            "IsSuperseded",
+            "LatestAvailableVersion",
+            "LatestRevisionId",
+            "Publisher",
+            "UpdateAvailable",
+            "UpdateEligible"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "CatalogAppsUpdateList",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: CertificatesByRAPolicy
+    /// Convenience function to create a CertificatesByRAPolicy export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createCertificatesByRAPolicyExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating CertificatesByRAPolicy export job", category: .core)
+                
+        // Default columns for CertificatesByRAPolicy if none specified
+        // Based on Microsoft Graph API documentation for CertificatesByRAPolicy report
+        let defaultColumns = [
+            "CaConfiguration",
+            "CertificateStatus",
+            "DeviceId",
+            "DeviceName",
+            "EnhancedKeyUsage",
+            "IssuerName",
+            "KeyUsage",
+            "PolicyId",
+            "SerialNumber",
+            "SubjectName",
+            "Thumbprint",
+            "UPN",
+            "UserId",
+            "ValidFrom",
+            "ValidTo"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "CertificatesByRAPolicy",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DependentAppsInstallStatus
+    /// Convenience function to create a DependentAppsInstallStatus export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDependentAppsInstallStatusExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DependentAppsInstallStatus export job", category: .core)
+                
+        // Default columns for DependentAppsInstallStatus if none specified
+        // Based on Microsoft Graph API documentation for DependentAppsInstallStatus report
+        let defaultColumns = [
+            "ApplicationId",
+            "AppVersion",
+            "DeviceId",
+            "DisplayName",
+            "ErrorCode",
+            "InstallState",
+            "InstallStateDetail",
+            "LastModifiedDateTime",
+            "Relationship",
+            "Replaced",
+            "SourceIds",
+            "UserId",
+            "UserPrincipalName"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DependentAppsInstallStatus",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
     // MARK: DeviceCompliance
     /// Convenience function to create a DeviceCompliance export job with common parameters
     /// - Parameters:
@@ -1296,6 +1642,43 @@ extension EntraGraphRequests {
         )
     }
     
+    // MARK: DeviceComplianceTrend
+    /// Convenience function to create a DeviceComplianceTrend export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDeviceComplianceTrendExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DeviceComplianceTrend export job", category: .core)
+                
+        // Default columns for DeviceComplianceTrend if none specified
+        // Based on Microsoft Graph API documentation for DeviceComplianceTrend report
+        let defaultColumns = [
+            "ComplianceState",
+            "Count",
+            "Date",
+            "DeviceType",
+            "OSFamily",
+            "OwnerType"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DeviceComplianceTrend",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
     // MARK: DeviceNonCompliance
     /// Convenience function to create a DeviceNonCompliance export job with common parameters
     /// - Parameters:
@@ -1383,6 +1766,224 @@ extension EntraGraphRequests {
         )
     }
     
+    // MARK: DevicePoliciesComplianceReport
+    /// Convenience function to create a DevicePoliciesComplianceReport export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDevicePoliciesComplianceReportExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DevicePoliciesComplianceReport export job", category: .core)
+                
+        // Default columns for DevicePoliciesComplianceReport if none specified
+        // Based on Microsoft Graph API documentation for DevicePoliciesComplianceReport report
+        let defaultColumns = [
+            "DeviceId",
+            "LastContact",
+            "PolicyId",
+            "PolicyName",
+            "PolicyPlatformType",
+            "PolicyStatus",
+            "PolicyVersion",
+            "UPN",
+            "UserEmail",
+            "UserId",
+            "UserName"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DevicePoliciesComplianceReport",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DevicePoliciesComplianceReportV3
+    /// Convenience function to create a DevicePoliciesComplianceReportV3 export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDevicePoliciesComplianceReportV3ExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DevicePoliciesComplianceReportV3 export job", category: .core)
+                
+        // Default columns for DevicePoliciesComplianceReportV3 if none specified
+        // Based on Microsoft Graph API documentation for DevicePoliciesComplianceReportV3 report
+        let defaultColumns = [
+            "DeviceId",
+            "LastContact",
+            "PolicyId",
+            "PolicyName",
+            "PolicyPlatformType",
+            "PolicyStatus",
+            "PolicyVersion",
+            "UPN",
+            "UserEmail",
+            "UserId",
+            "UserName"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DevicePoliciesComplianceReportV3",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DevicePolicySettingsComplianceReport
+    /// Convenience function to create a DevicePolicySettingsComplianceReport export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDevicePolicySettingsComplianceReportExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DevicePolicySettingsComplianceReport export job", category: .core)
+                
+        // Default columns for DevicePolicySettingsComplianceReport if none specified
+        // Based on Microsoft Graph API documentation for DevicePolicySettingsComplianceReport report
+        let defaultColumns = [
+            "DeviceId",
+            "ErrorCode",
+            "ErrorType",
+            "PolicyId",
+            "PolicyVersion",
+            "SettingId",
+            "SettingInstanceId",
+            "SettingName",
+            "SettingNm",
+            "SettingStatus",
+            "SettingValue",
+            "StateDetails",
+            "UserId"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DevicePolicySettingsComplianceReport",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DevicePolicySettingsComplianceReportV3
+    /// Convenience function to create a DevicePolicySettingsComplianceReportV3 export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDevicePolicySettingsComplianceReportV3ExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DevicePolicySettingsComplianceReportV3 export job", category: .core)
+                
+        // Default columns for DevicePolicySettingsComplianceReportV3 if none specified
+        // Based on Microsoft Graph API documentation for DevicePolicySettingsComplianceReportV3 report
+        let defaultColumns = [
+            "DeviceId",
+            "ErrorCode",
+            "ErrorType",
+            "PolicyId",
+            "PolicyVersion",
+            "SettingId",
+            "SettingInstanceId",
+            "SettingName",
+            "SettingNm",
+            "SettingStatus",
+            "SettingValue",
+            "StateDetails",
+            "UserId"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DevicePolicySettingsComplianceReportV3",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DeviceRunStatesByScript
+    /// Convenience function to create a DeviceRunStatesByScript export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDeviceRunStatesByScriptExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DeviceRunStatesByScript export job", category: .core)
+                
+        // Default columns for DeviceRunStatesByScript if none specified
+        // Based on Microsoft Graph API documentation for DeviceRunStatesByScript report
+        let defaultColumns = [
+            "DeviceId",
+            "DeviceName",
+            "ErrorCode",
+            "ErrorDescription",
+            "ModifiedTime",
+            "OSVersion",
+            "PolicyId",
+            "PolicyResultDetail",
+            "PolicyResultState",
+            "PolicyVersion",
+            "RunState",
+            "UPN",
+            "UserEmail",
+            "UserId",
+            "UserName"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DeviceRunStatesByScript",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
     // MARK: Devices
 /// Convenience function to create a Devices export job with common parameters
     /// - Parameters:
@@ -1526,6 +2127,508 @@ extension EntraGraphRequests {
             authToken: authToken,
             reportName: "Devices",
             filter: filter,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DevicesStatusByPolicyPlatformComplianceReport
+    /// Convenience function to create a DevicesStatusByPolicyPlatformComplianceReport export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDevicesStatusByPolicyPlatformComplianceReportExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DevicesStatusByPolicyPlatformComplianceReport export job", category: .core)
+                
+        // Default columns for DevicesStatusByPolicyPlatformComplianceReport if none specified
+        // Based on Microsoft Graph API documentation for DevicesStatusByPolicyPlatformComplianceReport report
+        let defaultColumns = [
+            "AadDeviceId",
+            "ComplianceState",
+            "DeviceId",
+            "DeviceName",
+            "InGracePeriodUntil",
+            "LastContact",
+            "Model",
+            "OS",
+            "PolicyId",
+            "PolicyPlatformType",
+            "PolicyStatus",
+            "UPN"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DevicesStatusByPolicyPlatformComplianceReport",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DevicesStatusByPolicyPlatformComplianceReportV3
+    /// Convenience function to create a DevicesStatusByPolicyPlatformComplianceReportV3 export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDevicesStatusByPolicyPlatformComplianceReportV3ExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DevicesStatusByPolicyPlatformComplianceReportV3 export job", category: .core)
+                
+        // Default columns for DevicesStatusByPolicyPlatformComplianceReportV3 if none specified
+        // Based on Microsoft Graph API documentation for DevicesStatusByPolicyPlatformComplianceReportV3 report
+        let defaultColumns = [
+            "AadDeviceId",
+            "ComplianceState",
+            "DeviceId",
+            "DeviceName",
+            "InGracePeriodUntil",
+            "LastContact",
+            "Model",
+            "OS",
+            "PolicyId",
+            "PolicyPlatformType",
+            "PolicyStatus",
+            "UPN"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DevicesStatusByPolicyPlatformComplianceReportV3",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DevicesStatusBySettingReport
+    /// Convenience function to create a DevicesStatusBySettingReport export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDevicesStatusBySettingReportExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DevicesStatusBySettingReport export job", category: .core)
+                
+        // Default columns for DevicesStatusBySettingReport if none specified
+        // Based on Microsoft Graph API documentation for DevicesStatusBySettingReport report
+        let defaultColumns = [
+            "AadDeviceId",
+            "ComplianceState",
+            "DeviceId",
+            "DeviceName",
+            "InGracePeriodUntil",
+            "Model",
+            "OS",
+            "PolicyPlatformType",
+            "PrimaryUser",
+            "SettingId",
+            "SettingName",
+            "SettingNm",
+            "SettingStatus",
+            "UPN"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DevicesStatusBySettingReport",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DeviceStatusByCompliacePolicyReport
+    /// Convenience function to create a DeviceStatusByCompliacePolicyReport export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDeviceStatusByCompliacePolicyReportExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DeviceStatusByCompliacePolicyReport export job", category: .core)
+                
+        // Default columns for DeviceStatusByCompliacePolicyReport if none specified
+        // Based on Microsoft Graph API documentation for DeviceStatusByCompliacePolicyReport report
+        let defaultColumns = [
+            "AadDeviceId",
+            "DeviceId",
+            "DeviceName",
+            "LastContact",
+            "ManagementAgents",
+            "OS",
+            "PolicyId",
+            "PolicyStatus",
+            "UPN",
+            "UserId",
+            "UserName"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DeviceStatusByCompliacePolicyReport",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DeviceStatusByCompliacePolicyReportV3
+    /// Convenience function to create a DeviceStatusByCompliacePolicyReportV3 export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDeviceStatusByCompliacePolicyReportV3ExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DeviceStatusByCompliacePolicyReportV3 export job", category: .core)
+                
+        // Default columns for DeviceStatusByCompliacePolicyReportV3 if none specified
+        // Based on Microsoft Graph API documentation for DeviceStatusByCompliacePolicyReportV3 report
+        let defaultColumns = [
+            "AadDeviceId",
+            "DeviceId",
+            "DeviceName",
+            "LastContact",
+            "ManagementAgents",
+            "OS",
+            "PolicyId",
+            "PolicyStatus",
+            "UPN",
+            "UserId",
+            "UserName"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DeviceStatusByCompliacePolicyReportV3",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DeviceStatusByCompliancePolicySettingReport
+    /// Convenience function to create a DeviceStatusByCompliancePolicySettingReport export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDeviceStatusByCompliancePolicySettingReportExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DeviceStatusByCompliancePolicySettingReport export job", category: .core)
+                
+        // Default columns for DeviceStatusByCompliancePolicySettingReport if none specified
+        // Based on Microsoft Graph API documentation for DeviceStatusByCompliancePolicySettingReport report
+        let defaultColumns = [
+            "AadDeviceId",
+            "ComplianceState",
+            "DeviceId",
+            "DeviceName",
+            "ManagementAgents",
+            "Model",
+            "OS",
+            "PolicyId",
+            "SettingId",
+            "SettingName",
+            "SettingNm",
+            "SettingStatus",
+            "UPN"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DeviceStatusByCompliancePolicySettingReport",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DeviceStatusByCompliancePolicySettingReportV3
+    /// Convenience function to create a DeviceStatusByCompliancePolicySettingReportV3 export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDeviceStatusByCompliancePolicySettingReportV3ExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DeviceStatusByCompliancePolicySettingReportV3 export job", category: .core)
+                
+        // Default columns for DeviceStatusByCompliancePolicySettingReportV3 if none specified
+        // Based on Microsoft Graph API documentation for DeviceStatusByCompliancePolicySettingReportV3 report
+        let defaultColumns = [
+            "AadDeviceId",
+            "ComplianceState",
+            "DeviceId",
+            "DeviceName",
+            "ManagementAgents",
+            "Model",
+            "OS",
+            "PolicyId",
+            "SettingId",
+            "SettingName",
+            "SettingNm",
+            "SettingStatus",
+            "UPN"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DeviceStatusByCompliancePolicySettingReportV3",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DevicesStatusBySettingReportV3
+    /// Convenience function to create a DevicesStatusBySettingReportV3 export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDevicesStatusBySettingReportV3ExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DevicesStatusBySettingReportV3 export job", category: .core)
+                
+        // Default columns for DevicesStatusBySettingReportV3 if none specified
+        // Based on Microsoft Graph API documentation for DevicesStatusBySettingReportV3 report
+        let defaultColumns = [
+            "AadDeviceId",
+            "ComplianceState",
+            "DeviceId",
+            "DeviceName",
+            "InGracePeriodUntil",
+            "Model",
+            "OS",
+            "PolicyPlatformType",
+            "PrimaryUser",
+            "SettingId",
+            "SettingName",
+            "SettingNm",
+            "SettingStatus",
+            "UPN"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DevicesStatusBySettingReportV3",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DeviceStatusSummaryByCompliacePolicyReport
+    /// Convenience function to create a DeviceStatusSummaryByCompliacePolicyReport export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDeviceStatusSummaryByCompliacePolicyReportExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DeviceStatusSummaryByCompliacePolicyReport export job", category: .core)
+                
+        // Default columns for DeviceStatusSummaryByCompliacePolicyReport if none specified
+        // Based on Microsoft Graph API documentation for DeviceStatusSummaryByCompliacePolicyReport report
+        let defaultColumns = [
+            "NumberOfCompliantDevices",
+            "NumberOfNonCompliantDevices",
+            "NumberOfOtherDevices",
+            "OS",
+            "PolicyId"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DeviceStatusSummaryByCompliacePolicyReport",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DeviceStatusSummaryByCompliacePolicyReportV3
+    /// Convenience function to create a DeviceStatusSummaryByCompliacePolicyReportV3 export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDeviceStatusSummaryByCompliacePolicyReportV3ExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DeviceStatusSummaryByCompliacePolicyReportV3 export job", category: .core)
+                
+        // Default columns for DeviceStatusSummaryByCompliacePolicyReportV3 if none specified
+        // Based on Microsoft Graph API documentation for DeviceStatusSummaryByCompliacePolicyReportV3 report
+        let defaultColumns = [
+            "NumberOfCompliantDevices",
+            "NumberOfNonCompliantDevices",
+            "NumberOfOtherDevices",
+            "OS",
+            "PolicyId"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DeviceStatusSummaryByCompliacePolicyReportV3",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DeviceStatusSummaryByCompliancePolicySettingsReport
+    /// Convenience function to create a DeviceStatusSummaryByCompliancePolicySettingsReport export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDeviceStatusSummaryByCompliancePolicySettingsReportExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DeviceStatusSummaryByCompliancePolicySettingsReport export job", category: .core)
+                
+        // Default columns for DeviceStatusSummaryByCompliancePolicySettingsReport if none specified
+        // Based on Microsoft Graph API documentation for DeviceStatusSummaryByCompliancePolicySettingsReport report
+        let defaultColumns = [
+            "NumberOfCompliantDevices",
+            "NumberOfErrorDevices",
+            "NumberOfNonCompliantDevices",
+            "NumberOfNotApplicableDevices",
+            "NumberOfNotEvaluatedDevices",
+            "NumberOfOtherDevices",
+            "PolicyId",
+            "SettingId",
+            "SettingName",
+            "SettingNm"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DeviceStatusSummaryByCompliancePolicySettingsReport",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DeviceStatusSummaryByCompliancePolicySettingsReportV3
+    /// Convenience function to create a DeviceStatusSummaryByCompliancePolicySettingsReportV3 export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDeviceStatusSummaryByCompliancePolicySettingsReportV3ExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DeviceStatusSummaryByCompliancePolicySettingsReportV3 export job", category: .core)
+                
+        // Default columns for DeviceStatusSummaryByCompliancePolicySettingsReportV3 if none specified
+        // Based on Microsoft Graph API documentation for DeviceStatusSummaryByCompliancePolicySettingsReportV3 report
+        let defaultColumns = [
+            "NumberOfCompliantDevices",
+            "NumberOfErrorDevices",
+            "NumberOfNonCompliantDevices",
+            "NumberOfNotApplicableDevices",
+            "NumberOfNotEvaluatedDevices",
+            "NumberOfOtherDevices",
+            "PolicyId",
+            "SettingId",
+            "SettingName",
+            "SettingNm"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DeviceStatusSummaryByCompliancePolicySettingsReportV3",
+            filter: nil,
             select: columnsToInclude,
             format: format
         )
