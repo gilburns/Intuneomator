@@ -2785,6 +2785,104 @@ extension EntraGraphRequests {
         )
     }
 
+    // MARK: DevicesWithoutCompliancePolicy
+    /// Convenience function to create a DevicesWithoutCompliancePolicy export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDevicesWithoutCompliancePolicyExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DevicesWithoutCompliancePolicy export job", category: .core)
+                
+        // Default columns for DevicesWithoutCompliancePolicy if none specified
+        // Based on Microsoft Graph API documentation for DevicesWithoutCompliancePolicy report
+        let defaultColumns = [
+            "AadDeviceId",
+            "ComplianceState",
+            "DeviceId",
+            "DeviceModel",
+            "DeviceName",
+            "DeviceType",
+            "LastContact",
+            "LastContactedUserId",
+            "ManagementAgents",
+            "OS",
+            "OSDescription",
+            "OSVersion",
+            "OwnerType",
+            "PrimaryUser",
+            "UPN",
+            "UserEmail",
+            "UserId",
+            "UserName"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DevicesWithoutCompliancePolicy",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: DevicesWithoutCompliancePolicyV3
+    /// Convenience function to create a DevicesWithoutCompliancePolicyV3 export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDevicesWithoutCompliancePolicyV3ExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DevicesWithoutCompliancePolicyV3 export job", category: .core)
+                
+        // Default columns for DevicesWithoutCompliancePolicyV3 if none specified
+        // Based on Microsoft Graph API documentation for DevicesWithoutCompliancePolicyV3 report
+        let defaultColumns = [
+            "AadDeviceId",
+            "ComplianceState",
+            "DeviceId",
+            "DeviceModel",
+            "DeviceName",
+            "DeviceType",
+            "LastContact",
+            "LastContactedUserId",
+            "ManagementAgents",
+            "OS",
+            "OSDescription",
+            "OSVersion",
+            "OwnerType",
+            "PrimaryUser",
+            "UPN",
+            "UserEmail",
+            "UserId",
+            "UserName"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DevicesWithoutCompliancePolicyV3",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
     // MARK: DefenderAgents or UnhealthyDefenderAgents
     /// Convenience function to create a DefenderAgents or UnhealthyDefenderAgents export job with common parameters
     /// - Parameters:
@@ -2880,6 +2978,465 @@ extension EntraGraphRequests {
         )
     }
     
+    // MARK: DriverUpdatePolicyStatusSummary
+    /// Convenience function to create a DriverUpdatePolicyStatusSummary export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createDriverUpdatePolicyStatusSummaryExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating DriverUpdatePolicyStatusSummary export job", category: .core)
+                
+        // Default columns for DriverUpdatePolicyStatusSummary if none specified
+        // Based on Microsoft Graph API documentation for DriverUpdatePolicyStatusSummary report
+        let defaultColumns = [
+            "CountDevicesCancelledStatus",
+            "CountDevicesErrorStatus",
+            "CountDevicesInProgressStatus",
+            "CountDevicesSuccessStatus",
+            "CountOfNeedsReviewDrivers",
+            "CountOfPausedDrivers",
+            "PolicyId",
+            "PolicyName"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "DriverUpdatePolicyStatusSummary",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: EpmAggregationReportByPublisherV2
+    /// Convenience function to create a EpmAggregationReportByPublisherV2 export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createEpmAggregationReportByPublisherV2ExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating EpmAggregationReportByPublisherV2 export job", category: .core)
+                
+        // Default columns for EpmAggregationReportByPublisherV2 if none specified
+        // Based on Microsoft Graph API documentation for EpmAggregationReportByPublisherV2 report
+        let defaultColumns = [
+            "CompanyName",
+            "ElevationCount",
+            "ElevationType"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "EpmAggregationReportByPublisherV2",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+    
+    // MARK: EpmAggregationReportByPublisher
+    /// Convenience function to create a EpmAggregationReportByPublisher export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createEpmAggregationReportByPublisherExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating EpmAggregationReportByPublisher export job", category: .core)
+                
+        // Default columns for EpmAggregationReportByPublisher if none specified
+        // Based on Microsoft Graph API documentation for EpmAggregationReportByPublisher report
+        let defaultColumns = [
+            "CompanyName",
+            "ElevationCount",
+            "ElevationType"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "EpmAggregationReportByPublisher",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: EpmAggregationReportByUser
+    /// Convenience function to create a EpmAggregationReportByUser export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createEpmAggregationReportByUserExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating EpmAggregationReportByUser export job", category: .core)
+                
+        // Default columns for EpmAggregationReportByUser if none specified
+        // Based on Microsoft Graph API documentation for EpmAggregationReportByUser report
+        let defaultColumns = [
+            "ManagedCount",
+            "TotalCount",
+            "UnmanagedCount",
+            "Upn"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "EpmAggregationReportByUser",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: EpmAggregationReportByUserAppByMonth
+    /// Convenience function to create a EpmAggregationReportByUserAppByMonth export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createEpmAggregationReportByUserAppByMonthExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating EpmAggregationReportByUserAppByMonth export job", category: .core)
+                
+        // Default columns for EpmAggregationReportByUserAppByMonth if none specified
+        // Based on Microsoft Graph API documentation for EpmAggregationReportByUserAppByMonth report
+        let defaultColumns = [
+            "DeviceId",
+            "DeviceName",
+            "ElevationType",
+            "FileDescription",
+            "FileInternalName",
+            "FileName",
+            "FileProductName",
+            "FileVersion",
+            "HashValue",
+            "MonthElevationCount",
+            "Publisher",
+            "UserName"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "EpmAggregationReportByUserAppByMonth",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: EpmAggregationReportByUserV2
+    /// Convenience function to create a EpmAggregationReportByUserV2 export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createEpmAggregationReportByUserV2ExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating EpmAggregationReportByUserV2 export job", category: .core)
+                
+        // Default columns for EpmAggregationReportByUserV2 if none specified
+        // Based on Microsoft Graph API documentation for EpmAggregationReportByUserV2 report
+        let defaultColumns = [
+            "ManagedCount",
+            "TotalCount",
+            "UnmanagedCount",
+            "Upn"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "EpmAggregationReportByUserV2",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: EpmDeniedReport
+    /// Convenience function to create a EpmDeniedReport export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createEpmDeniedReportExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating EpmDeniedReport export job", category: .core)
+                
+        // Default columns for EpmDeniedReport if none specified
+        // Based on Microsoft Graph API documentation for EpmDeniedReport report
+        let defaultColumns = [
+            "UserName",
+            "DeviceId",
+            "DeviceName",
+            "FileName",
+            "FileProductName",
+            "FileDescription",
+            "FileInternalName",
+            "FileVersion",
+            "HashValue",
+            "Publisher",
+            "ElevationType",
+            "MonthElevationCount"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "EpmDeniedReport",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: EpmElevationReportByUserAppByDayToReporting
+    /// Convenience function to create a EpmElevationReportByUserAppByDayToReporting export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createEpmElevationReportByUserAppByDayToReportingExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating EpmElevationReportByUserAppByDayToReporting export job", category: .core)
+                
+        // Default columns for EpmElevationReportByUserAppByDayToReporting if none specified
+        // Based on Microsoft Graph API documentation for EpmElevationReportByUserAppByDayToReporting report
+        let defaultColumns = [
+            "DateCreated",
+            "DeviceId",
+            "ElevationCount",
+            "ElevationType",
+            "FileName",
+            "FileVersion",
+            "HashValue",
+            "Publisher",
+            "UserName"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "EpmElevationReportByUserAppByDayToReporting",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: EpmInsightsElevationTrend
+    /// Convenience function to create a EpmInsightsElevationTrend export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createEpmInsightsElevationTrendExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating EpmInsightsElevationTrend export job", category: .core)
+                
+        // Default columns for EpmInsightsElevationTrend if none specified
+        // Based on Microsoft Graph API documentation for EpmInsightsElevationTrend report
+        let defaultColumns = [
+            "DateCreated",
+            "ElevationType",
+            "DailyElevationCount"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "EpmInsightsElevationTrend",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: EpmInsightsMostFrequentElevations
+    /// Convenience function to create a EpmInsightsMostFrequentElevations export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createEpmInsightsMostFrequentElevationsExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating EpmInsightsMostFrequentElevations export job", category: .core)
+                
+        // Default columns for EpmInsightsMostFrequentElevations if none specified
+        // Based on Microsoft Graph API documentation for EpmInsightsMostFrequentElevations report
+        let defaultColumns = [
+            "ElevationType",
+            "FileInternalName",
+            "FileName",
+            "FileVersion",
+            "HashValue",
+            "MonthElevationCount",
+            "Publisher"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "EpmInsightsMostFrequentElevations",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: EpmInsightsReport
+    /// Convenience function to create a EpmInsightsReport export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createEpmInsightsReportExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating EpmInsightsReport export job", category: .core)
+                
+        // Default columns for EpmInsightsReport if none specified
+        // Based on Microsoft Graph API documentation for EpmInsightsReport report
+        let defaultColumns = [
+            "Green",
+            "Yellow",
+            "Red"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "EpmInsightsReport",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: FilteredAppsList
+    /// Convenience function to create a FilteredAppsList export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createFilteredAppsListExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating FilteredAppsList export job", category: .core)
+                
+        // Default columns for FilteredAppsList if none specified
+        // Based on Microsoft Graph API documentation for FilteredAppsList report
+        let defaultColumns = [
+            "ApplicationId",
+            "ApplicationName",
+            "AppLastModifiedTime",
+            "AppStatus",
+            "AppType",
+            "AppVersion",
+            "Assigned",
+            "CreationTime",
+            "Description",
+            "Developer",
+            "ExpirationTime",
+            "IsFeaturedApp",
+            "MoreInformationLink",
+            "Notes",
+            "Owner",
+            "Platform",
+            "PrivacyLink",
+            "Publisher",
+            "StoreUrl"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "FilteredAppsList",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
     // MARK: FirewallStatus
     /// Convenience function to create a FirewallStatus export job with common parameters
     /// - Parameters:
@@ -3098,7 +3655,56 @@ extension EntraGraphRequests {
             format: format
         )
     }
-    
+
+    // MARK: MAMAppConfigurationStatusScopedV2
+    /// Convenience function to create a MAMAppConfigurationStatusScopedV2 export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createMAMAppConfigurationStatusScopedV2ExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating MAMAppConfigurationStatusScopedV2 export job", category: .core)
+                
+        // Default columns for MAMAppConfigurationStatusScopedV2 if none specified
+        // Based on Microsoft Graph API documentation for MAMAppConfigurationStatusScopedV2 report
+        let defaultColumns = [
+            "AADDeviceID",
+            "AndroidMamSdkVersion",
+            "AndroidSecurityPatchVersion",
+            "App",
+            "AppInstanceId",
+            "AppVersion",
+            "DeviceManufacturer",
+            "DeviceModel",
+            "DeviceName",
+            "DeviceType",
+            "Email",
+            "iOSSdkVersion",
+            "LastSync",
+            "MDMDeviceID",
+            "_Platform",
+            "PlatformVersion",
+            "Policy",
+            "User"
+        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "MAMAppConfigurationStatusScopedV2",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
     // MARK: FeatureUpdatePolicyFailuresAggregate
     /// Convenience function to create a FeatureUpdatePolicyFailuresAggregate export job with common parameters
     /// - Parameters:
@@ -3128,6 +3734,42 @@ extension EntraGraphRequests {
         return try await createExportJob(
             authToken: authToken,
             reportName: "FeatureUpdatePolicyFailuresAggregate",
+            filter: nil,
+            select: columnsToInclude,
+            format: format
+        )
+    }
+
+    // MARK: FeatureUpdatePolicyStatusSummary
+    /// Convenience function to create a FeatureUpdatePolicyStatusSummary export job with common parameters
+    /// - Parameters:
+    ///   - authToken: Valid access token for Microsoft Graph API
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    /// - Returns: Export job ID that can be used to check status and download results
+    /// - Throws: Network errors, authentication errors, or JSON parsing errors
+    static func createFeatureUpdatePolicyStatusSummaryExportJob(
+        authToken: String,
+        includeColumns: [String]? = nil,
+        format: String = "csv"
+    ) async throws -> String {
+        Logger.info("Creating FeatureUpdatePolicyStatusSummary export job", category: .core)
+                
+        // Default columns for FeatureUpdatePolicyStatusSummary if none specified
+        // Based on Microsoft Graph API documentation for FeatureUpdatePolicyStatusSummary report
+        let defaultColumns = [
+            "CountDevicesErrorStatus",
+            "CountDevicesInProgressStatus",
+            "CountDevicesSuccessStatus",
+            "FeatureUpdateVersion",
+            "PolicyId",
+            "PolicyName"        ]
+        
+        let columnsToInclude = includeColumns ?? defaultColumns
+        
+        return try await createExportJob(
+            authToken: authToken,
+            reportName: "FeatureUpdatePolicyStatusSummary",
             filter: nil,
             select: columnsToInclude,
             format: format
