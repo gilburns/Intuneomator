@@ -93,22 +93,183 @@ class IntuneReportsViewController: NSViewController {
     private func setupPopups() {
         reportNamePopUp.removeAllItems()
         reportNamePopUp.addItems(withTitles: [
+            "Active Malware",
+            "ADMX Settings By Device By Policy",
             "All Apps List",
+            "All Device Certificates",
             "App Install Status Aggregate",
-            "App Inventory Aggregate",
-            "App Inventory Raw Data",
-            "Device Compliance",
-            "Device Non Compliance",
-            "Devices",
-            "Devices with Inventory",
+            "App Inv Aggregate",
+            "App Inv By Device",
+            "App Inv Raw Data",
+            "Autopilot V1 Deployment Status",
+            "Autopilot V2 Deployment Status",
+            "Autopilot V2 Deployment Status Detailed App Info",
+            "Autopilot V2 Deployment Status Detailed Script Info",
+            "BRBattery By Model",
+            "BRBattery By Os",
+            "BRDevice Battery Agg",
+            "BREnergy Usage",
+            "Catalog Apps Update List",
+            "Certificates By RA Policy",
+            "Comanaged Device Workloads",
+            "Comanagement Eligibility Tenant Attached Devices",
+            "Configuration Policy Aggregate",
+            "Configuration Policy Aggregate V3",
+            "Configuration Policy Device Aggregates",
+            "Configuration Policy Device Aggregates V3",
+            "Configuration Policy Device Aggregates With PF",
+            "Configuration Policy Device Aggregates With PFV3",
             "Defender Agents",
-            "Defender Agents (Unhealthy)",
+            "Dependent Apps Install Status",
+            "Device Assignment Status By Configuration Policy",
+            "Device Assignment Status By Configuration Policy For AC",
+            "Device Assignment Status By Configuration Policy For ASR",
+            "Device Assignment Status By Configuration Policy For EDR",
+            "Device Assignment Status By Configuration Policy V3",
+            "Device Compliance",
+            "Device Compliance Trend",
+            "Device Configuration Policy Statuses",
+            "Device Configuration Policy Statuses V3",
+            "Device Configuration Policy Statuses With PF",
+            "Device Configuration Policy Statuses With PFV3",
+            "Device Enrollment Failures",
+            "Device Failures By Feature Update Policy",
+            "Device Install Status By App",
+            "Device Intent Per Setting Status",
+            "Device Inventory Policy Statuses V3",
+            "Device Inventory Policy Statuses With PF",
+            "Device Non Compliance",
+            "Device Policies Compliance Report",
+            "Device Policies Compliance Report V3",
+            "Device Policy Settings Compliance Report",
+            "Device Policy Settings Compliance Report V3",
+            "Device Run States By Proactive Remediation",
+            "Device Run States By Script",
+            "Devices",
+            "Devices By App Inv",
+            "Devices Status By Policy Platform Compliance Report",
+            "Devices Status By Policy Platform Compliance Report V3",
+            "Devices Status By Setting Report",
+            "Devices Status By Setting Report V3",
+            "Device Status By Compliace Policy Report",
+            "Device Status By Compliace Policy Report V3",
+            "Device Status By Compliance Policy Setting Report",
+            "Device Status By Compliance Policy Setting Report V3",
+            "Device Statuses By Configuration Profile",
+            "Device Statuses By Configuration Profile For App Control",
+            "Device Statuses By Configuration Profile For ASR",
+            "Device Statuses By Configuration Profile For EDR",
+            "Device Statuses By Configuration Profile V3",
+            "Device Statuses By Configuration Profile With PF",
+            "Device Statuses By Configuration Profile With PFV3",
+            "Device Statuses By Inventory Policy With PF",
+            "Device Statuses By Inventory Policy With PFV3",
+            "Device Status Summary By Compliace Policy Report",
+            "Device Status Summary By Compliace Policy Report V3",
+            "Device Status Summary By Compliance Policy Settings Report",
+            "Device Status Summary By Compliance Policy Settings Report V3",
+            "Devices With Inventory",
+            "Devices Without Compliance Policy",
+            "Devices Without Compliance Policy V3",
+            "Driver Update Policy Status Summary",
+            "EAAnomaly Asset",
+            "EAAnomaly Asset V2",
+            "EAAnomaly Device Asset",
+            "EAAnomaly Device Asset V2",
+            "EAApp Performance",
+            "EADevice Model Performance",
+            "EADevice Model Performance V2",
+            "EADevice Performance",
+            "EADevice Performance V2",
+            "EADevice Scores V2",
+            "EAModel Scores V2",
+            "EAOSVersions Performance",
+            "EAResource Perf Agg By Device",
+            "EAResource Perf Agg By Model",
+            "EAResource Perf Cpu Spike Process",
+            "EAResource Perf Ram Spike Process",
+            "EAStartup Perf Device Performance",
+            "EAStartup Perf Device Performance V2",
+            "EAStartup Perf Device Processes",
+            "EAStartup Perf Model Performance",
+            "EAStartup Perf Model Performance V2",
+            "EAWFADevice List",
+            "EAWFAModel Performance",
+            "EAWFAPer Device Performance",
+            "Enrollment Activity",
+            "Enrollment Configuration Policies By Device",
+            "Epm Aggregation Report By Application",
+            "Epm Aggregation Report By Application V2",
+            "Epm Aggregation Report By Publisher",
+            "Epm Aggregation Report By Publisher V2",
+            "Epm Aggregation Report By User",
+            "Epm Aggregation Report By User App By Month",
+            "Epm Aggregation Report By User V2",
+            "Epm Denied Report",
+            "Epm Elevation Report By User App By Day To Reporting",
+            "Epm Elevation Report Elevation Event",
+            "Epm Insights Elevation Trend",
+            "Epm Insights Most Frequent Elevations",
+            "Epm Insights Report",
+            "Feature Update Device State",
+            "Feature Update Policy Failures Aggregate",
+            "Feature Update Policy Status Summary",
+            "Filtered Apps List",
             "Firewall Status",
-            "Malware",
-            "Malware (Active)",
-            "MAM App Protection Status",
+            "Firewall Unhealthy Status",
+            "GPAnalytics Setting Migration Readiness",
+            "Inventory Policy Device Aggregates V3",
+            "Inventory Policy Device Aggregates With PF",
             "MAM App Configuration Status",
-            "Feature Update Policy Failures"
+            "MAM App Configuration Status Scoped V2",
+            "MAM App Configuration Status V2",
+            "MAM App Protection Status",
+            "MAM App Protection Status Scoped V2",
+            "MAM App Protection Status V2",
+            "Malware",
+            "MEM Upgrade Readiness Org Asset",
+            "Non Compliant Compliance Policies Aggregate",
+            "Non Compliant Compliance Policies Aggregate V3",
+            "Non Compliant Configuration Policies Aggregate With PF",
+            "Non Compliant Configuration Policies Aggregate With PFV3",
+            "Noncompliant Devices And Settings",
+            "Noncompliant Devices And Settings V3",
+            "Non Compliant Devices By Compliance Policy",
+            "Non Compliant Devices By Compliance Policy V3",
+            "Noncompliant Devices To Be Retired",
+            "Org Apps Install Status",
+            "Org Device Install Status",
+            "Per Setting Device Summary By Configuration Policy",
+            "Per Setting Device Summary By Configuration Policy For App Control",
+            "Per Setting Device Summary By Configuration Policy For EDR",
+            "Per Setting Device Summary By Inventory Policy",
+            "Per Setting Device Summary By Inventory Policy V3",
+            "Per Setting Summary By Device Configuration Policy",
+            "Policies",
+            "Policy Compliance Agg Report",
+            "Policy Compliance Agg Report V3",
+            "Policy Non Compliance Agg",
+            "Policy Non Compliance Agg Ver3",
+            "Policy Non Compliance New",
+            "Policy Non Compliance New V3",
+            "Policy Run States By Proactive Remediation",
+            "Quality Update Device Errors By Policy",
+            "Quality Update Device Status By Policy",
+            "Quality Update Policy Status Summary",
+            "Remote Assistance Sessions",
+            "Resource Performance Aggregate By Device",
+            "Resource Performance Aggregate By Model",
+            "Setting Compliance Agg Report",
+            "Setting Compliance Agg Report V3",
+            "Ticketing Security Task Apps List",
+            "Tpm Attestation Status",
+            "Unhealthy Defender Agents",
+            "User Install Status Aggregate By App",
+            "Users",
+            "User Scale Test",
+            "Windows Device Health Attestation Report",
+            "Windows Update Per Policy Per Device Status",
+            "Work From Anywhere Device List",
         ])
         
         // Default selection (can be overridden by preselectReportType)
@@ -146,45 +307,545 @@ class IntuneReportsViewController: NSViewController {
 
     private func getReportNameAndType() -> (reportName: String, reportType: String)? {
         var reportType: String?
-        
+        var intuneLocation: String?
+
         guard let selectedTitle = reportNamePopUp.titleOfSelectedItem, !selectedTitle.isEmpty else {
             return nil
         }
         let reportName = selectedTitle
         
         switch reportName {
+        case "Active Malware":
+            reportType = "ActiveMalware"
+            intuneLocation = "Under Endpoint Security > Antivirus > Win10 detected malware"
+        case "ADMX Settings By Device By Policy":
+            reportType = "ADMXSettingsByDeviceByPolicy"
+            intuneLocation = "Under Reports > Device management > Device Configuration"
         case "All Apps List":
             reportType = "AllAppsList"
+            intuneLocation = "Under Apps > All Apps"
+        case "All Device Certificates":
+            reportType = "AllDeviceCertificates"
+            intuneLocation = "Under Devices > Monitor > Certificates"
         case "App Install Status Aggregate":
             reportType = "AppInstallStatusAggregate"
-        case "App Inventory Aggregate":
+            intuneLocation = "Under Apps > Monitor > App install status"
+        case "App Inv Aggregate":
             reportType = "AppInvAggregate"
-        case "App Inventory Raw Data":
+            intuneLocation = "Under Apps > Monitor > Discovered apps > Export "
+        case "App Inv By Device":
+            reportType = "AppInvByDevice"
+            intuneLocation = "Under Devices > All Devices > Device > Discovered Apps "
+        case "App Inv Raw Data":
             reportType = "AppInvRawData"
-        case "Device Compliance":
-            reportType = "DeviceCompliance"
-        case "Device Non Compliance":
-            reportType = "DeviceNonCompliance"
-        case "Devices":
-            reportType = "Devices"
-        case "Devices with Inventory":
-            reportType = "DevicesWithInventory"
+            intuneLocation = "Under Apps > Monitor > Discovered apps > Export "
+        case "Autopilot V1 Deployment Status":
+            reportType = "AutopilotV1DeploymentStatus"
+            intuneLocation = "Under Devices > Windows > Enrollment > Windows Autopilot"
+        case "Autopilot V2 Deployment Status":
+            reportType = "AutopilotV2DeploymentStatus"
+            intuneLocation = "Under Devices > Windows > Enrollment > Windows Autopilot"
+        case "Autopilot V2 Deployment Status Detailed App Info":
+            reportType = "AutopilotV2DeploymentStatusDetailedAppInfo"
+            intuneLocation = "Under Devices > Windows > Enrollment > Windows Autopilot"
+        case "Autopilot V2 Deployment Status Detailed Script Info":
+            reportType = "AutopilotV2DeploymentStatusDetailedScriptInfo"
+            intuneLocation = "Under Devices > Windows > Enrollment > Windows Autopilot"
+        case "BRBattery By Model":
+            reportType = "BRBatteryByModel"
+            intuneLocation = "Under Reports > Endpoint analytics > Battery health > select model performance"
+        case "BRBattery By Os":
+            reportType = "BRBatteryByOs"
+            intuneLocation = "Under Reports > Endpoint analytics > Battery health > select OS performance"
+        case "BRDevice Battery Agg":
+            reportType = "BRDeviceBatteryAgg"
+            intuneLocation = "Under Reports > Endpoint analytics > Battery health > select device performance"
+        case "BREnergy Usage":
+            reportType = "BREnergyUsage"
+            intuneLocation = "Under Reports > Endpoint analytics > Battery health"
+        case "Catalog Apps Update List":
+            reportType = "CatalogAppsUpdateList"
+            intuneLocation = "Under Apps > Monitor > Enterprise App Catalog apps with updates"
+        case "Certificates By RAPolicy":
+            reportType = "CertificatesByRAPolicy"
+            intuneLocation = "Under Devices > Monitor > Certificates"
+        case "Comanaged Device Workloads":
+            reportType = "ComanagedDeviceWorkloads"
+            intuneLocation = "Under Reports > Cloud attached devices > Reports > Co-Managed Workloads"
+        case "Comanagement Eligibility Tenant Attached Devices":
+            reportType = "ComanagementEligibilityTenantAttachedDevices"
+            intuneLocation = "Under Reports > Cloud attached devices > Reports > Co-Management Eligibility"
+        case "Configuration Policy Aggregate":
+            reportType = "ConfigurationPolicyAggregate"
+            intuneLocation = "Under Devices > Manage devices > Configuration"
+        case "Configuration Policy Aggregate V3":
+            reportType = "ConfigurationPolicyAggregateV3"
+            intuneLocation = "Under Devices > Manage devices > Configuration"
+        case "Configuration Policy Device Aggregates":
+            reportType = "ConfigurationPolicyDeviceAggregates"
+            intuneLocation = "Under Devices > Manage devices > Configuration > select specific policy"
+        case "Configuration Policy Device Aggregates V3":
+            reportType = "ConfigurationPolicyDeviceAggregatesV3"
+            intuneLocation = "Under Devices > Manage devices > Configuration > select specific policy"
+        case "Configuration Policy Device Aggregates With PF":
+            reportType = "ConfigurationPolicyDeviceAggregatesWithPF"
+            intuneLocation = "Under Devices > Manage devices > Configuration > select specific policy"
+        case "Configuration Policy Device Aggregates With PFV3":
+            reportType = "ConfigurationPolicyDeviceAggregatesWithPFV3"
+            intuneLocation = "Under Devices > Manage devices > Configuration > select specific policy"
         case "Defender Agents":
             reportType = "DefenderAgents"
-        case "Defender Agents (Unhealthy)":
-            reportType = "UnhealthyDefenderAgents"
+            intuneLocation = "Under Reports > MicrosoftDefender > Reports > Agent Status"
+        case "Dependent Apps Install Status":
+            reportType = "DependentAppsInstallStatus"
+            intuneLocation = "Under Apps > All Apps > select the dependent app > Device install status"
+        case "Device Assignment Status By Configuration Policy":
+            reportType = "DeviceAssignmentStatusByConfigurationPolicy"
+            intuneLocation = "Under Devices > Manage devices > Configuration > select specific policy > Device assignment status"
+        case "Device Assignment Status By Configuration Policy For AC":
+            reportType = "DeviceAssignmentStatusByConfigurationPolicyForAC"
+            intuneLocation = "Under Devices > Manage devices > Configuration > select specific policy > Device assignment status"
+        case "Device Assignment Status By Configuration Policy For ASR":
+            reportType = "DeviceAssignmentStatusByConfigurationPolicyForASR"
+            intuneLocation = "Under Devices > Manage devices > Configuration > select specific policy > Device assignment status"
+        case "Device Assignment Status By Configuration Policy For EDR":
+            reportType = "DeviceAssignmentStatusByConfigurationPolicyForEDR"
+            intuneLocation = "Under Devices > Manage devices > Configuration > select specific policy > Device assignment status"
+        case "Device Assignment Status By Configuration Policy V3":
+            reportType = "DeviceAssignmentStatusByConfigurationPolicyV3"
+            intuneLocation = "Under Devices > Manage devices > Configuration > select specific policy > Device assignment status"
+        case "Device Compliance":
+            reportType = "DeviceCompliance"
+            intuneLocation = "Device Compliance Org"
+        case "Device Compliance Trend":
+            reportType = "DeviceComplianceTrend"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Configuration Policy Statuses":
+            reportType = "DeviceConfigurationPolicyStatuses"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Configuration Policy Statuses V3":
+            reportType = "DeviceConfigurationPolicyStatusesV3"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Configuration Policy Statuses With PF":
+            reportType = "DeviceConfigurationPolicyStatusesWithPF"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Configuration Policy Statuses With PFV3":
+            reportType = "DeviceConfigurationPolicyStatusesWithPFV3"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Enrollment Failures":
+            reportType = "DeviceEnrollmentFailures"
+            intuneLocation = "Under Devices > Device onboarding > Enrollment > Monitor"
+        case "Device Failures By Feature Update Policy":
+            reportType = "DeviceFailuresByFeatureUpdatePolicy"
+            intuneLocation = "Under Devices > Monitor > Failure for feature updates > click on error"
+        case "Device Install Status By App":
+            reportType = "DeviceInstallStatusByApp"
+            intuneLocation = "Under Apps > All Apps > Select an individual app"
+        case "Device Intent Per Setting Status":
+            reportType = "DeviceIntentPerSettingStatus"
+            intuneLocation = "Under Devices > All Devices > select specific device"
+        case "Device Inventory Policy Statuses V3":
+            reportType = "DeviceInventoryPolicyStatusesV3"
+            intuneLocation = "Under Devices > Manage devices > Configuration > select specific policy > Device assignment status"
+        case "Device Inventory Policy Statuses With PF":
+            reportType = "DeviceInventoryPolicyStatusesWithPF"
+            intuneLocation = "Under Devices > Manage devices > Configuration > select specific policy > Device assignment status"
+        case "Device Non Compliance":
+            reportType = "DeviceNonCompliance"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Policies Compliance Report":
+            reportType = "DevicePoliciesComplianceReport"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Policies Compliance Report V3":
+            reportType = "DevicePoliciesComplianceReportV3"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Policy Settings Compliance Report":
+            reportType = "DevicePolicySettingsComplianceReport"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Policy Settings Compliance Report V3":
+            reportType = "DevicePolicySettingsComplianceReportV3"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Run States By Proactive Remediation":
+            reportType = "DeviceRunStatesByProactiveRemediation"
+            intuneLocation = "Under Reports > Endpoint Analytics > Proactive remediations > Select a remediation > Device status"
+        case "Device Run States By Script":
+            reportType = "DeviceRunStatesByScript"
+            intuneLocation = "Under Devices > Manage devices > Scripts and remediations > select specific script > Device status"
+        case "Devices":
+            reportType = "Devices"
+            intuneLocation = "All devices list"
+        case "Devices By App Inv":
+            reportType = "DevicesByAppInv"
+            intuneLocation = "Under Apps > Monitor > Discovered apps > Discovered app> Export "
+        case "Devices Status By Policy Platform Compliance Report":
+            reportType = "DevicesStatusByPolicyPlatformComplianceReport"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Devices Status By Policy Platform Compliance Report V3":
+            reportType = "DevicesStatusByPolicyPlatformComplianceReportV3"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Devices Status By Setting Report":
+            reportType = "DevicesStatusBySettingReport"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Devices Status By Setting Report V3":
+            reportType = "DevicesStatusBySettingReportV3"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Status By Compliace Policy Report":
+            reportType = "DeviceStatusByCompliacePolicyReport"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Status By Compliace Policy Report V3":
+            reportType = "DeviceStatusByCompliacePolicyReportV3"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Status By Compliance Policy Setting Report":
+            reportType = "DeviceStatusByCompliancePolicySettingReport"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Status By Compliance Policy Setting Report V3":
+            reportType = "DeviceStatusByCompliancePolicySettingReportV3"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Statuses By Configuration Profile":
+            reportType = "DeviceStatusesByConfigurationProfile"
+            intuneLocation = "Under Devices > Manage devices > Configuration > Policies > select specific policy > Device and user check-in status"
+        case "Device Statuses By Configuration Profile For App Control":
+            reportType = "DeviceStatusesByConfigurationProfileForAppControl"
+            intuneLocation = "Under Devices > Manage devices > Configuration > Policies > select specific policy > Device and user check-in status"
+        case "Device Statuses By Configuration Profile For ASR":
+            reportType = "DeviceStatusesByConfigurationProfileForASR"
+            intuneLocation = "Under Devices > Manage devices > Configuration > Policies > select specific policy > Device and user check-in status"
+        case "Device Statuses By Configuration Profile For EDR":
+            reportType = "DeviceStatusesByConfigurationProfileForEDR"
+            intuneLocation = "Under Devices > Manage devices > Configuration > Policies > select specific policy > Device and user check-in status"
+        case "Device Statuses By Configuration Profile V3":
+            reportType = "DeviceStatusesByConfigurationProfileV3"
+            intuneLocation = "Under Devices > Manage devices > Configuration > Policies > select specific policy > Device and user check-in status"
+        case "Device Statuses By Configuration Profile With PF":
+            reportType = "DeviceStatusesByConfigurationProfileWithPF"
+            intuneLocation = "Under Devices > Manage devices > Configuration > Policies > select specific policy > Device and user check-in status"
+        case "Device Statuses By Configuration Profile With PFV3":
+            reportType = "DeviceStatusesByConfigurationProfileWithPFV3"
+            intuneLocation = "Under Devices > Manage devices > Configuration > Policies > select specific policy > Device and user check-in status"
+        case "Device Statuses By Inventory Policy With PF":
+            reportType = "DeviceStatusesByInventoryPolicyWithPF"
+            intuneLocation = "Under Devices > Manage devices > Compliance"
+        case "Device Statuses By Inventory Policy With PFV3":
+            reportType = "DeviceStatusesByInventoryPolicyWithPFV3"
+            intuneLocation = "Under Devices > Manage devices > Compliance"
+        case "Device Status Summary By Compliace Policy Report":
+            reportType = "DeviceStatusSummaryByCompliacePolicyReport"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Status Summary By Compliace Policy Report V3":
+            reportType = "DeviceStatusSummaryByCompliacePolicyReportV3"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Status Summary By Compliance Policy Settings Report":
+            reportType = "DeviceStatusSummaryByCompliancePolicySettingsReport"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Device Status Summary By Compliance Policy Settings Report V3":
+            reportType = "DeviceStatusSummaryByCompliancePolicySettingsReportV3"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Devices With Inventory":
+            reportType = "DevicesWithInventory"
+            intuneLocation = "Under Devices > All Devices > Export"
+        case "Devices Without Compliance Policy":
+            reportType = "DevicesWithoutCompliancePolicy"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Devices Without Compliance Policy V3":
+            reportType = "DevicesWithoutCompliancePolicyV3"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Driver Update Policy Status Summary":
+            reportType = "DriverUpdatePolicyStatusSummary"
+            intuneLocation = "Under Devices > Manage updates > Windows updates > Driver updates"
+        case "EAAnomaly Asset":
+            reportType = "EAAnomalyAsset"
+            intuneLocation = "Under Reports > Endpoint analytics > Anomalies"
+        case "EAAnomaly Asset V2":
+            reportType = "EAAnomalyAssetV2"
+            intuneLocation = "Under Reports > Endpoint analytics > Anomalies"
+        case "EAAnomaly Device Asset":
+            reportType = "EAAnomalyDeviceAsset"
+            intuneLocation = "Under Reports > Endpoint analytics > Anomalies"
+        case "EAAnomaly Device Asset V2":
+            reportType = "EAAnomalyDeviceAssetV2"
+            intuneLocation = "Under Reports > Endpoint analytics > Anomalies"
+        case "EAApp Performance":
+            reportType = "EAAppPerformance"
+            intuneLocation = "Under Reports > Endpoint analytics > Application reliability > App performance"
+        case "EADevice Model Performance":
+            reportType = "EADeviceModelPerformance"
+            intuneLocation = "Under Reports > Endpoint analytics"
+        case "EADevice Model Performance V2":
+            reportType = "EADeviceModelPerformanceV2"
+            intuneLocation = "Under Reports > Endpoint analytics"
+        case "EADevice Performance":
+            reportType = "EADevicePerformance"
+            intuneLocation = "Under Reports > Endpoint analytics"
+        case "EADevice Performance V2":
+            reportType = "EADevicePerformanceV2"
+            intuneLocation = "Under Reports > Endpoint analytics"
+        case "EADevice Scores V2":
+            reportType = "EADeviceScoresV2"
+            intuneLocation = "Under Reports > Endpoint analytics > Device scores"
+        case "EAModel Scores V2":
+            reportType = "EAModelScoresV2"
+            intuneLocation = "Under Reports > Endpoint analytics > Model scores"
+        case "EAOSVersions Performance":
+            reportType = "EAOSVersionsPerformance"
+            intuneLocation = "Under Reports > Endpoint analytics > Application reliability > OS versions performance"
+        case "EAResource Perf Agg By Device":
+            reportType = "EAResourcePerfAggByDevice"
+            intuneLocation = "Under Reports > Endpoint analytics > Resource performance > Device performance"
+        case "EAResource Perf Agg By Model":
+            reportType = "EAResourcePerfAggByModel"
+            intuneLocation = "Under Reports > Endpoint analytics > Resource performance > Model performance"
+        case "EAResource Perf Cpu Spike Process":
+            reportType = "EAResourcePerfCpuSpikeProcess"
+            intuneLocation = "Under Reports > Endpoint analytics > Resource performance > Resource performance score"
+        case "EAResource Perf Ram Spike Process":
+            reportType = "EAResourcePerfRamSpikeProcess"
+            intuneLocation = "Under Reports > Endpoint analytics > Resource performance > Resource performance score"
+        case "EAStartup Perf Device Performance":
+            reportType = "EAStartupPerfDevicePerformance"
+            intuneLocation = "Under Reports > Endpoint analytics > Startup performance > Device performance"
+        case "EAStartup Perf Device Performance V2":
+            reportType = "EAStartupPerfDevicePerformanceV2"
+            intuneLocation = "Under Reports > Endpoint analytics > Startup performance > Device performance"
+        case "EAStartup Perf Device Processes":
+            reportType = "EAStartupPerfDeviceProcesses"
+            intuneLocation = "Under Reports > Endpoint analytics > Startup performance > Startup processes"
+        case "EAStartup Perf Model Performance":
+            reportType = "EAStartupPerfModelPerformance"
+            intuneLocation = "Under Reports > Endpoint analytics > Startup performance > Model performance"
+        case "EAStartup Perf Model Performance V2":
+            reportType = "EAStartupPerfModelPerformanceV2"
+            intuneLocation = "Under Reports > Endpoint analytics > Startup performance > Model performance"
+        case "EAWFADevice List":
+            reportType = "EAWFADeviceList"
+            intuneLocation = "Under Reports > Endpoint analytics > Work from anywhere > Device performance"
+        case "EAWFAModel Performance":
+            reportType = "EAWFAModelPerformance"
+            intuneLocation = "Under Reports > Endpoint analytics > Work from anywhere > Model performance"
+        case "EAWFAPer Device Performance":
+            reportType = "EAWFAPerDevicePerformance"
+            intuneLocation = "Under Reports > Endpoint analytics > Work from anywhere > Device performance"
+        case "Enrollment Activity":
+            reportType = "EnrollmentActivity"
+            intuneLocation = "Under Dashboard > Device enrollmentand/or Intune enrolled devices"
+        case "Enrollment Configuration Policies By Device":
+            reportType = "EnrollmentConfigurationPoliciesByDevice"
+            intuneLocation = "Under Devices > Device onboarding > Enrollment"
+        case "Epm Aggregation Report By Application":
+            reportType = "EpmAggregationReportByApplication"
+            intuneLocation = "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report by applications"
+        case "Epm Aggregation Report By Application V2":
+            reportType = "EpmAggregationReportByApplicationV2"
+            intuneLocation = "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report by applications"
+        case "Epm Aggregation Report By Publisher":
+            reportType = "EpmAggregationReportByPublisher"
+            intuneLocation = "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report by publisher"
+        case "Epm Aggregation Report By Publisher V2":
+            reportType = "EpmAggregationReportByPublisherV2"
+            intuneLocation = "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report by publisher"
+        case "Epm Aggregation Report By User":
+            reportType = "EpmAggregationReportByUser"
+            intuneLocation = "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report by user"
+        case "Epm Aggregation Report By User App By Month":
+            reportType = "EpmAggregationReportByUserAppByMonth"
+            intuneLocation = "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report by user"
+        case "Epm Aggregation Report By User V2":
+            reportType = "EpmAggregationReportByUserV2"
+            intuneLocation = "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report by user"
+        case "Epm Denied Report":
+            reportType = "EpmDeniedReport"
+            intuneLocation = "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report"
+        case "Epm Elevation Report By User App By Day To Reporting":
+            reportType = "EpmElevationReportByUserAppByDayToReporting"
+            intuneLocation = "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report"
+        case "Epm Elevation Report Elevation Event":
+            reportType = "EpmElevationReportElevationEvent"
+            intuneLocation = "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report"
+        case "Epm Insights Elevation Trend":
+            reportType = "EpmInsightsElevationTrend"
+            intuneLocation = "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report"
+        case "Epm Insights Most Frequent Elevations":
+            reportType = "EpmInsightsMostFrequentElevations"
+            intuneLocation = "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report"
+        case "Epm Insights Report":
+            reportType = "EpmInsightsReport"
+            intuneLocation = "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report"
+        case "Feature Update Device State":
+            reportType = "FeatureUpdateDeviceState"
+            intuneLocation = "Under Reports > Window Updates > Reports> Windows Feature Update Report "
+        case "Feature Update Policy Failures Aggregate":
+            reportType = "FeatureUpdatePolicyFailuresAggregate"
+            intuneLocation = "Under Devices > Monitor > Failure for feature updates"
+        case "Feature Update Policy Status Summary":
+            reportType = "FeatureUpdatePolicyStatusSummary"
+            intuneLocation = "Under Devices > Manage updates > Windows updates > Feature updates"
+        case "Filtered Apps List":
+            reportType = "FilteredAppsList"
+            intuneLocation = "Under Apps > All Apps"
         case "Firewall Status":
             reportType = "FirewallStatus"
-        case "Malware":
-            reportType = "Malware"
-        case "Malware (Active)":
-            reportType = "ActiveMalware"
-        case "MAM App Protection Status":
-            reportType = "MAMAppProtectionStatus"
+            intuneLocation = "Under Reports > Firewall > MDM Firewall status for Windows 10 and later"
+        case "Firewall Unhealthy Status":
+            reportType = "FirewallUnhealthyStatus"
+            intuneLocation = "Under Reports > Endpoint security > Firewall"
+        case "GPAnalytics Setting Migration Readiness":
+            reportType = "GPAnalyticsSettingMigrationReadiness"
+            intuneLocation = "Under Reports > Group policy analytics > Reports > Group policy migration readiness"
+        case "Inventory Policy Device Aggregates V3":
+            reportType = "InventoryPolicyDeviceAggregatesV3"
+            intuneLocation = "Under Devices > Monitor"
+        case "Inventory Policy Device Aggregates With PF":
+            reportType = "InventoryPolicyDeviceAggregatesWithPF"
+            intuneLocation = "Under Devices > Monitor"
         case "MAM App Configuration Status":
             reportType = "MAMAppConfigurationStatus"
-        case "Feature Update Policy Failures":
-            reportType = "FeatureUpdatePolicyFailuresAggregate"
+            intuneLocation = "Under Apps > Monitor > App protection status > App configuration report"
+        case "MAM App Configuration Status Scoped V2":
+            reportType = "MAMAppConfigurationStatusScopedV2"
+            intuneLocation = "Under Apps > Monitor"
+        case "MAM App Configuration Status V2":
+            reportType = "MAMAppConfigurationStatusV2"
+            intuneLocation = "Under Apps > Monitor"
+        case "MAM App Protection Status":
+            reportType = "MAMAppProtectionStatus"
+            intuneLocation = "Under Apps > Monitor > App protection status > App protection report: iOS, Android"
+        case "MAM App Protection Status Scoped V2":
+            reportType = "MAMAppProtectionStatusScopedV2"
+            intuneLocation = "Under Apps > Monitor"
+        case "MAM App Protection Status V2":
+            reportType = "MAMAppProtectionStatusV2"
+            intuneLocation = "Under Apps > Monitor"
+        case "Malware":
+            reportType = "Malware"
+            intuneLocation = "Under Reports > MicrosoftDefender > Reports > Detected malware"
+        case "MEM Upgrade Readiness Org Asset":
+            reportType = "MEMUpgradeReadinessOrgAsset"
+            intuneLocation = "Under Devices"
+        case "Non Compliant Compliance Policies Aggregate":
+            reportType = "NonCompliantCompliancePoliciesAggregate"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Non Compliant Compliance Policies Aggregate V3":
+            reportType = "NonCompliantCompliancePoliciesAggregateV3"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Non Compliant Configuration Policies Aggregate With PF":
+            reportType = "NonCompliantConfigurationPoliciesAggregateWithPF"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Non Compliant Configuration Policies Aggregate With PFV3":
+            reportType = "NonCompliantConfigurationPoliciesAggregateWithPFV3"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Noncompliant Devices And Settings":
+            reportType = "NoncompliantDevicesAndSettings"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Noncompliant Devices And Settings V3":
+            reportType = "NoncompliantDevicesAndSettingsV3"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Non Compliant Devices By Compliance Policy":
+            reportType = "NonCompliantDevicesByCompliancePolicy"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Non Compliant Devices By Compliance Policy V3":
+            reportType = "NonCompliantDevicesByCompliancePolicyV3"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Noncompliant Devices To Be Retired":
+            reportType = "NoncompliantDevicesToBeRetired"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Org Apps Install Status":
+            reportType = "OrgAppsInstallStatus"
+            intuneLocation = "Under Apps > Monitor > App install status"
+        case "Org Device Install Status":
+            reportType = "OrgDeviceInstallStatus"
+            intuneLocation = "Under Devices > Monitor"
+        case "Per Setting Device Summary By Configuration Policy":
+            reportType = "PerSettingDeviceSummaryByConfigurationPolicy"
+            intuneLocation = "Under Devices > Monitor > Configuration profiles"
+        case "Per Setting Device Summary By Configuration Policy For App Control":
+            reportType = "PerSettingDeviceSummaryByConfigurationPolicyForAppControl"
+            intuneLocation = "Under Devices > Monitor > Configuration profiles"
+        case "Per Setting Device Summary By Configuration Policy For EDR":
+            reportType = "PerSettingDeviceSummaryByConfigurationPolicyForEDR"
+            intuneLocation = "Under Devices > Monitor > Configuration profiles"
+        case "Per Setting Device Summary By Inventory Policy":
+            reportType = "PerSettingDeviceSummaryByInventoryPolicy"
+            intuneLocation = "Under Devices > Monitor > Configuration profiles"
+        case "Per Setting Device Summary By Inventory Policy V3":
+            reportType = "PerSettingDeviceSummaryByInventoryPolicyV3"
+            intuneLocation = "Under Devices > Monitor > Configuration profiles"
+        case "Per Setting Summary By Device Configuration Policy":
+            reportType = "PerSettingSummaryByDeviceConfigurationPolicy"
+            intuneLocation = "Under Devices > Monitor > Configuration profiles"
+        case "Policies":
+            reportType = "Policies"
+            intuneLocation = "Under Devices > Manage Device > select specific policy type"
+        case "Policy Compliance Agg Report":
+            reportType = "PolicyComplianceAggReport"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Policy Compliance Agg Report V3":
+            reportType = "PolicyComplianceAggReportV3"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Policy Non Compliance Agg":
+            reportType = "PolicyNonComplianceAgg"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Policy Non Compliance Agg Ver3":
+            reportType = "PolicyNonComplianceAggVer3"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Policy Non Compliance New":
+            reportType = "PolicyNonComplianceNew"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Policy Non Compliance New V3":
+            reportType = "PolicyNonComplianceNewV3"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Policy Run States By Proactive Remediation":
+            reportType = "PolicyRunStatesByProactiveRemediation"
+            intuneLocation = "Under Reports > Endpoint analytics"
+        case "Quality Update Device Errors By Policy":
+            reportType = "QualityUpdateDeviceErrorsByPolicy"
+            intuneLocation = "Under Devices > Monitor > Windows Expedited update failures > Select a profile"
+        case "Quality Update Device Status By Policy":
+            reportType = "QualityUpdateDeviceStatusByPolicy"
+            intuneLocation = "Under Reports > Windows updates > Reports > Windows Expedited Update Report"
+        case "Quality Update Policy Status Summary":
+            reportType = "QualityUpdatePolicyStatusSummary"
+            intuneLocation = "Under Reports > Device management > Windows updates"
+        case "Remote Assistance Sessions":
+            reportType = "RemoteAssistanceSessions"
+            intuneLocation = "Under Reports > Endpoint analytics"
+        case "Resource Performance Aggregate By Device":
+            reportType = "ResourcePerformanceAggregateByDevice"
+            intuneLocation = "Under Reports > Endpoint analytics"
+        case "Resource Performance Aggregate By Model":
+            reportType = "ResourcePerformanceAggregateByModel"
+            intuneLocation = "Under Reports > Endpoint analytics"
+        case "Setting Compliance Agg Report":
+            reportType = "SettingComplianceAggReport"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Setting Compliance Agg Report V3":
+            reportType = "SettingComplianceAggReportV3"
+            intuneLocation = "Under Reports > Device management > Device compliance"
+        case "Ticketing Security Task Apps List":
+            reportType = "TicketingSecurityTaskAppsList"
+            intuneLocation = "Under Endpoint security > Security tasks"
+        case "Tpm Attestation Status":
+            reportType = "TpmAttestationStatus"
+            intuneLocation = "Under Devices > Manage devices > Configuration > Monitor > Device encryption status"
+        case "Unhealthy Defender Agents":
+            reportType = "UnhealthyDefenderAgents"
+            intuneLocation = "Under Endpoint Security > Antivirus > Win10 Unhealthy Endpoints"
+        case "User Install Status Aggregate By App":
+            reportType = "UserInstallStatusAggregateByApp"
+            intuneLocation = "Under Apps > All Apps > Select an individual app"
+        case "Users":
+            reportType = "Users"
+            intuneLocation = "Under Users"
+        case "User Scale Test":
+            reportType = "UserScaleTest"
+            intuneLocation = "Under Reports > Endpoint analytics"
+        case "Windows Device Health Attestation Report":
+            reportType = "WindowsDeviceHealthAttestationReport"
+            intuneLocation = "Under Reports > Device management > Device Compliance > Reports"
+        case "Windows Update Per Policy Per Device Status":
+            reportType = "WindowsUpdatePerPolicyPerDeviceStatus"
+            intuneLocation = "Under Devices > Manage updates > Windows updates"
+        case "Work From Anywhere Device List":
+            reportType = "WorkFromAnywhereDeviceList"
+            intuneLocation = "Under Reports > Endpoint analytics > Work from anywhere"
         default:
             return nil
         }
