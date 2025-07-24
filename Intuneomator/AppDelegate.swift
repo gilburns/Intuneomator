@@ -39,6 +39,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// Main window controller managing the primary application interface
     var mainWindowController: MainWindowController?
     
+    /// Azure Storage test window controller (temporary)
+    private var azureStorageTestWindowController: NSWindowController?
+    
     /// Menu item for triggering full automation
     @IBOutlet weak var automationMenuItem: NSMenuItem?
     
@@ -397,6 +400,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// 
     /// - Parameter sender: The menu item that triggered this action
     @IBAction func openAzureStorageTestInterface(_ sender: Any) {
+        // Close existing test window if open
+        azureStorageTestWindowController?.close()
+        
         let testController = AzureStorageTestViewController()
         
         let window = NSWindow(
@@ -408,8 +414,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         window.title = "Azure Storage Test Interface"
         window.contentViewController = testController
+        
+        // Create window controller and retain it
+        let windowController = NSWindowController(window: window)
+        windowController.showWindow(self)
         window.center()
-        window.makeKeyAndOrderFront(self)
+        
+        // Set up window delegate to clean up when closed
+        window.delegate = self
+        
+        // Retain the window controller
+        self.azureStorageTestWindowController = windowController
     }
     
     // MARK: - Update Checking
@@ -970,5 +985,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         Logger.info("Showing Graph authentication warning to user", category: .core, toUserDirectory: true)
         alert.runModal()
+    }
+}
+
+// MARK: - NSWindowDelegate
+
+extension AppDelegate: NSWindowDelegate {
+    
+    /// Called when a window is about to close
+    /// Cleans up the Azure Storage test window controller when it's closed
+    func windowWillClose(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+        
+        // Check if this is the Azure Storage test window
+        if window.title == "Azure Storage Test Interface" {
+            azureStorageTestWindowController = nil
+            Logger.info("Azure Storage test window closed and cleaned up", category: .core, toUserDirectory: true)
+        }
     }
 }

@@ -25,6 +25,12 @@ class AzureStorageTestViewController: NSViewController {
     @IBOutlet weak var textViewStatus: NSTextView!
     @IBOutlet weak var progressIndicator: NSProgressIndicator!
     
+    // MARK: - File Management UI (Added Programmatically)
+    
+    private weak var buttonListFiles: NSButton?
+    private weak var buttonDeleteFile: NSButton?
+    private weak var buttonDeleteOldFiles: NSButton?
+    
     // MARK: - Properties
     
     private var selectedFileURL: URL?
@@ -48,9 +54,41 @@ class AzureStorageTestViewController: NSViewController {
         textViewStatus.string = "Ready to test Azure Storage functionality"
         
         setupLinkExpirationPopup()
+        setupFileManagementButtons()
         updateButtonStates()
         
         progressIndicator.isHidden = true
+    }
+    
+    private func setupFileManagementButtons() {
+        let contentView = view
+        
+        // Create List Files button
+        let listFilesButton = NSButton(frame: NSRect(x: 220, y: 351, width: 120, height: 32))
+        listFilesButton.title = "List Files"
+        listFilesButton.bezelStyle = .rounded
+        listFilesButton.target = self
+        listFilesButton.action = #selector(listFiles(_:))
+        contentView.addSubview(listFilesButton)
+        self.buttonListFiles = listFilesButton
+        
+        // Create Delete File button
+        let deleteFileButton = NSButton(frame: NSRect(x: 350, y: 351, width: 120, height: 32))
+        deleteFileButton.title = "Delete File"
+        deleteFileButton.bezelStyle = .rounded
+        deleteFileButton.target = self
+        deleteFileButton.action = #selector(deleteFile(_:))
+        contentView.addSubview(deleteFileButton)
+        self.buttonDeleteFile = deleteFileButton
+        
+        // Create Delete Old Files button
+        let deleteOldFilesButton = NSButton(frame: NSRect(x: 480, y: 351, width: 140, height: 32))
+        deleteOldFilesButton.title = "Delete Old Files..."
+        deleteOldFilesButton.bezelStyle = .rounded
+        deleteOldFilesButton.target = self
+        deleteOldFilesButton.action = #selector(deleteOldFiles(_:))
+        contentView.addSubview(deleteOldFilesButton)
+        self.buttonDeleteOldFiles = deleteOldFilesButton
     }
     
     private func setupLinkExpirationPopup() {
@@ -107,7 +145,7 @@ class AzureStorageTestViewController: NSViewController {
     
     @IBAction func selectFile(_ sender: NSButton) {
         let openPanel = NSOpenPanel()
-        openPanel.allowedContentTypes = [.json, .commaSeparatedText, .xml, .plainText]
+        openPanel.allowedContentTypes = [.json, .commaSeparatedText, .xml, .plainText, .archive]
         openPanel.allowsMultipleSelection = false
         openPanel.canChooseFiles = true
         openPanel.canChooseDirectories = false
@@ -245,6 +283,149 @@ class AzureStorageTestViewController: NSViewController {
         updateButtonStates()
     }
     
+    @IBAction func listFiles(_ sender: NSButton) {
+        guard let selectedConfig = getSelectedConfiguration() else {
+            addStatus("❌ Error: No configuration selected")
+            return
+        }
+        
+        addStatus("📂 Listing files in Azure Storage...")
+        setUIEnabled(false)
+        progressIndicator.isHidden = false
+        progressIndicator.startAnimation(nil)
+        
+        XPCManager.shared.listAzureStorageFiles(configurationName: selectedConfig["name"] as? String ?? "") { [weak self] fileList in
+            DispatchQueue.main.async {
+                self?.setUIEnabled(true)
+                self?.progressIndicator.stopAnimation(nil)
+                self?.progressIndicator.isHidden = true
+                
+                if let files = fileList, !files.isEmpty {
+                    self?.addStatus("✅ Found \(files.count) files:")
+                    for file in files {
+                        let name = file["name"] as? String ?? "unknown"
+                        let size = file["sizeFormatted"] as? String ?? "unknown size"
+                        let modified = file["lastModifiedFormatted"] as? String ?? "unknown date"
+                        self?.addStatus("  📄 \(name) (\(size)) - \(modified)")
+                    }
+                } else {
+                    self?.addStatus("📂 No files found in Azure Storage")
+                }
+            }
+        }
+    }
+    
+    @IBAction func deleteFile(_ sender: NSButton) {
+        guard let fileName = uploadedFileName,
+              let selectedConfig = getSelectedConfiguration() else {
+            addStatus("❌ Error: No uploaded file or configuration selected")
+            return
+        }
+        
+        // Confirm deletion
+        let alert = NSAlert()
+        alert.messageText = "Delete File"
+        alert.informativeText = "Are you sure you want to delete '\(fileName)' from Azure Storage? This action cannot be undone."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Delete")
+        alert.addButton(withTitle: "Cancel")
+        
+        let response = alert.runModal()
+        guard response == .alertFirstButtonReturn else { return }
+        
+        addStatus("🗑️ Deleting file: \(fileName)")
+        setUIEnabled(false)
+        progressIndicator.isHidden = false
+        progressIndicator.startAnimation(nil)
+        
+        XPCManager.shared.deleteAzureStorageFile(fileName: fileName, configurationName: selectedConfig["name"] as? String ?? "") { [weak self] success in
+            DispatchQueue.main.async {
+                self?.setUIEnabled(true)
+                self?.progressIndicator.stopAnimation(nil)
+                self?.progressIndicator.isHidden = true
+                
+                if let success = success, success {
+                    self?.addStatus("✅ File deleted successfully: \(fileName)")
+                    self?.uploadedFileName = nil
+                    self?.textViewLink.string = ""
+                } else {
+                    self?.addStatus("❌ Failed to delete file: \(fileName)")
+                }
+                
+                self?.updateButtonStates()
+            }
+        }
+    }
+    
+    @IBAction func deleteOldFiles(_ sender: NSButton) {
+        guard let selectedConfig = getSelectedConfiguration() else {
+            addStatus("❌ Error: No configuration selected")
+            return
+        }
+        
+        // Get age threshold from user
+        let alert = NSAlert()
+        alert.messageText = "Delete Old Files"
+        alert.informativeText = "Delete files older than how many days?"
+        alert.alertStyle = .informational
+        
+        let inputField = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
+        inputField.stringValue = "7"
+        inputField.placeholderString = "Number of days"
+        alert.accessoryView = inputField
+        
+        alert.addButton(withTitle: "Delete")
+        alert.addButton(withTitle: "Cancel")
+        
+        let response = alert.runModal()
+        guard response == .alertFirstButtonReturn,
+              let days = Int(inputField.stringValue), days > 0 else { return }
+        
+        // Confirm deletion
+        let confirmAlert = NSAlert()
+        confirmAlert.messageText = "Confirm Deletion"
+        confirmAlert.informativeText = "This will delete all files older than \(days) days from Azure Storage. This action cannot be undone."
+        confirmAlert.alertStyle = .warning
+        confirmAlert.addButton(withTitle: "Delete")
+        confirmAlert.addButton(withTitle: "Cancel")
+        
+        let confirmResponse = confirmAlert.runModal()
+        guard confirmResponse == .alertFirstButtonReturn else { return }
+        
+        addStatus("🧹 Deleting files older than \(days) days...")
+        setUIEnabled(false)
+        progressIndicator.isHidden = false
+        progressIndicator.startAnimation(nil)
+        
+        XPCManager.shared.deleteOldAzureStorageFiles(configurationName: selectedConfig["name"] as? String ?? "", olderThanDays: days) { [weak self] summary in
+            DispatchQueue.main.async {
+                self?.setUIEnabled(true)
+                self?.progressIndicator.stopAnimation(nil)
+                self?.progressIndicator.isHidden = true
+                
+                if let summary = summary {
+                    let deletedCount = summary["deletedCount"] as? Int ?? 0
+                    let freedSize = summary["freedSizeFormatted"] as? String ?? "unknown"
+                    let remainingCount = summary["remainingCount"] as? Int ?? 0
+                    
+                    self?.addStatus("✅ Cleanup completed:")
+                    self?.addStatus("  📊 Deleted: \(deletedCount) files")
+                    self?.addStatus("  💾 Freed: \(freedSize)")
+                    self?.addStatus("  📂 Remaining: \(remainingCount) files")
+                    
+                    if deletedCount > 0 && self?.uploadedFileName != nil {
+                        // Clear uploaded file info if it might have been deleted
+                        self?.uploadedFileName = nil
+                        self?.textViewLink.string = ""
+                        self?.updateButtonStates()
+                    }
+                } else {
+                    self?.addStatus("❌ Failed to delete old files")
+                }
+            }
+        }
+    }
+    
     // MARK: - Helper Methods
     
     private func getSelectedConfiguration() -> [String: Any]? {
@@ -301,31 +482,12 @@ class AzureStorageTestViewController: NSViewController {
         buttonSendTeamsNotification.isEnabled = enabled && uploadedFileName != nil && !textViewLink.string.isEmpty
         popupStorageConfig.isEnabled = enabled && !storageConfigurations.isEmpty
         popupLinkExpiration.isEnabled = enabled
+        
+        // File management buttons
+        buttonListFiles?.isEnabled = enabled && !storageConfigurations.isEmpty
+        buttonDeleteFile?.isEnabled = enabled && uploadedFileName != nil && !storageConfigurations.isEmpty
+        buttonDeleteOldFiles?.isEnabled = enabled && !storageConfigurations.isEmpty
     }
 }
 
-// MARK: - XPCManager Extensions for Azure Storage Testing
-
-extension XPCManager {
-    
-    /// Uploads a file to Azure Storage using the specified configuration
-    func uploadFileToAzureStorage(fileName: String, fileData: Data, configurationName: String, completion: @escaping (Bool?) -> Void) {
-        sendRequest({ service, reply in
-            service.uploadFileToAzureStorage(fileName: fileName, fileData: fileData, configurationName: configurationName, reply: reply)
-        }, completion: completion)
-    }
-    
-    /// Generates a download link for a file in Azure Storage
-    func generateAzureStorageDownloadLink(fileName: String, configurationName: String, expiresInDays: Int, completion: @escaping (URL?) -> Void) {
-        sendRequest({ service, reply in
-            service.generateAzureStorageDownloadLink(fileName: fileName, configurationName: configurationName, expiresInDays: expiresInDays, reply: reply)
-        }, completion: completion)
-    }
-    
-    /// Sends a Teams notification message
-    func sendTeamsNotification(message: String, completion: @escaping (Bool?) -> Void) {
-        sendRequest({ service, reply in
-            service.sendTeamsNotification(message: message, reply: reply)
-        }, completion: completion)
-    }
-}
+// Note: XPC methods for Azure Storage testing are now implemented in XPCManager+AzureStorage.swift

@@ -731,6 +731,117 @@ extension XPCService {
             }
         }
     }
+    
+    /// Lists all files in Azure Storage using a named configuration
+    func listAzureStorageFiles(configurationName: String, reply: @escaping ([[String: Any]]?) -> Void) {
+        Task {
+            do {
+                Logger.info("Listing Azure Storage files using configuration '\(configurationName)'", category: .core)
+                let manager = try AzureStorageManager.withNamedConfiguration(configurationName)
+                let blobs = try await manager.listBlobs(prefix: "reports/")
+                
+                // Convert BlobInfo objects to dictionaries for XPC transfer
+                let fileList = blobs.map { blob -> [String: Any] in
+                    var dict: [String: Any] = ["name": blob.name]
+                    
+                    if let size = blob.size {
+                        dict["size"] = size
+                        dict["sizeFormatted"] = ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
+                    }
+                    
+                    if let lastModified = blob.lastModified {
+                        dict["lastModified"] = lastModified
+                        let formatter = DateFormatter()
+                        formatter.dateStyle = .medium
+                        formatter.timeStyle = .short
+                        dict["lastModifiedFormatted"] = formatter.string(from: lastModified)
+                    }
+                    
+                    if let contentType = blob.contentType {
+                        dict["contentType"] = contentType
+                    }
+                    
+                    return dict
+                }
+                
+                Logger.info("Successfully listed \(fileList.count) files from Azure Storage configuration '\(configurationName)'", category: .core)
+                reply(fileList)
+            } catch let error as AzureStorageError {
+                Logger.error("Azure Storage Error listing files: \(error.errorDescription ?? error.localizedDescription)", category: .core)
+                reply(nil)
+            } catch {
+                Logger.error("Failed to list Azure Storage files: \(error.localizedDescription)", category: .core)
+                reply(nil)
+            }
+        }
+    }
+    
+    /// Deletes a specific file from Azure Storage using a named configuration
+    func deleteAzureStorageFile(fileName: String, configurationName: String, reply: @escaping (Bool) -> Void) {
+        Task {
+            do {
+                Logger.info("Deleting file '\(fileName)' from Azure Storage configuration '\(configurationName)'", category: .core)
+                let manager = try AzureStorageManager.withNamedConfiguration(configurationName)
+                
+                // Use the new deleteReport method
+                try await manager.deleteReport(named: fileName)
+                
+                Logger.info("Successfully deleted file '\(fileName)' from Azure Storage configuration '\(configurationName)'", category: .core)
+                reply(true)
+            } catch let error as AzureStorageError {
+                Logger.error("Azure Storage Error deleting file '\(fileName)': \(error.errorDescription ?? error.localizedDescription)", category: .core)
+                reply(false)
+            } catch {
+                Logger.error("Failed to delete file '\(fileName)' from Azure Storage: \(error.localizedDescription)", category: .core)
+                reply(false)
+            }
+        }
+    }
+    
+    /// Deletes old files from Azure Storage based on age using a named configuration
+    func deleteOldAzureStorageFiles(configurationName: String, olderThanDays: Int, reply: @escaping ([String: Any]?) -> Void) {
+        Task {
+            do {
+                Logger.info("Deleting files older than \(olderThanDays) days from Azure Storage configuration '\(configurationName)'", category: .core)
+                let manager = try AzureStorageManager.withNamedConfiguration(configurationName)
+                
+                // Get list of files before deletion for reporting
+                let beforeBlobs = try await manager.listBlobs(prefix: "reports/")
+                let beforeCount = beforeBlobs.count
+                let beforeSize = beforeBlobs.compactMap { $0.size }.reduce(0, +)
+                
+                // Perform deletion
+                try await manager.deleteOldReports(olderThan: olderThanDays)
+                
+                // Get list of files after deletion for reporting
+                let afterBlobs = try await manager.listBlobs(prefix: "reports/")
+                let afterCount = afterBlobs.count
+                let afterSize = afterBlobs.compactMap { $0.size }.reduce(0, +)
+                
+                let deletedCount = beforeCount - afterCount
+                let freedSize = beforeSize - afterSize
+                
+                let result: [String: Any] = [
+                    "deletedCount": deletedCount,
+                    "freedSize": freedSize,
+                    "freedSizeFormatted": ByteCountFormatter.string(fromByteCount: freedSize, countStyle: .file),
+                    "remainingCount": afterCount,
+                    "remainingSize": afterSize,
+                    "remainingSizeFormatted": ByteCountFormatter.string(fromByteCount: afterSize, countStyle: .file),
+                    "daysThreshold": olderThanDays
+                ]
+                
+                Logger.info("Successfully deleted \(deletedCount) old files, freed \(ByteCountFormatter.string(fromByteCount: freedSize, countStyle: .file))", category: .core)
+                reply(result)
+            } catch let error as AzureStorageError {
+                Logger.error("Azure Storage Error deleting old files: \(error.errorDescription ?? error.localizedDescription)", category: .core)
+                reply(nil)
+            } catch {
+                Logger.error("Failed to delete old Azure Storage files: \(error.localizedDescription)", category: .core)
+                reply(nil)
+            }
+        }
+    }
 
 }
 

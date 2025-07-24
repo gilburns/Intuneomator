@@ -417,6 +417,86 @@ extension XPCManager {
             completion(result ?? false)
         })
     }
+    
+    // MARK: - Azure Storage File Management Testing Methods
+    
+    /// Uploads a file to Azure Storage using a named configuration for testing
+    /// - Parameters:
+    ///   - fileName: Name of the file to upload
+    ///   - fileData: Data content of the file
+    ///   - configurationName: Name of the Azure Storage configuration to use
+    ///   - completion: Callback indicating if upload was successful
+    func uploadFileToAzureStorage(fileName: String, fileData: Data, configurationName: String, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ proxy, reply in
+            proxy.uploadFileToAzureStorage(fileName: fileName, fileData: fileData, configurationName: configurationName, reply: { success in
+                reply(success)
+            })
+        }, completion: completion)
+    }
+    
+    /// Generates a download link for a file in Azure Storage using a named configuration for testing
+    /// - Parameters:
+    ///   - fileName: Name of the file to generate link for
+    ///   - configurationName: Name of the Azure Storage configuration to use
+    ///   - expiresInDays: Number of days the link should remain valid
+    ///   - completion: Callback with download URL or nil on failure
+    func generateAzureStorageDownloadLink(fileName: String, configurationName: String, expiresInDays: Int, completion: @escaping (URL?) -> Void) {
+        sendRequest({ proxy, reply in
+            proxy.generateAzureStorageDownloadLink(fileName: fileName, configurationName: configurationName, expiresInDays: expiresInDays, reply: { url in
+                reply(url)
+            })
+        }, completion: completion)
+    }
+    
+    /// Sends a Teams notification message for testing
+    /// - Parameters:
+    ///   - message: Message content to send
+    ///   - completion: Callback indicating if notification was sent successfully
+    func sendTeamsNotification(message: String, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ proxy, reply in
+            proxy.sendTeamsNotification(message: message, reply: { success in
+                reply(success)
+            })
+        }, completion: completion)
+    }
+    
+    /// Lists all files in Azure Storage using a named configuration
+    /// - Parameters:
+    ///   - configurationName: Name of the Azure Storage configuration to use
+    ///   - completion: Callback with array of file information dictionaries or nil on failure
+    func listAzureStorageFiles(configurationName: String, completion: @escaping ([[String: Any]]?) -> Void) {
+        sendRequest({ proxy, reply in
+            proxy.listAzureStorageFiles(configurationName: configurationName, reply: { fileList in
+                reply(fileList)
+            })
+        }, completion: completion)
+    }
+    
+    /// Deletes a specific file from Azure Storage using a named configuration
+    /// - Parameters:
+    ///   - fileName: Name of the file to delete
+    ///   - configurationName: Name of the Azure Storage configuration to use
+    ///   - completion: Callback indicating if deletion was successful
+    func deleteAzureStorageFile(fileName: String, configurationName: String, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ proxy, reply in
+            proxy.deleteAzureStorageFile(fileName: fileName, configurationName: configurationName, reply: { success in
+                reply(success)
+            })
+        }, completion: completion)
+    }
+    
+    /// Deletes old files from Azure Storage based on age using a named configuration
+    /// - Parameters:
+    ///   - configurationName: Name of the Azure Storage configuration to use
+    ///   - olderThanDays: Delete files older than this many days
+    ///   - completion: Callback with deletion summary dictionary or nil on failure
+    func deleteOldAzureStorageFiles(configurationName: String, olderThanDays: Int, completion: @escaping ([String: Any]?) -> Void) {
+        sendRequest({ proxy, reply in
+            proxy.deleteOldAzureStorageFiles(configurationName: configurationName, olderThanDays: olderThanDays, reply: { summary in
+                reply(summary)
+            })
+        }, completion: completion)
+    }
 }
 
 // MARK: - Convenience Methods

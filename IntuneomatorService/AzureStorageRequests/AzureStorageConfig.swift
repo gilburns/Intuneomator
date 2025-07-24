@@ -490,11 +490,11 @@ enum ConfigurationError: LocalizedError {
 
 // MARK: - AzureStorageManager Extension for Testing
 
-extension AzureStorageManager {
-    /// Tests the connection to Azure Storage
-    /// - Throws: AzureStorageError if connection fails
-    func testConnection() async throws {
-        // Try to list blobs with a very small limit to test connectivity
-        let _ = try await listBlobs(prefix: nil)
-    }
-}
+//extension AzureStorageManager {
+//    /// Tests the connection to Azure Storage
+//    /// - Throws: AzureStorageError if connection fails
+//    func testConnection() async throws {
+//        // Try to list blobs with a very small limit to test connectivity
+//        let _ = try await listBlobs(prefix: nil)
+//    }
+//}

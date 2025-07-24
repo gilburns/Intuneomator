@@ -1143,4 +1143,24 @@ import Foundation
     ///   - message: Message content to send
     ///   - reply: Callback indicating if notification was sent successfully
     func sendTeamsNotification(message: String, reply: @escaping (Bool) -> Void)
+    
+    /// Lists all files in Azure Storage using a named configuration
+    /// - Parameters:
+    ///   - configurationName: Name of the Azure Storage configuration to use
+    ///   - reply: Callback with array of file information dictionaries or nil on failure
+    func listAzureStorageFiles(configurationName: String, reply: @escaping ([[String: Any]]?) -> Void)
+    
+    /// Deletes a specific file from Azure Storage using a named configuration
+    /// - Parameters:
+    ///   - fileName: Name of the file to delete
+    ///   - configurationName: Name of the Azure Storage configuration to use
+    ///   - reply: Callback indicating if deletion was successful
+    func deleteAzureStorageFile(fileName: String, configurationName: String, reply: @escaping (Bool) -> Void)
+    
+    /// Deletes old files from Azure Storage based on age using a named configuration
+    /// - Parameters:
+    ///   - configurationName: Name of the Azure Storage configuration to use
+    ///   - olderThanDays: Delete files older than this many days
+    ///   - reply: Callback with deletion summary dictionary containing count and size information, or nil on failure
+    func deleteOldAzureStorageFiles(configurationName: String, olderThanDays: Int, reply: @escaping ([String: Any]?) -> Void)
 }

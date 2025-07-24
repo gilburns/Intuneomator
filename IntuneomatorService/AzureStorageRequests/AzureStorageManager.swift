@@ -184,7 +184,18 @@ class AzureStorageManager {
         Logger.debug("Azure Storage List Request - Container: \(config.containerName)", category: .core)
         
         // Add authentication
-        let resource = "/\(config.accountName)/\(config.containerName)\ncomp:list\nrestype:container"
+        // For list blobs operation, the canonicalized resource includes query parameters
+        var resourceComponents = ["/\(config.accountName)/\(config.containerName)"]
+        
+        // Add canonicalized query parameters in alphabetical order
+        var queryParams: [String] = []
+        queryParams.append("comp:list")
+        if let prefix = prefix {
+            queryParams.append("prefix:\(prefix)")
+        }
+        queryParams.append("restype:container")
+        
+        let resource = resourceComponents.joined() + "\n" + queryParams.joined(separator: "\n")
         Logger.debug("Azure Storage List Request - Resource string: \(resource)", category: .core)
         try await addAuthentication(to: &request, method: "GET", resource: resource)
         
@@ -406,6 +417,37 @@ class AzureStorageManager {
         return finalUrl
     }
     
+    /// Deletes a specific report file from Azure Storage
+    /// - Parameter reportName: Name of the report file to delete
+    /// - Throws: AzureStorageError for various failure scenarios
+    func deleteReport(named reportName: String) async throws {
+        let blobName = reportName.hasPrefix("reports/") ? reportName : "reports/\(reportName)"
+        
+        Logger.info("Deleting report: \(reportName) (blob: \(blobName))", category: .core)
+        
+        // First verify the blob exists
+        let exists = try await blobExists(name: blobName)
+        guard exists else {
+            throw AzureStorageError.blobNotFound("Report not found: \(reportName)")
+        }
+        
+        // Delete the blob
+        try await deleteBlob(name: blobName)
+        
+        Logger.info("Successfully deleted report: \(reportName)", category: .core)
+    }
+    
+    /// Tests the connection to Azure Storage by listing blobs
+    /// - Throws: AzureStorageError if connection fails
+    func testConnection() async throws {
+        Logger.info("Testing Azure Storage connection for account: \(config.accountName)", category: .core)
+        
+        // Attempt to list blobs as a connection test
+        _ = try await listBlobs(prefix: nil)
+        
+        Logger.info("Azure Storage connection test successful", category: .core)
+    }
+    
     // MARK: - Helper Methods
     
     /// Builds the string to sign for shared key authentication
@@ -472,10 +514,144 @@ class AzureStorageManager {
     
     /// Parses blob list XML response
     private func parseBlobListResponse(_ data: Data) throws -> [BlobInfo] {
-        // For now, return empty array - would need to implement XML parsing
-        // This is a simplified implementation
-        Logger.warning("Blob list parsing not fully implemented", category: .core)
-        return []
+        Logger.debug("Azure Storage - Starting blob list XML parsing, data size: \(data.count) bytes", category: .core)
+        
+        let parser = BlobListXMLParser()
+        let xmlParser = XMLParser(data: data)
+        xmlParser.delegate = parser
+        
+        guard xmlParser.parse() else {
+            if let error = xmlParser.parserError {
+                Logger.error("Azure Storage - XML parsing failed: \(error.localizedDescription)", category: .core)
+                throw AzureStorageError.listFailed("Failed to parse blob list response: \(error.localizedDescription)")
+            } else {
+                Logger.error("Azure Storage - XML parsing failed with unknown error", category: .core)
+                throw AzureStorageError.listFailed("Failed to parse blob list response: Unknown parsing error")
+            }
+        }
+        
+        if let parseError = parser.parseError {
+            Logger.error("Azure Storage - Blob list parsing error: \(parseError)", category: .core)
+            throw AzureStorageError.listFailed("Blob list parsing error: \(parseError)")
+        }
+        
+        Logger.debug("Azure Storage - Successfully parsed \(parser.blobs.count) blobs from XML response", category: .core)
+        return parser.blobs
+    }
+}
+
+// MARK: - XML Parser for Blob List Responses
+
+/// XML parser for Azure Storage blob list responses
+private class BlobListXMLParser: NSObject, XMLParserDelegate {
+    var blobs: [BlobInfo] = []
+    var parseError: String?
+    
+    // Current parsing state
+    private var currentBlobName: String?
+    private var currentLastModified: Date?
+    private var currentSize: Int64?
+    private var currentContentType: String?
+    private var currentElementContent: String = ""
+    private var isInBlob = false
+    private var isInProperties = false
+    
+    // Date formatter for Azure Storage date format
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss 'GMT'"
+        formatter.timeZone = TimeZone(abbreviation: "GMT")
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter
+    }()
+    
+    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
+        currentElementContent = ""
+        
+        switch elementName {
+        case "Blob":
+            isInBlob = true
+            // Reset current blob data
+            currentBlobName = nil
+            currentLastModified = nil
+            currentSize = nil
+            currentContentType = nil
+        case "Properties":
+            if isInBlob {
+                isInProperties = true
+            }
+        default:
+            break
+        }
+    }
+    
+    func parser(_ parser: XMLParser, foundCharacters string: String) {
+        currentElementContent += string
+    }
+    
+    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
+        let content = currentElementContent.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        switch elementName {
+        case "Blob":
+            // End of blob, create BlobInfo if we have valid data
+            if let name = currentBlobName {
+                let blobInfo = BlobInfo(
+                    name: name,
+                    size: currentSize,
+                    lastModified: currentLastModified,
+                    contentType: currentContentType
+                )
+                blobs.append(blobInfo)
+            }
+            isInBlob = false
+            
+        case "Properties":
+            if isInBlob {
+                isInProperties = false
+            }
+            
+        case "Name":
+            if isInBlob && !isInProperties {
+                currentBlobName = content
+            }
+            
+        case "Last-Modified":
+            if isInBlob && isInProperties {
+                currentLastModified = dateFormatter.date(from: content)
+                if currentLastModified == nil {
+                    Logger.warning("Azure Storage - Failed to parse date: \(content)", category: .core)
+                }
+            }
+            
+        case "Content-Length":
+            if isInBlob && isInProperties {
+                currentSize = Int64(content)
+                if currentSize == nil && !content.isEmpty {
+                    Logger.warning("Azure Storage - Failed to parse content length: \(content)", category: .core)
+                }
+            }
+            
+        case "Content-Type":
+            if isInBlob && isInProperties {
+                currentContentType = content.isEmpty ? nil : content
+            }
+            
+        default:
+            break
+        }
+        
+        currentElementContent = ""
+    }
+    
+    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
+        self.parseError = parseError.localizedDescription
+        Logger.error("Azure Storage XML parsing error: \(parseError.localizedDescription)", category: .core)
+    }
+    
+    func parser(_ parser: XMLParser, validationErrorOccurred validationError: Error) {
+        self.parseError = validationError.localizedDescription
+        Logger.error("Azure Storage XML validation error: \(validationError.localizedDescription)", category: .core)
     }
 }
 
