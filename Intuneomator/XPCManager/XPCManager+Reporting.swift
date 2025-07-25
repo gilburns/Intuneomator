@@ -841,6 +841,38 @@ extension XPCManager {
 
     // MARK: - Additional Export Jobs Report Types
 
+    /// Creates a ActiveMalware export job with threat filtering options
+    ///
+    /// This function creates an export job for active malware detection and threat information across
+    /// managed devices, providing critical security incident data.
+    ///
+    /// **Usage Example:**
+    /// ```swift
+    /// XPCManager.shared.createActiveMalwareExportJob(
+    ///     severity: "high",
+    ///     executionState: "detected",
+    ///     state: "active",
+    ///     includeColumns: ["DeviceName", "ThreatName", "Severity", "DetectionTime"],
+    ///     format: "csv",
+    ///     reportType: "Malware"
+    /// ) { jobId in
+    ///     // Handle result
+    /// }
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - severity: Optional filter by severity
+    ///   - executionState: Optional filter by execution state
+    ///   - state: Optional filter by state
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    ///   - completion: Callback with export job ID or nil on failure
+    func createActiveMalwareExportJob(severity: String?, executionState: String?, state: String?, includeColumns: [String]?, format: String = "csv", completion: @escaping (String?) -> Void) {
+        sendRequest({ service, reply in
+            service.createActiveMalwareExportJob(severity: severity, executionState: executionState, state: state, includeColumns: includeColumns, format: format, reply: reply)
+        }, completion: completion)
+    }
+
     /// Creates an AllAppsList export job for comprehensive app inventory reporting
     ///
     /// This function creates an export job for the AllAppsList report, which provides a complete inventory
@@ -1149,8 +1181,7 @@ extension XPCManager {
     ///     realTimeProtectionEnabled: "true",
     ///     networkInspectionSystemEnabled: nil,
     ///     includeColumns: ["DeviceName", "DefenderStatus", "LastUpdate"],
-    ///     format: "csv",
-    ///     reportType: "DefenderAgents"
+    ///     format: "csv"
     /// ) { jobId in
     ///     // Handle result
     /// }
@@ -1164,11 +1195,10 @@ extension XPCManager {
     ///   - networkInspectionSystemEnabled: Optional filter by network inspection system enabled status
     ///   - includeColumns: Optional array of specific columns to include
     ///   - format: Export format ("csv" or "json", defaults to "csv")
-    ///   - reportType: Report type identifier (defaults to "DefenderAgents")
     ///   - completion: Callback with export job ID or nil on failure
-    func createDefenderAgentsExportJob(deviceState: String?, signatureUpdateOverdue: String?, malwareProtectionEnabled: String?, realTimeProtectionEnabled: String?, networkInspectionSystemEnabled: String?, includeColumns: [String]?, format: String = "csv", reportType: String = "DefenderAgents", completion: @escaping (String?) -> Void) {
+    func createDefenderAgentsExportJob(deviceState: String?, signatureUpdateOverdue: String?, malwareProtectionEnabled: String?, realTimeProtectionEnabled: String?, networkInspectionSystemEnabled: String?, includeColumns: [String]?, format: String = "csv", completion: @escaping (String?) -> Void) {
         sendRequest({ service, reply in
-            service.createDefenderAgentsExportJob(deviceState: deviceState, signatureUpdateOverdue: signatureUpdateOverdue, malwareProtectionEnabled: malwareProtectionEnabled, realTimeProtectionEnabled: realTimeProtectionEnabled, networkInspectionSystemEnabled: networkInspectionSystemEnabled, includeColumns: includeColumns, format: format, reportType: reportType, reply: reply)
+            service.createDefenderAgentsExportJob(deviceState: deviceState, signatureUpdateOverdue: signatureUpdateOverdue, malwareProtectionEnabled: malwareProtectionEnabled, realTimeProtectionEnabled: realTimeProtectionEnabled, networkInspectionSystemEnabled: networkInspectionSystemEnabled, includeColumns: includeColumns, format: format, reply: reply)
         }, completion: completion)
     }
 
@@ -1338,5 +1368,38 @@ extension XPCManager {
         }, completion: completion)
     }
 
- 
+    /// Creates a UnhealthyDefenderAgents export job with security filtering options
+    ///
+    /// This function creates an export job for Microsoft Defender security agent status across
+    /// managed devices, providing critical security posture information.
+    ///
+    /// **Usage Example:**
+    /// ```swift
+    /// XPCManager.shared.createUnhealthyDefenderAgentsExportJob(
+    ///     deviceState: "active",
+    ///     signatureUpdateOverdue: "false",
+    ///     malwareProtectionEnabled: "true",
+    ///     realTimeProtectionEnabled: "true",
+    ///     networkInspectionSystemEnabled: nil,
+    ///     includeColumns: ["DeviceName", "DefenderStatus", "LastUpdate"],
+    ///     format: "csv"
+    /// ) { jobId in
+    ///     // Handle result
+    /// }
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - deviceState: Optional filter by device state
+    ///   - signatureUpdateOverdue: Optional filter by signature update overdue status
+    ///   - malwareProtectionEnabled: Optional filter by malware protection enabled status
+    ///   - realTimeProtectionEnabled: Optional filter by real-time protection enabled status
+    ///   - networkInspectionSystemEnabled: Optional filter by network inspection system enabled status
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json", defaults to "csv")
+    ///   - completion: Callback with export job ID or nil on failure
+    func createUnhealthyDefenderAgentsExportJob(deviceState: String?, signatureUpdateOverdue: String?, malwareProtectionEnabled: String?, realTimeProtectionEnabled: String?, networkInspectionSystemEnabled: String?, includeColumns: [String]?, format: String = "csv", completion: @escaping (String?) -> Void) {
+        sendRequest({ service, reply in
+            service.createUnhealthyDefenderAgentsExportJob(deviceState: deviceState, signatureUpdateOverdue: signatureUpdateOverdue, malwareProtectionEnabled: malwareProtectionEnabled, realTimeProtectionEnabled: realTimeProtectionEnabled, networkInspectionSystemEnabled: networkInspectionSystemEnabled, includeColumns: includeColumns, format: format, reply: reply)
+        }, completion: completion)
+    }
 }

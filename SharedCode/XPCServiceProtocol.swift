@@ -265,6 +265,16 @@ import Foundation
     func pollAndDownloadExportJob(jobId: String, maxWaitTimeSeconds: Int, pollIntervalSeconds: Int, reply: @escaping (Data?) -> Void)
 
     // MARK: - Microsoft Graph Export Job Reports
+    /// Creates a ActiveMalware export job with filtering options
+    /// - Parameters:
+    ///   - severity: Optional filter by severity
+    ///   - executionState: Optional filter by execution state
+    ///   - state: Optional filter by state
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createActiveMalwareExportJob(severity: String?, executionState: String?, state: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+
     /// Creates a DeviceInstallStatusByApp export job with filtering options
     /// - Parameters:
     ///   - applicationId: Optional filter by specific application ID
@@ -398,9 +408,8 @@ import Foundation
     ///   - networkInspectionSystemEnabled: Optional filter by network inspection system enabled
     ///   - includeColumns: Optional array of specific columns to include
     ///   - format: Export format ("csv" or "json")
-    ///   - reportType: Report type ("DefenderAgents" or "UnhealthyDefenderAgents")
     ///   - reply: Callback with export job ID or nil on failure
-    func createDefenderAgentsExportJob(deviceState: String?, signatureUpdateOverdue: String?, malwareProtectionEnabled: String?, realTimeProtectionEnabled: String?, networkInspectionSystemEnabled: String?, includeColumns: [String]?, format: String, reportType: String, reply: @escaping (String?) -> Void)
+    func createDefenderAgentsExportJob(deviceState: String?, signatureUpdateOverdue: String?, malwareProtectionEnabled: String?, realTimeProtectionEnabled: String?, networkInspectionSystemEnabled: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
 
     /// Creates a FirewallStatus export job with filtering options
     /// - Parameters:
@@ -451,6 +460,18 @@ import Foundation
     ///   - format: Export format ("csv" or "json")
     ///   - reply: Callback with export job ID or nil on failure
     func createQualityUpdateDeviceStatusByPolicyExportJob(policyID: String, aggregateState: String?, ownerType: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
+
+    /// Creates a UnhealthyDefenderAgents export job with filtering options
+    /// - Parameters:
+    ///   - deviceState: Optional filter by device state
+    ///   - signatureUpdateOverdue: Optional filter by signature update overdue
+    ///   - malwareProtectionEnabled: Optional filter by malware protection enabled
+    ///   - realTimeProtectionEnabled: Optional filter by real-time protection enabled
+    ///   - networkInspectionSystemEnabled: Optional filter by network inspection system enabled
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createUnhealthyDefenderAgentsExportJob(deviceState: String?, signatureUpdateOverdue: String?, malwareProtectionEnabled: String?, realTimeProtectionEnabled: String?, networkInspectionSystemEnabled: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void)
 
     // MARK: - Intune Web Clip Management
     

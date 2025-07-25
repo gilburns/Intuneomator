@@ -174,6 +174,36 @@ extension XPCService {
     }
 
     // MARK: - Export Jobs Report Types
+    
+    /// Creates a ActiveMalware export job with filtering options
+    /// - Parameters:
+    ///   - severity: Optional filter by severity
+    ///   - executionState: Optional filter by execution state
+    ///   - state: Optional filter by state
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createActiveMalwareExportJob(severity: String?, executionState: String?, state: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void) {
+        Task {
+            do {
+                let entraAuthenticator = EntraAuthenticator.shared
+                let authToken = try await entraAuthenticator.getEntraIDToken()
+                let jobId = try await EntraGraphRequests.createActiveMalwareExportJob(
+                    authToken: authToken,
+                    severity: severity,
+                    executionState: executionState,
+                    state: state,
+                    includeColumns: includeColumns,
+                    format: format
+                )
+                reply(jobId)
+            } catch {
+                Logger.error("Failed to create ActiveMalware export job: \(error.localizedDescription)", category: .core)
+                reply(nil)
+            }
+        }
+    }
+
     /// Creates a DeviceInstallStatusByApp export job with filtering options
     /// - Parameters:
     ///   - applicationId: Optional filter by specific application ID
@@ -531,7 +561,6 @@ extension XPCService {
     ///   - networkInspectionSystemEnabled: Optional filter by network inspection system enabled status
     ///   - includeColumns: Optional array of specific columns to include
     ///   - format: Export format ("csv" or "json")
-    ///   - reportType: Report type identifier (defaults to "DefenderAgents")
     ///   - reply: Callback with export job ID or nil on failure
     func createDefenderAgentsExportJob(deviceState: String?, signatureUpdateOverdue: String?, malwareProtectionEnabled: String?, realTimeProtectionEnabled: String?, networkInspectionSystemEnabled: String?, includeColumns: [String]?, format: String, reportType: String, reply: @escaping (String?) -> Void) {
         Task {
@@ -546,8 +575,7 @@ extension XPCService {
                     realTimeProtectionEnabled: realTimeProtectionEnabled,
                     networkInspectionSystemEnabled: networkInspectionSystemEnabled,
                     includeColumns: includeColumns,
-                    format: format,
-                    reportType: reportType
+                    format: format
                 )
                 reply(jobId)
             } catch {
@@ -589,9 +617,8 @@ extension XPCService {
     ///   - state: Optional filter by state
     ///   - includeColumns: Optional array of specific columns to include
     ///   - format: Export format ("csv" or "json")
-    ///   - reportType: Report type identifier (defaults to "Malware")
     ///   - reply: Callback with export job ID or nil on failure
-    func createMalwareExportJob(severity: String?, executionState: String?, state: String?, includeColumns: [String]?, format: String, reportType: String, reply: @escaping (String?) -> Void) {
+    func createMalwareExportJob(severity: String?, executionState: String?, state: String?, includeColumns: [String]?, format: String, reply: @escaping (String?) -> Void) {
         Task {
             do {
                 let entraAuthenticator = EntraAuthenticator.shared
@@ -602,8 +629,7 @@ extension XPCService {
                     executionState: executionState,
                     state: state,
                     includeColumns: includeColumns,
-                    format: format,
-                    reportType: reportType
+                    format: format
                 )
                 reply(jobId)
             } catch {
@@ -706,6 +732,39 @@ extension XPCService {
                 reply(jobId)
             } catch {
                 Logger.error("Failed to create QualityUpdateDeviceStatusByPolicy export job: \(error.localizedDescription)", category: .core)
+                reply(nil)
+            }
+        }
+    }
+
+    /// Creates a UnhealthyDefenderAgents export job with filtering options
+    /// - Parameters:
+    ///   - deviceState: Optional filter by device state
+    ///   - signatureUpdateOverdue: Optional filter by signature update overdue status
+    ///   - malwareProtectionEnabled: Optional filter by malware protection enabled status
+    ///   - realTimeProtectionEnabled: Optional filter by real-time protection enabled status
+    ///   - networkInspectionSystemEnabled: Optional filter by network inspection system enabled status
+    ///   - includeColumns: Optional array of specific columns to include
+    ///   - format: Export format ("csv" or "json")
+    ///   - reply: Callback with export job ID or nil on failure
+    func createUnhealthyDefenderAgentsExportJob(deviceState: String?, signatureUpdateOverdue: String?, malwareProtectionEnabled: String?, realTimeProtectionEnabled: String?, networkInspectionSystemEnabled: String?, includeColumns: [String]?, format: String, reportType: String, reply: @escaping (String?) -> Void) {
+        Task {
+            do {
+                let entraAuthenticator = EntraAuthenticator.shared
+                let authToken = try await entraAuthenticator.getEntraIDToken()
+                let jobId = try await EntraGraphRequests.createUnhealthyDefenderAgentsExportJob(
+                    authToken: authToken,
+                    deviceState: deviceState,
+                    signatureUpdateOverdue: signatureUpdateOverdue,
+                    malwareProtectionEnabled: malwareProtectionEnabled,
+                    realTimeProtectionEnabled: realTimeProtectionEnabled,
+                    networkInspectionSystemEnabled: networkInspectionSystemEnabled,
+                    includeColumns: includeColumns,
+                    format: format
+                )
+                reply(jobId)
+            } catch {
+                Logger.error("Failed to create UnhealthyDefenderAgents export job: \(error.localizedDescription)", category: .core)
                 reply(nil)
             }
         }
