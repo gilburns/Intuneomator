@@ -95,13 +95,23 @@ class ApplicationSettingsViewController: NSViewController {
 extension ApplicationSettingsViewController: TabbedSheetChildProtocol {
     
     func getDataForSave() -> [String: Any]? {
+        // Ensure view is loaded before accessing outlets
+        guard isViewLoaded,
+              let appsToKeepField = fieldAppsToKeep,
+              let logsMaxAgeField = fieldLogsMaxAge,
+              let logsMaxSizeField = fieldLogsMaxSize,
+              let updateModeButton = buttonIntuneomatorUpdateMode else {
+            // Return nil if view isn't loaded yet - don't contribute to save data
+            return nil
+        }
+        
         var data: [String: Any] = [:]
         
-        data["appsToKeep"] = fieldAppsToKeep.integerValue
-        data["logsMaxAge"] = fieldLogsMaxAge.integerValue
-        data["logsMaxSize"] = fieldLogsMaxSize.integerValue
+        data["appsToKeep"] = appsToKeepField.integerValue
+        data["logsMaxAge"] = logsMaxAgeField.integerValue
+        data["logsMaxSize"] = logsMaxSizeField.integerValue
         
-        data["updateMode"] = buttonIntuneomatorUpdateMode.indexOfSelectedItem
+        data["updateMode"] = updateModeButton.indexOfSelectedItem
         
         return data
     }
@@ -118,20 +128,28 @@ extension ApplicationSettingsViewController: TabbedSheetChildProtocol {
     }
     
     func validateData() -> String? {
+        // Ensure view is loaded before accessing outlets
+        guard isViewLoaded,
+              let appsToKeepField = fieldAppsToKeep,
+              let logsMaxAgeField = fieldLogsMaxAge,
+              let logsMaxSizeField = fieldLogsMaxSize else {
+            return nil // Skip validation if view isn't loaded yet
+        }
+        
         // Validate apps to keep
-        let appsToKeep = fieldAppsToKeep.integerValue
+        let appsToKeep = appsToKeepField.integerValue
         if appsToKeep < 1 || appsToKeep > 99 {
             return "Apps to keep must be between 1 and 99"
         }
         
         // Validate logs max age
-        let logsMaxAge = fieldLogsMaxAge.integerValue
+        let logsMaxAge = logsMaxAgeField.integerValue
         if logsMaxAge < 1 || logsMaxAge > 365 {
             return "Logs max age must be between 1 and 365 days"
         }
         
         // Validate logs max size
-        let logsMaxSize = fieldLogsMaxSize.integerValue
+        let logsMaxSize = logsMaxSizeField.integerValue
         if logsMaxSize < 1 || logsMaxSize > 1000 {
             return "Logs max size must be between 1 and 1000 MB"
         }

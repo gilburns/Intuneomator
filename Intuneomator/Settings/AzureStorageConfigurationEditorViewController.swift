@@ -19,20 +19,19 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
     @IBOutlet weak var fieldContainerName: NSTextField!
     @IBOutlet weak var popupAuthMethod: NSPopUpButton!
     @IBOutlet weak var fieldAccountKey: NSSecureTextField!
-    @IBOutlet weak var fieldSASToken: NSTextField!
-    @IBOutlet weak var fieldTenantID: NSTextField!
-    @IBOutlet weak var fieldClientID: NSTextField!
-    @IBOutlet weak var fieldClientSecret: NSSecureTextField!
+    @IBOutlet weak var fieldSASToken: NSSecureTextField!
     @IBOutlet weak var saveButton: NSButton!
     @IBOutlet weak var cancelButton: NSButton!
     @IBOutlet weak var testButton: NSButton!
     
+    // MARK: - Cleanup Configuration Outlets
+    @IBOutlet weak var checkboxCleanupEnabled: NSButton!
+    @IBOutlet weak var fieldMaxFileAgeInDays: NSTextField!
+    @IBOutlet weak var labelCleanupSummary: NSTextField!
+    
     // MARK: - Labels for conditional display
     @IBOutlet weak var labelAccountKey: NSTextField!
     @IBOutlet weak var labelSASToken: NSTextField!
-    @IBOutlet weak var labelTenantID: NSTextField!
-    @IBOutlet weak var labelClientID: NSTextField!
-    @IBOutlet weak var labelClientSecret: NSTextField!
     
     // MARK: - Properties
     
@@ -64,8 +63,7 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
         popupAuthMethod.removeAllItems()
         popupAuthMethod.addItems(withTitles: [
             "Storage Key",
-            "SAS Token",
-            "Azure AD OAuth"
+            "SAS Token"
         ])
         popupAuthMethod.target = self
         popupAuthMethod.action = #selector(authMethodChanged(_:))
@@ -74,10 +72,50 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
     private func setupValidation() {
         // Add observers for text field changes
         let textFields = [fieldName, fieldDescription, fieldAccountName, fieldContainerName, 
-                         fieldAccountKey, fieldSASToken, fieldTenantID, fieldClientID, fieldClientSecret]
+                         fieldAccountKey, fieldSASToken,
+                         fieldMaxFileAgeInDays]
         
         for textField in textFields {
             textField?.delegate = self
+        }
+        
+        // Setup cleanup configuration
+        setupCleanupConfiguration()
+    }
+    
+    private func setupCleanupConfiguration() {
+        checkboxCleanupEnabled?.target = self
+        checkboxCleanupEnabled?.action = #selector(cleanupEnabledChanged(_:))
+        
+        // Set default values
+        checkboxCleanupEnabled?.state = .off
+        fieldMaxFileAgeInDays?.isEnabled = false
+        fieldMaxFileAgeInDays?.stringValue = "30"
+        updateCleanupSummary()
+    }
+    
+    @objc private func cleanupEnabledChanged(_ sender: NSButton) {
+        let isEnabled = sender.state == .on
+        fieldMaxFileAgeInDays?.isEnabled = isEnabled
+        updateCleanupSummary()
+        validateForm()
+    }
+    
+    private func updateCleanupSummary() {
+        let isEnabled = checkboxCleanupEnabled?.state == .on
+        
+        if isEnabled {
+            if let ageText = fieldMaxFileAgeInDays?.stringValue,
+               let age = Int(ageText), age > 0 {
+                labelCleanupSummary?.stringValue = "Files older than \(age) day\(age == 1 ? "" : "s") will be automatically deleted"
+                labelCleanupSummary?.textColor = .systemBlue
+            } else {
+                labelCleanupSummary?.stringValue = "Please specify a valid number of days"
+                labelCleanupSummary?.textColor = .systemOrange
+            }
+        } else {
+            labelCleanupSummary?.stringValue = "Files will be kept forever (no automatic cleanup)"
+            labelCleanupSummary?.textColor = .secondaryLabelColor
         }
     }
     
@@ -102,10 +140,30 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
                 }
             }
             
-            // Note: We don't populate sensitive fields like keys/tokens for security
-            // They would need to be re-entered when editing
+            // Populate cleanup configuration
+            let cleanupEnabled = configurationData["cleanupEnabled"] as? Bool ?? false
+            checkboxCleanupEnabled?.state = cleanupEnabled ? .on : .off
+            
+            if let maxAge = configurationData["maxFileAgeInDays"] as? Int, maxAge > 0 {
+                fieldMaxFileAgeInDays?.stringValue = "\(maxAge)"
+            } else {
+                fieldMaxFileAgeInDays?.stringValue = "30"
+            }
+            
+            fieldMaxFileAgeInDays?.isEnabled = cleanupEnabled
+            
+            // Populate sensitive fields when editing existing configurations
+            // This allows users to make other changes without re-entering credentials
+            if let accountKey = configurationData["accountKey"] as? String, !accountKey.isEmpty {
+                fieldAccountKey.stringValue = accountKey
+            }
+            
+            if let sasToken = configurationData["sasToken"] as? String, !sasToken.isEmpty {
+                fieldSASToken.stringValue = sasToken
+            }
         }
         
+        updateCleanupSummary()
         validateForm()
     }
     
@@ -126,16 +184,14 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
             showStorageKeyFields()
         case 1: // SAS Token
             showSASTokenFields()
-        case 2: // Azure AD OAuth
-            showAzureADFields()
         default:
             break
         }
     }
     
     private func hideAllAuthFields() {
-        let fields = [fieldAccountKey, fieldSASToken, fieldTenantID, fieldClientID, fieldClientSecret]
-        let labels = [labelAccountKey, labelSASToken, labelTenantID, labelClientID, labelClientSecret]
+        let fields = [fieldAccountKey, fieldSASToken]
+        let labels = [labelAccountKey, labelSASToken]
         
         for field in fields {
             field?.isHidden = true
@@ -154,16 +210,7 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
         fieldSASToken.isHidden = false
         labelSASToken.isHidden = false
     }
-    
-    private func showAzureADFields() {
-        fieldTenantID.isHidden = false
-        fieldClientID.isHidden = false
-        fieldClientSecret.isHidden = false
-        labelTenantID.isHidden = false
-        labelClientID.isHidden = false
-        labelClientSecret.isHidden = false
-    }
-    
+        
     // MARK: - Actions
     
     @IBAction func saveConfiguration(_ sender: NSButton) {
@@ -241,13 +288,16 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
         case 1: // SAS Token
             data["authMethod"] = "sasToken"
             data["sasToken"] = fieldSASToken.stringValue
-        case 2: // Azure AD OAuth
-            data["authMethod"] = "azureAD"
-            data["tenantId"] = fieldTenantID.stringValue
-            data["clientId"] = fieldClientID.stringValue
-            data["clientSecret"] = fieldClientSecret.stringValue
         default:
             break
+        }
+        
+        // Add cleanup configuration
+        let cleanupEnabled = checkboxCleanupEnabled?.state == .on
+        data["cleanupEnabled"] = cleanupEnabled
+        
+        if cleanupEnabled, let ageText = fieldMaxFileAgeInDays?.stringValue, let age = Int(ageText), age > 0 {
+            data["maxFileAgeInDays"] = age
         }
         
         return data
@@ -314,9 +364,38 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
             break
         }
         
+        // Validate cleanup configuration if enabled
+        if checkboxCleanupEnabled?.state == .on {
+            let ageText = fieldMaxFileAgeInDays?.stringValue.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if ageText.isEmpty {
+                isValid = false
+                errorMessage = "Please specify the maximum file age in days for cleanup"
+            } else if let age = Int(ageText) {
+                if age <= 0 {
+                    isValid = false
+                    errorMessage = "Maximum file age must be greater than 0"
+                } else if age > 3650 { // ~10 years
+                    isValid = false
+                    errorMessage = "Maximum file age cannot exceed 3650 days (10 years)"
+                }
+            } else {
+                isValid = false
+                errorMessage = "Maximum file age must be a valid number"
+            }
+        }
+        
         self.isValid = isValid
         saveButton.isEnabled = isValid
         testButton.isEnabled = isValid
+        
+        // Display validation error if there is one
+        if !isValid && !errorMessage.isEmpty {
+            labelCleanupSummary?.stringValue = errorMessage
+            labelCleanupSummary?.textColor = .systemRed
+        } else if isValid {
+            // Update cleanup summary if validation passes
+            updateCleanupSummary()
+        }
         
         return isValid
     }
@@ -327,6 +406,10 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
 extension AzureStorageConfigurationEditorViewController: NSTextFieldDelegate {
     
     func controlTextDidChange(_ obj: Notification) {
+        // Update cleanup summary if the age field changed
+        if let textField = obj.object as? NSTextField, textField == fieldMaxFileAgeInDays {
+            updateCleanupSummary()
+        }
         validateForm()
     }
 }

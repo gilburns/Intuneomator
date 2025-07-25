@@ -56,11 +56,24 @@ class TabbedSheetViewController: NSViewController {
         super.viewDidLoad()
         setupTabView()
         setupButtons()
+        setupMinimumWindowSize()
         distributeInitialData()
         
         // Initialize save button state
         saveButton.isEnabled = false
         updateSaveButtonState()
+    }
+    
+    private func setupMinimumWindowSize() {
+        // Set minimum window size to prevent the window from becoming too small
+        if let window = view.window {
+            window.minSize = NSSize(width: 620, height: 450)
+        } else {
+            // If window is not available yet, set it when the view appears
+            DispatchQueue.main.async { [weak self] in
+                self?.view.window?.minSize = NSSize(width: 620, height: 450)
+            }
+        }
     }
     
     // MARK: - Setup Methods
@@ -167,6 +180,14 @@ class TabbedSheetViewController: NSViewController {
                 childHasChanges = customAttributeEditor.hasUnsavedChanges
             } else if let webClipEditor = childVC as? WebClipsEditorViewController {
                 childHasChanges = webClipEditor.hasUnsavedChanges
+            } else if let applicationSettings = childVC as? ApplicationSettingsViewController {
+                childHasChanges = applicationSettings.hasUnsavedChanges
+            } else if let notificationsSettings = childVC as? NotificationsSettingsViewController {
+                childHasChanges = notificationsSettings.hasUnsavedChanges
+            } else if let entraIDSettings = childVC as? EntraIDSettingsViewController {
+                childHasChanges = entraIDSettings.hasUnsavedChanges
+            } else if let azureStorageSettings = childVC as? AzureStorageSettingsViewController {
+                childHasChanges = azureStorageSettings.hasUnsavedChanges
             }
             
             if childHasChanges {

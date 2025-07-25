@@ -319,11 +319,46 @@ class EntraIDSettingsViewController: NSViewController {
         // Update visual appearance
         fieldClientSecret.textColor = isCertificateAuth ? .disabledControlTextColor : .controlTextColor
         fieldCertificateThumbprint.textColor = isCertificateAuth ? .controlTextColor : .disabledControlTextColor
+        
+        // Update test connection button state
+        updateTestConnectionButtonState()
     }
     
     private func markAsChanged() {
         hasUnsavedChanges = true
         parentTabbedSheetViewController?.updateSaveButtonState()
+    }
+    
+    /// Enables or disables the "Test Connection" button based on whether required credential fields are populated.
+    private func updateTestConnectionButtonState() {
+        guard let tenantIDField = fieldTenantID,
+              let clientIDField = fieldClientID,
+              let secretField = fieldClientSecret,
+              let thumbprintField = fieldCertificateThumbprint,
+              let certRadio = radioButtonCertificate,
+              let testButton = buttonTestConnection else {
+            return
+        }
+        
+        let tenantID = tenantIDField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        let clientID = clientIDField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Check if required basic fields are filled
+        guard !tenantID.isEmpty && !clientID.isEmpty else {
+            testButton.isEnabled = false
+            return
+        }
+        
+        // Check authentication method specific requirements
+        if certRadio.state == .on {
+            // Certificate authentication - need thumbprint
+            let thumbprint = thumbprintField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            testButton.isEnabled = !thumbprint.isEmpty
+        } else {
+            // Secret authentication - need client secret
+            let clientSecret = secretField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            testButton.isEnabled = !clientSecret.isEmpty
+        }
     }
     
     private func populateFields() {
@@ -363,6 +398,7 @@ class EntraIDSettingsViewController: NSViewController {
         }
         
         updateAuthenticationControlsState()
+        updateTestConnectionButtonState()
     }
     
     private func performConnectionTest() {
@@ -400,17 +436,30 @@ class EntraIDSettingsViewController: NSViewController {
 extension EntraIDSettingsViewController: TabbedSheetChildProtocol {
     
     func getDataForSave() -> [String: Any]? {
+        // Ensure view is loaded before accessing outlets
+        guard isViewLoaded,
+              let tenantIDField = fieldTenantID,
+              let clientIDField = fieldClientID,
+              let secretField = fieldClientSecret,
+              let thumbprintField = fieldCertificateThumbprint,
+              let certExpirationField = fieldCertificateExpiration,
+              let secretExpirationField = fieldSecretExpiration,
+              let certRadio = radioButtonCertificate else {
+            // Return nil if view isn't loaded yet - don't contribute to save data
+            return nil
+        }
+        
         var data: [String: Any] = [:]
         
-        data["tenantID"] = fieldTenantID.stringValue
-        data["clientID"] = fieldClientID.stringValue
-        data["clientSecret"] = fieldClientSecret.stringValue
-        data["certificateThumbprint"] = fieldCertificateThumbprint.stringValue
-        data["certificateExpiration"] = fieldCertificateExpiration.stringValue
-        data["secretExpiration"] = fieldSecretExpiration.stringValue
+        data["tenantID"] = tenantIDField.stringValue
+        data["clientID"] = clientIDField.stringValue
+        data["clientSecret"] = secretField.stringValue
+        data["certificateThumbprint"] = thumbprintField.stringValue
+        data["certificateExpiration"] = certExpirationField.stringValue
+        data["secretExpiration"] = secretExpirationField.stringValue
         
         // Determine authentication method
-        if radioButtonCertificate.state == .on {
+        if certRadio.state == .on {
             data["authenticationMethod"] = "certificate"
         } else {
             data["authenticationMethod"] = "secret"
@@ -431,9 +480,19 @@ extension EntraIDSettingsViewController: TabbedSheetChildProtocol {
     }
     
     func validateData() -> String? {
+        // Ensure view is loaded before accessing outlets
+        guard isViewLoaded,
+              let tenantIDField = fieldTenantID,
+              let clientIDField = fieldClientID,
+              let certRadio = radioButtonCertificate,
+              let thumbprintField = fieldCertificateThumbprint,
+              let secretField = fieldClientSecret else {
+            return nil // Skip validation if view isn't loaded yet
+        }
+        
         // Validate required fields
-        let tenantID = fieldTenantID.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        let clientID = fieldClientID.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        let tenantID = tenantIDField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        let clientID = clientIDField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         
         if tenantID.isEmpty {
             return "Tenant ID is required"
@@ -444,8 +503,8 @@ extension EntraIDSettingsViewController: TabbedSheetChildProtocol {
         }
         
         // Validate based on authentication method
-        if radioButtonCertificate.state == .on {
-            let thumbprint = fieldCertificateThumbprint.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        if certRadio.state == .on {
+            let thumbprint = thumbprintField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
             if thumbprint.isEmpty {
                 return "Certificate thumbprint is required for certificate authentication"
             }
@@ -455,7 +514,7 @@ extension EntraIDSettingsViewController: TabbedSheetChildProtocol {
                 return "Certificate thumbprint must be a 40-character hexadecimal string"
             }
         } else {
-            let clientSecret = fieldClientSecret.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            let clientSecret = secretField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
             if clientSecret.isEmpty {
                 return "Client secret is required for secret authentication"
             }
@@ -483,6 +542,7 @@ extension EntraIDSettingsViewController: NSTextFieldDelegate {
     
     func controlTextDidChange(_ obj: Notification) {
         markAsChanged()
+        updateTestConnectionButtonState()
     }
 }
 

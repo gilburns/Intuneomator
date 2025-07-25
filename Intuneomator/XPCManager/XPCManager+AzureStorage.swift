@@ -604,6 +604,8 @@ extension XPCManager {
     ///   - accountKey: Storage account key
     ///   - containerName: Container name (defaults to "intuneomator-reports")
     ///   - description: Optional description
+    ///   - cleanupEnabled: Whether automatic cleanup is enabled (defaults to false)
+    ///   - maxFileAgeInDays: Maximum file age in days for cleanup (nil = no age limit)
     ///   - completion: Callback indicating if creation was successful
     func createNamedAzureStorageConfiguration(
         name: String,
@@ -611,15 +613,22 @@ extension XPCManager {
         accountKey: String,
         containerName: String = "intuneomator-reports",
         description: String? = nil,
+        cleanupEnabled: Bool = false,
+        maxFileAgeInDays: Int? = nil,
         completion: @escaping (Bool) -> Void
     ) {
-        let configData: [String: Any] = [
+        var configData: [String: Any] = [
             "accountName": accountName,
             "containerName": containerName,
             "authMethodType": "storageKey",
             "accountKey": accountKey,
-            "description": description ?? ""
+            "description": description ?? "",
+            "cleanupEnabled": cleanupEnabled
         ]
+        
+        if let maxAge = maxFileAgeInDays {
+            configData["maxFileAgeInDays"] = maxAge
+        }
         
         setNamedAzureStorageConfiguration(name: name, configData: configData, completion: completion)
     }
@@ -631,6 +640,8 @@ extension XPCManager {
     ///   - sasToken: SAS token
     ///   - containerName: Container name (defaults to "intuneomator-reports")
     ///   - description: Optional description
+    ///   - cleanupEnabled: Whether automatic cleanup is enabled (defaults to false)
+    ///   - maxFileAgeInDays: Maximum file age in days for cleanup (nil = no age limit)
     ///   - completion: Callback indicating if creation was successful
     func createNamedAzureStorageConfigurationWithSAS(
         name: String,
@@ -638,15 +649,22 @@ extension XPCManager {
         sasToken: String,
         containerName: String = "intuneomator-reports",
         description: String? = nil,
+        cleanupEnabled: Bool = false,
+        maxFileAgeInDays: Int? = nil,
         completion: @escaping (Bool) -> Void
     ) {
-        let configData: [String: Any] = [
+        var configData: [String: Any] = [
             "accountName": accountName,
             "containerName": containerName,
             "authMethodType": "sasToken",
             "sasToken": sasToken,
-            "description": description ?? ""
+            "description": description ?? "",
+            "cleanupEnabled": cleanupEnabled
         ]
+        
+        if let maxAge = maxFileAgeInDays {
+            configData["maxFileAgeInDays"] = maxAge
+        }
         
         setNamedAzureStorageConfiguration(name: name, configData: configData, completion: completion)
     }
@@ -660,6 +678,8 @@ extension XPCManager {
     ///   - clientSecret: Azure AD client secret
     ///   - containerName: Container name (defaults to "intuneomator-reports")
     ///   - description: Optional description
+    ///   - cleanupEnabled: Whether automatic cleanup is enabled (defaults to false)
+    ///   - maxFileAgeInDays: Maximum file age in days for cleanup (nil = no age limit)
     ///   - completion: Callback indicating if creation was successful
     func createNamedAzureStorageConfigurationWithAzureAD(
         name: String,
@@ -669,17 +689,24 @@ extension XPCManager {
         clientSecret: String,
         containerName: String = "intuneomator-reports",
         description: String? = nil,
+        cleanupEnabled: Bool = false,
+        maxFileAgeInDays: Int? = nil,
         completion: @escaping (Bool) -> Void
     ) {
-        let configData: [String: Any] = [
+        var configData: [String: Any] = [
             "accountName": accountName,
             "containerName": containerName,
             "authMethodType": "azureAD",
             "tenantId": tenantId,
             "clientId": clientId,
             "clientSecret": clientSecret,
-            "description": description ?? ""
+            "description": description ?? "",
+            "cleanupEnabled": cleanupEnabled
         ]
+        
+        if let maxAge = maxFileAgeInDays {
+            configData["maxFileAgeInDays"] = maxAge
+        }
         
         setNamedAzureStorageConfiguration(name: name, configData: configData, completion: completion)
     }

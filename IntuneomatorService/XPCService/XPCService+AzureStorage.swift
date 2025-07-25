@@ -252,16 +252,30 @@ extension XPCService {
             return
         }
         
-        // Convert to dictionary (excluding sensitive credentials)
-        let configDict: [String: Any] = [
+        // Convert to dictionary (including sensitive credentials for editing)
+        var configDict: [String: Any] = [
             "name": config.name,
             "accountName": config.accountName,
             "containerName": config.containerName,
             "authMethod": config.authMethod.description,
             "description": config.description ?? "",
             "created": config.created.timeIntervalSince1970,
-            "modified": config.modified.timeIntervalSince1970
+            "modified": config.modified.timeIntervalSince1970,
+            "cleanupEnabled": config.cleanupEnabled
         ]
+        
+        // Add cleanup age if set
+        if let maxAge = config.maxFileAgeInDays {
+            configDict["maxFileAgeInDays"] = maxAge
+        }
+        
+        // Include sensitive credentials for editing purposes
+        switch config.authMethod {
+        case .storageKey(let key):
+            configDict["accountKey"] = key
+        case .sasToken(let token):
+            configDict["sasToken"] = token
+        }
         
         reply(configDict)
     }
@@ -297,22 +311,20 @@ extension XPCService {
                 return
             }
             authMethod = .sasToken(sasToken)
-            
-        case "azureAD":
-            guard let tenantId = configData["tenantId"] as? String,
-                  let clientId = configData["clientId"] as? String,
-                  let clientSecret = configData["clientSecret"] as? String else {
-                Logger.error("Missing Azure AD credentials for OAuth authentication", category: .core)
-                reply(false)
-                return
-            }
-            authMethod = .azureAD(tenantId: tenantId, clientId: clientId, clientSecret: clientSecret)
-            
+                        
         default:
             Logger.error("Invalid authentication method type: \(authMethodType)", category: .core)
             reply(false)
             return
         }
+        
+        // Extract cleanup configuration fields
+        let cleanupEnabled = configData["cleanupEnabled"] as? Bool ?? false
+        let maxFileAgeInDays = configData["maxFileAgeInDays"] as? Int
+        
+        // Create default cleanup rules if cleanup is enabled
+        let cleanupRules: AzureStorageConfig.NamedStorageConfiguration.CleanupRules? = cleanupEnabled ? 
+            AzureStorageConfig.NamedStorageConfiguration.CleanupRules() : nil
         
         // Create configuration
         let now = Date()
@@ -323,7 +335,10 @@ extension XPCService {
             authMethod: authMethod,
             description: configData["description"] as? String,
             created: configData["created"] as? Date ?? now,
-            modified: now
+            modified: now,
+            cleanupEnabled: cleanupEnabled,
+            maxFileAgeInDays: maxFileAgeInDays,
+            cleanupRules: cleanupRules
         )
         
         // Store configuration
@@ -351,7 +366,7 @@ extension XPCService {
         
         let summaries = AzureStorageConfig.shared.getConfigurationSummaries()
         let summaryDicts = summaries.map { summary in
-            [
+            var dict: [String: Any] = [
                 "name": summary.name,
                 "accountName": summary.accountName,
                 "containerName": summary.containerName,
@@ -359,8 +374,16 @@ extension XPCService {
                 "description": summary.description ?? "",
                 "created": summary.created.timeIntervalSince1970,
                 "modified": summary.modified.timeIntervalSince1970,
-                "isValid": summary.isValid
-            ] as [String: Any]
+                "isValid": summary.isValid,
+                "cleanupEnabled": summary.cleanupEnabled,
+                "cleanupSummary": summary.cleanupSummary
+            ]
+            
+            if let maxAge = summary.maxFileAgeInDays {
+                dict["maxFileAgeInDays"] = maxAge
+            }
+            
+            return dict
         }
         
         reply(summaryDicts)

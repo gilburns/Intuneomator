@@ -633,12 +633,6 @@ extension XPCService {
                 let token = dict["sasToken"] as? String ?? ""
                 Logger.debug("Azure Storage Config - Using SAS token auth, token length: \(token.count)", category: .core)
                 authMethod = .sasToken(token)
-            case "azureAD":
-                let tenantId = dict["tenantId"] as? String ?? ""
-                let clientId = dict["clientId"] as? String ?? ""
-                let clientSecret = dict["clientSecret"] as? String ?? ""
-                Logger.debug("Azure Storage Config - Using Azure AD auth", category: .core)
-                authMethod = .azureAD(tenantId: tenantId, clientId: clientId, clientSecret: clientSecret)
             default:
                 Logger.warning("Azure Storage Config - Unknown auth method '\(method)', defaulting to storage key", category: .core)
                 authMethod = .storageKey("")
@@ -648,6 +642,14 @@ extension XPCService {
             authMethod = .storageKey("")
         }
         
+        // Extract cleanup configuration fields
+        let cleanupEnabled = dict["cleanupEnabled"] as? Bool ?? false
+        let maxFileAgeInDays = dict["maxFileAgeInDays"] as? Int
+        
+        // Create default cleanup rules if cleanup is enabled
+        let cleanupRules: AzureStorageConfig.NamedStorageConfiguration.CleanupRules? = cleanupEnabled ? 
+            AzureStorageConfig.NamedStorageConfiguration.CleanupRules() : nil
+        
         return AzureStorageConfig.NamedStorageConfiguration(
             name: name,
             accountName: accountName,
@@ -655,7 +657,10 @@ extension XPCService {
             authMethod: authMethod,
             description: description,
             created: Date(),
-            modified: Date()
+            modified: Date(),
+            cleanupEnabled: cleanupEnabled,
+            maxFileAgeInDays: maxFileAgeInDays,
+            cleanupRules: cleanupRules
         )
     }
     

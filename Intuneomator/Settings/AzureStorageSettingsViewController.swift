@@ -48,7 +48,8 @@ class AzureStorageSettingsViewController: NSViewController {
     private func setupTableView() {
         tableView.delegate = self
         tableView.dataSource = self
-        
+        tableView.doubleAction = #selector(tableViewDoubleClicked(_:))
+        tableView.target = self
     }
     
     private func setupButtons() {
@@ -146,6 +147,14 @@ class AzureStorageSettingsViewController: NSViewController {
         }
     }
     
+    @objc private func tableViewDoubleClicked(_ sender: NSTableView) {
+        let clickedRow = sender.clickedRow
+        guard clickedRow >= 0, clickedRow < storageConfigurations.count else { return }
+        
+        let configuration = storageConfigurations[clickedRow]
+        presentConfigurationEditor(isNew: false, configuration: configuration)
+    }
+    
     // MARK: - Helper Methods
     
     private func presentConfigurationEditor(isNew: Bool, configuration: [String: Any]?) {
@@ -156,7 +165,30 @@ class AzureStorageSettingsViewController: NSViewController {
         }
         
         editorVC.isNewConfiguration = isNew
-        editorVC.configurationData = configuration ?? [:]
+        
+        if isNew {
+            // For new configurations, use empty data
+            editorVC.configurationData = [:]
+        } else {
+            // For existing configurations, fetch the full configuration including sensitive data
+            guard let configName = configuration?["name"] as? String else {
+                Logger.error("Configuration name missing for editing", category: .core, toUserDirectory: true)
+                return
+            }
+            
+            // Fetch full configuration data including credentials
+            XPCManager.shared.getNamedAzureStorageConfiguration(name: configName) { [weak self] fullConfigData in
+                DispatchQueue.main.async {
+                    editorVC.configurationData = fullConfigData ?? [:]
+                    editorVC.saveHandler = { [weak self] savedConfiguration in
+                        self?.handleConfigurationSaved(savedConfiguration, isNew: isNew)
+                    }
+                    self?.presentAsSheet(editorVC)
+                }
+            }
+            return
+        }
+        
         editorVC.saveHandler = { [weak self] savedConfiguration in
             self?.handleConfigurationSaved(savedConfiguration, isNew: isNew)
         }
@@ -271,6 +303,10 @@ extension AzureStorageSettingsViewController: NSTableViewDelegate {
             cell?.textField?.stringValue = configuration["containerName"] as? String ?? ""
         case "auth":
             cell?.textField?.stringValue = configuration["authMethod"] as? String ?? ""
+        case "cleanup":
+            cell?.textField?.stringValue = configuration["cleanupSummary"] as? String ?? "Disabled"
+            let cleanupEnabled = configuration["cleanupEnabled"] as? Bool ?? false
+            cell?.textField?.textColor = cleanupEnabled ? .systemBlue : .secondaryLabelColor
         case "status":
             let isValid = configuration["isValid"] as? Bool ?? false
             cell?.textField?.stringValue = isValid ? "✅ Valid" : "❌ Invalid"

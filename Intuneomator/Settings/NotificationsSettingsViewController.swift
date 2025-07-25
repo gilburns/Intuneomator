@@ -136,17 +136,31 @@ class NotificationsSettingsViewController: NSViewController {
 extension NotificationsSettingsViewController: TabbedSheetChildProtocol {
     
     func getDataForSave() -> [String: Any]? {
+        // Ensure view is loaded before accessing outlets
+        guard isViewLoaded,
+              let notificationsButton = buttonSendTeamsNotifications,
+              let webhookField = fieldTeamsWebhookURL,
+              let cleanupButton = buttonSendTeamsNotificationsForCleanup,
+              let cvesButton = buttonSendTeamsNotificationsForCVEs,
+              let groupsButton = buttonSendTeamsNotificationsForGroups,
+              let labelUpdatesButton = buttonSendTeamsNotificationsForLabelUpdates,
+              let updatesButton = buttonSendTeamsNotificationsForUpdates,
+              let styleButton = buttonSendTeamsNotificationsStyle else {
+            // Return nil if view isn't loaded yet - don't contribute to save data
+            return nil
+        }
+        
         var data: [String: Any] = [:]
         
-        data["sendTeamsNotifications"] = buttonSendTeamsNotifications.state == .on
-        data["teamsWebhookURL"] = fieldTeamsWebhookURL.stringValue
-        data["sendNotificationsForCleanup"] = buttonSendTeamsNotificationsForCleanup.state == .on
-        data["sendNotificationsForCVEs"] = buttonSendTeamsNotificationsForCVEs.state == .on
-        data["sendNotificationsForGroups"] = buttonSendTeamsNotificationsForGroups.state == .on
-        data["sendNotificationsForLabelUpdates"] = buttonSendTeamsNotificationsForLabelUpdates.state == .on
-        data["sendNotificationsForUpdates"] = buttonSendTeamsNotificationsForUpdates.state == .on
+        data["sendTeamsNotifications"] = notificationsButton.state == .on
+        data["teamsWebhookURL"] = webhookField.stringValue
+        data["sendNotificationsForCleanup"] = cleanupButton.state == .on
+        data["sendNotificationsForCVEs"] = cvesButton.state == .on
+        data["sendNotificationsForGroups"] = groupsButton.state == .on
+        data["sendNotificationsForLabelUpdates"] = labelUpdatesButton.state == .on
+        data["sendNotificationsForUpdates"] = updatesButton.state == .on
         
-        if let selectedTitle = buttonSendTeamsNotificationsStyle.titleOfSelectedItem {
+        if let selectedTitle = styleButton.titleOfSelectedItem {
             data["notificationStyle"] = selectedTitle
         }
         
@@ -165,9 +179,16 @@ extension NotificationsSettingsViewController: TabbedSheetChildProtocol {
     }
     
     func validateData() -> String? {
+        // Ensure view is loaded before accessing outlets
+        guard isViewLoaded,
+              let notificationsButton = buttonSendTeamsNotifications,
+              let webhookField = fieldTeamsWebhookURL else {
+            return nil // Skip validation if view isn't loaded yet
+        }
+        
         // Validate webhook URL if notifications are enabled
-        if buttonSendTeamsNotifications.state == .on {
-            let webhookURL = fieldTeamsWebhookURL.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        if notificationsButton.state == .on {
+            let webhookURL = webhookField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
             
             if webhookURL.isEmpty {
                 return "Teams webhook URL is required when notifications are enabled"
@@ -178,7 +199,19 @@ extension NotificationsSettingsViewController: TabbedSheetChildProtocol {
                 return "Teams webhook URL must use HTTPS"
             }
             
-            if !webhookURL.contains("webhook.office.com") || !webhookURL.contains("azure.com") {
+            // Teams webhooks can come from various Azure services
+            let validDomains = [
+                "webhook.office.com",        // Traditional Teams webhooks
+                "logic.azure.com",           // Logic Apps webhooks
+                "outlook.office.com",        // Outlook connectors
+                "teams.microsoft.com"        // Teams connectors
+            ]
+            
+            let hasValidDomain = validDomains.contains { domain in
+                webhookURL.contains(domain)
+            }
+            
+            if !hasValidDomain {
                 return "Invalid Teams webhook URL format"
             }
         }

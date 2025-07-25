@@ -241,10 +241,44 @@ class AzureStorageConfig {
         let created: Date
         let modified: Date
         
+        // MARK: - Cleanup Rule Configuration
+        /// Whether automatic cleanup is enabled for this storage location
+        let cleanupEnabled: Bool
+        
+        /// Maximum file age in days before files are eligible for cleanup (nil = no age limit)
+        let maxFileAgeInDays: Int?
+        
+        /// Additional cleanup rules for future expansion
+        let cleanupRules: CleanupRules?
+        
+        /// Cleanup configuration rules
+        struct CleanupRules: Codable {
+            /// Whether to only cleanup files in the "reports/" prefix
+            let reportsOnlyCleanup: Bool
+            
+            /// Custom prefix pattern for cleanup (if different from default "reports/")
+            let customCleanupPrefix: String?
+            
+            /// Whether to preserve files newer than the age threshold regardless of other rules
+            let preserveRecentFiles: Bool
+            
+            /// Additional file size limits (in bytes) - files larger than this are not cleaned up
+            let maxFileSizeForCleanup: Int64?
+            
+            init(reportsOnlyCleanup: Bool = true, 
+                 customCleanupPrefix: String? = nil, 
+                 preserveRecentFiles: Bool = true, 
+                 maxFileSizeForCleanup: Int64? = nil) {
+                self.reportsOnlyCleanup = reportsOnlyCleanup
+                self.customCleanupPrefix = customCleanupPrefix
+                self.preserveRecentFiles = preserveRecentFiles
+                self.maxFileSizeForCleanup = maxFileSizeForCleanup
+            }
+        }
+        
         enum StorageAuthMethod: Codable {
             case storageKey(String)
             case sasToken(String)
-            case azureAD(tenantId: String, clientId: String, clientSecret: String)
             
             var description: String {
                 switch self {
@@ -252,8 +286,6 @@ class AzureStorageConfig {
                     return "Storage Account Key"
                 case .sasToken:
                     return "SAS Token"
-                case .azureAD:
-                    return "Azure AD (OAuth)"
                 }
             }
         }
@@ -266,8 +298,6 @@ class AzureStorageConfig {
                 managerAuthMethod = .storageKey(key)
             case .sasToken(let token):
                 managerAuthMethod = .sasToken(token)
-            case .azureAD(let tenantId, let clientId, let clientSecret):
-                managerAuthMethod = .azureAD(tenantId: tenantId, clientId: clientId, clientSecret: clientSecret)
             }
             
             return AzureStorageManager.StorageConfig(
@@ -320,8 +350,8 @@ class AzureStorageConfig {
         guard !name.isEmpty,
               !Self.reservedNames.contains(name.lowercased()),
               name.count <= 50,
-              name.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" }) else {
-            Logger.error("Invalid configuration name: \(name). Names must be 1-50 characters, alphanumeric with dashes/underscores only", category: .core)
+              name.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" || $0 == " " }) else {
+            Logger.error("Invalid configuration name: \(name). Names must be 1-50 characters, alphanumeric with dashes, underscores, and spaces only", category: .core)
             return false
         }
         
@@ -404,8 +434,6 @@ class AzureStorageConfig {
             return !key.isEmpty
         case .sasToken(let token):
             return !token.isEmpty
-        case .azureAD(let tenantId, let clientId, let clientSecret):
-            return !tenantId.isEmpty && !clientId.isEmpty && !clientSecret.isEmpty
         }
     }
     
@@ -448,7 +476,9 @@ class AzureStorageConfig {
                 description: config.description,
                 created: config.created,
                 modified: config.modified,
-                isValid: validateConfiguration(named: name)
+                isValid: validateConfiguration(named: name),
+                cleanupEnabled: config.cleanupEnabled,
+                maxFileAgeInDays: config.maxFileAgeInDays
             )
         }
     }
@@ -463,6 +493,18 @@ class AzureStorageConfig {
         let created: Date
         let modified: Date
         let isValid: Bool
+        let cleanupEnabled: Bool
+        let maxFileAgeInDays: Int?
+        
+        /// Human-readable cleanup summary
+        var cleanupSummary: String {
+            guard cleanupEnabled else { return "Disabled" }
+            if let maxAge = maxFileAgeInDays {
+                return "\(maxAge) Day\(maxAge == 1 ? "" : "s")"
+            } else {
+                return "Enabled"
+            }
+        }
     }
 }
 
@@ -481,7 +523,7 @@ enum ConfigurationError: LocalizedError {
         case .missingContainerName:
             return "Container name is required"
         case .noValidAuthMethod:
-            return "No valid authentication method configured (requires storage key, SAS token, or Azure AD credentials)"
+            return "No valid authentication method configured (requires Storage key or SAS token)"
         case .invalidConfiguration(let details):
             return "Invalid configuration: \(details)"
         }
