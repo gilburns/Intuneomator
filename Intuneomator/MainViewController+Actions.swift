@@ -617,7 +617,7 @@ extension MainViewController {
             return
         }
 
-        let frame = restoredWindowFrame(forElement: "IntuneReportsViewController", defaultSize: NSSize(width: 400, height: 250))
+        let frame = restoredWindowFrame(forElement: "IntuneReportsViewController", defaultSize: NSSize(width: 520, height: 250))
 
         let reportsExportWindow = NSWindow(
             contentRect: frame,
@@ -630,7 +630,7 @@ extension MainViewController {
         reportsExportWindow.title = "Intune Reports Export"
 
         // Set minimum window size
-        reportsExportWindow.minSize = NSSize(width: 400, height: 250)
+        reportsExportWindow.minSize = NSSize(width: 520, height: 250)
         reportsExportWindow.setFrame(frame, display: true)
         
         // Preselect report type if specified

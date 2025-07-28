@@ -1163,4 +1163,39 @@ import Foundation
     ///   - olderThanDays: Delete files older than this many days
     ///   - reply: Callback with deletion summary dictionary containing count and size information, or nil on failure
     func deleteOldAzureStorageFiles(configurationName: String, olderThanDays: Int, reply: @escaping ([String: Any]?) -> Void)
+    
+    // MARK: - Scheduled Report File Management
+    
+    /// Saves a scheduled report configuration to the secured reports directory
+    /// - Parameters:
+    ///   - reportData: Encoded scheduled report data (JSON)
+    ///   - fileName: Name of the report file (including .json extension)
+    ///   - reply: Callback indicating if save was successful
+    func saveScheduledReportConfiguration(reportData: Data, fileName: String, reply: @escaping (Bool) -> Void)
+    
+    /// Deletes a scheduled report configuration from the secured reports directory
+    /// - Parameters:
+    ///   - fileName: Name of the report file to delete (including .json extension)
+    ///   - reply: Callback indicating if deletion was successful
+    func deleteScheduledReportConfiguration(fileName: String, reply: @escaping (Bool) -> Void)
+    
+    /// Updates the scheduled reports index file
+    /// - Parameters:
+    ///   - indexData: Encoded index data (JSON)
+    ///   - reply: Callback indicating if update was successful
+    func updateScheduledReportsIndex(indexData: Data, reply: @escaping (Bool) -> Void)
+    
+    /// Executes all scheduled reports that are due to run
+    /// - Parameter reply: Callback with execution summary dictionary
+    func executeScheduledReports(reply: @escaping ([String: Any]) -> Void)
+    
+    /// Gets the current scheduler status and execution statistics
+    /// - Parameter reply: Callback with scheduler status dictionary containing:
+    ///   - schedulerEnabled: Boolean indicating if scheduler is active
+    ///   - lastSchedulerRun: Date of last scheduler execution
+    ///   - schedulerInterval: Interval in seconds between scheduler runs
+    ///   - totalReports: Total number of scheduled reports
+    ///   - enabledReports: Number of enabled scheduled reports
+    ///   - lastExecutionSummary: Dictionary with last execution results
+    func getSchedulerStatus(reply: @escaping ([String: Any]) -> Void)
 }

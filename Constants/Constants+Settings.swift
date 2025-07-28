@@ -107,7 +107,7 @@ struct Settings: Codable {
 /// Supports multiple authentication methods for flexible deployment scenarios
 struct AzureStorageConfiguration: Codable, Identifiable {
     /// Unique identifier for the configuration
-    let id = UUID()
+    var id = UUID()
     
     /// User-friendly name for the configuration
     var name: String

@@ -81,7 +81,8 @@ class TeamsNotifier {
                 "type": "TextBlock",
                 "text": message,
                 "wrap": true,
-                "size": "Default"
+                "size": "Default",
+                "format": "markdown"
             ]
         ]
         

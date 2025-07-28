@@ -26,11 +26,11 @@ extension EntraGraphRequests {
         var nextPageUrl: String? = initialURL
         var pageCount = 0
         
-        Logger.info("Starting paginated fetch of Intune Apps...", category: .core)
+        Logger.info("Starting paginated fetch of Intune Apps...", category: .reports)
         
         // Follow pagination until all Intune apps are fetched
         while let urlString = nextPageUrl {
-            Logger.info("Fetching Intune apps from URL: \(urlString)", category: .core)
+            Logger.info("Fetching Intune apps from URL: \(urlString)", category: .reports)
             
             guard let url = URL(string: urlString) else {
                 throw NSError(domain: "EntraGraphRequests.AppsReporting", code: 3, userInfo: [NSLocalizedDescriptionKey: "Invalid pagination URL: \(urlString)"])
@@ -44,7 +44,7 @@ extension EntraGraphRequests {
             guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                 let responseString = String(data: data, encoding: .utf8) ?? "No response data"
                 let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
-                Logger.error("HTTP \(statusCode) error fetching Intune apps (page \(pageCount + 1)): \(responseString)", category: .core)
+                Logger.error("HTTP \(statusCode) error fetching Intune apps (page \(pageCount + 1)): \(responseString)", category: .reports)
                 throw NSError(domain: "EntraGraphRequests.AppsReporting", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch Intune app data (page \(pageCount + 1)): HTTP \(statusCode) - \(responseString)"])
             }
             
@@ -64,16 +64,16 @@ extension EntraGraphRequests {
             // Check for next page
             nextPageUrl = json["@odata.nextLink"] as? String
             
-            Logger.info("Fetched page \(pageCount) with \(pageIntuneApps.count) Intune apps (total: \(allIntuneApps.count))", category: .core)
+            Logger.info("Fetched page \(pageCount) with \(pageIntuneApps.count) Intune apps (total: \(allIntuneApps.count))", category: .reports)
             
             // Safety check to prevent infinite loops
             if pageCount > 100 {
-                Logger.error("Safety limit reached: stopping after 100 pages of Intune apps", category: .core)
+                Logger.error("Safety limit reached: stopping after 100 pages of Intune apps", category: .reports)
                 break
             }
         }
         
-        Logger.info("Completed fetching \(allIntuneApps.count) total Intune apps across \(pageCount) pages", category: .core)
+        Logger.info("Completed fetching \(allIntuneApps.count) total Intune apps across \(pageCount) pages", category: .reports)
         
         // Sort all Intune apps alphabetically by display name
         return allIntuneApps.sorted {
@@ -92,7 +92,7 @@ extension EntraGraphRequests {
     /// - Returns: Array of device installation status dictionaries containing device and installation details
     /// - Throws: Network errors, authentication errors, or JSON parsing errors
     static func getDeviceAppInstallationStatusReport(authToken: String, appId: String) async throws -> [[String: Any]] {
-        Logger.info("Fetching device app installation status report for app: \(appId)", category: .core)
+        Logger.info("Fetching device app installation status report for app: \(appId)", category: .reports)
         
         var allDeviceInstallationData: [[String: Any]] = []
         var pageCount = 0
@@ -151,7 +151,7 @@ extension EntraGraphRequests {
             
             guard httpResponse.statusCode == 200 else {
                 let responseStr = String(data: data, encoding: .utf8) ?? "Unknown error"
-                Logger.error("Failed to fetch device app installation status report for app \(appId) (page \(pageCount + 1)): \(responseStr)", category: .core)
+                Logger.error("Failed to fetch device app installation status report for app \(appId) (page \(pageCount + 1)): \(responseStr)", category: .reports)
                 throw NSError(domain: "EntraGraphRequests.AppsReporting", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch device app installation status report (page \(pageCount + 1)). Status: \(httpResponse.statusCode), Response: \(responseStr)"])
             }
             
@@ -197,17 +197,17 @@ extension EntraGraphRequests {
                 }
             }
             
-            Logger.info("Fetched page \(pageCount) with \(pageDeviceInstallationData.count) device installation records (total: \(allDeviceInstallationData.count))", category: .core)
+            Logger.info("Fetched page \(pageCount) with \(pageDeviceInstallationData.count) device installation records (total: \(allDeviceInstallationData.count))", category: .reports)
             
             // Safety check to prevent infinite loops
             if pageCount > 100 {
-                Logger.error("Safety limit reached: stopping after 100 pages of device app installation status", category: .core)
+                Logger.error("Safety limit reached: stopping after 100 pages of device app installation status", category: .reports)
                 break
             }
             
         } while skipToken != nil
         
-        Logger.info("Successfully fetched \(allDeviceInstallationData.count) device installation records for app \(appId) across \(pageCount) pages", category: .core)
+        Logger.info("Successfully fetched \(allDeviceInstallationData.count) device installation records for app \(appId) across \(pageCount) pages", category: .reports)
         
         // Sort by device name for consistent presentation
         return allDeviceInstallationData.sorted { record1, record2 in
@@ -242,7 +242,7 @@ extension EntraGraphRequests {
         
         for valueRow in values {
             guard valueRow.count <= columnNames.count else {
-                Logger.warning("Skipping row with too many values: expected \(columnNames.count), got \(valueRow.count)", category: .core)
+                Logger.warning("Skipping row with too many values: expected \(columnNames.count), got \(valueRow.count)", category: .reports)
                 continue
             }
             
@@ -312,11 +312,11 @@ extension EntraGraphRequests {
             //            )
         ]
         
-        Logger.info("Starting paginated fetch of Intune Configuration Profiles from multiple endpoints...", category: .core)
+        Logger.info("Starting paginated fetch of Intune Configuration Profiles from multiple endpoints...", category: .reports)
         
         // Fetch from each endpoint
         for (endpointIndex, endpoint) in endpoints.enumerated() {
-            Logger.info("Fetching from endpoint \(endpointIndex + 1)/\(endpoints.count): \(endpoint.url)", category: .core)
+            Logger.info("Fetching from endpoint \(endpointIndex + 1)/\(endpoints.count): \(endpoint.url)", category: .reports)
             
             let initialURL = "\(endpoint.url)?$select=\(endpoint.select)&$expand=\(endpoint.expand)"
             var nextPageUrl: String? = initialURL
@@ -324,7 +324,7 @@ extension EntraGraphRequests {
             
             // Follow pagination for this endpoint
             while let urlString = nextPageUrl {
-                Logger.info("Fetching configuration profiles from URL: \(urlString)", category: .core)
+                Logger.info("Fetching configuration profiles from URL: \(urlString)", category: .reports)
                 
                 guard let url = URL(string: urlString) else {
                     throw NSError(domain: "EntraGraphRequests.AppsReporting", code: 3, userInfo: [NSLocalizedDescriptionKey: "Invalid pagination URL: \(urlString)"])
@@ -338,22 +338,22 @@ extension EntraGraphRequests {
                 guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                     let responseString = String(data: data, encoding: .utf8) ?? "No response data"
                     let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
-                    Logger.error("HTTP \(statusCode) error fetching configuration profiles from \(endpoint.url) (page \(pageCount + 1)): \(responseString)", category: .core)
+                    Logger.error("HTTP \(statusCode) error fetching configuration profiles from \(endpoint.url) (page \(pageCount + 1)): \(responseString)", category: .reports)
                     
                     // Continue to next endpoint instead of failing completely
-                    Logger.warning("Skipping endpoint \(endpoint.url) due to error, continuing with other endpoints", category: .core)
+                    Logger.warning("Skipping endpoint \(endpoint.url) due to error, continuing with other endpoints", category: .reports)
                     break
                 }
                 
                 // Parse JSON response
                 guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-                    Logger.error("Invalid JSON response format for configuration profile data from \(endpoint.url) (page \(pageCount + 1))", category: .core)
+                    Logger.error("Invalid JSON response format for configuration profile data from \(endpoint.url) (page \(pageCount + 1))", category: .reports)
                     break
                 }
                 
                 // Extract configuration profiles from this page
                 guard let pageConfigurationProfiles = json["value"] as? [[String: Any]] else {
-                    Logger.error("Invalid response format for configuration profile data from \(endpoint.url) (page \(pageCount + 1))", category: .core)
+                    Logger.error("Invalid response format for configuration profile data from \(endpoint.url) (page \(pageCount + 1))", category: .reports)
                     break
                 }
                 
@@ -403,17 +403,17 @@ extension EntraGraphRequests {
                 // Check for next page
                 nextPageUrl = json["@odata.nextLink"] as? String
                 
-                Logger.info("Fetched page \(pageCount) with \(pageConfigurationProfiles.count) configuration profiles from \(endpoint.url) (total so far: \(allConfigurationProfiles.count))", category: .core)
+                Logger.info("Fetched page \(pageCount) with \(pageConfigurationProfiles.count) configuration profiles from \(endpoint.url) (total so far: \(allConfigurationProfiles.count))", category: .reports)
                 
                 // Safety check to prevent infinite loops
                 if pageCount > 100 {
-                    Logger.error("Safety limit reached: stopping after 100 pages for endpoint \(endpoint.url)", category: .core)
+                    Logger.error("Safety limit reached: stopping after 100 pages for endpoint \(endpoint.url)", category: .reports)
                     break
                 }
             }
         }
         
-        Logger.info("Completed fetching \(allConfigurationProfiles.count) total configuration profiles across all endpoints", category: .core)
+        Logger.info("Completed fetching \(allConfigurationProfiles.count) total configuration profiles across all endpoints", category: .reports)
         
         // Sort all configuration profiles alphabetically by display name
         return allConfigurationProfiles.sorted {
@@ -432,7 +432,7 @@ extension EntraGraphRequests {
     /// - Returns: Array of device deployment status dictionaries containing device and deployment details
     /// - Throws: Network errors, authentication errors, or JSON parsing errors
     static func getDeviceConfigProfileDeploymentStatusReport(authToken: String, profileId: String) async throws -> [[String: Any]] {
-        Logger.info("Fetching device configuration profile deployment status report for profile: \(profileId)", category: .core)
+        Logger.info("Fetching device configuration profile deployment status report for profile: \(profileId)", category: .reports)
         
         var allDeviceDeploymentData: [[String: Any]] = []
         var pageCount = 0
@@ -493,7 +493,7 @@ extension EntraGraphRequests {
             
             guard httpResponse.statusCode == 200 else {
                 let responseStr = String(data: data, encoding: .utf8) ?? "Unknown error"
-                Logger.error("Failed to fetch device configuration profile deployment status report for profile \(profileId) (page \(pageCount + 1)): \(responseStr)", category: .core)
+                Logger.error("Failed to fetch device configuration profile deployment status report for profile \(profileId) (page \(pageCount + 1)): \(responseStr)", category: .reports)
                 throw NSError(domain: "EntraGraphRequests.AppsReporting", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch device configuration profile deployment status report (page \(pageCount + 1)). Status: \(httpResponse.statusCode), Response: \(responseStr)"])
             }
             
@@ -536,17 +536,17 @@ extension EntraGraphRequests {
                 skipToken = String(currentRecords)
             }
             
-            Logger.info("Fetched page \(pageCount) with \(pageDeviceDeploymentData.count) device deployment records (total: \(allDeviceDeploymentData.count))", category: .core)
+            Logger.info("Fetched page \(pageCount) with \(pageDeviceDeploymentData.count) device deployment records (total: \(allDeviceDeploymentData.count))", category: .reports)
             
             // Safety check to prevent infinite loops
             if pageCount > 100 {
-                Logger.error("Safety limit reached: stopping after 100 pages of device configuration profile deployment status", category: .core)
+                Logger.error("Safety limit reached: stopping after 100 pages of device configuration profile deployment status", category: .reports)
                 break
             }
             
         } while skipToken != nil
         
-        Logger.info("Successfully fetched \(allDeviceDeploymentData.count) device deployment records for configuration profile \(profileId) across \(pageCount) pages", category: .core)
+        Logger.info("Successfully fetched \(allDeviceDeploymentData.count) device deployment records for configuration profile \(profileId) across \(pageCount) pages", category: .reports)
         
         // Sort by device name for consistent presentation
         return allDeviceDeploymentData.sorted { record1, record2 in
@@ -578,7 +578,7 @@ extension EntraGraphRequests {
         format: String = "csv",
         localizationType: String = "LocalizedValuesAsAdditionalColumn"
     ) async throws -> String {
-        Logger.info("Creating export job for report: \(reportName)", category: .core)
+        Logger.info("Creating export job for report: \(reportName)", category: .reports)
         
         let urlString = "https://graph.microsoft.com/beta/deviceManagement/reports/exportJobs"
         
@@ -613,7 +613,7 @@ extension EntraGraphRequests {
             // Debug logging
             if let jsonData = request.httpBody,
                let jsonString = String(data: jsonData, encoding: .utf8) {
-                Logger.info("Export job request body: \(jsonString)", category: .core)
+                Logger.info("Export job request body: \(jsonString)", category: .reports)
             }
         } catch {
             throw NSError(domain: "EntraGraphRequests.ExportJobs", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to serialize export job request body: \(error.localizedDescription)"])
@@ -627,7 +627,7 @@ extension EntraGraphRequests {
         
         guard httpResponse.statusCode == 200 || httpResponse.statusCode == 201 else {
             let responseStr = String(data: data, encoding: .utf8) ?? "Unknown error"
-            Logger.error("Failed to create export job for report \(reportName): \(responseStr)", category: .core)
+            Logger.error("Failed to create export job for report \(reportName): \(responseStr)", category: .reports)
             throw NSError(domain: "EntraGraphRequests.ExportJobs", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to create export job for \(reportName). Status: \(httpResponse.statusCode), Response: \(responseStr)"])
         }
         
@@ -639,7 +639,7 @@ extension EntraGraphRequests {
             throw NSError(domain: "EntraGraphRequests.ExportJobs", code: 500, userInfo: [NSLocalizedDescriptionKey: "Export job ID not found in response"])
         }
         
-        Logger.info("Successfully created export job for \(reportName) with ID: \(jobId)", category: .core)
+        Logger.info("Successfully created export job for \(reportName) with ID: \(jobId)", category: .reports)
         return jobId
     }
     
@@ -650,7 +650,7 @@ extension EntraGraphRequests {
     /// - Returns: Dictionary containing job status and details (status, downloadUrl, etc.)
     /// - Throws: Network errors, authentication errors, or JSON parsing errors
     static func getExportJobStatus(authToken: String, jobId: String) async throws -> [String: Any] {
-        Logger.info("Checking status of export job: \(jobId)", category: .core)
+        Logger.info("Checking status of export job: \(jobId)", category: .reports)
         
         let urlString = "https://graph.microsoft.com/beta/deviceManagement/reports/exportJobs('\(jobId)')"
         
@@ -670,7 +670,7 @@ extension EntraGraphRequests {
         
         guard httpResponse.statusCode == 200 else {
             let responseStr = String(data: data, encoding: .utf8) ?? "Unknown error"
-            Logger.error("Failed to get export job status for job \(jobId): \(responseStr)", category: .core)
+            Logger.error("Failed to get export job status for job \(jobId): \(responseStr)", category: .reports)
             throw NSError(domain: "EntraGraphRequests.ExportJobs", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to get export job status. Status: \(httpResponse.statusCode), Response: \(responseStr)"])
         }
         
@@ -679,7 +679,7 @@ extension EntraGraphRequests {
         }
         
         let status = json["status"] as? String ?? "unknown"
-        Logger.info("Export job \(jobId) status: \(status)", category: .core)
+        Logger.info("Export job \(jobId) status: \(status)", category: .reports)
         
         return json
     }
@@ -691,7 +691,7 @@ extension EntraGraphRequests {
     /// - Returns: Raw data from the export (CSV or JSON format depending on job creation)
     /// - Throws: Network errors, authentication errors, or download errors
     static func downloadExportJobData(authToken: String, downloadUrl: String) async throws -> Data {
-        Logger.info("Downloading export job data from: \(downloadUrl)", category: .core)
+        Logger.info("Downloading export job data from: \(downloadUrl)", category: .reports)
         
         guard let url = URL(string: downloadUrl) else {
             throw NSError(domain: "EntraGraphRequests.ExportJobs", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid download URL"])
@@ -710,11 +710,11 @@ extension EntraGraphRequests {
         
         guard httpResponse.statusCode == 200 else {
             let responseStr = String(data: data, encoding: .utf8) ?? "Unknown error"
-            Logger.error("Failed to download export job data: \(responseStr)", category: .core)
+            Logger.error("Failed to download export job data: \(responseStr)", category: .reports)
             throw NSError(domain: "EntraGraphRequests.ExportJobs", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to download export job data. Status: \(httpResponse.statusCode)"])
         }
         
-        Logger.info("Successfully downloaded export job data (\(data.count) bytes)", category: .core)
+        Logger.info("Successfully downloaded export job data (\(data.count) bytes)", category: .reports)
         return data
     }
     
@@ -732,7 +732,7 @@ extension EntraGraphRequests {
         maxWaitTimeSeconds: Int = 300,
         pollIntervalSeconds: Int = 5
     ) async throws -> Data {
-        Logger.info("Polling export job \(jobId) for completion", category: .core)
+        Logger.info("Polling export job \(jobId) for completion", category: .reports)
         
         let startTime = Date()
         let maxWaitTime = TimeInterval(maxWaitTimeSeconds)
@@ -750,7 +750,7 @@ extension EntraGraphRequests {
                 guard let downloadUrl = jobStatus["url"] as? String else {
                     throw NSError(domain: "EntraGraphRequests.ExportJobs", code: 500, userInfo: [NSLocalizedDescriptionKey: "Download URL not found in completed job"])
                 }
-                Logger.info("Export job \(jobId) completed, downloading data", category: .core)
+                Logger.info("Export job \(jobId) completed, downloading data", category: .reports)
                 return try await downloadExportJobData(authToken: authToken, downloadUrl: downloadUrl)
                 
             case "failed":
@@ -758,11 +758,11 @@ extension EntraGraphRequests {
                 throw NSError(domain: "EntraGraphRequests.ExportJobs", code: 500, userInfo: [NSLocalizedDescriptionKey: "Export job failed: \(errorMessage)"])
                 
             case "inprogress", "notstarted":
-                Logger.info("Export job \(jobId) status: \(status), waiting \(pollInterval) seconds", category: .core)
+                Logger.info("Export job \(jobId) status: \(status), waiting \(pollInterval) seconds", category: .reports)
                 try await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
                 
             default:
-                Logger.warning("Unknown export job status: \(status)", category: .core)
+                Logger.warning("Unknown export job status: \(status)", category: .reports)
                 try await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
             }
         }
@@ -792,7 +792,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating DeviceInstallStatusByApp export job", category: .core)
+        Logger.info("Creating DeviceInstallStatusByApp export job", category: .reports)
         
         // Build filter string if any filters are provided
         var filterComponents: [String] = []
@@ -856,7 +856,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating UserInstallStatusAggregateByApp export job", category: .core)
+        Logger.info("Creating UserInstallStatusAggregateByApp export job", category: .reports)
         
         // Build filter string if any filters are provided
         var filterComponents: [String] = []
@@ -913,7 +913,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating AppInvByDevice export job", category: .core)
+        Logger.info("Creating AppInvByDevice export job", category: .reports)
         
         // Build filter string if any filters are provided
         var filterComponents: [String] = []
@@ -967,7 +967,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating AllAppsList export job", category: .core)
+        Logger.info("Creating AllAppsList export job", category: .reports)
                 
         // Default columns for AllAppsList if none specified
         // Based on Microsoft Graph API documentation for AllAppsList report
@@ -1021,7 +1021,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating AppInstallStatusAggregate export job", category: .core)
+        Logger.info("Creating AppInstallStatusAggregate export job", category: .reports)
                 
         // Default columns for AppInstallStatusAggregate if none specified
         // Based on Microsoft Graph API documentation for AppInstallStatusAggregate report
@@ -1068,7 +1068,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating AppInvAggregate export job", category: .core)
+        Logger.info("Creating AppInvAggregate export job", category: .reports)
                 
         // Default columns for AppInvAggregate if none specified
         // Based on Microsoft Graph API documentation for AppInvAggregate report
@@ -1130,7 +1130,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating AppInvRawData export job", category: .core)
+        Logger.info("Creating AppInvRawData export job", category: .reports)
         
         // Build filter string if any filters are provided
         var filterComponents: [String] = []
@@ -1234,7 +1234,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating DeviceCompliance export job", category: .core)
+        Logger.info("Creating DeviceCompliance export job", category: .reports)
         
         // Build filter string if any filters are provided
         var filterComponents: [String] = []
@@ -1317,7 +1317,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating DeviceNonCompliance export job", category: .core)
+        Logger.info("Creating DeviceNonCompliance export job", category: .reports)
         
         // Build filter string if any filters are provided
         var filterComponents: [String] = []
@@ -1412,7 +1412,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating Devices export job", category: .core)
+        Logger.info("Creating Devices export job", category: .reports)
         
         // Build filter string if any filters are provided
         var filterComponents: [String] = []
@@ -1564,7 +1564,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating DevicesWithInventory export job", category: .core)
+        Logger.info("Creating DevicesWithInventory export job", category: .reports)
         
         // Build filter string if any filters are provided
         var filterComponents: [String] = []
@@ -1707,7 +1707,7 @@ extension EntraGraphRequests {
         format: String = "csv",
         reportType: String = "DefenderAgents"
     ) async throws -> String {
-        Logger.info("Creating DefenderAgents export job", category: .core)
+        Logger.info("Creating DefenderAgents export job", category: .reports)
         
         // Build filter string if any filters are provided
         var filterComponents: [String] = []
@@ -1792,7 +1792,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating FirewallStatus export job", category: .core)
+        Logger.info("Creating FirewallStatus export job", category: .reports)
         
         // Build filter string if any filters are provided
         var filterComponents: [String] = []
@@ -1844,7 +1844,7 @@ extension EntraGraphRequests {
         format: String = "csv",
         reportType: String = "Malware"
     ) async throws -> String {
-        Logger.info("Creating Malware export job", category: .core)
+        Logger.info("Creating Malware export job", category: .reports)
         
         // Build filter string if any filters are provided
         var filterComponents: [String] = []
@@ -1908,7 +1908,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating MAMAppProtectionStatus export job", category: .core)
+        Logger.info("Creating MAMAppProtectionStatus export job", category: .reports)
                 
         // Default columns for MAMAppProtectionStatus if none specified
         // Based on Microsoft Graph API documentation for MAMAppProtectionStatus report
@@ -1960,7 +1960,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating MAMAppConfigurationStatus export job", category: .core)
+        Logger.info("Creating MAMAppConfigurationStatus export job", category: .reports)
                 
         // Default columns for MAMAppConfigurationStatus if none specified
         // Based on Microsoft Graph API documentation for MAMAppConfigurationStatus report
@@ -2009,7 +2009,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating FeatureUpdatePolicyFailuresAggregate export job", category: .core)
+        Logger.info("Creating FeatureUpdatePolicyFailuresAggregate export job", category: .reports)
                 
         // Default columns for FeatureUpdatePolicyFailuresAggregate if none specified
         // Based on Microsoft Graph API documentation for FeatureUpdatePolicyFailuresAggregate report
@@ -2050,7 +2050,7 @@ extension EntraGraphRequests {
         includeColumns: [String]? = nil,
         format: String = "csv"
     ) async throws -> String {
-        Logger.info("Creating QualityUpdateDeviceStatusByPolicy export job", category: .core)
+        Logger.info("Creating QualityUpdateDeviceStatusByPolicy export job", category: .reports)
         
         // Build filter string if any filters are provided
         var filterComponents: [String] = []

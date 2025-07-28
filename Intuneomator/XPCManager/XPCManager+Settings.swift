@@ -392,6 +392,36 @@ extension XPCManager {
     func testAzureStorageConfigurationDirect(_ configuration: [String: Any], completion: @escaping (Bool?) -> Void) {
         sendRequest({ $0.testAzureStorageConfigurationDirect(configuration, reply: $1) }, completion: completion)
     }
+    
+    // MARK: - Scheduled Report File Management
+    
+    /// Saves a scheduled report configuration to the secured reports directory
+    /// Provides write access to the root-owned scheduled reports folder through the privileged service
+    /// - Parameters:
+    ///   - reportData: Encoded scheduled report data (JSON)
+    ///   - fileName: Name of the report file (including .json extension)
+    ///   - completion: Callback indicating if save was successful or nil on XPC failure
+    func saveScheduledReportConfiguration(reportData: Data, fileName: String, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.saveScheduledReportConfiguration(reportData: reportData, fileName: fileName, reply: $1) }, completion: completion)
+    }
+    
+    /// Deletes a scheduled report configuration from the secured reports directory
+    /// Provides delete access to the root-owned scheduled reports folder through the privileged service
+    /// - Parameters:
+    ///   - fileName: Name of the report file to delete (including .json extension)
+    ///   - completion: Callback indicating if deletion was successful or nil on XPC failure
+    func deleteScheduledReportConfiguration(fileName: String, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.deleteScheduledReportConfiguration(fileName: fileName, reply: $1) }, completion: completion)
+    }
+    
+    /// Updates the scheduled reports index file
+    /// Maintains the index file that tracks all scheduled report configurations
+    /// - Parameters:
+    ///   - indexData: Encoded index data (JSON)
+    ///   - completion: Callback indicating if update was successful or nil on XPC failure
+    func updateScheduledReportsIndex(indexData: Data, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.updateScheduledReportsIndex(indexData: indexData, reply: $1) }, completion: completion)
+    }
 
 }
 

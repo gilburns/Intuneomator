@@ -477,6 +477,7 @@ class KeychainManager {
     ///   - value: The string value to store
     ///   - key: The key identifier for the value
     /// - Returns: True if storage was successful, false otherwise
+    @discardableResult
     func setValue(_ value: String, for key: String) -> Bool {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -515,6 +516,7 @@ class KeychainManager {
     /// Removes a generic string value from the keychain
     /// - Parameter key: The key identifier for the value to remove
     /// - Returns: True if removal was successful, false otherwise
+    @discardableResult
     func removeValue(for key: String) -> Bool {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,

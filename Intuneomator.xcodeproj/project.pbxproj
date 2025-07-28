@@ -106,6 +106,7 @@
 				"Constants+Metadata.swift",
 				"Constants+PlistData.swift",
 				"Constants+ProcessedAppResults.swift",
+				"Constants+ScheduledReports.swift",
 				"Constants+Settings.swift",
 			);
 			target = 1BB046652D81324E004B6F3E /* IntuneomatorService */;
@@ -138,6 +139,7 @@
 				InstallomatorLabels.swift,
 				Logging.swift,
 				LogManagerUtil.swift,
+				ReportRegistry.swift,
 				ScriptLibraryManager.swift,
 				Weekday.swift,
 				XPCServiceProtocol.swift,

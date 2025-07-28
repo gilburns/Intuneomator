@@ -33,9 +33,9 @@ class AzureStorageConfig {
         get { KeychainManager.shared.getValue(for: KeychainKeys.storageAccountName) }
         set { 
             if let value = newValue {
-                _ = KeychainManager.shared.setValue(value, for: KeychainKeys.storageAccountName)
+                KeychainManager.shared.setValue(value, for: KeychainKeys.storageAccountName)
             } else {
-                _ = KeychainManager.shared.removeValue(for: KeychainKeys.storageAccountName)
+                KeychainManager.shared.removeValue(for: KeychainKeys.storageAccountName)
             }
         }
     }
@@ -45,9 +45,9 @@ class AzureStorageConfig {
         get { KeychainManager.shared.getValue(for: KeychainKeys.storageAccountKey) }
         set { 
             if let value = newValue {
-                _ = KeychainManager.shared.setValue(value, for: KeychainKeys.storageAccountKey)
+                KeychainManager.shared.setValue(value, for: KeychainKeys.storageAccountKey)
             } else {
-                _ = KeychainManager.shared.removeValue(for: KeychainKeys.storageAccountKey)
+                KeychainManager.shared.removeValue(for: KeychainKeys.storageAccountKey)
             }
         }
     }
@@ -57,9 +57,9 @@ class AzureStorageConfig {
         get { KeychainManager.shared.getValue(for: KeychainKeys.sasToken) }
         set { 
             if let value = newValue {
-                _ = KeychainManager.shared.setValue(value, for: KeychainKeys.sasToken)
+                KeychainManager.shared.setValue(value, for: KeychainKeys.sasToken)
             } else {
-                _ = KeychainManager.shared.removeValue(for: KeychainKeys.sasToken)
+                KeychainManager.shared.removeValue(for: KeychainKeys.sasToken)
             }
         }
     }
@@ -69,9 +69,9 @@ class AzureStorageConfig {
         get { KeychainManager.shared.getValue(for: KeychainKeys.containerName) }
         set { 
             if let value = newValue {
-                _ = KeychainManager.shared.setValue(value, for: KeychainKeys.containerName)
+                KeychainManager.shared.setValue(value, for: KeychainKeys.containerName)
             } else {
-                _ = KeychainManager.shared.removeValue(for: KeychainKeys.containerName)
+                KeychainManager.shared.removeValue(for: KeychainKeys.containerName)
             }
         }
     }
@@ -81,9 +81,9 @@ class AzureStorageConfig {
         get { KeychainManager.shared.getValue(for: KeychainKeys.tenantId) }
         set { 
             if let value = newValue {
-                _ = KeychainManager.shared.setValue(value, for: KeychainKeys.tenantId)
+                KeychainManager.shared.setValue(value, for: KeychainKeys.tenantId)
             } else {
-                _ = KeychainManager.shared.removeValue(for: KeychainKeys.tenantId)
+                KeychainManager.shared.removeValue(for: KeychainKeys.tenantId)
             }
         }
     }
@@ -93,9 +93,9 @@ class AzureStorageConfig {
         get { KeychainManager.shared.getValue(for: KeychainKeys.clientId) }
         set { 
             if let value = newValue {
-                _ = KeychainManager.shared.setValue(value, for: KeychainKeys.clientId)
+                KeychainManager.shared.setValue(value, for: KeychainKeys.clientId)
             } else {
-                _ = KeychainManager.shared.removeValue(for: KeychainKeys.clientId)
+                KeychainManager.shared.removeValue(for: KeychainKeys.clientId)
             }
         }
     }
@@ -105,9 +105,9 @@ class AzureStorageConfig {
         get { KeychainManager.shared.getValue(for: KeychainKeys.clientSecret) }
         set { 
             if let value = newValue {
-                _ = KeychainManager.shared.setValue(value, for: KeychainKeys.clientSecret)
+                KeychainManager.shared.setValue(value, for: KeychainKeys.clientSecret)
             } else {
-                _ = KeychainManager.shared.removeValue(for: KeychainKeys.clientSecret)
+                KeychainManager.shared.removeValue(for: KeychainKeys.clientSecret)
             }
         }
     }
@@ -383,7 +383,7 @@ class AzureStorageConfig {
         let configListKey = "azure_storage_config_list"
         if let listData = try? JSONEncoder().encode(Array(updatedNames)),
            let listJson = String(data: listData, encoding: .utf8) {
-            _ = KeychainManager.shared.setValue(listJson, for: configListKey)
+            KeychainManager.shared.setValue(listJson, for: configListKey)
         }
         
         Logger.info("Saved Azure Storage configuration '\(name)' for account: \(configuration.accountName)", category: .core)
@@ -406,10 +406,10 @@ class AzureStorageConfig {
         let configListKey = "azure_storage_config_list"
         if let listData = try? JSONEncoder().encode(updatedNames),
            let listJson = String(data: listData, encoding: .utf8) {
-            _ = KeychainManager.shared.setValue(listJson, for: configListKey)
+            KeychainManager.shared.setValue(listJson, for: configListKey)
         } else {
             // If we can't update the list, remove it entirely to stay consistent
-            _ = KeychainManager.shared.removeValue(for: configListKey)
+            KeychainManager.shared.removeValue(for: configListKey)
         }
         
         Logger.info("Removed Azure Storage configuration '\(name)'", category: .core)
@@ -458,7 +458,7 @@ class AzureStorageConfig {
         }
         
         // Clear the list
-        _ = KeychainManager.shared.removeValue(for: "azure_storage_config_list")
+        KeychainManager.shared.removeValue(for: "azure_storage_config_list")
         
         Logger.info("Cleared all named Azure Storage configurations (\(names.count) removed)", category: .core)
     }
@@ -529,14 +529,3 @@ enum ConfigurationError: LocalizedError {
         }
     }
 }
-
-// MARK: - AzureStorageManager Extension for Testing
-
-//extension AzureStorageManager {
-//    /// Tests the connection to Azure Storage
-//    /// - Throws: AzureStorageError if connection fails
-//    func testConnection() async throws {
-//        // Try to list blobs with a very small limit to test connectivity
-//        let _ = try await listBlobs(prefix: nil)
-//    }
-//}
