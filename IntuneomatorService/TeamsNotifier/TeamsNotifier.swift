@@ -72,4 +72,64 @@ class TeamsNotifier {
         }
     }
     
+    /// Sends a simple text message to Microsoft Teams
+    /// - Parameter message: Plain text message to send
+    /// - Returns: True if message was sent successfully, false otherwise
+    func sendCustomMessage(_ message: String) async -> Bool {
+        let bodyContent: [[String: Any]] = [
+            [
+                "type": "TextBlock",
+                "text": message,
+                "wrap": true,
+                "size": "Default",
+                "format": "markdown"
+            ]
+        ]
+        
+        let payload: [String: Any] = [
+            "type": "message",
+            "attachments": [
+                [
+                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "content": [
+                        "type": "AdaptiveCard",
+                        "version": "1.4",
+                        "msteams": ["width": "full"],
+                        "body": bodyContent
+                    ]
+                ]
+            ]
+        ]
+        
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: payload, options: [])
+            guard let url = URL(string: webhookURL) else {
+                Logger.error("Invalid webhook URL: \(webhookURL)", category: .core)
+                return false
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = jsonData
+            
+            let (_, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                if (200...299).contains(httpResponse.statusCode) {
+                    Logger.log("Custom message sent successfully to Teams!", category: .core)
+                    return true
+                } else {
+                    Logger.error("Failed to send Teams message. HTTP Status: \(httpResponse.statusCode)", category: .core)
+                    return false
+                }
+            }
+            
+            return false
+        } catch {
+            Logger.error("Error sending custom Teams message: \(error.localizedDescription)", category: .core)
+            return false
+        }
+    }
+    
 }

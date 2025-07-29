@@ -51,6 +51,11 @@ struct AppConstants {
     static let intuneomatorOndemandTriggerURL = intuneomatorFolderURL
         .appendingPathComponent("ondemandQueue")
 
+    /// Directory used to store on-going automation schedules for report delivery
+    /// Location: /Library/Application Support/Intuneomator/ScheduledReports
+    static let intuneomatorScheduledReportsFolderURL = intuneomatorFolderURL
+        .appendingPathComponent("ScheduledReports")
+
     /// Directory used to store on-going automation download and upload statistics
     /// Location: /Library/Application Support/Intuneomator/Stats
     static let intuneomatorScriptsURL = intuneomatorFolderURL

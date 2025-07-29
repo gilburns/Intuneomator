@@ -223,8 +223,6 @@ class InstallomatorLabelProcessor {
         } else {
             return true
         }
-        Logger.error("❌ Unknown error occurred when running process_label.sh", category: .core)
-        return false
     }
     
     

@@ -1337,6 +1337,61 @@ extension XPCManager {
             service.createQualityUpdateDeviceStatusByPolicyExportJob(policyID: policyID, aggregateState: aggregateState, ownerType: ownerType, includeColumns: includeColumns, format: format, reply: reply)
         }, completion: completion)
     }
+    
+    // MARK: - Scheduled Reports Management
+    
+    /// Gets the current scheduler status and execution statistics
+    ///
+    /// This function retrieves comprehensive information about the scheduled reports scheduler,
+    /// including operational status, timing information, and execution statistics.
+    ///
+    /// **Returned Data Structure:**
+    /// - `schedulerEnabled`: Boolean indicating if scheduler plist exists and is active
+    /// - `schedulerInterval`: Interval in seconds between scheduler runs (typically 600 = 10 minutes)
+    /// - `totalReports`: Total number of scheduled reports configured
+    /// - `enabledReports`: Number of enabled scheduled reports
+    /// - `lastSchedulerRun`: Date of last scheduler execution (if available from logs)
+    /// - `nextReportDue`: Date when the next report is scheduled to run
+    /// - `overdueReports`: Number of reports that are currently overdue
+    /// - `averageExecutionTime`: Average execution time for recent reports (if available)
+    ///
+    /// **Usage Example:**
+    /// ```swift
+    /// XPCManager.shared.getSchedulerStatus { statusInfo in
+    ///     if let statusInfo = statusInfo {
+    ///         let enabled = statusInfo["schedulerEnabled"] as? Bool ?? false
+    ///         let interval = statusInfo["schedulerInterval"] as? Int ?? 0
+    ///         let totalReports = statusInfo["totalReports"] as? Int ?? 0
+    ///         let enabledReports = statusInfo["enabledReports"] as? Int ?? 0
+    ///         
+    ///         print("Scheduler: \(enabled ? "Enabled" : "Disabled")")
+    ///         print("Interval: \(interval / 60) minutes")
+    ///         print("Reports: \(enabledReports)/\(totalReports) enabled")
+    ///         
+    ///         if let lastRun = statusInfo["lastSchedulerRun"] as? Date {
+    ///             print("Last run: \(lastRun)")
+    ///         }
+    ///         
+    ///         if let nextDue = statusInfo["nextReportDue"] as? Date {
+    ///             print("Next report due: \(nextDue)")
+    ///         }
+    ///         
+    ///         let overdue = statusInfo["overdueReports"] as? Int ?? 0
+    ///         if overdue > 0 {
+    ///             print("⚠️ \(overdue) reports are overdue")
+    ///         }
+    ///     } else {
+    ///         print("Failed to get scheduler status")
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// - Parameter completion: Callback with scheduler status dictionary or nil on failure
+    func getSchedulerStatus(completion: @escaping ([String: Any]?) -> Void) {
+        sendRequest({ service, reply in
+            service.getSchedulerStatus(reply: reply)
+        }, completion: completion)
+    }
 
  
 }

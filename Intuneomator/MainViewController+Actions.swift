@@ -150,7 +150,69 @@ extension MainViewController {
      * - Parameter sender: The UI control that triggered this action
      */
     @IBAction func openSettings(_ sender: Any) {
-        presentSheet(withIdentifier: "SettingsView")
+        // Load current settings from the daemon
+        XPCManager.shared.getSettings { [weak self] settingsData in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                
+                // Debug logging to identify the issue
+                if let settings = settingsData {
+                    Logger.debug("Successfully retrieved settings from XPC service: \(settings.keys.joined(separator: ", "))", category: .core, toUserDirectory: true)
+                } else {
+                    Logger.error("XPC service returned nil for getSettings - this indicates XPC communication failure", category: .core, toUserDirectory: true)
+                }
+                
+                // Use the settings data directly (already in dictionary format)
+                let data = settingsData ?? [:]
+                
+                // Create tabbed settings editor
+                guard let settingsVC = TabbedSheetViewController.createSettingsEditor(
+                    settingsData: data,
+                    saveHandler: { [weak self] combinedData in
+                        self?.handleSettingsSaved(combinedData)
+                    },
+                    cancelHandler: {
+                        Logger.info("Settings editing cancelled", category: .core, toUserDirectory: true)
+                    }
+                ) else {
+                    Logger.error("Failed to create settings editor", category: .core, toUserDirectory: true)
+                    return
+                }
+                
+                self.presentAsSheet(settingsVC)
+            }
+        }
+    }
+    
+    /// Handles settings being saved from the tabbed interface
+    private func handleSettingsSaved(_ combinedData: [String: Any]) {
+        Logger.info("Settings saved via tabbed interface", category: .core, toUserDirectory: true)
+        
+        // Convert combined data back to Settings object and save via XPC
+        XPCManager.shared.saveSettingsFromDictionary(combinedData) { [weak self] success in
+            DispatchQueue.main.async {
+                if let success = success, success {
+                    Logger.info("Settings saved successfully", category: .core, toUserDirectory: true)
+                    // Refresh any UI that depends on settings
+                    self?.refreshSettingsDependentUI()
+                } else {
+                    Logger.error("Failed to save settings", category: .core, toUserDirectory: true)
+                    
+                    let alert = NSAlert()
+                    alert.messageText = "Settings Save Failed"
+                    alert.informativeText = "Unable to save the settings. Please try again."
+                    alert.alertStyle = .warning
+                    alert.addButton(withTitle: "OK")
+                    alert.runModal()
+                }
+            }
+        }
+    }
+    
+    /// Refreshes UI components that depend on settings
+    private func refreshSettingsDependentUI() {
+        // Add any UI refresh logic here if needed
+        // For example, updating status indicators, refresh intervals, etc.
     }
 
     /**
@@ -555,7 +617,7 @@ extension MainViewController {
             return
         }
 
-        let frame = restoredWindowFrame(forElement: "IntuneReportsViewController", defaultSize: NSSize(width: 400, height: 250))
+        let frame = restoredWindowFrame(forElement: "IntuneReportsViewController", defaultSize: NSSize(width: 520, height: 250))
 
         let reportsExportWindow = NSWindow(
             contentRect: frame,
@@ -568,7 +630,7 @@ extension MainViewController {
         reportsExportWindow.title = "Intune Reports Export"
 
         // Set minimum window size
-        reportsExportWindow.minSize = NSSize(width: 400, height: 250)
+        reportsExportWindow.minSize = NSSize(width: 520, height: 250)
         reportsExportWindow.setFrame(frame, display: true)
         
         // Preselect report type if specified

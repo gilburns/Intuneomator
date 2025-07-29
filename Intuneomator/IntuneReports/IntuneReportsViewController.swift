@@ -12,6 +12,8 @@ class IntuneReportsViewController: NSViewController {
     
     @IBOutlet weak var reportNamePopUp: NSPopUpButton!
     @IBOutlet weak var runReportButton: NSButton!
+    @IBOutlet weak var scheduleReportButton: NSButton!
+    @IBOutlet weak var manageSchedulesButton: NSButton!
     @IBOutlet weak var progressIndicator: NSProgressIndicator!
     @IBOutlet weak var statusLabel: NSTextField!
     @IBOutlet weak var cancelButton: NSButton!
@@ -33,6 +35,9 @@ class IntuneReportsViewController: NSViewController {
     /// Export start time for elapsed time tracking
     private var exportStartTime: Date?
     
+    /// Currently selected report type
+    private var selectedReportType: String?
+    
     
     // MARK: - View Lifecycle
     /// Lifecycle callback invoked when the view loads.
@@ -53,16 +58,20 @@ class IntuneReportsViewController: NSViewController {
             setupPopups()
         }
         
-        // Find and select the matching item
-        for i in 0..<reportNamePopUp.numberOfItems {
-            if let title = reportNamePopUp.item(at: i)?.title, title == reportType {
-                reportNamePopUp.selectItem(at: i)
-                Logger.info("Preselected report type: \(reportType)", category: .core, toUserDirectory: true)
-                return
+        // Set the selected report type and update the placeholder item
+        if let reportDef = ReportRegistry.shared.getReportDefinition(for: reportType) {
+            selectedReportType = reportType
+            
+            // Update the placeholder item title (first item in the menu)
+            if let placeholderItem = reportNamePopUp.menu?.item(at: 0) {
+                placeholderItem.title = reportDef.displayName
+                reportNamePopUp.selectItem(at: 0)
             }
+            
+            Logger.info("Preselected report type: \(reportType) (\(reportDef.displayName))", category: .core, toUserDirectory: true)
+        } else {
+            Logger.warning("Could not find report type '\(reportType)' in registry", category: .core, toUserDirectory: true)
         }
-        
-        Logger.warning("Could not find report type '\(reportType)' in popup menu", category: .core, toUserDirectory: true)
     }
     
     
@@ -71,6 +80,7 @@ class IntuneReportsViewController: NSViewController {
     private func setupUI() {
         setupPopups()
         setupStatusControls()
+        setupScheduleButtons()
     }
     
     private func setupStatusControls() {
@@ -92,33 +102,83 @@ class IntuneReportsViewController: NSViewController {
     
     private func setupPopups() {
         reportNamePopUp.removeAllItems()
-        reportNamePopUp.addItems(withTitles: [
-            "All Apps List",
-            "App Install Status Aggregate",
-            "App Inventory Aggregate",
-            "App Inventory Raw Data",
-            "Device Compliance",
-            "Device Non Compliance",
-            "Devices",
-            "Devices with Inventory",
-            "Defender Agents",
-            "Defender Agents (Unhealthy)",
-            "Firewall Status",
-            "Malware",
-            "Malware (Active)",
-            "MAM App Protection Status",
-            "MAM App Configuration Status",
-            "Feature Update Policy Failures"
-        ])
         
-        // Default selection (can be overridden by preselectReportType)
+        // Add a placeholder item to show current selection
+        let placeholderItem = NSMenuItem(title: "Select Report Type...", action: nil, keyEquivalent: "")
+        placeholderItem.isEnabled = false
+        reportNamePopUp.menu?.addItem(placeholderItem)
+        
+        // Add separator
+        reportNamePopUp.menu?.addItem(NSMenuItem.separator())
+        
+        // Get all reports from registry and populate popup with categories as submenus
+        let categories = ReportRegistry.shared.getCategories()
+        
+        for category in categories {
+            // Create category submenu
+            let categoryMenu = NSMenu()
+            let categoryMenuItem = NSMenuItem(title: category, action: nil, keyEquivalent: "")
+            categoryMenuItem.submenu = categoryMenu
+            
+            // Add reports for this category
+            let reportsInCategory = ReportRegistry.shared.getReportsForCategory(category)
+            for report in reportsInCategory {
+                let reportMenuItem = NSMenuItem(title: report.displayName, action: #selector(reportSelectionChanged(_:)), keyEquivalent: "")
+                reportMenuItem.toolTip = report.formattedTooltip()
+                reportMenuItem.target = self
+                reportMenuItem.representedObject = report.type // Store the report type for identification
+                categoryMenu.addItem(reportMenuItem)
+            }
+            
+            reportNamePopUp.menu?.addItem(categoryMenuItem)
+        }
+        
+        // Select the placeholder item by default
         reportNamePopUp.selectItem(at: 0)
+    }
+    
+    private func setupScheduleButtons() {
+        // Set initial button states
+        updateScheduleButtonsState()
+        
+        // Set up button appearance
+        scheduleReportButton.title = "Schedule Report"
+        manageSchedulesButton.title = "Manage Schedules"
+        
+        // Update button state when report selection changes
+        reportNamePopUp.target = self
+        reportNamePopUp.action = #selector(reportSelectionChanged(_:))
+    }
+    
+    @objc private func reportSelectionChanged(_ sender: Any) {
+        // Handle selection from submenu items
+        if let menuItem = sender as? NSMenuItem,
+           let reportType = menuItem.representedObject as? String {
+            selectedReportType = reportType
+            
+            // Update the placeholder item title (first item in the menu)
+            if let placeholderItem = reportNamePopUp.menu?.item(at: 0) {
+                placeholderItem.title = menuItem.title
+            }
+            
+            // Ensure the placeholder item remains selected
+            reportNamePopUp.selectItem(at: 0)
+        }
+        updateScheduleButtonsState()
     }
 
     
     // MARK: - Actions
     @IBAction func runReportButtonClicked(_ sender: Any) {
         showExportFullReportDialog()
+    }
+    
+    @IBAction func scheduleReportButtonClicked(_ sender: Any) {
+        showScheduleReportDialog()
+    }
+    
+    @IBAction func manageSchedulesButtonClicked(_ sender: Any) {
+        showScheduleManagementWindow()
     }
     
     @IBAction func cancelButtonClicked(_ sender: Any) {
@@ -145,55 +205,12 @@ class IntuneReportsViewController: NSViewController {
     }
 
     private func getReportNameAndType() -> (reportName: String, reportType: String)? {
-        var reportType: String?
-        
-        guard let selectedTitle = reportNamePopUp.titleOfSelectedItem, !selectedTitle.isEmpty else {
-            return nil
-        }
-        let reportName = selectedTitle
-        
-        switch reportName {
-        case "All Apps List":
-            reportType = "AllAppsList"
-        case "App Install Status Aggregate":
-            reportType = "AppInstallStatusAggregate"
-        case "App Inventory Aggregate":
-            reportType = "AppInvAggregate"
-        case "App Inventory Raw Data":
-            reportType = "AppInvRawData"
-        case "Device Compliance":
-            reportType = "DeviceCompliance"
-        case "Device Non Compliance":
-            reportType = "DeviceNonCompliance"
-        case "Devices":
-            reportType = "Devices"
-        case "Devices with Inventory":
-            reportType = "DevicesWithInventory"
-        case "Defender Agents":
-            reportType = "DefenderAgents"
-        case "Defender Agents (Unhealthy)":
-            reportType = "UnhealthyDefenderAgents"
-        case "Firewall Status":
-            reportType = "FirewallStatus"
-        case "Malware":
-            reportType = "Malware"
-        case "Malware (Active)":
-            reportType = "ActiveMalware"
-        case "MAM App Protection Status":
-            reportType = "MAMAppProtectionStatus"
-        case "MAM App Configuration Status":
-            reportType = "MAMAppConfigurationStatus"
-        case "Feature Update Policy Failures":
-            reportType = "FeatureUpdatePolicyFailuresAggregate"
-        default:
-            return nil
+        guard let reportType = selectedReportType,
+              let reportDef = ReportRegistry.shared.getReportDefinition(for: reportType) else { 
+            return nil 
         }
         
-        guard let reportType = reportType else {
-            return nil
-        }
-        
-        return (reportName: reportName, reportType: reportType)
+        return (reportName: reportDef.displayName, reportType: reportType)
     }
     
     
@@ -220,16 +237,26 @@ class IntuneReportsViewController: NSViewController {
         alert.messageText = "Export Full Report"
         alert.informativeText = "Export the '\(reportName)' report from Microsoft Graph."
         
-        // Determine if this report type supports filtering
-        let hasFilters = reportSupportsFiltering(reportType)
+        // Check if this report type supports filtering using ReportRegistry
+        let reportDefinition = ReportRegistry.shared.getReportDefinition(for: reportType)
+        let hasFilters = reportDefinition?.supportedFilters.isEmpty == false
         
-        // Create main accessory view - size based on filter support
-        let dialogHeight = hasFilters ? 120 : 50
-        let accessoryView = NSView(frame: NSRect(x: 0, y: 0, width: 450, height: dialogHeight))
+        // Calculate dialog dimensions based on filter support
+        let dialogWidth: CGFloat = hasFilters ? 560 : 450 // Wider for two-column layout
+        var dialogHeight: CGFloat = 50
         
-        // Format label and popup - position based on dialog size
-        let formatLabelY = hasFilters ? 90 : 20
-        let formatPopupY = hasFilters ? 88 : 18
+        if hasFilters, let filterCount = reportDefinition?.supportedFilters.count {
+            // Calculate height based on number of filters (two-column layout)
+            let filtersPerColumn = Int(ceil(Double(filterCount) / 2.0))
+            let filterAreaHeight = CGFloat(filtersPerColumn) * 28 + 45 // 28px spacing + padding + title space
+            dialogHeight = max(120, filterAreaHeight + 60) // Minimum height + space for format controls
+        }
+        
+        let accessoryView = NSView(frame: NSRect(x: 0, y: 0, width: dialogWidth, height: dialogHeight))
+        
+        // Format label and popup - position at top of dialog
+        let formatLabelY = dialogHeight - 30
+        let formatPopupY = dialogHeight - 32
         
         let formatLabel = NSTextField(labelWithString: "Export Format:")
         formatLabel.frame = NSRect(x: 0, y: formatLabelY, width: 100, height: 20)
@@ -242,26 +269,17 @@ class IntuneReportsViewController: NSViewController {
         formatPopup.selectItem(at: 0) // Default to CSV
         accessoryView.addSubview(formatPopup)
         
-        // Add filters based on report type (only for reports that support filtering)
+        // Create filter controls dynamically using ReportRegistry
         var filterControls: [String: NSControl] = [:]
         
         if hasFilters {
-            if reportType == "Devices" {
-                // Add device-specific filters (includes management state)
-                filterControls = createDeviceFiltersSimple(in: accessoryView)
-            } else if reportType == "DevicesWithInventory" {
-                // Add device with inventory-specific filters (includes management state)
-                filterControls = createDevicesWithInventoryFiltersSimple(in: accessoryView)
-            } else if reportType == "DeviceCompliance" {
-                // Add compliance-specific filters (no management state)
-                filterControls = createComplianceFiltersSimple(in: accessoryView)
-            } else if reportType == "DeviceNonCompliance" {
-                // Add non-compliance-specific filters (same as compliance)
-                filterControls = createNonComplianceFiltersSimple(in: accessoryView)
-            } else if reportType == "AppInvRawData" {
-                // Add app inventory filters
-                filterControls = createAppFiltersSimple(in: accessoryView)
-            }
+            // Create a container view for filters
+            let filterContainerHeight = dialogHeight - 50
+            let filterContainer = NSView(frame: NSRect(x: 0, y: 5, width: dialogWidth, height: filterContainerHeight))
+            accessoryView.addSubview(filterContainer)
+            
+            // Use ReportRegistry to create filter controls dynamically
+            filterControls = ReportRegistry.shared.createFilterControls(for: reportType, in: filterContainer)
         }
         
         alert.accessoryView = accessoryView
@@ -272,8 +290,8 @@ class IntuneReportsViewController: NSViewController {
         if response == .alertFirstButtonReturn {
             let format = formatPopup.titleOfSelectedItem?.lowercased() ?? "csv"
             
-            // Extract filter values
-            let filters = extractFilterValues(from: filterControls)
+            // Extract filter values using ReportRegistry for proper API value mapping
+            let filters = ReportRegistry.shared.extractFilterValues(from: filterControls, for: reportType)
             
             // Show save panel
             showSavePanelForFullReport(reportName: reportName, reportType: reportType, format: format, filters: filters)
@@ -330,43 +348,27 @@ class IntuneReportsViewController: NSViewController {
         
         Logger.info("Starting full report export for \(reportType) in \(format) format", category: .core, toUserDirectory: true)
         
-        // Create export job
-        // Call approprate XPC Manager function based on the reportType variable
-        switch reportType {
-        case "AllAppsList":
-            performAllAppsListExportJob(reportType: reportType, format: format, saveUrl: saveUrl)
-        case "AppInstallStatusAggregate":
-            performAppInstallStatusAggregateExportJob(reportType: reportType, format: format, saveUrl: saveUrl)
-        case "AppInvAggregate":
-            performAppInvAggregateExportJob(reportType: reportType, format: format, saveUrl: saveUrl)
-        case "AppInvRawData":
-            performAppInventoryRawDataExportJob(reportType: reportType, format: format, filters: filters, saveUrl: saveUrl)
-        case "DeviceCompliance":
-            performDeviceComplianceExportJob(reportType: reportType, format: format, filters: filters, saveUrl: saveUrl)
-        case "DeviceNonCompliance":
-            performDeviceNonComplianceExportJob(reportType: reportType, format: format, filters: filters, saveUrl: saveUrl)
-        case "Devices":
-            performDevicesExportJob(reportType: reportType, format: format, filters: filters, saveUrl: saveUrl)
-        case "DevicesWithInventory":
-            performDevicesWithInventoryExportJob(reportType: reportType, format: format, filters: filters, saveUrl: saveUrl)
-        case "DefenderAgents":
-            performDefenderAgentsExportJob(reportType: reportType, format: format, saveUrl: saveUrl)
-        case "UnhealthyDefenderAgents":
-            performDefenderAgentsExportJob(reportType: reportType, format: format, saveUrl: saveUrl)
-        case "FirewallStatus":
-            performFirewallStatusExportJob(reportType: reportType, format: format, saveUrl: saveUrl)
-        case "Malware":
-            performMalwareExportJob(reportType: reportType, format: format, saveUrl: saveUrl)
-        case "ActiveMalware":
-            performMalwareExportJob(reportType: reportType, format: format, saveUrl: saveUrl)
-        case "MAMAppProtectionStatus":
-            performMAMAppProtectionStatusExportJob(reportType: reportType, format: format, saveUrl: saveUrl)
-        case "MAMAppConfigurationStatus":
-            performMAMAppConfigurationStatusExportJob(reportType: reportType, format: format, saveUrl: saveUrl)
-        case "FeatureUpdatePolicyFailuresAggregate":
-            performFeatureUpdatePolicyFailuresAggregateExportJob(reportType: reportType, format: format, saveUrl: saveUrl)
-        default:
-            return
+        // Build OData filter string from filter parameters using ReportRegistry
+        let filterString = ReportRegistry.shared.buildODataFilter(from: filters, for: reportType)
+        
+        // Get default columns for the report type
+        let defaultColumns = ReportRegistry.shared.getDefaultColumns(for: reportType)
+        
+        // Create export job using generic XPC method
+        XPCManager.shared.createExportJob(
+            reportName: reportType,
+            filter: filterString,
+            select: defaultColumns,
+            format: format
+        ) { [weak self] jobId in
+            DispatchQueue.main.async {
+                guard let self = self, let jobId = jobId else {
+                    self?.handleExportError("Failed to create export job")
+                    return
+                }
+                
+                self.pollAndHandleExportJob(jobId: jobId, saveUrl: saveUrl, format: format)
+            }
         }
     }
     
@@ -694,8 +696,7 @@ class IntuneReportsViewController: NSViewController {
             realTimeProtectionEnabled: nil,
             networkInspectionSystemEnabled: nil,
             includeColumns: nil,
-            format: format,
-            reportType: reportType
+            format: format
         ) { [weak self] jobId in
             DispatchQueue.main.async {
                 guard let self = self, let jobId = jobId else {
@@ -733,8 +734,7 @@ class IntuneReportsViewController: NSViewController {
             executionState: nil,
             state: nil,
             includeColumns: nil,
-            format: format,
-            reportType: reportType
+            format: format
         ) { [weak self] jobId in
             DispatchQueue.main.async {
                 guard let self = self, let jobId = jobId else {
@@ -935,19 +935,6 @@ class IntuneReportsViewController: NSViewController {
         }
     }
     
-    // MARK: - Filter Support Detection
-    
-    /// Determines if a report type supports filtering
-    /// - Parameter reportType: The report type to check
-    /// - Returns: True if the report type supports filtering
-    private func reportSupportsFiltering(_ reportType: String) -> Bool {
-        switch reportType {
-        case "Devices", "DevicesWithInventory", "DeviceCompliance", "DeviceNonCompliance", "AppInvRawData":
-            return true
-        default:
-            return false
-        }
-    }
     
     // MARK: - Simple Filter Options
     
@@ -1467,6 +1454,88 @@ class IntuneReportsViewController: NSViewController {
         alert.informativeText = message
         alert.addButton(withTitle: "OK")
         alert.runModal()
+    }
+    
+    // MARK: - Scheduled Reports
+    
+    /// Shows the schedule report dialog for the currently selected report
+    private func showScheduleReportDialog() {
+        let reportNameAndType = getReportNameAndType()
+        guard let reportType = reportNameAndType?.reportType,
+              let reportName = reportNameAndType?.reportName else {
+            showError("Please select a report type first")
+            return
+        }
+        
+        // Create a new scheduled report with the selected report type
+        let storyboard = NSStoryboard(name: "IntuneReports", bundle: nil)
+        guard let editorVC = storyboard.instantiateController(withIdentifier: "ReportScheduleEditorViewController") as? ReportScheduleEditorViewController else {
+            showError("Failed to load schedule editor")
+            return
+        }
+        
+        // Configure the editor for a new report based on current selection
+        var newReport = ScheduledReport(name: "\(reportName) Schedule", reportType: reportType, reportDisplayName: reportName)
+        
+        // Pre-populate with current filter selections if any
+        let reportDefinition = ReportRegistry.shared.getReportDefinition(for: reportType)
+        if reportDefinition?.supportedFilters.isEmpty == false {
+            // In a full implementation, we could extract current filter state from the export dialog
+            // For now, start with empty filters
+        }
+        
+        editorVC.scheduledReport = nil // Ensure it's treated as new
+        
+        editorVC.onSaveComplete = { [weak self] savedReport in
+            self?.showSuccess("Scheduled report '\(savedReport.name)' created successfully")
+            Logger.info("Created scheduled report: \(savedReport.name)", category: .core, toUserDirectory: true)
+        }
+        
+        editorVC.onCancel = {
+            Logger.info("Scheduled report creation cancelled", category: .core, toUserDirectory: true)
+        }
+        
+        presentAsSheet(editorVC)
+    }
+    
+    /// Shows the schedule management window
+    private func showScheduleManagementWindow() {
+        let storyboard = NSStoryboard(name: "IntuneReports", bundle: nil)
+        guard let managementVC = storyboard.instantiateController(withIdentifier: "ScheduledReportsManagementViewController") as? ScheduledReportsManagementViewController else {
+            showError("Failed to load schedule management window")
+            return
+        }
+        
+        let windowController = NSWindowController()
+        let window = NSWindow(contentViewController: managementVC)
+        window.title = "Scheduled Reports Manager"
+        window.setContentSize(NSSize(width: 800, height: 600))
+        window.center()
+        windowController.window = window
+        windowController.showWindow(self)
+        
+        // Keep a reference to prevent deallocation
+        // In a production app, you'd manage this differently
+        objc_setAssociatedObject(self, "scheduleManagementWindow", windowController, .OBJC_ASSOCIATION_RETAIN)
+    }
+    
+    /// Updates the UI state for schedule-related buttons
+    private func updateScheduleButtonsState() {
+        let hasReportSelected = selectedReportType != nil
+        
+        // Check Azure Storage configurations via XPC
+        XPCManager.shared.getAzureStorageConfigurationNames { availableConfigs in
+            DispatchQueue.main.async {
+                let hasAzureStorage = !availableConfigs.isEmpty
+                self.scheduleReportButton.isEnabled = hasReportSelected && hasAzureStorage
+                
+                if !hasAzureStorage {
+                    self.scheduleReportButton.toolTip = "Configure Azure Storage in Settings to enable report scheduling"
+                } else {
+                    self.scheduleReportButton.toolTip = nil
+                }
+            }
+        }
     }
 
 }
