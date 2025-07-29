@@ -644,31 +644,31 @@
                                         <menuItem title="App Installation Status…" indentationLevel="1" id="dVf-GS-AET">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="openAppsReportingManagerWindow:" target="Ady-hI-5gd" id="w2d-Ow-yUQ"/>
+                                                <action selector="openAppsReportingManagerWindow:" target="Ady-hI-5gd" id="xMA-hg-Mzy"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Config Installation Status…" indentationLevel="1" id="euf-bv-jGA">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="openConfigReportingManagerWindow:" target="Ady-hI-5gd" id="m3d-bH-FwT"/>
+                                                <action selector="openConfigReportingManagerWindow:" target="Ady-hI-5gd" id="kfl-aV-i5X"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Discovered Apps…" indentationLevel="1" id="cU7-xn-gM1" userLabel="Discovered Apps">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="openDiscoveredAppsFromMenu:" target="Voe-Tx-rLC" id="M0r-qg-noh"/>
+                                                <action selector="openDiscoveredAppsManagerWindow:" target="Ady-hI-5gd" id="rkJ-CI-sch"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Intune Devices…" indentationLevel="1" id="swm-eN-GIv">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="openDevicesManagerWindow:" target="Ady-hI-5gd" id="JJ3-UL-RTg"/>
+                                                <action selector="openDevicesManagerWindow:" target="Ady-hI-5gd" id="RWN-3d-k5r"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Intune Reports Export…" indentationLevel="1" id="pXL-6b-MKZ">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="openReportsExportManagerWindow:" target="Ady-hI-5gd" id="UQn-m2-p4D"/>
+                                                <action selector="openReportsExportManagerWindow:" target="Ady-hI-5gd" id="ng2-wh-nPO"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Intune Management" id="OI9-GC-YtT">
@@ -677,25 +677,25 @@
                                         <menuItem title="App Category Manager…" indentationLevel="1" id="Sio-Iq-pzP">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="openAppsCategoryManagerWindow:" target="Ady-hI-5gd" id="PnK-BE-wjR"/>
+                                                <action selector="openAppsCategoryManagerWindow:" target="Ady-hI-5gd" id="MUA-dY-Hgw"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Custom Attribute Manager…" indentationLevel="1" id="mad-PN-Gcx">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="openCustomAttributeManagerWindow:" target="Ady-hI-5gd" id="yxQ-0R-Sx4"/>
+                                                <action selector="openCustomAttributeManagerWindow:" target="Ady-hI-5gd" id="d9j-Uz-Xwd"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Shell Script Manager…" indentationLevel="1" id="cLj-aq-chy">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="openShellScriptsManagerWindow:" target="Ady-hI-5gd" id="Azu-EM-1Hj"/>
+                                                <action selector="openShellScriptsManagerWindow:" target="Ady-hI-5gd" id="G56-F4-PD2"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Web Clips Manager…" indentationLevel="1" id="aqX-Mj-gOn">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="openWebClipsManagerWindow:" target="Ady-hI-5gd" id="guc-zX-mAp"/>
+                                                <action selector="openWebClipsManagerWindow:" target="Ady-hI-5gd" id="xxH-nl-Oik"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="YWd-tr-jkW"/>
@@ -785,7 +785,6 @@
                 <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="Intuneomator" customModuleProvider="target">
                     <connections>
                         <outlet property="automationMenuItem" destination="3De-CM-AxW" id="O9M-1r-gPE"/>
-                        <outlet property="discoveredAppsMenuItem" destination="cU7-xn-gM1" id="MNg-7a-Wzg"/>
                     </connections>
                 </customObject>
                 <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
@@ -4040,16 +4039,16 @@ Gw
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <box title="Virtual Groups:" translatesAutoresizingMaskIntoConstraints="NO" id="cz8-lp-vOX">
-                                <rect key="frame" x="17" y="257" width="378" height="229"/>
+                                <rect key="frame" x="17" y="201" width="378" height="285"/>
                                 <view key="contentView" id="mfP-yc-Glp">
-                                    <rect key="frame" x="4" y="5" width="370" height="209"/>
+                                    <rect key="frame" x="4" y="5" width="370" height="265"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <stackView distribution="fill" orientation="horizontal" alignment="centerY" spacing="50" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="dAD-Kg-XUg">
-                                            <rect key="frame" x="61" y="30" width="248" height="159"/>
+                                            <rect key="frame" x="61" y="30" width="248" height="215"/>
                                             <subviews>
                                                 <button toolTip="All Devices is not an option for Available intent" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="b9J-ne-wCE">
-                                                    <rect key="frame" x="-3" y="68.5" width="109" height="22"/>
+                                                    <rect key="frame" x="-3" y="96.5" width="109" height="22"/>
                                                     <buttonCell key="cell" type="check" title="All Devices" bezelStyle="regularSquare" imagePosition="left" controlSize="large" inset="2" id="vQv-u0-Uec">
                                                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                         <font key="font" metaFont="system" size="16"/>
@@ -4059,7 +4058,7 @@ Gw
                                                     </connections>
                                                 </button>
                                                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="q98-Vt-pfT" userLabel="All Users">
-                                                    <rect key="frame" x="153" y="68.5" width="95" height="22"/>
+                                                    <rect key="frame" x="153" y="96.5" width="95" height="22"/>
                                                     <buttonCell key="cell" type="check" title="All Users" bezelStyle="regularSquare" imagePosition="left" controlSize="large" inset="2" id="ugl-NM-K2O">
                                                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                         <font key="font" metaFont="system" size="16"/>
@@ -4104,13 +4103,13 @@ Gw
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <scrollView autohidesScrollers="YES" horizontalLineScroll="17" horizontalPageScroll="10" verticalLineScroll="17" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Jfm-pY-6rB">
-                                            <rect key="frame" x="20" y="27" width="330" height="110"/>
+                                            <rect key="frame" x="20" y="27" width="330" height="54"/>
                                             <clipView key="contentView" id="qZF-J9-ywd">
-                                                <rect key="frame" x="1" y="1" width="328" height="108"/>
+                                                <rect key="frame" x="1" y="1" width="328" height="52"/>
                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                 <subviews>
                                                     <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnReordering="NO" multipleSelection="NO" emptySelection="NO" autosaveColumns="NO" typeSelect="NO" rowSizeStyle="automatic" headerView="4sa-Gq-N1J" viewBased="YES" id="ikr-2H-C7L">
-                                                        <rect key="frame" x="0.0" y="0.0" width="466" height="80"/>
+                                                        <rect key="frame" x="0.0" y="0.0" width="466" height="24"/>
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                         <size key="intercellSpacing" width="17" height="0.0"/>
                                                         <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -4217,7 +4216,7 @@ Gw
                                                 </subviews>
                                             </clipView>
                                             <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="Fha-0b-bPh">
-                                                <rect key="frame" x="1" y="93" width="328" height="16"/>
+                                                <rect key="frame" x="1" y="37" width="328" height="16"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                             </scroller>
                                             <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="pOP-XB-KaX">
@@ -4255,7 +4254,7 @@ DQ
                                 </connections>
                             </button>
                             <searchField wantsLayer="YES" focusRingType="none" verticalHuggingPriority="750" textCompletion="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qU7-5V-dOM">
-                                <rect key="frame" x="187" y="226" width="205" height="19"/>
+                                <rect key="frame" x="187" y="170" width="205" height="19"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="205" id="Bvu-ZM-lTq"/>
                                 </constraints>

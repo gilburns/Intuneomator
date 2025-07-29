@@ -35,9 +35,8 @@ class IntuneReportsViewController: NSViewController {
     /// Export start time for elapsed time tracking
     private var exportStartTime: Date?
     
-    /// Currently selected report type
-    private var selectedReportType: String?
-    
+    /// Variable to set so the popup reports menu selects that menu item when the view opens
+    var preselectedReport: String?
     
     // MARK: - View Lifecycle
     /// Lifecycle callback invoked when the view loads.

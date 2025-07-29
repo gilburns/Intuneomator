@@ -51,6 +51,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// Flag to prevent app termination during initialization
     private var isInitializing = true
     
+    /// Handle for WindowActionHandler
+    let windowActionHandler = WindowActionHandler()
+
     // MARK: - Application Lifecycle
     
     /// Called when the application has finished launching.
@@ -91,6 +94,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
             
+            // Register the WindowActionHandler
+            windowActionHandler.nextResponder = NSApp.nextResponder
+            NSApp.nextResponder = windowActionHandler
+
             // Step 5: Perform synchronous setup operations
             cleanOldTempFolders()
             setupApplicationSupportFolders()
@@ -369,18 +376,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Delegate to the main view controller's automation trigger
         mainViewController?.triggerFullAutomation(sender)
     }
-    
-    /// Handles the discovered apps manager menu item action.
-    /// 
-    /// Delegates to the main view controller's openDiscoveredAppsManagerWindow action.
-    /// This provides a menu-based way to open the discovered apps window alongside any toolbar buttons.
-    /// 
-    /// - Parameter sender: The menu item that triggered this action
-    @IBAction func openDiscoveredAppsFromMenu(_ sender: Any) {
-        // Delegate to the main view controller's discovered apps opener
-        mainViewController?.openDiscoveredAppsManagerWindow(sender)
-    }
-    
+        
     /// Handles the check for updates menu item action.
     /// 
     /// Checks the server for available updates and prompts user to proceed with update if available.
