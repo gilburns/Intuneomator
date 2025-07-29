@@ -241,53 +241,27 @@ class DevicesViewController: NSViewController, NSTableViewDataSource, NSTableVie
     /// - Parameter preselectedReportType: The report type to preselect in the popup menu
     private func openIntuneReportsWindow(preselectedReportType: String? = nil) {
         // Find the MainViewController to delegate window management
-        guard let mainViewController = findMainViewController() else {
-            Logger.error("Could not find MainViewController to open Reports window", category: .core, toUserDirectory: true)
-            showError(message: "Failed to open Reports window.")
+        guard let reportType = preselectedReportType else {
+            Logger.error("Could not find preselectedReportType to open Reports window", category: .core, toUserDirectory: true)
             return
         }
         
         // Use MainViewController's singleton window management with preselection
-        mainViewController.openReportsExportManagerWindow(preselectedReportType: preselectedReportType)
-        
-        Logger.info("Delegated Reports window opening to MainViewController with preselection: \(preselectedReportType ?? "none")", category: .core, toUserDirectory: true)
+        WindowManager.shared.openWindow(
+            identifier: "IntuneReportsViewController",
+            storyboardName: "IntuneReports",
+            controllerType: IntuneReportsViewController.self,
+            windowTitle: "Intune Reports Export",
+            defaultSize: NSSize(width: 400, height: 250),
+            restoreKey: "IntuneReportsViewController",
+            customization: { viewController in
+                if let vc = viewController as? IntuneReportsViewController {
+                    vc.preselectedReport = reportType
+                }
+            }
+        )
     }
-    
-    /// Finds the MainViewController instance in the view hierarchy
-    /// - Returns: The MainViewController instance or nil if not found
-    private func findMainViewController() -> MainViewController? {
-        // Look through the application's windows to find MainViewController
-        for window in NSApplication.shared.windows {
-            // Check if the content view controller is MainViewController
-            if let mainVC = window.contentViewController as? MainViewController {
-                return mainVC
-            }
-            
-            // Check if the window controller's content view controller is MainViewController
-            if let windowController = window.windowController,
-               let mainVC = windowController.contentViewController as? MainViewController {
-                return mainVC
-            }
-        }
         
-        // Check the main window specifically
-        if let mainWindow = NSApplication.shared.mainWindow,
-           let mainVC = mainWindow.contentViewController as? MainViewController {
-            return mainVC
-        }
-        
-        // Check if we can traverse up the parent view controller hierarchy
-        var currentViewController: NSViewController? = self
-        while let parentVC = currentViewController?.parent {
-            if let mainVC = parentVC as? MainViewController {
-                return mainVC
-            }
-            currentViewController = parentVC
-        }
-        
-        return nil
-    }
-    
     // MARK: - Search and Filtering
     
     func controlTextDidChange(_ obj: Notification) {
