@@ -18,6 +18,7 @@ class Logger {
         case core = "Core"               // Essential app operations (daemon, XPC, auth, errors)
         case automation = "Automation"   // Label processing, Graph API, metadata operations
         case download = "Download"       // Download tracking (kept separate)
+        case reports = "Reports"         // Reports tracking (kept separate)
         case upload = "Upload"           // Upload tracking (kept separate)
         case debug = "Debug"             // Development debugging (can be disabled in production)
         

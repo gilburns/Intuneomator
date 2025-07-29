@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AssociatedBundleIdentifiers</key>
+	<string>com.gilburns.Intuneomator</string>
+	<key>Label</key>
+	<string>com.gilburns.intuneomator.scheduledreports</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Library/Application Support/Intuneomator/IntuneomatorService</string>
+		<string>check-scheduled-reports</string>
+	</array>
+	<key>RunAtLoad</key>
+	<false/>
+	<key>StandardErrorPath</key>
+	<string>/var/log/com.gilburns.intuneomator.scheduledreports.err.log</string>
+	<key>StandardOutPath</key>
+	<string>/var/log/com.gilburns.intuneomator.scheduledreports.out.log</string>
+	<key>StartInterval</key>
+	<integer>600</integer>
+	<key>ThrottleInterval</key>
+	<integer>30</integer>
+</dict>
+</plist>

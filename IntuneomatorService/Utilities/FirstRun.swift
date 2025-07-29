@@ -59,6 +59,7 @@ class FirstRun {
             AppConstants.installomatorCustomLabelsFolderURL.path,
             AppConstants.intuneomatorManagedTitlesFolderURL.path,
             AppConstants.intuneomatorOndemandTriggerURL.path,
+            AppConstants.intuneomatorScheduledReportsFolderURL.path,
             AppConstants.intuneomatorScriptsURL.path,
         ]
         

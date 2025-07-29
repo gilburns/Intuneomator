@@ -916,4 +916,286 @@ import Foundation
     /// Gets the updater tool version string
     /// - Parameter completion: Callback with version string (e.g., "1.0.0.162") or "Unknown" if unavailable
     func getUpdaterVersion(completion: @escaping (String) -> Void)
+    
+    // MARK: - Azure Storage Management
+    
+    /// Configures Azure Storage settings for report management
+    /// - Parameters:
+    ///   - accountName: Storage account name
+    ///   - containerName: Container name for storing reports
+    ///   - accountKey: Storage account key (optional, for shared key auth)
+    ///   - sasToken: SAS token (optional, alternative to account key)
+    ///   - reply: Callback indicating if configuration was successful
+    func configureAzureStorage(accountName: String, containerName: String, accountKey: String?, sasToken: String?, reply: @escaping (Bool) -> Void)
+    
+    /// Uploads a report file to Azure Storage
+    /// - Parameters:
+    ///   - fileURL: Local file URL to upload
+    ///   - reply: Callback indicating success (true) or failure (false)
+    func uploadReportToAzureStorage(fileURL: URL, reply: @escaping (Bool) -> Void)
+    
+    /// Deletes old reports from Azure Storage based on age
+    /// - Parameters:
+    ///   - days: Delete reports older than this many days
+    ///   - reply: Callback with deletion count and total size freed in bytes
+    func deleteOldReportsFromAzureStorage(olderThan days: Int, reply: @escaping (Int, Int64) -> Void)
+    
+    /// Generates a download link for a specific report
+    /// - Parameters:
+    ///   - reportName: Name of the report file
+    ///   - expiresIn: Number of days the link should remain valid
+    ///   - reply: Callback with download URL or nil on failure
+    func generateAzureStorageDownloadLink(for reportName: String, expiresIn days: Int, reply: @escaping (URL?) -> Void)
+    
+    /// Validates Azure Storage connection and permissions
+    /// - Parameter reply: Callback with success status and optional error message
+    func validateAzureStorageConnection(reply: @escaping (Bool, String?) -> Void)
+    
+    /// Gets current Azure Storage configuration status
+    /// - Parameter reply: Callback indicating if Azure Storage is properly configured
+    func getAzureStorageConfigurationStatus(reply: @escaping (Bool) -> Void)
+    
+    /// Clears all Azure Storage configuration
+    /// - Parameter reply: Callback indicating if clearing was successful
+    func clearAzureStorageConfiguration(reply: @escaping (Bool) -> Void)
+    
+    // MARK: - Azure Storage Configuration Management
+    
+    /// Sets Azure Storage account name
+    /// - Parameters:
+    ///   - accountName: Storage account name
+    ///   - reply: Callback indicating if operation was successful
+    func setAzureStorageAccountName(_ accountName: String, reply: @escaping (Bool) -> Void)
+    
+    /// Gets Azure Storage account name
+    /// - Parameter reply: Callback with account name or empty string if not set
+    func getAzureStorageAccountName(reply: @escaping (String) -> Void)
+    
+    /// Sets Azure Storage container name
+    /// - Parameters:
+    ///   - containerName: Container name
+    ///   - reply: Callback indicating if operation was successful
+    func setAzureStorageContainerName(_ containerName: String, reply: @escaping (Bool) -> Void)
+    
+    /// Gets Azure Storage container name
+    /// - Parameter reply: Callback with container name or empty string if not set
+    func getAzureStorageContainerName(reply: @escaping (String) -> Void)
+    
+    /// Sets Azure Storage account key (for shared key authentication)
+    /// - Parameters:
+    ///   - accountKey: Storage account key
+    ///   - reply: Callback indicating if operation was successful
+    func setAzureStorageAccountKey(_ accountKey: String, reply: @escaping (Bool) -> Void)
+    
+    /// Gets Azure Storage account key
+    /// - Parameter reply: Callback with account key or nil if not set
+    func getAzureStorageAccountKey(reply: @escaping (String?) -> Void)
+    
+    /// Sets Azure Storage SAS token (alternative to account key)
+    /// - Parameters:
+    ///   - sasToken: SAS token
+    ///   - reply: Callback indicating if operation was successful
+    func setAzureStorageSASToken(_ sasToken: String, reply: @escaping (Bool) -> Void)
+    
+    /// Gets Azure Storage SAS token
+    /// - Parameter reply: Callback with SAS token or nil if not set
+    func getAzureStorageSASToken(reply: @escaping (String?) -> Void)
+    
+    /// Removes Azure Storage account key from keychain
+    /// - Parameter reply: Callback indicating if operation was successful
+    func removeAzureStorageAccountKey(reply: @escaping (Bool) -> Void)
+    
+    /// Removes Azure Storage SAS token from keychain
+    /// - Parameter reply: Callback indicating if operation was successful
+    func removeAzureStorageSASToken(reply: @escaping (Bool) -> Void)
+    
+    // MARK: - Named Azure Storage Configurations
+    
+    /// Gets all available named Azure Storage configuration names
+    /// - Parameter reply: Callback with array of configuration names
+    func getAzureStorageConfigurationNames(reply: @escaping ([String]) -> Void)
+    
+    /// Gets a specific named Azure Storage configuration
+    /// - Parameters:
+    ///   - name: Configuration name
+    ///   - reply: Callback with configuration data or nil if not found
+    func getNamedAzureStorageConfiguration(name: String, reply: @escaping ([String: Any]?) -> Void)
+    
+    /// Sets a named Azure Storage configuration
+    /// - Parameters:
+    ///   - name: Configuration name
+    ///   - configData: Configuration data dictionary
+    ///   - reply: Callback indicating if operation was successful
+    func setNamedAzureStorageConfiguration(name: String, configData: [String: Any], reply: @escaping (Bool) -> Void)
+    
+    /// Removes a named Azure Storage configuration
+    /// - Parameters:
+    ///   - name: Configuration name to remove
+    ///   - reply: Callback indicating if operation was successful
+    func removeNamedAzureStorageConfiguration(name: String, reply: @escaping (Bool) -> Void)
+    
+    /// Validates a named Azure Storage configuration
+    /// - Parameters:
+    ///   - name: Configuration name to validate
+    ///   - reply: Callback indicating if configuration is valid
+    func validateNamedAzureStorageConfiguration(name: String, reply: @escaping (Bool) -> Void)
+    
+    /// Gets summary information for all Azure Storage configurations
+    /// - Parameter reply: Callback with array of configuration summaries
+    func getAzureStorageConfigurationSummaries(reply: @escaping ([[String: Any]]) -> Void)
+    
+    /// Uploads a report to a specific named Azure Storage configuration
+    /// - Parameters:
+    ///   - fileURL: Local file URL to upload
+    ///   - configurationName: Named configuration to use for upload
+    ///   - reply: Callback indicating if upload was successful
+    func uploadReportToNamedAzureStorage(fileURL: URL, configurationName: String, reply: @escaping (Bool) -> Void)
+    
+    /// Deletes old reports from a specific named Azure Storage configuration
+    /// - Parameters:
+    ///   - days: Delete reports older than this many days
+    ///   - configurationName: Named configuration to use
+    ///   - reply: Callback with deletion count and total size freed in bytes
+    func deleteOldReportsFromNamedAzureStorage(olderThan days: Int, configurationName: String, reply: @escaping (Int, Int64) -> Void)
+    
+    /// Generates a download link for a report in a specific named Azure Storage configuration
+    /// - Parameters:
+    ///   - reportName: Name of the report file
+    ///   - expiresIn: Number of days the link should remain valid
+    ///   - configurationName: Named configuration to use
+    ///   - reply: Callback with download URL or nil on failure
+    func generateDownloadLinkFromNamedAzureStorage(for reportName: String, expiresIn days: Int, configurationName: String, reply: @escaping (URL?) -> Void)
+    
+    /// Clears all named Azure Storage configurations (keeps default intact)
+    /// - Parameter reply: Callback indicating if operation was successful
+    func clearAllNamedAzureStorageConfigurations(reply: @escaping (Bool) -> Void)
+    
+    // MARK: - New Settings Management
+    
+    /// Retrieves all settings as a dictionary
+    /// - Parameter reply: Callback with settings dictionary or nil on failure
+    func getSettings(reply: @escaping ([String: Any]?) -> Void)
+    
+    /// Saves settings from dictionary format
+    /// - Parameters:
+    ///   - settingsData: Dictionary containing all settings data
+    ///   - reply: Callback indicating if save was successful
+    func saveSettingsFromDictionary(_ settingsData: [String: Any], reply: @escaping (Bool) -> Void)
+    
+    /// Tests Entra ID connection with provided settings
+    /// - Parameters:
+    ///   - testData: Dictionary containing authentication settings to test
+    ///   - reply: Callback indicating if connection was successful
+    func testEntraIDConnection(_ testData: [String: Any], reply: @escaping (Bool) -> Void)
+    
+    // MARK: - Azure Storage Configuration Management (New Interface)
+    
+    /// Creates a new Azure Storage configuration
+    /// - Parameters:
+    ///   - configuration: Dictionary containing the configuration data
+    ///   - reply: Callback indicating if creation was successful
+    func createAzureStorageConfiguration(_ configuration: [String: Any], reply: @escaping (Bool) -> Void)
+    
+    /// Updates an existing Azure Storage configuration
+    /// - Parameters:
+    ///   - configuration: Dictionary containing the updated configuration data
+    ///   - reply: Callback indicating if update was successful
+    func updateAzureStorageConfiguration(_ configuration: [String: Any], reply: @escaping (Bool) -> Void)
+    
+    /// Removes an Azure Storage configuration by name
+    /// - Parameters:
+    ///   - name: Name of the configuration to remove
+    ///   - reply: Callback indicating if removal was successful
+    func removeAzureStorageConfiguration(_ name: String, reply: @escaping (Bool) -> Void)
+    
+    /// Tests an Azure Storage configuration by name
+    /// - Parameters:
+    ///   - name: Name of the configuration to test
+    ///   - reply: Callback indicating if connection test was successful
+    func testAzureStorageConfiguration(_ name: String, reply: @escaping (Bool) -> Void)
+    
+    /// Tests an Azure Storage configuration directly without saving
+    /// - Parameters:
+    ///   - configuration: Dictionary containing the configuration data to test
+    ///   - reply: Callback indicating if connection test was successful
+    func testAzureStorageConfigurationDirect(_ configuration: [String: Any], reply: @escaping (Bool) -> Void)
+    
+    // MARK: - Azure Storage Testing Methods
+    
+    /// Uploads a file to Azure Storage using a named configuration
+    /// - Parameters:
+    ///   - fileName: Name of the file to upload
+    ///   - fileData: Data content of the file
+    ///   - configurationName: Name of the Azure Storage configuration to use
+    ///   - reply: Callback indicating if upload was successful
+    func uploadFileToAzureStorage(fileName: String, fileData: Data, configurationName: String, reply: @escaping (Bool) -> Void)
+    
+    /// Generates a download link for a file in Azure Storage using a named configuration
+    /// - Parameters:
+    ///   - fileName: Name of the file to generate link for
+    ///   - configurationName: Name of the Azure Storage configuration to use
+    ///   - expiresInDays: Number of days the link should remain valid
+    ///   - reply: Callback with download URL or nil on failure
+    func generateAzureStorageDownloadLink(fileName: String, configurationName: String, expiresInDays: Int, reply: @escaping (URL?) -> Void)
+    
+    /// Sends a Teams notification message
+    /// - Parameters:
+    ///   - message: Message content to send
+    ///   - reply: Callback indicating if notification was sent successfully
+    func sendTeamsNotification(message: String, reply: @escaping (Bool) -> Void)
+    
+    /// Lists all files in Azure Storage using a named configuration
+    /// - Parameters:
+    ///   - configurationName: Name of the Azure Storage configuration to use
+    ///   - reply: Callback with array of file information dictionaries or nil on failure
+    func listAzureStorageFiles(configurationName: String, reply: @escaping ([[String: Any]]?) -> Void)
+    
+    /// Deletes a specific file from Azure Storage using a named configuration
+    /// - Parameters:
+    ///   - fileName: Name of the file to delete
+    ///   - configurationName: Name of the Azure Storage configuration to use
+    ///   - reply: Callback indicating if deletion was successful
+    func deleteAzureStorageFile(fileName: String, configurationName: String, reply: @escaping (Bool) -> Void)
+    
+    /// Deletes old files from Azure Storage based on age using a named configuration
+    /// - Parameters:
+    ///   - configurationName: Name of the Azure Storage configuration to use
+    ///   - olderThanDays: Delete files older than this many days
+    ///   - reply: Callback with deletion summary dictionary containing count and size information, or nil on failure
+    func deleteOldAzureStorageFiles(configurationName: String, olderThanDays: Int, reply: @escaping ([String: Any]?) -> Void)
+    
+    // MARK: - Scheduled Report File Management
+    
+    /// Saves a scheduled report configuration to the secured reports directory
+    /// - Parameters:
+    ///   - reportData: Encoded scheduled report data (JSON)
+    ///   - fileName: Name of the report file (including .json extension)
+    ///   - reply: Callback indicating if save was successful
+    func saveScheduledReportConfiguration(reportData: Data, fileName: String, reply: @escaping (Bool) -> Void)
+    
+    /// Deletes a scheduled report configuration from the secured reports directory
+    /// - Parameters:
+    ///   - fileName: Name of the report file to delete (including .json extension)
+    ///   - reply: Callback indicating if deletion was successful
+    func deleteScheduledReportConfiguration(fileName: String, reply: @escaping (Bool) -> Void)
+    
+    /// Updates the scheduled reports index file
+    /// - Parameters:
+    ///   - indexData: Encoded index data (JSON)
+    ///   - reply: Callback indicating if update was successful
+    func updateScheduledReportsIndex(indexData: Data, reply: @escaping (Bool) -> Void)
+    
+    /// Executes all scheduled reports that are due to run
+    /// - Parameter reply: Callback with execution summary dictionary
+    func executeScheduledReports(reply: @escaping ([String: Any]) -> Void)
+    
+    /// Gets the current scheduler status and execution statistics
+    /// - Parameter reply: Callback with scheduler status dictionary containing:
+    ///   - schedulerEnabled: Boolean indicating if scheduler is active
+    ///   - lastSchedulerRun: Date of last scheduler execution
+    ///   - schedulerInterval: Interval in seconds between scheduler runs
+    ///   - totalReports: Total number of scheduled reports
+    ///   - enabledReports: Number of enabled scheduled reports
+    ///   - lastExecutionSummary: Dictionary with last execution results
+    func getSchedulerStatus(reply: @escaping ([String: Any]) -> Void)
 }

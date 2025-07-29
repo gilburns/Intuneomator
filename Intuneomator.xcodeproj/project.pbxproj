@@ -49,6 +49,7 @@
 		1B0194AC2DFDBB3400FE32C6 /* Exceptions for "IntuneomatorService" folder in "IntuneomatorService" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				AzureStorageRequests/AzureStorageExample.swift,
 				Examples/StatusNotificationExample.swift,
 			);
 			target = 1BB046652D81324E004B6F3E /* IntuneomatorService */;
@@ -105,6 +106,7 @@
 				"Constants+Metadata.swift",
 				"Constants+PlistData.swift",
 				"Constants+ProcessedAppResults.swift",
+				"Constants+ScheduledReports.swift",
 				"Constants+Settings.swift",
 			);
 			target = 1BB046652D81324E004B6F3E /* IntuneomatorService */;
@@ -137,6 +139,7 @@
 				InstallomatorLabels.swift,
 				Logging.swift,
 				LogManagerUtil.swift,
+				ReportRegistry.swift,
 				ScriptLibraryManager.swift,
 				Weekday.swift,
 				XPCServiceProtocol.swift,

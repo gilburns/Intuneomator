@@ -88,6 +88,7 @@ func printUsage() {
       process-label           Fully process a given label folder
       scan-validate-folders   Scan all folder to check with are automation ready
       process-label-script    Process .sh file generate plist for folder
+      check-scheduled-reports Check for and execute any scheduled reports that are due
       login                   Validate Microsoft Entra ID credentials
 
       --version, -v           Display version information
@@ -366,6 +367,36 @@ func testFunction() {
     // Implementation placeholder for testing purposes
 }
 
+// MARK: - Scheduled Reports Execution
+
+/// Executes scheduled reports directly without XPC layer
+/// Follows the same pattern as other command line functions like runIntuneAutomationQuiet()
+func checkScheduledReports() {
+    Logger.info("🕒 Starting scheduled reports check...", category: .reports)
+    
+    let group = DispatchGroup()
+    
+    group.enter()
+    Task {
+        do {
+            Logger.info("🚀 About to call ScheduledReportsManager.executeScheduledReports()", category: .reports)
+            await ScheduledReportsManager.executeScheduledReports()
+            Logger.info("🎯 ScheduledReportsManager.executeScheduledReports() completed normally", category: .reports)
+        }
+        group.leave()
+    }
+    
+    // Notify when all tasks are complete
+    group.notify(queue: .main) {
+        print("All tasks completed successfully!")
+        // Update UI or perform further actions
+    }
+
+    group.wait()
+    Logger.info("✅ Scheduled reports check completed - exiting function", category: .reports)
+}
+
+
 
 // MARK: - Login Command
 func login() {
@@ -493,6 +524,10 @@ func handleCommandLineArguments() {
     // process a single automation run ondemand
     case "ondemand":
         onDemandProcessLabels()
+        
+    // Check for and execute scheduled reports
+    case "check-scheduled-reports":
+        checkScheduledReports()
         
     // Check for self updates
     case "update-check":

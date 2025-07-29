@@ -462,7 +462,71 @@ class KeychainManager {
         return exists
     }
 
+    // MARK: - Singleton Instance
     
+    /// Shared singleton instance for generic keychain operations
+    static let shared = KeychainManager()
+    
+    /// Private initializer for singleton pattern
+    private init() {}
+    
+    // MARK: - Generic Keychain Operations
+    
+    /// Stores a generic string value in the keychain
+    /// - Parameters:
+    ///   - value: The string value to store
+    ///   - key: The key identifier for the value
+    /// - Returns: True if storage was successful, false otherwise
+    @discardableResult
+    func setValue(_ value: String, for key: String) -> Bool {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "Intuneomator",
+            kSecAttrAccount as String: key,
+            kSecValueData as String: value.data(using: .utf8)!,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+        ]
+
+        // Remove existing item first
+        SecItemDelete(query as CFDictionary)
+        
+        // Add new item
+        let status = SecItemAdd(query as CFDictionary, nil)
+        return status == errSecSuccess
+    }
+    
+    /// Retrieves a generic string value from the keychain
+    /// - Parameter key: The key identifier for the value
+    /// - Returns: The string value if found, nil otherwise
+    func getValue(for key: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "Intuneomator",
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+
+        var item: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        guard status == errSecSuccess, let data = item as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+    
+    /// Removes a generic string value from the keychain
+    /// - Parameter key: The key identifier for the value to remove
+    /// - Returns: True if removal was successful, false otherwise
+    @discardableResult
+    func removeValue(for key: String) -> Bool {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "Intuneomator",
+            kSecAttrAccount as String: key
+        ]
+
+        let status = SecItemDelete(query as CFDictionary)
+        return status == errSecSuccess || status == errSecItemNotFound
+    }
     
     // MARK: - Run Security Command
     
