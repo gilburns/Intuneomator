@@ -35,7 +35,7 @@ class DevicesViewController: NSViewController, NSTableViewDataSource, NSTableVie
         searchField.placeholderString = "Search devices..."
         
         // Initial button state
-        reportButton.isEnabled = false
+
         detailsButton.isEnabled = false
 
         loadManagedDevices()
@@ -44,7 +44,6 @@ class DevicesViewController: NSViewController, NSTableViewDataSource, NSTableVie
     func loadManagedDevices() {
         // Show loading state
         DispatchQueue.main.async {
-            self.reportButton.isEnabled = false
             self.detailsButton.isEnabled = false
             self.progressIndicator.isHidden = false
             self.progressIndicator.startAnimation(self)
@@ -77,7 +76,6 @@ class DevicesViewController: NSViewController, NSTableViewDataSource, NSTableVie
                         // Re-enable buttons based on selection
                         let selectedRow = self.tableView.selectedRow
                         let hasSelection = selectedRow >= 0 && selectedRow < self.filteredDevices.count
-                        self.reportButton.isEnabled = hasSelection
                         self.detailsButton.isEnabled = hasSelection
                         self.progressIndicator.isHidden = true
                         self.progressIndicator.stopAnimation(self)
@@ -193,7 +191,6 @@ class DevicesViewController: NSViewController, NSTableViewDataSource, NSTableVie
         let selectedRow = tableView.selectedRow
         let hasSelection = selectedRow >= 0 && selectedRow < filteredDevices.count
 
-        reportButton.isEnabled = hasSelection
         detailsButton.isEnabled = hasSelection
     }
             
@@ -298,7 +295,7 @@ class DevicesViewController: NSViewController, NSTableViewDataSource, NSTableVie
         // Update button states after filtering
         let selectedRow = tableView.selectedRow
         let hasSelection = selectedRow >= 0 && selectedRow < filteredDevices.count
-        reportButton.isEnabled = hasSelection
+
         detailsButton.isEnabled = hasSelection
     }
     
