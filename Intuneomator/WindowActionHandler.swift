@@ -81,8 +81,19 @@ class WindowActionHandler: NSResponder {
             storyboardName: "IntuneReports",
             controllerType: IntuneReportsViewController.self,
             windowTitle: "Intune Reports Export",
-            defaultSize: NSSize(width: 400, height: 250),
+            defaultSize: NSSize(width: 500, height: 250),
             restoreKey: "IntuneReportsViewController"
+        )
+    }
+
+    @IBAction func openReportsScheduleManagerWindow(_ sender: Any?) {
+        WindowManager.shared.openWindow(
+            identifier: "ScheduledReportsManagementViewController",
+            storyboardName: "IntuneReports",
+            controllerType: ScheduledReportsManagementViewController.self,
+            windowTitle: "Scheduled Reports Manager",
+            defaultSize: NSSize(width: 800, height: 600),
+            restoreKey: "ScheduledReportsManagementViewController"
         )
     }
 

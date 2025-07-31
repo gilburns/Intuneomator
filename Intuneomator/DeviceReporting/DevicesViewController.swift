@@ -246,7 +246,6 @@ class DevicesViewController: NSViewController, NSTableViewDataSource, NSTableVie
             return
         }
         
-        // Use MainViewController's singleton window management with preselection
         WindowManager.shared.openWindow(
             identifier: "IntuneReportsViewController",
             storyboardName: "IntuneReports",

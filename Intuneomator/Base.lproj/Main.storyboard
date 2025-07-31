@@ -653,22 +653,28 @@
                                                 <action selector="openConfigReportingManagerWindow:" target="Ady-hI-5gd" id="kfl-aV-i5X"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Discovered Apps…" indentationLevel="1" id="cU7-xn-gM1" userLabel="Discovered Apps">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="openDiscoveredAppsManagerWindow:" target="Ady-hI-5gd" id="rkJ-CI-sch"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Intune Devices…" indentationLevel="1" id="swm-eN-GIv">
+                                        <menuItem title="Intune Devices…" indentationLevel="1" id="swm-eN-GIv" userLabel="Devices…">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="openDevicesManagerWindow:" target="Ady-hI-5gd" id="RWN-3d-k5r"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Intune Reports Export…" indentationLevel="1" id="pXL-6b-MKZ">
+                                        <menuItem title="Discovered Apps…" indentationLevel="1" id="cU7-xn-gM1">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="openDiscoveredAppsManagerWindow:" target="Ady-hI-5gd" id="rkJ-CI-sch"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Reports Export…" indentationLevel="1" id="pXL-6b-MKZ" userLabel="Reports Export…">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="openReportsExportManagerWindow:" target="Ady-hI-5gd" id="ng2-wh-nPO"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Reports Scheduling…" indentationLevel="1" id="9JU-F2-LgX" userLabel="Reports Scheduling…">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="openReportsScheduleManagerWindow:" target="Ady-hI-5gd" id="xmh-18-XXu"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Intune Management" id="OI9-GC-YtT">
@@ -1315,7 +1321,7 @@ Gw
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                     <clipView key="contentView" id="5Dy-2D-Nhq">
                                                         <rect key="frame" x="1" y="1" width="523" height="243"/>
-                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                        <autoresizingMask key="autoresizingMask"/>
                                                         <subviews>
                                                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" multipleSelection="NO" autosaveColumns="NO" rowHeight="24" rowSizeStyle="automatic" headerView="hK2-IH-HIp" viewBased="YES" id="Tu0-J2-zH8">
                                                                 <rect key="frame" x="0.0" y="0.0" width="523" height="215"/>
@@ -1337,7 +1343,7 @@ Gw
                                                                         <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                                         <prototypeCellViews>
                                                                             <tableCellView id="R7U-c6-uTs">
-                                                                                <rect key="frame" x="8" y="0.0" width="114" height="24"/>
+                                                                                <rect key="frame" x="18" y="0.0" width="114" height="24"/>
                                                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                                                 <subviews>
                                                                                     <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="GJE-Ar-MYt">
@@ -1369,7 +1375,7 @@ Gw
                                                                         <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                                         <prototypeCellViews>
                                                                             <tableCellView id="WVz-R6-Wl6">
-                                                                                <rect key="frame" x="139" y="0.0" width="375" height="24"/>
+                                                                                <rect key="frame" x="149" y="0.0" width="375" height="24"/>
                                                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                                                 <subviews>
                                                                                     <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ZNC-Il-s8H">
@@ -1393,7 +1399,7 @@ Gw
                                                         </subviews>
                                                     </clipView>
                                                     <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="Nhm-fV-keW">
-                                                        <rect key="frame" x="1" y="189" width="523" height="16"/>
+                                                        <rect key="frame" x="1" y="228" width="523" height="16"/>
                                                         <autoresizingMask key="autoresizingMask"/>
                                                     </scroller>
                                                     <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="EBK-YY-6DU">
@@ -4039,16 +4045,16 @@ Gw
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <box title="Virtual Groups:" translatesAutoresizingMaskIntoConstraints="NO" id="cz8-lp-vOX">
-                                <rect key="frame" x="17" y="201" width="378" height="285"/>
+                                <rect key="frame" x="17" y="369" width="378" height="117"/>
                                 <view key="contentView" id="mfP-yc-Glp">
-                                    <rect key="frame" x="4" y="5" width="370" height="265"/>
+                                    <rect key="frame" x="4" y="5" width="370" height="97"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <stackView distribution="fill" orientation="horizontal" alignment="centerY" spacing="50" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="dAD-Kg-XUg">
-                                            <rect key="frame" x="61" y="30" width="248" height="215"/>
+                                            <rect key="frame" x="61" y="30" width="248" height="47"/>
                                             <subviews>
                                                 <button toolTip="All Devices is not an option for Available intent" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="b9J-ne-wCE">
-                                                    <rect key="frame" x="-3" y="96.5" width="109" height="22"/>
+                                                    <rect key="frame" x="-3" y="12.5" width="109" height="22"/>
                                                     <buttonCell key="cell" type="check" title="All Devices" bezelStyle="regularSquare" imagePosition="left" controlSize="large" inset="2" id="vQv-u0-Uec">
                                                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                         <font key="font" metaFont="system" size="16"/>
@@ -4058,7 +4064,7 @@ Gw
                                                     </connections>
                                                 </button>
                                                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="q98-Vt-pfT" userLabel="All Users">
-                                                    <rect key="frame" x="153" y="96.5" width="95" height="22"/>
+                                                    <rect key="frame" x="153" y="12.5" width="95" height="22"/>
                                                     <buttonCell key="cell" type="check" title="All Users" bezelStyle="regularSquare" imagePosition="left" controlSize="large" inset="2" id="ugl-NM-K2O">
                                                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                         <font key="font" metaFont="system" size="16"/>
@@ -4103,13 +4109,13 @@ Gw
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <scrollView autohidesScrollers="YES" horizontalLineScroll="17" horizontalPageScroll="10" verticalLineScroll="17" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Jfm-pY-6rB">
-                                            <rect key="frame" x="20" y="27" width="330" height="54"/>
+                                            <rect key="frame" x="20" y="27" width="330" height="222"/>
                                             <clipView key="contentView" id="qZF-J9-ywd">
-                                                <rect key="frame" x="1" y="1" width="328" height="52"/>
+                                                <rect key="frame" x="1" y="1" width="328" height="220"/>
                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                 <subviews>
                                                     <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnReordering="NO" multipleSelection="NO" emptySelection="NO" autosaveColumns="NO" typeSelect="NO" rowSizeStyle="automatic" headerView="4sa-Gq-N1J" viewBased="YES" id="ikr-2H-C7L">
-                                                        <rect key="frame" x="0.0" y="0.0" width="466" height="24"/>
+                                                        <rect key="frame" x="0.0" y="0.0" width="466" height="192"/>
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                         <size key="intercellSpacing" width="17" height="0.0"/>
                                                         <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -4216,7 +4222,7 @@ Gw
                                                 </subviews>
                                             </clipView>
                                             <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="Fha-0b-bPh">
-                                                <rect key="frame" x="1" y="37" width="328" height="16"/>
+                                                <rect key="frame" x="1" y="205" width="328" height="16"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                             </scroller>
                                             <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="pOP-XB-KaX">
@@ -4254,7 +4260,7 @@ DQ
                                 </connections>
                             </button>
                             <searchField wantsLayer="YES" focusRingType="none" verticalHuggingPriority="750" textCompletion="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qU7-5V-dOM">
-                                <rect key="frame" x="187" y="170" width="205" height="19"/>
+                                <rect key="frame" x="187" y="338" width="205" height="19"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="205" id="Bvu-ZM-lTq"/>
                                 </constraints>

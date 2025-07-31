@@ -656,7 +656,7 @@ class ScheduledReportsManager {
         // Extract ZIP file using unzip command
         let unzipProcess = Process()
         unzipProcess.launchPath = "/usr/bin/unzip"
-        unzipProcess.arguments = ["-j", tempZipFile.path, "-d", tempDir.path] // -j flattens directory structure
+        unzipProcess.arguments = ["-qq", tempZipFile.path, "-d", tempDir.path] // -j flattens directory structure
         
         // Redirect output to prevent terminal spam
         unzipProcess.standardOutput = FileHandle.nullDevice

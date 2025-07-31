@@ -35,8 +35,14 @@ class IntuneReportsViewController: NSViewController {
     /// Export start time for elapsed time tracking
     private var exportStartTime: Date?
     
+    /// Currently selected report type
+    private var selectedReportType: String?
+    
     /// Variable to set so the popup reports menu selects that menu item when the view opens
     var preselectedReport: String?
+    
+    /// Filters to pre-populate when the export dialog opens (key = filter field name, value = filter value)
+    var preselectedFilters: [String: String]?
     
     // MARK: - View Lifecycle
     /// Lifecycle callback invoked when the view loads.
@@ -47,33 +53,12 @@ class IntuneReportsViewController: NSViewController {
         setupUI()
     }
     
-    // MARK: - Public Methods
-    
-    /// Preselects a specific report type in the popup menu
-    /// - Parameter reportType: The report type to preselect (e.g., "Devices with Inventory")
-    func preselectReportType(_ reportType: String) {
-        // Ensure the popup is set up first
-        if reportNamePopUp.numberOfItems == 0 {
-            setupPopups()
-        }
-        
-        // Set the selected report type and update the placeholder item
-        if let reportDef = ReportRegistry.shared.getReportDefinition(for: reportType) {
-            selectedReportType = reportType
-            
-            // Update the placeholder item title (first item in the menu)
-            if let placeholderItem = reportNamePopUp.menu?.item(at: 0) {
-                placeholderItem.title = reportDef.displayName
-                reportNamePopUp.selectItem(at: 0)
-            }
-            
-            Logger.info("Preselected report type: \(reportType) (\(reportDef.displayName))", category: .core, toUserDirectory: true)
-        } else {
-            Logger.warning("Could not find report type '\(reportType)' in registry", category: .core, toUserDirectory: true)
+    @objc func windowWillClose(_ notification: Notification) {
+        if let window = notification.object as? NSWindow {
+            saveWindowFrame(window, forElement: "IntuneReportsViewController")
         }
     }
-    
-    
+
     
     // MARK: - UI Setup
     private func setupUI() {
@@ -132,8 +117,56 @@ class IntuneReportsViewController: NSViewController {
             reportNamePopUp.menu?.addItem(categoryMenuItem)
         }
         
-        // Select the placeholder item by default
-        reportNamePopUp.selectItem(at: 0)
+        // Check if there's a preselected report to set
+        if let preselectedReport = preselectedReport {
+            // Try to find and select the preselected report
+            var foundMatch = false
+            
+            // Search through category submenus
+            for categoryItem in reportNamePopUp.menu?.items ?? [] {
+                if let submenu = categoryItem.submenu {
+                    for reportItem in submenu.items {
+                        // Check both display name and report type ID
+                        let displayName = reportItem.title
+                        let reportType = reportItem.representedObject as? String ?? ""
+                        
+                        if displayName == preselectedReport || reportType == preselectedReport {
+                            // Found a match - select it by simulating the normal selection process
+                            selectedReportType = reportType
+                            
+                            // Update the placeholder item title and enable it
+                            if let placeholderItem = reportNamePopUp.menu?.item(at: 0) {
+                                placeholderItem.title = displayName
+                                placeholderItem.isEnabled = true
+                            }
+                            
+                            // Ensure the placeholder item remains selected
+                            reportNamePopUp.selectItem(at: 0)
+                            
+                            // Trigger the same UI state updates that happen during normal selection
+                            updateScheduleButtonsState()
+                            
+                            Logger.info("Preselected report: \(displayName) (\(reportType))", category: .core, toUserDirectory: true)
+                            foundMatch = true
+                            break
+                        }
+                    }
+                    if foundMatch { break }
+                }
+            }
+            
+            if !foundMatch {
+                Logger.warning("Could not find preselected report: \(preselectedReport)", category: .core, toUserDirectory: true)
+            }
+            
+            // Clear the preselected report variable after processing
+            self.preselectedReport = nil
+        }
+        
+        // If no preselected report or not found, select the placeholder item by default
+        if selectedReportType == nil {
+            reportNamePopUp.selectItem(at: 0)
+        }
     }
     
     private func setupScheduleButtons() {
@@ -155,9 +188,10 @@ class IntuneReportsViewController: NSViewController {
            let reportType = menuItem.representedObject as? String {
             selectedReportType = reportType
             
-            // Update the placeholder item title (first item in the menu)
+            // Update the placeholder item title and enable it (first item in the menu)
             if let placeholderItem = reportNamePopUp.menu?.item(at: 0) {
                 placeholderItem.title = menuItem.title
+                placeholderItem.isEnabled = true
             }
             
             // Ensure the placeholder item remains selected
@@ -177,13 +211,24 @@ class IntuneReportsViewController: NSViewController {
     }
     
     @IBAction func manageSchedulesButtonClicked(_ sender: Any) {
-        showScheduleManagementWindow()
+        openReportsScheduleManager()
     }
     
     @IBAction func cancelButtonClicked(_ sender: Any) {
         cancelCurrentExport()
     }
     
+    private func openReportsScheduleManager() {
+        WindowManager.shared.openWindow(
+            identifier: "ScheduledReportsManagementViewController",
+            storyboardName: "IntuneReports",
+            controllerType: ScheduledReportsManagementViewController.self,
+            windowTitle: "Scheduled Reports Manager",
+            defaultSize: NSSize(width: 800, height: 600),
+            restoreKey: "ScheduledReportsManagementViewController"
+        )
+    }
+
     /// Cancels the current export operation
     private func cancelCurrentExport() {
         isExportCancelled = true
@@ -279,6 +324,14 @@ class IntuneReportsViewController: NSViewController {
             
             // Use ReportRegistry to create filter controls dynamically
             filterControls = ReportRegistry.shared.createFilterControls(for: reportType, in: filterContainer)
+            
+            // Populate filter controls with preselected values if available
+            if let preselectedFilters = preselectedFilters {
+                populateFilterControls(filterControls, with: preselectedFilters, for: reportType)
+                
+                // Clear the preselected filters after use
+                self.preselectedFilters = nil
+            }
         }
         
         alert.accessoryView = accessoryView
@@ -438,7 +491,7 @@ class IntuneReportsViewController: NSViewController {
         // Extract ZIP file using NSTask (unzip command)
         let unzipProcess = Process()
         unzipProcess.launchPath = "/usr/bin/unzip"
-        unzipProcess.arguments = ["-j", tempZipFile.path, "-d", tempDir.path] // -j flattens directory structure
+        unzipProcess.arguments = ["-qq", tempZipFile.path, "-d", tempDir.path] // -j flattens directory structure
         unzipProcess.launch()
         unzipProcess.waitUntilExit()
         
@@ -480,330 +533,13 @@ class IntuneReportsViewController: NSViewController {
         showError(message)
     }
     
-    // MARK: - Export Job Types
-    private func performAllAppsListExportJob(reportType: String, format: String, saveUrl: URL) {
-        // Create AllAppsList job
-        XPCManager.shared.createAllAppsListExportJob(
-            includeColumns: nil,
-            format: format
-        ) { [weak self] jobId in
-            DispatchQueue.main.async {
-                guard let self = self, let jobId = jobId else {
-                    self?.handleExportError("Failed to create export job")
-                    return
-                }
-                
-                self.pollAndHandleExportJob(jobId: jobId, saveUrl: saveUrl, format: format)
-            }
-        }
-    }
-
-    private func performAppInstallStatusAggregateExportJob(reportType: String, format: String, saveUrl: URL) {
-        // Create AppInstallStatusAggregate job
-        XPCManager.shared.createAppInstallStatusAggregateExportJob(
-            platform: nil,
-            failedDevicePercentage: nil,
-            includeColumns: nil,
-            format: format
-        ) { [weak self] jobId in
-            DispatchQueue.main.async {
-                guard let self = self, let jobId = jobId else {
-                    self?.handleExportError("Failed to create export job")
-                    return
-                }
-                
-                self.pollAndHandleExportJob(jobId: jobId, saveUrl: saveUrl, format: format)
-            }
-        }
-    }
-
-
-    private func performAppInvAggregateExportJob(reportType: String, format: String, saveUrl: URL) {
-        // Create AppInvAggregate job
-        XPCManager.shared.createAppInvAggregateExportJob(
-            includeColumns: nil,
-            format: format
-        ) { [weak self] jobId in
-            DispatchQueue.main.async {
-                guard let self = self, let jobId = jobId else {
-                    self?.handleExportError("Failed to create export job")
-                    return
-                }
-                
-                self.pollAndHandleExportJob(jobId: jobId, saveUrl: saveUrl, format: format)
-            }
-        }
-    }
-
-    private func performAppInventoryRawDataExportJob(reportType: String, format: String, filters: [String: String] = [:], saveUrl: URL) {
-        // Extract filter values
-        let platform = filters["platform"] != "All" ? filters["platform"] : nil
-        let applicationName = filters["applicationName"]
-        let applicationPublisher = filters["applicationPublisher"]
-        
-        // Create AppInventoryRawData job with filters
-        XPCManager.shared.createAppInvRawDataExportJob(
-            applicationName: applicationName,
-            applicationPublisher: applicationPublisher,
-            applicationShortVersion: nil,
-            applicationVersion: nil,
-            deviceId: nil,
-            deviceName: nil,
-            osDescription: nil,
-            osVersion: nil,
-            platform: platform,
-            userId: nil,
-            emailAddress: nil,
-            userName: nil,
-            includeColumns: nil,
-            format: format
-        ) { [weak self] jobId in
-            DispatchQueue.main.async {
-                guard let self = self, let jobId = jobId else {
-                    self?.handleExportError("Failed to create export job")
-                    return
-                }
-                
-                self.pollAndHandleExportJob(jobId: jobId, saveUrl: saveUrl, format: format)
-            }
-        }
-    }
-
-    private func performDeviceComplianceExportJob(reportType: String, format: String, filters: [String: String] = [:], saveUrl: URL) {
-        // Extract filter values for compliance reports
-        let ownerType = filters["ownerType"] != "All" ? filters["ownerType"] : nil
-        let complianceState = filters["complianceState"] != "All" ? filters["complianceState"] : nil
-        let deviceType = filters["deviceType"] != "All" ? filters["deviceType"] : nil
-        
-        // Create DeviceCompliance job with filters
-        XPCManager.shared.createDeviceComplianceExportJob(
-            complianceState: complianceState,
-            os: nil, // Could add OS filter later
-            ownerType: ownerType,
-            deviceType: deviceType,
-            includeColumns: nil,
-            format: format
-        ) { [weak self] jobId in
-            DispatchQueue.main.async {
-                guard let self = self, let jobId = jobId else {
-                    self?.handleExportError("Failed to create export job")
-                    return
-                }
-                
-                self.pollAndHandleExportJob(jobId: jobId, saveUrl: saveUrl, format: format)
-            }
-        }
-    }
-
-    private func performDeviceNonComplianceExportJob(reportType: String, format: String, filters: [String: String] = [:], saveUrl: URL) {
-        // Extract filter values for non-compliance reports
-        let ownerType = filters["ownerType"] != "All" ? filters["ownerType"] : nil
-        let complianceState = filters["complianceState"] != "All" ? filters["complianceState"] : nil
-        let deviceType = filters["deviceType"] != "All" ? filters["deviceType"] : nil
-        
-        // Create DeviceNonCompliance job with filters
-        XPCManager.shared.createDeviceNonComplianceExportJob(
-            complianceState: complianceState,
-            os: nil, // Could add OS filter later
-            ownerType: ownerType,
-            deviceType: deviceType,
-            userId: nil,
-            includeColumns: nil,
-            format: format
-        ) { [weak self] jobId in
-            DispatchQueue.main.async {
-                guard let self = self, let jobId = jobId else {
-                    self?.handleExportError("Failed to create export job")
-                    return
-                }
-                
-                self.pollAndHandleExportJob(jobId: jobId, saveUrl: saveUrl, format: format)
-            }
-        }
-    }
-
-    private func performDevicesExportJob(reportType: String, format: String, filters: [String: String] = [:], saveUrl: URL) {
-        // Extract filter values (convert "All" to nil for API)
-        let ownerType = filters["ownerType"] != "All" ? filters["ownerType"] : nil
-        let managementState = filters["managementState"] != "All" ? filters["managementState"] : nil
-        let compliantState = filters["compliantState"] != "All" ? filters["compliantState"] : nil
-        let deviceType = filters["deviceType"] != "All" ? filters["deviceType"] : nil
-        
-        // Create Devices job with filters
-        XPCManager.shared.createDevicesExportJob(
-            ownerType: ownerType,
-            deviceType: deviceType,
-            managementAgents: nil,
-            categoryName: nil,
-            managementState: managementState,
-            compliantState: compliantState,
-            jailBroken: nil,
-            enrollmentType: nil,
-            includeColumns: nil,
-            format: format
-        ) { [weak self] jobId in
-            DispatchQueue.main.async {
-                guard let self = self, let jobId = jobId else {
-                    self?.handleExportError("Failed to create export job")
-                    return
-                }
-                
-                self.pollAndHandleExportJob(jobId: jobId, saveUrl: saveUrl, format: format)
-            }
-        }
-    }
-
-    private func performDevicesWithInventoryExportJob(reportType: String, format: String, filters: [String: String] = [:], saveUrl: URL) {
-        // Extract filter values (convert "All" to nil for API)
-        let ownerType = filters["ownerType"] != "All" ? filters["ownerType"] : nil
-        let managementState = filters["managementState"] != "All" ? filters["managementState"] : nil
-        let compliantState = filters["compliantState"] != "All" ? filters["compliantState"] : nil
-        let deviceType = filters["deviceType"] != "All" ? filters["deviceType"] : nil
-        
-        // Create Devices job with filters
-        XPCManager.shared.createDevicesWithInventoryExportJob(
-            createdDate: nil,
-            lastContact: nil,
-            categoryName: nil,
-            compliantState: compliantState,
-            managementAgents: nil,
-            ownerType: ownerType,
-            managementState: managementState,
-            deviceType: deviceType,
-            jailBroken: nil,
-            enrollmentType: nil,
-            includeColumns: nil,
-            format: format
-        ) { [weak self] jobId in
-            DispatchQueue.main.async {
-                guard let self = self, let jobId = jobId else {
-                    self?.handleExportError("Failed to create export job")
-                    return
-                }
-                
-                self.pollAndHandleExportJob(jobId: jobId, saveUrl: saveUrl, format: format)
-            }
-        }
-    }
-
-    private func performDefenderAgentsExportJob(reportType: String, format: String, saveUrl: URL) {
-        // Create DefenderAgents job
-        XPCManager.shared.createDefenderAgentsExportJob(
-            deviceState: nil,
-            signatureUpdateOverdue: nil,
-            malwareProtectionEnabled: nil,
-            realTimeProtectionEnabled: nil,
-            networkInspectionSystemEnabled: nil,
-            includeColumns: nil,
-            format: format
-        ) { [weak self] jobId in
-            DispatchQueue.main.async {
-                guard let self = self, let jobId = jobId else {
-                    self?.handleExportError("Failed to create export job")
-                    return
-                }
-                
-                self.pollAndHandleExportJob(jobId: jobId, saveUrl: saveUrl, format: format)
-            }
-        }
-    }
-
-    private func performFirewallStatusExportJob(reportType: String, format: String, saveUrl: URL) {
-        // Create FirewallStatus job
-        XPCManager.shared.createFirewallStatusExportJob(
-            firewallStatus: nil,
-            includeColumns: nil,
-            format: format
-        ) { [weak self] jobId in
-            DispatchQueue.main.async {
-                guard let self = self, let jobId = jobId else {
-                    self?.handleExportError("Failed to create export job")
-                    return
-                }
-                
-                self.pollAndHandleExportJob(jobId: jobId, saveUrl: saveUrl, format: format)
-            }
-        }
-    }
-
-    private func performMalwareExportJob(reportType: String, format: String, saveUrl: URL) {
-        // Create Malware job
-        XPCManager.shared.createMalwareExportJob(
-            severity: nil,
-            executionState: nil,
-            state: nil,
-            includeColumns: nil,
-            format: format
-        ) { [weak self] jobId in
-            DispatchQueue.main.async {
-                guard let self = self, let jobId = jobId else {
-                    self?.handleExportError("Failed to create export job")
-                    return
-                }
-                
-                self.pollAndHandleExportJob(jobId: jobId, saveUrl: saveUrl, format: format)
-            }
-        }
-    }
-
-    private func performMAMAppProtectionStatusExportJob(reportType: String, format: String, saveUrl: URL) {
-        // Create MAMAppProtectionStatus job
-        XPCManager.shared.createMAMAppProtectionStatusExportJob(
-            includeColumns: nil,
-            format: format
-        ) { [weak self] jobId in
-            DispatchQueue.main.async {
-                guard let self = self, let jobId = jobId else {
-                    self?.handleExportError("Failed to create export job")
-                    return
-                }
-                
-                self.pollAndHandleExportJob(jobId: jobId, saveUrl: saveUrl, format: format)
-            }
-        }
-    }
-
-    private func performMAMAppConfigurationStatusExportJob(reportType: String, format: String, saveUrl: URL) {
-        // Create MAMAppConfigurationStatus job
-        XPCManager.shared.createMAMAppConfigurationStatusExportJob(
-            includeColumns: nil,
-            format: format
-        ) { [weak self] jobId in
-            DispatchQueue.main.async {
-                guard let self = self, let jobId = jobId else {
-                    self?.handleExportError("Failed to create export job")
-                    return
-                }
-                
-                self.pollAndHandleExportJob(jobId: jobId, saveUrl: saveUrl, format: format)
-            }
-        }
-    }
-
-    private func performFeatureUpdatePolicyFailuresAggregateExportJob(reportType: String, format: String, saveUrl: URL) {
-        // Create FeatureUpdatePolicyFailuresAggregate job
-        XPCManager.shared.createFeatureUpdatePolicyFailuresAggregateExportJob(
-            includeColumns: nil,
-            format: format
-        ) { [weak self] jobId in
-            DispatchQueue.main.async {
-                guard let self = self, let jobId = jobId else {
-                    self?.handleExportError("Failed to create export job")
-                    return
-                }
-                
-                self.pollAndHandleExportJob(jobId: jobId, saveUrl: saveUrl, format: format)
-            }
-        }
-    }
-
-
     // MARK: - UI State Management
     
     /// Sets the export in progress state
     /// - Parameter inProgress: Whether export is in progress
     private func setExportInProgress(_ inProgress: Bool) {
         runReportButton.isEnabled = !inProgress
+        scheduleReportButton.isEnabled = !inProgress
         reportNamePopUp.isEnabled = !inProgress
         cancelButton.isHidden = !inProgress
         
@@ -866,7 +602,7 @@ class IntuneReportsViewController: NSViewController {
             }
             
             // Gradually increase progress up to 90% (never 100% until actually complete)
-            currentProgress += 5
+            currentProgress += 3
             if currentProgress > 90 {
                 currentProgress = 90
             }
@@ -874,11 +610,27 @@ class IntuneReportsViewController: NSViewController {
             // Vary the message based on time elapsed
             let elapsed = Date().timeIntervalSince(self.exportStartTime ?? Date())
             let message: String
-            if elapsed < 4 {
+            if elapsed < 5 {
                 message = "Processing export job…"
-            } else if elapsed < 12 {
+            } else if elapsed < 10 {
+                message = "Creating export job…"
+            } else if elapsed < 15 {
+                message = "Intune exporting data…"
+            } else if elapsed < 20 {
                 message = "Creating export job…"
             } else if elapsed < 25 {
+                message = "Intune exporting data…"
+            } else if elapsed < 30 {
+                message = "Creating export job…"
+            } else if elapsed < 35 {
+                message = "Intune exporting data…"
+            } else if elapsed < 40 {
+                message = "Creating export job…"
+            } else if elapsed < 45 {
+                message = "Intune exporting data…"
+            } else if elapsed < 50 {
+                message = "Creating export job…"
+            } else if elapsed < 55 {
                 message = "Intune exporting data…"
             } else {
                 message = "Finalizing export report…"
@@ -934,503 +686,6 @@ class IntuneReportsViewController: NSViewController {
         }
     }
     
-    
-    // MARK: - Simple Filter Options
-    
-    /// Creates simplified device filter controls
-    /// - Parameter container: The view to add controls to
-    /// - Returns: Dictionary of filter controls for value extraction
-    private func createDeviceFiltersSimple(in container: NSView) -> [String: NSControl] {
-        var controls: [String: NSControl] = [:]
-        
-        // Add "Filters:" label
-        let filtersLabel = NSTextField(labelWithString: "Filters:")
-        filtersLabel.frame = NSRect(x: 0, y: 60, width: 60, height: 17)
-        filtersLabel.font = NSFont.boldSystemFont(ofSize: 13)
-        container.addSubview(filtersLabel)
-        
-        // Owner Type filter
-        let ownerLabel = NSTextField(labelWithString: "Owner Type:")
-        ownerLabel.frame = NSRect(x: 0, y: 35, width: 80, height: 17)
-        container.addSubview(ownerLabel)
-        
-        let ownerPopup = NSPopUpButton(frame: NSRect(x: 90, y: 31, width: 120, height: 25))
-        ownerPopup.addItem(withTitle: "All")
-        ownerPopup.addItem(withTitle: "Company")
-        ownerPopup.addItem(withTitle: "Personal")
-        container.addSubview(ownerPopup)
-        controls["ownerType"] = ownerPopup
-        
-        // Compliance State filter
-        let complianceLabel = NSTextField(labelWithString: "Compliance:")
-        complianceLabel.frame = NSRect(x: 220, y: 35, width: 80, height: 17)
-        container.addSubview(complianceLabel)
-        
-        let compliancePopup = NSPopUpButton(frame: NSRect(x: 310, y: 31, width: 120, height: 25))
-        compliancePopup.addItem(withTitle: "All")
-        compliancePopup.addItem(withTitle: "Compliant")
-        compliancePopup.addItem(withTitle: "Noncompliant")
-        compliancePopup.addItem(withTitle: "InGracePeriod")
-        container.addSubview(compliancePopup)
-        controls["compliantState"] = compliancePopup
-        
-        // Management State filter
-        let managementLabel = NSTextField(labelWithString: "Management:")
-        managementLabel.frame = NSRect(x: 0, y: 8, width: 80, height: 17)
-        container.addSubview(managementLabel)
-        
-        let managementPopup = NSPopUpButton(frame: NSRect(x: 90, y: 3, width: 120, height: 25))
-        managementPopup.addItem(withTitle: "All")
-        managementPopup.addItem(withTitle: "Managed")
-        managementPopup.addItem(withTitle: "Discovered")
-        managementPopup.addItem(withTitle: "Unhealthy")
-        managementPopup.addItem(withTitle: "Retire Pending")
-        managementPopup.addItem(withTitle: "Wipe Pending")
-        container.addSubview(managementPopup)
-        controls["managementState"] = managementPopup
-        
-        // Device Type filter
-        let deviceTypeLabel = NSTextField(labelWithString: "Device Type:")
-        deviceTypeLabel.frame = NSRect(x: 220, y: 8, width: 80, height: 17)
-        container.addSubview(deviceTypeLabel)
-        
-        let deviceTypePopup = NSPopUpButton(frame: NSRect(x: 310, y: 3, width: 120, height: 25))
-        deviceTypePopup.addItem(withTitle: "All")
-        deviceTypePopup.addItem(withTitle: "Desktop")
-        deviceTypePopup.addItem(withTitle: "Windows")
-        deviceTypePopup.addItem(withTitle: "Mac")
-        deviceTypePopup.addItem(withTitle: "MacMDM")
-        deviceTypePopup.addItem(withTitle: "iPhone")
-        deviceTypePopup.addItem(withTitle: "iPad")
-        deviceTypePopup.addItem(withTitle: "iPod")
-        deviceTypePopup.addItem(withTitle: "Android")
-        deviceTypePopup.addItem(withTitle: "AndroidForWork")
-        deviceTypePopup.addItem(withTitle: "AndroidEnterprise")
-        deviceTypePopup.addItem(withTitle: "Windows10x")
-        deviceTypePopup.addItem(withTitle: "AndroidnGMS")
-        deviceTypePopup.addItem(withTitle: "CloudPC")
-        deviceTypePopup.addItem(withTitle: "Linux")
-        deviceTypePopup.addItem(withTitle: "WinMO6")
-        deviceTypePopup.addItem(withTitle: "Nokia")
-        deviceTypePopup.addItem(withTitle: "WindowsPhone")
-        deviceTypePopup.addItem(withTitle: "WinCE")
-        deviceTypePopup.addItem(withTitle: "WinEmbedded")
-        deviceTypePopup.addItem(withTitle: "iSocConsumer")
-        deviceTypePopup.addItem(withTitle: "Unix")
-        deviceTypePopup.addItem(withTitle: "HoloLens")
-        deviceTypePopup.addItem(withTitle: "SurfaceHub")
-        container.addSubview(deviceTypePopup)
-        controls["deviceType"] = deviceTypePopup
-        
-        return controls
-    }
-
-    /// Creates simplified device with inventory filter controls
-    /// - Parameter container: The view to add controls to
-    /// - Returns: Dictionary of filter controls for value extraction
-    private func createDevicesWithInventoryFiltersSimple(in container: NSView) -> [String: NSControl] {
-        var controls: [String: NSControl] = [:]
-        
-        // Add "Filters:" label
-        let filtersLabel = NSTextField(labelWithString: "Filters:")
-        filtersLabel.frame = NSRect(x: 0, y: 60, width: 60, height: 17)
-        filtersLabel.font = NSFont.boldSystemFont(ofSize: 13)
-        container.addSubview(filtersLabel)
-        
-        // Owner Type filter
-        let ownerLabel = NSTextField(labelWithString: "Owner Type:")
-        ownerLabel.frame = NSRect(x: 0, y: 35, width: 80, height: 17)
-        container.addSubview(ownerLabel)
-        
-        let ownerPopup = NSPopUpButton(frame: NSRect(x: 90, y: 31, width: 120, height: 25))
-        ownerPopup.addItem(withTitle: "All")
-        ownerPopup.addItem(withTitle: "Company")
-        ownerPopup.addItem(withTitle: "Personal")
-        container.addSubview(ownerPopup)
-        controls["ownerType"] = ownerPopup
-        
-        // Compliance State filter
-        let complianceLabel = NSTextField(labelWithString: "Compliance:")
-        complianceLabel.frame = NSRect(x: 220, y: 35, width: 80, height: 17)
-        container.addSubview(complianceLabel)
-        
-        let compliancePopup = NSPopUpButton(frame: NSRect(x: 310, y: 31, width: 120, height: 25))
-        compliancePopup.addItem(withTitle: "All")
-        compliancePopup.addItem(withTitle: "Compliant")
-        compliancePopup.addItem(withTitle: "Noncompliant")
-        compliancePopup.addItem(withTitle: "InGracePeriod")
-        container.addSubview(compliancePopup)
-        controls["compliantState"] = compliancePopup
-        
-        // Management State filter
-        let managementLabel = NSTextField(labelWithString: "Management:")
-        managementLabel.frame = NSRect(x: 0, y: 8, width: 80, height: 17)
-        container.addSubview(managementLabel)
-        
-        let managementPopup = NSPopUpButton(frame: NSRect(x: 90, y: 3, width: 120, height: 25))
-        managementPopup.addItem(withTitle: "All")
-        managementPopup.addItem(withTitle: "Managed")
-        managementPopup.addItem(withTitle: "Discovered")
-        managementPopup.addItem(withTitle: "Unhealthy")
-        managementPopup.addItem(withTitle: "Retire Pending")
-        managementPopup.addItem(withTitle: "Wipe Pending")
-        container.addSubview(managementPopup)
-        controls["managementState"] = managementPopup
-        
-        // Device Type filter
-        let deviceTypeLabel = NSTextField(labelWithString: "Device Type:")
-        deviceTypeLabel.frame = NSRect(x: 220, y: 8, width: 80, height: 17)
-        container.addSubview(deviceTypeLabel)
-        
-        let deviceTypePopup = NSPopUpButton(frame: NSRect(x: 310, y: 3, width: 120, height: 25))
-        deviceTypePopup.addItem(withTitle: "All")
-        deviceTypePopup.addItem(withTitle: "Desktop")
-        deviceTypePopup.addItem(withTitle: "Windows")
-        deviceTypePopup.addItem(withTitle: "Mac")
-        deviceTypePopup.addItem(withTitle: "MacMDM")
-        deviceTypePopup.addItem(withTitle: "iPhone")
-        deviceTypePopup.addItem(withTitle: "iPad")
-        deviceTypePopup.addItem(withTitle: "iPod")
-        deviceTypePopup.addItem(withTitle: "Android")
-        deviceTypePopup.addItem(withTitle: "AndroidForWork")
-        deviceTypePopup.addItem(withTitle: "AndroidEnterprise")
-        deviceTypePopup.addItem(withTitle: "Windows10x")
-        deviceTypePopup.addItem(withTitle: "AndroidnGMS")
-        deviceTypePopup.addItem(withTitle: "CloudPC")
-        deviceTypePopup.addItem(withTitle: "Linux")
-        deviceTypePopup.addItem(withTitle: "WinMO6")
-        deviceTypePopup.addItem(withTitle: "Nokia")
-        deviceTypePopup.addItem(withTitle: "WindowsPhone")
-        deviceTypePopup.addItem(withTitle: "WinCE")
-        deviceTypePopup.addItem(withTitle: "WinEmbedded")
-        deviceTypePopup.addItem(withTitle: "iSocConsumer")
-        deviceTypePopup.addItem(withTitle: "Unix")
-        deviceTypePopup.addItem(withTitle: "HoloLens")
-        deviceTypePopup.addItem(withTitle: "SurfaceHub")
-        container.addSubview(deviceTypePopup)
-        controls["deviceType"] = deviceTypePopup
-
-        return controls
-    }
-
-    /// Creates simplified app inventory filter controls
-    /// - Parameter container: The view to add controls to
-    /// - Returns: Dictionary of filter controls for value extraction
-    private func createAppFiltersSimple(in container: NSView) -> [String: NSControl] {
-        var controls: [String: NSControl] = [:]
-        
-        // Add "Filters:" label
-        let filtersLabel = NSTextField(labelWithString: "Filters:")
-        filtersLabel.frame = NSRect(x: 0, y: 60, width: 60, height: 17)
-        filtersLabel.font = NSFont.boldSystemFont(ofSize: 13)
-        container.addSubview(filtersLabel)
-        
-        // Platform filter
-        let platformLabel = NSTextField(labelWithString: "Platform:")
-        platformLabel.frame = NSRect(x: 0, y: 35, width: 70, height: 17)
-        container.addSubview(platformLabel)
-        
-        let platformPopup = NSPopUpButton(frame: NSRect(x: 80, y: 33, width: 150, height: 25))
-        platformPopup.addItem(withTitle: "All")
-        platformPopup.addItem(withTitle: "Windows")
-        platformPopup.addItem(withTitle: "MacOS")
-        platformPopup.addItem(withTitle: "IOS")
-        platformPopup.addItem(withTitle: "AndroidWorkProfile")
-        platformPopup.addItem(withTitle: "AndroidFullyManagedDedicated")
-        platformPopup.addItem(withTitle: "AndroidDeviceAdministrator")
-        platformPopup.addItem(withTitle: "Other")
-        container.addSubview(platformPopup)
-        controls["platform"] = platformPopup
-        
-        // Application Name filter (text field)
-        let appNameLabel = NSTextField(labelWithString: "App Name:")
-        appNameLabel.frame = NSRect(x: 240, y: 35, width: 70, height: 17)
-        container.addSubview(appNameLabel)
-        
-        let appNameField = NSTextField(frame: NSRect(x: 320, y: 33, width: 130, height: 25))
-        appNameField.placeholderString = "e.g., Safari"
-        container.addSubview(appNameField)
-        controls["applicationName"] = appNameField
-        
-        // Publisher filter (text field)
-        let publisherLabel = NSTextField(labelWithString: "Publisher:")
-        publisherLabel.frame = NSRect(x: 0, y: 8, width: 70, height: 17)
-        container.addSubview(publisherLabel)
-        
-        let publisherField = NSTextField(frame: NSRect(x: 80, y: 6, width: 130, height: 25))
-        publisherField.placeholderString = "e.g., Microsoft"
-        container.addSubview(publisherField)
-        controls["applicationPublisher"] = publisherField
-        
-        return controls
-    }
-    
-    /// Creates simplified compliance filter controls (no management state)
-    /// - Parameter container: The view to add controls to
-    /// - Returns: Dictionary of filter controls for value extraction
-    private func createComplianceFiltersSimple(in container: NSView) -> [String: NSControl] {
-        var controls: [String: NSControl] = [:]
-        
-        // Add "Filters:" label
-        let filtersLabel = NSTextField(labelWithString: "Filters:")
-        filtersLabel.frame = NSRect(x: 0, y: 60, width: 60, height: 17)
-        filtersLabel.font = NSFont.boldSystemFont(ofSize: 13)
-        container.addSubview(filtersLabel)
-        
-        // Owner Type filter
-        let ownerLabel = NSTextField(labelWithString: "Owner Type:")
-        ownerLabel.frame = NSRect(x: 0, y: 35, width: 80, height: 17)
-        container.addSubview(ownerLabel)
-        
-        let ownerPopup = NSPopUpButton(frame: NSRect(x: 90, y: 31, width: 120, height: 25))
-        ownerPopup.addItem(withTitle: "All")
-        ownerPopup.addItem(withTitle: "Company")
-        ownerPopup.addItem(withTitle: "Personal")
-        container.addSubview(ownerPopup)
-        controls["ownerType"] = ownerPopup
-        
-        // Compliance State filter
-        let complianceLabel = NSTextField(labelWithString: "Compliance:")
-        complianceLabel.frame = NSRect(x: 220, y: 35, width: 80, height: 17)
-        container.addSubview(complianceLabel)
-        
-        let compliancePopup = NSPopUpButton(frame: NSRect(x: 310, y: 31, width: 120, height: 25))
-        compliancePopup.addItem(withTitle: "All")
-        compliancePopup.addItem(withTitle: "Compliant")
-        compliancePopup.addItem(withTitle: "Noncompliant")
-        compliancePopup.addItem(withTitle: "InGracePeriod")
-        container.addSubview(compliancePopup)
-        controls["complianceState"] = compliancePopup
-        
-        // Device Type filter
-        let deviceTypeLabel = NSTextField(labelWithString: "Device Type:")
-        deviceTypeLabel.frame = NSRect(x: 0, y: 8, width: 80, height: 17)
-        container.addSubview(deviceTypeLabel)
-        
-        let deviceTypePopup = NSPopUpButton(frame: NSRect(x: 90, y: 3, width: 120, height: 25))
-        deviceTypePopup.addItem(withTitle: "All")
-        deviceTypePopup.addItem(withTitle: "Desktop")
-        deviceTypePopup.addItem(withTitle: "Windows")
-        deviceTypePopup.addItem(withTitle: "Mac")
-        deviceTypePopup.addItem(withTitle: "MacMDM")
-        deviceTypePopup.addItem(withTitle: "iPhone")
-        deviceTypePopup.addItem(withTitle: "iPad")
-        deviceTypePopup.addItem(withTitle: "Android")
-        deviceTypePopup.addItem(withTitle: "AndroidForWork")
-        deviceTypePopup.addItem(withTitle: "AndroidEnterprise")
-        deviceTypePopup.addItem(withTitle: "CloudPC")
-        deviceTypePopup.addItem(withTitle: "Linux")
-        container.addSubview(deviceTypePopup)
-        controls["deviceType"] = deviceTypePopup
-
-        return controls
-    }
-    
-    /// Creates simplified non-compliance filter controls (same as compliance)
-    /// - Parameter container: The view to add controls to
-    /// - Returns: Dictionary of filter controls for value extraction
-    private func createNonComplianceFiltersSimple(in container: NSView) -> [String: NSControl] {
-        var controls: [String: NSControl] = [:]
-        
-        // Add "Filters:" label
-        let filtersLabel = NSTextField(labelWithString: "Filters:")
-        filtersLabel.frame = NSRect(x: 0, y: 60, width: 60, height: 17)
-        filtersLabel.font = NSFont.boldSystemFont(ofSize: 13)
-        container.addSubview(filtersLabel)
-        
-        // Owner Type filter
-        let ownerLabel = NSTextField(labelWithString: "Owner Type:")
-        ownerLabel.frame = NSRect(x: 0, y: 35, width: 80, height: 17)
-        container.addSubview(ownerLabel)
-        
-        let ownerPopup = NSPopUpButton(frame: NSRect(x: 90, y: 31, width: 100, height: 25))
-        ownerPopup.addItem(withTitle: "All")
-        ownerPopup.addItem(withTitle: "Company")
-        ownerPopup.addItem(withTitle: "Personal")
-        container.addSubview(ownerPopup)
-        controls["ownerType"] = ownerPopup
-        
-        // Compliance State filter
-        let complianceLabel = NSTextField(labelWithString: "Compliance:")
-        complianceLabel.frame = NSRect(x: 200, y: 35, width: 80, height: 17)
-        container.addSubview(complianceLabel)
-        
-        let compliancePopup = NSPopUpButton(frame: NSRect(x: 290, y: 31, width: 120, height: 25))
-        compliancePopup.addItem(withTitle: "All")
-        compliancePopup.addItem(withTitle: "Compliant")
-        compliancePopup.addItem(withTitle: "Noncompliant")
-        compliancePopup.addItem(withTitle: "InGracePeriod")
-        container.addSubview(compliancePopup)
-        controls["complianceState"] = compliancePopup
-        
-        // Device Type filter
-        let deviceTypeLabel = NSTextField(labelWithString: "Device Type:")
-        deviceTypeLabel.frame = NSRect(x: 0, y: 8, width: 80, height: 17)
-        container.addSubview(deviceTypeLabel)
-        
-        let deviceTypePopup = NSPopUpButton(frame: NSRect(x: 90, y: 6, width: 120, height: 25))
-        deviceTypePopup.addItem(withTitle: "All")
-        deviceTypePopup.addItem(withTitle: "Desktop")
-        deviceTypePopup.addItem(withTitle: "Windows")
-        deviceTypePopup.addItem(withTitle: "Mac")
-        deviceTypePopup.addItem(withTitle: "MacMDM")
-        deviceTypePopup.addItem(withTitle: "iPhone")
-        deviceTypePopup.addItem(withTitle: "iPad")
-        deviceTypePopup.addItem(withTitle: "Android")
-        deviceTypePopup.addItem(withTitle: "AndroidForWork")
-        deviceTypePopup.addItem(withTitle: "AndroidEnterprise")
-        deviceTypePopup.addItem(withTitle: "CloudPC")
-        deviceTypePopup.addItem(withTitle: "Linux")
-        container.addSubview(deviceTypePopup)
-        controls["deviceType"] = deviceTypePopup
-        
-        return controls
-    }
-    
-    /// Extracts filter values from UI controls
-    /// - Parameter controls: Dictionary of filter controls
-    /// - Returns: Dictionary of filter values
-    private func extractFilterValues(from controls: [String: NSControl]) -> [String: String] {
-        var filters: [String: String] = [:]
-        
-        for (key, control) in controls {
-            if let popup = control as? NSPopUpButton {
-                let selectedTitle = popup.titleOfSelectedItem ?? "All"
-                
-                // Handle compliance state for Devices report (uses string values)
-                if key == "compliantState" && selectedTitle != "All" {
-                    filters[key] = selectedTitle
-                }
-                // Handle compliance state for device compliance/non-compliance reports (uses numeric values)
-                else if key == "complianceState" && selectedTitle != "All" {
-                    switch selectedTitle {
-                    case "Compliant":
-                        filters[key] = "1"
-                    case "Noncompliant":
-                        filters[key] = "2"
-                    case "InGracePeriod":
-                        filters[key] = "0"
-                    default:
-                        break // Don't add filter for "All" or unknown values
-                    }
-                }
-                // Handle management state mapping to numeric values
-                else if key == "managementState" && selectedTitle != "All" {
-                    switch selectedTitle {
-                    case "Managed":
-                        filters[key] = "0"
-                    case "Retire Pending":
-                        filters[key] = "1"
-                    case "Wipe Pending":
-                        filters[key] = "3"
-                    case "Unhealthy":
-                        filters[key] = "5"
-                    case "Discovered":
-                        filters[key] = "11"
-                    default:
-                        break // Don't add filter for "All" or unknown values
-                    }
-                }
-                // Handle device type mapping to numeric values
-                else if key == "deviceType" && selectedTitle != "All" {
-                    switch selectedTitle {
-                    case "Desktop":
-                        filters[key] = "0"
-                    case "Windows":
-                        filters[key] = "1"
-                    case "WinMO6":
-                        filters[key] = "2"
-                    case "Nokia":
-                        filters[key] = "3"
-                    case "WindowsPhone":
-                        filters[key] = "4"
-                    case "Mac":
-                        filters[key] = "5"
-                    case "WinCE":
-                        filters[key] = "6"
-                    case "WinEmbedded":
-                        filters[key] = "7"
-                    case "iPhone":
-                        filters[key] = "8"
-                    case "iPad":
-                        filters[key] = "9"
-                    case "iPod":
-                        filters[key] = "10"
-                    case "Android":
-                        filters[key] = "11"
-                    case "iSocConsumer":
-                        filters[key] = "12"
-                    case "Unix":
-                        filters[key] = "13"
-                    case "MacMDM":
-                        filters[key] = "14"
-                    case "HoloLens":
-                        filters[key] = "15"
-                    case "SurfaceHub":
-                        filters[key] = "16"
-                    case "AndroidForWork":
-                        filters[key] = "17"
-                    case "AndroidEnterprise":
-                        filters[key] = "18"
-                    case "Windows10x":
-                        filters[key] = "19"
-                    case "AndroidnGMS":
-                        filters[key] = "20"
-                    case "CloudPC":
-                        filters[key] = "21"
-                    case "Linux":
-                        filters[key] = "22"
-                    default:
-                        break // Don't add filter for "All" or unknown values
-                    }
-                }
-                // Handle owner type mapping to numeric values
-                else if key == "ownerType" && selectedTitle != "All" {
-                    switch selectedTitle {
-                    case "Company":
-                        filters[key] = "1"
-                    case "Personal":
-                        filters[key] = "2"
-                    default:
-                        break // Don't add filter for "All" or unknown values
-                    }
-                }
-                // Handle platform filter (uses string values for AppInvRawData)
-                else if key == "platform" && selectedTitle != "All" {
-                    // For AppInvRawData report, platform uses specific string values
-                    switch selectedTitle {
-                    case "Windows":
-                        filters[key] = "Windows"
-                    case "MacOS":
-                        filters[key] = "MacOS"
-                    case "IOS":
-                        filters[key] = "IOS"
-                    case "AndroidWorkProfile":
-                        filters[key] = "AndroidWorkProfile"
-                    case "AndroidFullyManagedDedicated":
-                        filters[key] = "AndroidFullyManagedDedicated"
-                    case "AndroidDeviceAdministrator":
-                        filters[key] = "AndroidDeviceAdministrator"
-                    case "Other":
-                        filters[key] = "Other"
-                    default:
-                        filters[key] = selectedTitle
-                    }
-                } else if selectedTitle != "All" {
-                    filters[key] = selectedTitle
-                }
-            } else if let textField = control as? NSTextField {
-                let value = textField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !value.isEmpty {
-                    filters[key] = value
-                }
-            }
-        }
-        
-        return filters
-    }
-    
-    
     // MARK: - Helper Methods
     
     /// Displays an error alert
@@ -1455,6 +710,22 @@ class IntuneReportsViewController: NSViewController {
         alert.runModal()
     }
     
+    // MARK: - Window Size Management Methods
+    
+    /// Saves the current window size to UserDefaults for persistence
+    /// Preserves user's preferred window dimensions across application sessions
+    /// - Parameter size: NSSize representing the current window dimensions
+    func saveWindowFrame(_ window: NSWindow, forElement element: String) {
+        let frame = window.frame
+        let sizeDict: [String: Any] = [
+            "width": frame.size.width,
+            "height": frame.size.height,
+            "x": frame.origin.x,
+            "y": frame.origin.y
+        ]
+        UserDefaults.standard.set(sizeDict, forKey: element)
+    }
+
     // MARK: - Scheduled Reports
     
     /// Shows the schedule report dialog for the currently selected report
@@ -1496,28 +767,7 @@ class IntuneReportsViewController: NSViewController {
         
         presentAsSheet(editorVC)
     }
-    
-    /// Shows the schedule management window
-    private func showScheduleManagementWindow() {
-        let storyboard = NSStoryboard(name: "IntuneReports", bundle: nil)
-        guard let managementVC = storyboard.instantiateController(withIdentifier: "ScheduledReportsManagementViewController") as? ScheduledReportsManagementViewController else {
-            showError("Failed to load schedule management window")
-            return
-        }
         
-        let windowController = NSWindowController()
-        let window = NSWindow(contentViewController: managementVC)
-        window.title = "Scheduled Reports Manager"
-        window.setContentSize(NSSize(width: 800, height: 600))
-        window.center()
-        windowController.window = window
-        windowController.showWindow(self)
-        
-        // Keep a reference to prevent deallocation
-        // In a production app, you'd manage this differently
-        objc_setAssociatedObject(self, "scheduleManagementWindow", windowController, .OBJC_ASSOCIATION_RETAIN)
-    }
-    
     /// Updates the UI state for schedule-related buttons
     private func updateScheduleButtonsState() {
         let hasReportSelected = selectedReportType != nil
@@ -1533,6 +783,64 @@ class IntuneReportsViewController: NSViewController {
                 } else {
                     self.scheduleReportButton.toolTip = nil
                 }
+            }
+        }
+    }
+    
+    /// Populates filter controls with preselected values
+    /// - Parameters:
+    ///   - filterControls: Dictionary of filter controls created by ReportRegistry
+    ///   - preselectedValues: Dictionary of filter values to populate (key = filter field name, value = filter value)
+    ///   - reportType: The report type for logging and validation
+    private func populateFilterControls(_ filterControls: [String: NSControl], with preselectedValues: [String: String], for reportType: String) {
+        Logger.info("Populating \(preselectedValues.count) preselected filter(s) for report type: \(reportType)", category: .core, toUserDirectory: true)
+        
+        for (filterKey, filterValue) in preselectedValues {
+            guard let control = filterControls[filterKey] else {
+                Logger.warning("No filter control found for key '\(filterKey)' in report type '\(reportType)'", category: .core, toUserDirectory: true)
+                continue
+            }
+            
+            // Handle different control types
+            if let popupButton = control as? NSPopUpButton {
+                // For popup buttons, try to find and select the matching item
+                var foundMatch = false
+                
+                // First try exact title match
+                for i in 0..<popupButton.numberOfItems {
+                    if let item = popupButton.item(at: i), item.title == filterValue {
+                        popupButton.selectItem(at: i)
+                        Logger.info("Set popup filter '\(filterKey)' to '\(filterValue)'", category: .core, toUserDirectory: true)
+                        foundMatch = true
+                        break
+                    }
+                }
+                
+                // If no exact match, try by representedObject (for cases where display name != API value)
+                if !foundMatch {
+                    for i in 0..<popupButton.numberOfItems {
+                        if let item = popupButton.item(at: i),
+                           let representedValue = item.representedObject as? String,
+                           representedValue == filterValue {
+                            popupButton.selectItem(at: i)
+                            Logger.info("Set popup filter '\(filterKey)' to '\(item.title)' (matched by value '\(filterValue)')", category: .core, toUserDirectory: true)
+                            foundMatch = true
+                            break
+                        }
+                    }
+                }
+                
+                if !foundMatch {
+                    Logger.warning("Could not find matching popup item for filter '\(filterKey)' with value '\(filterValue)'", category: .core, toUserDirectory: true)
+                }
+                
+            } else if let textField = control as? NSTextField {
+                // For text fields, directly set the string value
+                textField.stringValue = filterValue
+                Logger.info("Set text filter '\(filterKey)' to '\(filterValue)'", category: .core, toUserDirectory: true)
+                
+            } else {
+                Logger.warning("Unknown control type for filter '\(filterKey)': \(type(of: control))", category: .core, toUserDirectory: true)
             }
         }
     }

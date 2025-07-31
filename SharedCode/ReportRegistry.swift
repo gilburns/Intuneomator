@@ -34,6 +34,7 @@ class ReportRegistry {
             case text
             case dropdown
             case boolean
+            case applicationId
             case deviceId
             case userId
             case date
@@ -252,7 +253,7 @@ class ReportRegistry {
                 
                 control = popup
                 
-            case .text, .deviceId, .userId:
+            case .text, .applicationId, .deviceId, .userId:
                 let controlX = xPosition + labelWidth + labelControlSpacing
                 let textField = NSTextField(frame: NSRect(x: controlX, y: controlY, width: controlWidth, height: controlHeight))
                 textField.controlSize = .small
@@ -364,19 +365,23 @@ class ReportRegistry {
             
             // Build filter component based on filter type
             switch filterDef.type {
-            case .text, .deviceId, .userId:
+            case .text:
                 // Text filters use 'contains' for partial matching
-                filterComponents.append("contains(\(key),'\(apiValue)')")
+//                filterComponents.append("contains(\(key),'\(apiValue)')")
+                filterComponents.append("(\(key) eq '\(apiValue)')")
+            case .applicationId, .deviceId, .userId:
+                // ID filters use exact equality, not partial matching
+                filterComponents.append("(\(key) eq '\(apiValue)')")
             case .dropdown:
                 // Dropdown filters use exact equality
-                filterComponents.append("\(key) eq '\(apiValue)'")
+                filterComponents.append("(\(key) eq '\(apiValue)')")
             case .boolean:
                 // Boolean filters
                 let boolValue = apiValue.lowercased() == "true"
-                filterComponents.append("\(key) eq \(boolValue)")
+                filterComponents.append("(\(key) eq \(boolValue))")
             case .date:
-                // Date filters (would need more specific logic based on requirements)
-                filterComponents.append("\(key) eq '\(apiValue)'")
+                // Date filters (need more info on the format and logic to fully implement)
+                filterComponents.append("(\(key) eq '\(apiValue)')")
             }
         }
         
@@ -547,19 +552,19 @@ class ReportRegistry {
                                placeholder: "Enter device ID (required)")
             ],
             supportedColumns: [
-                ColumnDefinition(key: "DeviceId", displayName: "Device ID", isDefault: true),
                 ColumnDefinition(key: "ApplicationId", displayName: "Application Id", isDefault: true),
-                ColumnDefinition(key: "ApplicationKey", displayName: "Application Key", isDefault: false),
+                ColumnDefinition(key: "ApplicationKey", displayName: "Application Key", isDefault: true),
                 ColumnDefinition(key: "ApplicationName", displayName: "Application Name", isDefault: true),
                 ColumnDefinition(key: "ApplicationPublisher", displayName: "Application Publisher", isDefault: true),
-                ColumnDefinition(key: "ApplicationShortVersion", displayName: "Application Short Version", isDefault: false),
+                ColumnDefinition(key: "ApplicationShortVersion", displayName: "Application Short Version", isDefault: true),
                 ColumnDefinition(key: "ApplicationVersion", displayName: "Application Version", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "EmailAddress", displayName: "Email Address", isDefault: true),
-                ColumnDefinition(key: "OSDescription", displayName: "OS Description", isDefault: false),
-                ColumnDefinition(key: "OSVersion", displayName: "OS Version", isDefault: true),
+                ColumnDefinition(key: "OSDescription", displayName: "OSDescription", isDefault: true),
+                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
                 ColumnDefinition(key: "Platform", displayName: "Platform", isDefault: true),
-                ColumnDefinition(key: "UserId", displayName: "User ID", isDefault: true),
+                ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
             ],
             requiredParameters: ["DeviceId"]
@@ -577,7 +582,7 @@ class ReportRegistry {
                 FilterDefinition(key: "ApplicationPublisher", displayName: "Application Publisher", type: .text,
                                placeholder: "Enter publisher name"),
                 FilterDefinition(key: "Platform", displayName: "Platform", type: .dropdown,
-                               options: ["All", "Windows", "MacOS", "IOS", "Android"]),
+                               options: ["All", "Windows", "MacOS", "IOS", "AndroidWorkProfile", "AndroidFullyManagedDedicated", "AndroidDeviceAdministrator", "Other"]),
                 FilterDefinition(key: "DeviceName", displayName: "Device Name", type: .text,
                                placeholder: "Enter device name"),
                 FilterDefinition(key: "OSDescription", displayName: "OS Description", type: .text,
@@ -649,6 +654,62 @@ class ReportRegistry {
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
                 ColumnDefinition(key: "UserPrincipalName", displayName: "User Principal Name", isDefault: true)
             ]
+        )
+
+        reports["DeviceInstallStatusByApp"] = ReportDefinition(
+            type: "DeviceInstallStatusByApp",
+            displayName: "Device Install Status By App",
+            description: "See device install status by application",
+            category: "Application Management",
+            intuneConsolePath: "Under Apps > All Apps > Select an individual app",
+            supportedFilters: [
+                FilterDefinition(key: "ApplicationId", displayName: "Application Id", type: .applicationId, isRequired: true, placeholder: "Enter application ID"),
+                FilterDefinition(key: "AppInstallState", displayName: "App Install State", type: .dropdown,
+                options: ["All", "Installed", "Not Installed", "Error", "Unknown"]),
+                FilterDefinition(key: "HexErrorCode", displayName: "Hex Error Code", type: .text, placeholder: "Enter error code")
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AppInstallState", displayName: "App Install State", isDefault: true),
+                ColumnDefinition(key: "AppInstallStateDetails", displayName: "App Install State Details", isDefault: true),
+                ColumnDefinition(key: "ApplicationId", displayName: "Application Id", isDefault: true),
+                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: true),
+                ColumnDefinition(key: "AssignmentFilterIdsExist", displayName: "Assignment Filter Ids Exist", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "ErrorCode", displayName: "Error Code", isDefault: true),
+                ColumnDefinition(key: "HexErrorCode", displayName: "Hex Error Code", isDefault: true),
+                ColumnDefinition(key: "InstallState", displayName: "Install State", isDefault: true),
+                ColumnDefinition(key: "InstallStateDetail", displayName: "Install State Detail", isDefault: true),
+                ColumnDefinition(key: "LastModifiedDateTime", displayName: "Last Modified Date Time", isDefault: true),
+                ColumnDefinition(key: "Platform", displayName: "Platform", isDefault: true),
+                ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
+                ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true),
+                ColumnDefinition(key: "UserPrincipalName", displayName: "User Principal Name", isDefault: true)
+            ],
+            requiredParameters: ["ApplicationId"]
+        )
+
+        reports["UserInstallStatusAggregateByApp"] = ReportDefinition(
+            type: "UserInstallStatusAggregateByApp",
+            displayName: "User Install Status Aggregate By App",
+            description: "See user install status by application",
+            category: "Application Management",
+            intuneConsolePath: "Under Apps > All Apps > Select an individual app",
+            supportedFilters: [
+                FilterDefinition(key: "ApplicationId", displayName: "Application Id", type: .applicationId, isRequired: true, placeholder: "Enter application ID")
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "ApplicationId", displayName: "Application Id", isDefault: true),
+                ColumnDefinition(key: "FailedCount", displayName: "Failed Count", isDefault: true),
+                ColumnDefinition(key: "InstalledCount", displayName: "Installed Count", isDefault: true),
+                ColumnDefinition(key: "NotApplicableCount", displayName: "Not Applicable Count", isDefault: true),
+                ColumnDefinition(key: "NotInstalledCount", displayName: "Not Installed Count", isDefault: true),
+                ColumnDefinition(key: "PendingInstallCount", displayName: "Pending Install Count", isDefault: true),
+                ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
+                ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true),
+                ColumnDefinition(key: "UserPrincipalName", displayName: "User Principal Name", isDefault: true)
+            ],
+            requiredParameters: ["ApplicationId"]
         )
 
 
@@ -746,6 +807,90 @@ class ReportRegistry {
                 ColumnDefinition(key: "DisplayName", displayName: "Display Name", isDefault: true),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
                 ColumnDefinition(key: "PolicyInstallStatus", displayName: "Policy Install Status", isDefault: true)
+            ]
+        )
+        
+        reports["DeviceEnrollmentFailures"] = ReportDefinition(
+            type: "DeviceEnrollmentFailures",
+            displayName: "Device Enrollment Failures",
+            description: "See device with enrollment failures",
+            category: "Device Enrollment",
+            intuneConsolePath: "Under Devices > Device onboarding > Enrollment > Monitor",
+            supportedFilters: [
+                FilterDefinition(key: "EnrollmentFailureDateTime", displayName: "Enrollment Failure Date Time", type: .text),
+                FilterDefinition(key: "EnrollmentMethod", displayName: "Enrollment Method", type: .text),
+                FilterDefinition(key: "FailureReason", displayName: "Failure Reason", type: .text),
+                FilterDefinition(key: "OS", displayName: "OS", type: .text),
+                FilterDefinition(key: "UserId", displayName: "User Id", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "EnrollmentFailureDateTime", displayName: "Enrollment Failure Date Time", isDefault: true),
+                ColumnDefinition(key: "EnrollmentMethod", displayName: "Enrollment Method", isDefault: true),
+                ColumnDefinition(key: "FailureGuid", displayName: "Failure Guid", isDefault: true),
+                ColumnDefinition(key: "FailureReason", displayName: "Failure Reason", isDefault: true),
+                ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
+                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
+                ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true)
+            ]
+        )
+
+        reports["EnrollmentActivity"] = ReportDefinition(
+            type: "EnrollmentActivity",
+            displayName: "Enrollment Activity",
+            description: "See device enrollments",
+            category: "Device Enrollment",
+            intuneConsolePath: "Under Dashboard > Device enrollmentand/or Intune enrolled devices",
+            supportedFilters: [
+                FilterDefinition(key: "EnrollmentDateTime", displayName: "Enrollment Date Time", type: .text),
+                FilterDefinition(key: "EnrollmentMethod", displayName: "Enrollment Method", type: .text),
+                FilterDefinition(key: "FailureReason", displayName: "Failure Reason", type: .text),
+                FilterDefinition(key: "OS", displayName: "OS", type: .text),
+                FilterDefinition(key: "UserId", displayName: "User Id", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AadDeviceId", displayName: "Aad Device Id", isDefault: true),
+                ColumnDefinition(key: "Context", displayName: "Context", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "EnrollmentActivityId", displayName: "Enrollment Activity Id", isDefault: true),
+                ColumnDefinition(key: "EnrollmentDateTime", displayName: "Enrollment Date Time", isDefault: true),
+                ColumnDefinition(key: "EnrollmentMethod", displayName: "Enrollment Method", isDefault: true),
+                ColumnDefinition(key: "Failure", displayName: "Failure", isDefault: true),
+                ColumnDefinition(key: "FailureDetails", displayName: "Failure Details", isDefault: true),
+                ColumnDefinition(key: "FailureReason", displayName: "Failure Reason", isDefault: true),
+                ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
+                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
+                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: true),
+                ColumnDefinition(key: "Remediation", displayName: "Remediation", isDefault: true),
+                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: true),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
+                ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true)
+            ]
+        )
+
+        reports["EnrollmentConfigurationPoliciesByDevice"] = ReportDefinition(
+            type: "EnrollmentConfigurationPoliciesByDevice",
+            displayName: "Enrollment Configuration Policies By Device",
+            description: "See device enrollment configurations",
+            category: "Device Enrollment",
+            intuneConsolePath: "Under Devices > Device onboarding > Enrollment",
+            supportedFilters: [
+                FilterDefinition(key: "DeviceId", displayName: "Device Id", type: .text),
+                FilterDefinition(key: "State", displayName: "State", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "Target", displayName: "Target", isDefault: true),
+                ColumnDefinition(key: "PolicyType", displayName: "Policy Type", isDefault: true),
+                ColumnDefinition(key: "ProfileName", displayName: "Profile Name", isDefault: true),
+                ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
+                ColumnDefinition(key: "UserPrincipalName", displayName: "User Principal Name", isDefault: true),
+                ColumnDefinition(key: "State", displayName: "State", isDefault: true),
+                ColumnDefinition(key: "Priority", displayName: "Priority", isDefault: true),
+                ColumnDefinition(key: "FilterIds", displayName: "Filter Ids", isDefault: true),
+                ColumnDefinition(key: "LastAppliedTime", displayName: "Last Applied Time", isDefault: true)
             ]
         )
 
@@ -927,6 +1072,54 @@ class ReportRegistry {
                 ColumnDefinition(key: "SettingValue", displayName: "Setting Value", isDefault: true),
                 ColumnDefinition(key: "StateDetails", displayName: "State Details", isDefault: true),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true)
+            ]
+        )
+
+        reports["DevicesStatusByPolicyPlatformComplianceReport"] = ReportDefinition(
+            type: "DevicesStatusByPolicyPlatformComplianceReport",
+            displayName: "Devices Status By Policy Platform Compliance Report",
+            description: "Devices Status By Policy Platform Compliance Report",
+            category: "Device Compliance",
+            intuneConsolePath: "Under Reports > Device management > Device Compliance > Reports",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AadDeviceId", displayName: "AAD Device Id", isDefault: true),
+                ColumnDefinition(key: "ComplianceState", displayName: "Compliance State", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "InGracePeriodUntil", displayName: "In Grace Period Until", isDefault: true),
+                ColumnDefinition(key: "LastContact", displayName: "Last Contact", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "PolicyPlatformType", displayName: "Policy Platform Type", isDefault: true),
+                ColumnDefinition(key: "PolicyStatus", displayName: "Policy Status", isDefault: true),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true)
+            ]
+        )
+
+        reports["DevicesStatusByPolicyPlatformComplianceReportV3"] = ReportDefinition(
+            type: "DevicesStatusByPolicyPlatformComplianceReportV3",
+            displayName: "Devices Status By Policy Platform Compliance Report V3",
+            description: "Devices Status By Policy Platform Compliance Report V3",
+            category: "Device Compliance",
+            intuneConsolePath: "Under Reports > Device management > Device Compliance > Reports",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AadDeviceId", displayName: "AAD Device Id", isDefault: true),
+                ColumnDefinition(key: "ComplianceState", displayName: "Compliance State", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "InGracePeriodUntil", displayName: "In Grace Period Until", isDefault: true),
+                ColumnDefinition(key: "LastContact", displayName: "Last Contact", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "PolicyPlatformType", displayName: "Policy Platform Type", isDefault: true),
+                ColumnDefinition(key: "PolicyStatus", displayName: "Policy Status", isDefault: true),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true)
             ]
         )
 
@@ -1164,54 +1357,6 @@ class ReportRegistry {
             ]
         )
         
-        reports["DevicesStatusByPolicyPlatformComplianceReport"] = ReportDefinition(
-            type: "DevicesStatusByPolicyPlatformComplianceReport",
-            displayName: "Devices Status By Policy Platform Compliance Report",
-            description: "Devices Status By Policy Platform Compliance Report",
-            category: "Device Compliance",
-            intuneConsolePath: "Under Reports > Device management > Device Compliance > Reports",
-            supportedFilters: [
-            ],
-            supportedColumns: [
-                ColumnDefinition(key: "AadDeviceId", displayName: "AAD Device Id", isDefault: true),
-                ColumnDefinition(key: "ComplianceState", displayName: "Compliance State", isDefault: true),
-                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
-                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
-                ColumnDefinition(key: "InGracePeriodUntil", displayName: "In Grace Period Until", isDefault: true),
-                ColumnDefinition(key: "LastContact", displayName: "Last Contact", isDefault: true),
-                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
-                ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
-                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
-                ColumnDefinition(key: "PolicyPlatformType", displayName: "Policy Platform Type", isDefault: true),
-                ColumnDefinition(key: "PolicyStatus", displayName: "Policy Status", isDefault: true),
-                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true)
-            ]
-        )
-
-        reports["DevicesStatusByPolicyPlatformComplianceReportV3"] = ReportDefinition(
-            type: "DevicesStatusByPolicyPlatformComplianceReportV3",
-            displayName: "Devices Status By Policy Platform Compliance Report V3",
-            description: "Devices Status By Policy Platform Compliance Report V3",
-            category: "Device Compliance",
-            intuneConsolePath: "Under Reports > Device management > Device Compliance > Reports",
-            supportedFilters: [
-            ],
-            supportedColumns: [
-                ColumnDefinition(key: "AadDeviceId", displayName: "AAD Device Id", isDefault: true),
-                ColumnDefinition(key: "ComplianceState", displayName: "Compliance State", isDefault: true),
-                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
-                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
-                ColumnDefinition(key: "InGracePeriodUntil", displayName: "In Grace Period Until", isDefault: true),
-                ColumnDefinition(key: "LastContact", displayName: "Last Contact", isDefault: true),
-                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
-                ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
-                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
-                ColumnDefinition(key: "PolicyPlatformType", displayName: "Policy Platform Type", isDefault: true),
-                ColumnDefinition(key: "PolicyStatus", displayName: "Policy Status", isDefault: true),
-                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true)
-            ]
-        )
-
         reports["WindowsDeviceHealthAttestationReport"] = ReportDefinition(
             type: "WindowsDeviceHealthAttestationReport",
             displayName: "Windows Device Health Attestation Report",
@@ -1249,6 +1394,35 @@ class ReportRegistry {
         )
 
         // MARK: - Device Management Reports
+        reports["ADMXSettingsByDeviceByPolicy"] = ReportDefinition(
+            type: "ADMXSettingsByDeviceByPolicy",
+            displayName: "ADMXSettings By Device By Policy",
+            description: "See Quality Update Policy Summary",
+            category: "Device Management",
+            intuneConsolePath: "Under Reports > Device management > Device Configuration",
+            supportedFilters: [
+                FilterDefinition(key: "DeviceId", displayName: "Device Id", type: .text),
+                FilterDefinition(key: "PolicyId", displayName: "Policy Id", type: .text),
+                FilterDefinition(key: "UserId", displayName: "User Id", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "CreationSource", displayName: "Creation Source", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "ErrorCode", displayName: "Error Code", isDefault: true),
+                ColumnDefinition(key: "ErrorType", displayName: "Error Type", isDefault: true),
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
+                ColumnDefinition(key: "PolicyVersion", displayName: "Policy Version", isDefault: true),
+                ColumnDefinition(key: "SettingId", displayName: "Setting Id", isDefault: true),
+                ColumnDefinition(key: "SettingInstanceId", displayName: "Setting Instance Id", isDefault: true),
+                ColumnDefinition(key: "SettingInstancePath", displayName: "Setting Instance Path", isDefault: true),
+                ColumnDefinition(key: "SettingName", displayName: "Setting Name", isDefault: true),
+                ColumnDefinition(key: "SettingNameStringId", displayName: "Setting Name String Id", isDefault: true),
+                ColumnDefinition(key: "SettingStatus", displayName: "Setting Status", isDefault: true),
+                ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true)
+            ]
+        )
+
         reports["DeviceRunStatesByScript"] = ReportDefinition(
             type: "DeviceRunStatesByScript",
             displayName: "Device Run States By Script",
@@ -1276,95 +1450,6 @@ class ReportRegistry {
             ]
         )
 
-        reports["DevicesWithInventory"] = ReportDefinition(
-            type: "DevicesWithInventory",
-            displayName: "Devices with Inventory",
-            description: "Comprehensive device inventory with hardware details and extended management information. Includes detailed device specifications, network information, and compliance data.",
-            category: "Device Management",
-            intuneConsolePath: "Devices > Monitor > Managed device reports",
-            supportedFilters: [
-                FilterDefinition(key: "CreatedDate", displayName: "Created Date", type: .date),
-                FilterDefinition(key: "LastContact", displayName: "Last Contact", type: .date), 
-                FilterDefinition(key: "CategoryName", displayName: "Category Name", type: .text),
-                FilterDefinition(key: "CompliantState", displayName: "Compliance State", type: .dropdown,
-                               options: ["All", "Compliant", "Noncompliant", "InGracePeriod"]),
-                FilterDefinition(key: "ManagementAgents", displayName: "Management Agents", type: .dropdown,
-                               options: ["All", "MDM", "ConfigManager", "EAS", "Intunepc"]),
-                FilterDefinition(key: "OwnerType", displayName: "Owner Type", type: .dropdown,
-                               options: ["All", "Company", "Personal"],
-                               optionValues: ["Company": "1", "Personal": "2"]),
-                FilterDefinition(key: "ManagementState", displayName: "Management State", type: .dropdown,
-                               options: ["All", "Managed", "Discovered", "Unhealthy", "Retire Pending", "Wipe Pending"],
-                               optionValues: ["Managed": "0", "Retire Pending": "1", "Wipe Pending": "3", "Unhealthy": "5", "Discovered": "11"]),
-                FilterDefinition(key: "DeviceType", displayName: "Device Type", type: .dropdown,
-                               options: ["All", "Desktop", "Windows", "winMO6", "Nokia", "WindowsPhone", "Mac", "WinCE", "WinEmbedded", "iPhone", "iPad", "iPod", "Android", "iSocConsumer", "Unix", "MacMDM", "HoloLens", "SurfaceHub", "AndroidForWork", "AndroidEnterprise", "Windows10x", "AndroidnGMS", "CloudPC", "Linux"],
-                               optionValues: ["Desktop": "0", "Windows": "1", "winMO6": "2", "Nokia": "3", "WindowsPhone": "4", "Mac": "5", "WinCE": "6", "WinEmbedded": "7", "iPhone": "8", "iPad": "9", "iPod": "10", "Android": "11", "iSocConsumer": "12", "Unix": "13", "MacMDM": "14", "HoloLens": "15", "SurfaceHub": "16", "AndroidForWork": "17", "AndroidEnterprise": "18", "Windows10x": "19", "AndroidnGMS": "20", "CloudPC": "21", "Linux": "22"]),
-                FilterDefinition(key: "JailBroken", displayName: "Jail Broken", type: .dropdown,
-                               options: ["All", "Yes", "No"]),
-                FilterDefinition(key: "EnrollmentType", displayName: "Enrollment Type", type: .dropdown,
-                               options: ["All", "UserEnrollment", "DeviceEnrollmentManager", "AppleBulkWithUser", "AppleBulkWithoutUser", "WindowsAzureADJoin", "WindowsBulkUserless", "WindowsAutoEnrollment", "WindowsBulkAzureDomainJoin", "WindowsCoManagement"])
-            ],
-            supportedColumns: [
-                // Essential columns (must be included for API compatibility)
-                ColumnDefinition(key: "DeviceId", displayName: "Device ID", isDefault: true),
-                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
-                ColumnDefinition(key: "CreatedDate", displayName: "Created Date", isDefault: true),
-                ColumnDefinition(key: "LastContact", displayName: "Last Contact", isDefault: true),
-                ColumnDefinition(key: "ReferenceId", displayName: "Reference ID", isDefault: true),
-                ColumnDefinition(key: "OSVersion", displayName: "OS Version", isDefault: true),
-                ColumnDefinition(key: "GraphDeviceIsManaged", displayName: "Graph Device Managed", isDefault: true),
-                ColumnDefinition(key: "EasID", displayName: "EAS ID", isDefault: true),
-                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: true),
-                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
-                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
-                ColumnDefinition(key: "EasActivationStatus", displayName: "EAS Activation Status", isDefault: true),
-                ColumnDefinition(key: "IMEI", displayName: "IMEI", isDefault: true),
-                ColumnDefinition(key: "EasLastSyncSuccessUtc", displayName: "EAS Last Sync", isDefault: true),
-                ColumnDefinition(key: "EasStateReason", displayName: "EAS State Reason", isDefault: true),
-                ColumnDefinition(key: "EasAccessState", displayName: "EAS Access State", isDefault: true),
-                ColumnDefinition(key: "InGracePeriodUntil", displayName: "Grace Period Until", isDefault: true),
-                ColumnDefinition(key: "AndroidPatchLevel", displayName: "Android Patch Level", isDefault: true),
-                ColumnDefinition(key: "WifiMacAddress", displayName: "WiFi MAC Address", isDefault: true),
-                ColumnDefinition(key: "MEID", displayName: "MEID", isDefault: true),
-                ColumnDefinition(key: "SubscriberCarrierNetwork", displayName: "Carrier Network", isDefault: true),
-                ColumnDefinition(key: "StorageTotal", displayName: "Total Storage", isDefault: true),
-                ColumnDefinition(key: "StorageFree", displayName: "Free Storage", isDefault: true),
-                ColumnDefinition(key: "ManagedDeviceName", displayName: "Managed Device Name", isDefault: true),
-                ColumnDefinition(key: "CategoryName", displayName: "Category Name", isDefault: true),
-                ColumnDefinition(key: "UserId", displayName: "User ID", isDefault: true),
-                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
-                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: true),
-                ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true),
-                ColumnDefinition(key: "WiFiIPv4Address", displayName: "WiFi IPv4 Address", isDefault: true),
-                ColumnDefinition(key: "WiFiSubnetID", displayName: "WiFi Subnet ID", isDefault: true),
-                ColumnDefinition(key: "ComplianceState", displayName: "Compliance State", isDefault: true),
-                ColumnDefinition(key: "ManagementAgent", displayName: "Management Agent", isDefault: true),
-                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: true),
-                ColumnDefinition(key: "ManagementState", displayName: "Management State", isDefault: true),
-                ColumnDefinition(key: "DeviceRegistrationState", displayName: "Registration State", isDefault: true),
-                ColumnDefinition(key: "IsSupervised", displayName: "Is Supervised", isDefault: true),
-                ColumnDefinition(key: "IsEncrypted", displayName: "Is Encrypted", isDefault: true),
-                ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
-                ColumnDefinition(key: "SkuFamily", displayName: "SKU Family", isDefault: true),
-                ColumnDefinition(key: "JoinType", displayName: "Join Type", isDefault: true),
-                ColumnDefinition(key: "PhoneNumber", displayName: "Phone Number", isDefault: true),
-                ColumnDefinition(key: "JailBroken", displayName: "Jail Broken", isDefault: true),
-                ColumnDefinition(key: "ICCID", displayName: "ICCID", isDefault: true),
-                ColumnDefinition(key: "EthernetMAC", displayName: "Ethernet MAC", isDefault: true),
-                ColumnDefinition(key: "CellularTechnology", displayName: "Cellular Technology", isDefault: true),
-                ColumnDefinition(key: "ProcessorArchitecture", displayName: "Processor Architecture", isDefault: true),
-                ColumnDefinition(key: "EID", displayName: "EID", isDefault: true),
-                ColumnDefinition(key: "EnrollmentType", displayName: "Enrollment Type", isDefault: true),
-                ColumnDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", isDefault: true),
-                ColumnDefinition(key: "ManagementAgents", displayName: "Management Agents", isDefault: true),
-                ColumnDefinition(key: "CertExpirationDate", displayName: "Certificate Expiration", isDefault: true),
-                ColumnDefinition(key: "IsManaged", displayName: "Is Managed", isDefault: true),
-                ColumnDefinition(key: "SystemManagementBIOSVersion", displayName: "BIOS Version", isDefault: true),
-                ColumnDefinition(key: "TPMManufacturerId", displayName: "TPM Manufacturer ID", isDefault: true),
-                ColumnDefinition(key: "TPMManufacturerVersion", displayName: "TPM Manufacturer Version", isDefault: true)
-            ]
-        )
-        
         reports["Devices"] = ReportDefinition(
             type: "Devices",
             displayName: "Devices",
@@ -1498,6 +1583,95 @@ class ReportRegistry {
             ]
         )
 
+        reports["DevicesWithInventory"] = ReportDefinition(
+            type: "DevicesWithInventory",
+            displayName: "Devices with Inventory",
+            description: "Comprehensive device inventory with hardware details and extended management information. Includes detailed device specifications, network information, and compliance data.",
+            category: "Device Management",
+            intuneConsolePath: "Devices > Monitor > Managed device reports",
+            supportedFilters: [
+                FilterDefinition(key: "CreatedDate", displayName: "Created Date", type: .date),
+                FilterDefinition(key: "LastContact", displayName: "Last Contact", type: .date), 
+                FilterDefinition(key: "CategoryName", displayName: "Category Name", type: .text),
+                FilterDefinition(key: "CompliantState", displayName: "Compliance State", type: .dropdown,
+                               options: ["All", "Compliant", "Noncompliant", "InGracePeriod"]),
+                FilterDefinition(key: "ManagementAgents", displayName: "Management Agents", type: .dropdown,
+                               options: ["All", "MDM", "ConfigManager", "EAS", "Intunepc"]),
+                FilterDefinition(key: "OwnerType", displayName: "Owner Type", type: .dropdown,
+                               options: ["All", "Company", "Personal"],
+                               optionValues: ["Company": "1", "Personal": "2"]),
+                FilterDefinition(key: "ManagementState", displayName: "Management State", type: .dropdown,
+                               options: ["All", "Managed", "Discovered", "Unhealthy", "Retire Pending", "Wipe Pending"],
+                               optionValues: ["Managed": "0", "Retire Pending": "1", "Wipe Pending": "3", "Unhealthy": "5", "Discovered": "11"]),
+                FilterDefinition(key: "DeviceType", displayName: "Device Type", type: .dropdown,
+                               options: ["All", "Desktop", "Windows", "winMO6", "Nokia", "WindowsPhone", "Mac", "WinCE", "WinEmbedded", "iPhone", "iPad", "iPod", "Android", "iSocConsumer", "Unix", "MacMDM", "HoloLens", "SurfaceHub", "AndroidForWork", "AndroidEnterprise", "Windows10x", "AndroidnGMS", "CloudPC", "Linux"],
+                               optionValues: ["Desktop": "0", "Windows": "1", "winMO6": "2", "Nokia": "3", "WindowsPhone": "4", "Mac": "5", "WinCE": "6", "WinEmbedded": "7", "iPhone": "8", "iPad": "9", "iPod": "10", "Android": "11", "iSocConsumer": "12", "Unix": "13", "MacMDM": "14", "HoloLens": "15", "SurfaceHub": "16", "AndroidForWork": "17", "AndroidEnterprise": "18", "Windows10x": "19", "AndroidnGMS": "20", "CloudPC": "21", "Linux": "22"]),
+                FilterDefinition(key: "JailBroken", displayName: "Jail Broken", type: .dropdown,
+                               options: ["All", "Yes", "No"]),
+                FilterDefinition(key: "EnrollmentType", displayName: "Enrollment Type", type: .dropdown,
+                               options: ["All", "UserEnrollment", "DeviceEnrollmentManager", "AppleBulkWithUser", "AppleBulkWithoutUser", "WindowsAzureADJoin", "WindowsBulkUserless", "WindowsAutoEnrollment", "WindowsBulkAzureDomainJoin", "WindowsCoManagement"])
+            ],
+            supportedColumns: [
+                // Essential columns (must be included for API compatibility)
+                ColumnDefinition(key: "DeviceId", displayName: "Device ID", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "CreatedDate", displayName: "Created Date", isDefault: true),
+                ColumnDefinition(key: "LastContact", displayName: "Last Contact", isDefault: true),
+                ColumnDefinition(key: "ReferenceId", displayName: "Reference ID", isDefault: true),
+                ColumnDefinition(key: "OSVersion", displayName: "OS Version", isDefault: true),
+                ColumnDefinition(key: "GraphDeviceIsManaged", displayName: "Graph Device Managed", isDefault: true),
+                ColumnDefinition(key: "EasID", displayName: "EAS ID", isDefault: true),
+                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: true),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "EasActivationStatus", displayName: "EAS Activation Status", isDefault: true),
+                ColumnDefinition(key: "IMEI", displayName: "IMEI", isDefault: true),
+                ColumnDefinition(key: "EasLastSyncSuccessUtc", displayName: "EAS Last Sync", isDefault: true),
+                ColumnDefinition(key: "EasStateReason", displayName: "EAS State Reason", isDefault: true),
+                ColumnDefinition(key: "EasAccessState", displayName: "EAS Access State", isDefault: true),
+                ColumnDefinition(key: "InGracePeriodUntil", displayName: "Grace Period Until", isDefault: true),
+                ColumnDefinition(key: "AndroidPatchLevel", displayName: "Android Patch Level", isDefault: true),
+                ColumnDefinition(key: "WifiMacAddress", displayName: "WiFi MAC Address", isDefault: true),
+                ColumnDefinition(key: "MEID", displayName: "MEID", isDefault: true),
+                ColumnDefinition(key: "SubscriberCarrierNetwork", displayName: "Carrier Network", isDefault: true),
+                ColumnDefinition(key: "StorageTotal", displayName: "Total Storage", isDefault: true),
+                ColumnDefinition(key: "StorageFree", displayName: "Free Storage", isDefault: true),
+                ColumnDefinition(key: "ManagedDeviceName", displayName: "Managed Device Name", isDefault: true),
+                ColumnDefinition(key: "CategoryName", displayName: "Category Name", isDefault: true),
+                ColumnDefinition(key: "UserId", displayName: "User ID", isDefault: true),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
+                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: true),
+                ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true),
+                ColumnDefinition(key: "WiFiIPv4Address", displayName: "WiFi IPv4 Address", isDefault: true),
+                ColumnDefinition(key: "WiFiSubnetID", displayName: "WiFi Subnet ID", isDefault: true),
+                ColumnDefinition(key: "ComplianceState", displayName: "Compliance State", isDefault: true),
+                ColumnDefinition(key: "ManagementAgent", displayName: "Management Agent", isDefault: true),
+                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: true),
+                ColumnDefinition(key: "ManagementState", displayName: "Management State", isDefault: true),
+                ColumnDefinition(key: "DeviceRegistrationState", displayName: "Registration State", isDefault: true),
+                ColumnDefinition(key: "IsSupervised", displayName: "Is Supervised", isDefault: true),
+                ColumnDefinition(key: "IsEncrypted", displayName: "Is Encrypted", isDefault: true),
+                ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
+                ColumnDefinition(key: "SkuFamily", displayName: "SKU Family", isDefault: true),
+                ColumnDefinition(key: "JoinType", displayName: "Join Type", isDefault: true),
+                ColumnDefinition(key: "PhoneNumber", displayName: "Phone Number", isDefault: true),
+                ColumnDefinition(key: "JailBroken", displayName: "Jail Broken", isDefault: true),
+                ColumnDefinition(key: "ICCID", displayName: "ICCID", isDefault: true),
+                ColumnDefinition(key: "EthernetMAC", displayName: "Ethernet MAC", isDefault: true),
+                ColumnDefinition(key: "CellularTechnology", displayName: "Cellular Technology", isDefault: true),
+                ColumnDefinition(key: "ProcessorArchitecture", displayName: "Processor Architecture", isDefault: true),
+                ColumnDefinition(key: "EID", displayName: "EID", isDefault: true),
+                ColumnDefinition(key: "EnrollmentType", displayName: "Enrollment Type", isDefault: true),
+                ColumnDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", isDefault: true),
+                ColumnDefinition(key: "ManagementAgents", displayName: "Management Agents", isDefault: true),
+                ColumnDefinition(key: "CertExpirationDate", displayName: "Certificate Expiration", isDefault: true),
+                ColumnDefinition(key: "IsManaged", displayName: "Is Managed", isDefault: true),
+                ColumnDefinition(key: "SystemManagementBIOSVersion", displayName: "BIOS Version", isDefault: true),
+                ColumnDefinition(key: "TPMManufacturerId", displayName: "TPM Manufacturer ID", isDefault: true),
+                ColumnDefinition(key: "TPMManufacturerVersion", displayName: "TPM Manufacturer Version", isDefault: true)
+            ]
+        )
+        
         // MARK: - Security Reports
         
         reports["ActiveMalware"] = ReportDefinition(
@@ -1799,25 +1973,6 @@ class ReportRegistry {
 
         // MARK: - Mobile Application Management Reports
         
-        reports["MAMAppProtectionStatus"] = ReportDefinition(
-            type: "MAMAppProtectionStatus",
-            displayName: "MAM App Protection Status",
-            description: "Mobile Application Management app protection policy status",
-            category: "Mobile Application Management",
-            supportedFilters: [
-                FilterDefinition(key: "platform", displayName: "Platform", type: .dropdown,
-                               options: ["All", "Android", "iOS"]),
-                FilterDefinition(key: "policyName", displayName: "Policy Name", type: .text,
-                               placeholder: "Enter policy name")
-            ],
-            supportedColumns: [
-                ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true),
-                ColumnDefinition(key: "AppName", displayName: "App Name", isDefault: true),
-                ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
-                ColumnDefinition(key: "ComplianceStatus", displayName: "Compliance Status", isDefault: true)
-            ]
-        )
-        
         reports["MAMAppConfigurationStatus"] = ReportDefinition(
             type: "MAMAppConfigurationStatus",
             displayName: "MAM App Configuration Status",
@@ -1836,7 +1991,152 @@ class ReportRegistry {
                 ColumnDefinition(key: "Status", displayName: "Status", isDefault: true)
             ]
         )
+
+        reports["MAMAppConfigurationStatusScopedV2"] = ReportDefinition(
+            type: "MAMAppConfigurationStatusScopedV2",
+            displayName: "MAM App Configuration Status Scoped V2",
+            description: "See MAM App Configuration Status Scoped",
+            category: "Mobile Application Management",
+            intuneConsolePath: "Under Apps > Monitor",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AADDeviceID", displayName: "AADDevice ID", isDefault: true),
+                ColumnDefinition(key: "AndroidMamSdkVersion", displayName: "Android Mam Sdk Version", isDefault: true),
+                ColumnDefinition(key: "AndroidSecurityPatchVersion", displayName: "Android Security Patch Version", isDefault: true),
+                ColumnDefinition(key: "App", displayName: "App", isDefault: true),
+                ColumnDefinition(key: "AppInstanceId", displayName: "App Instance Id", isDefault: true),
+                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: true),
+                ColumnDefinition(key: "DeviceManufacturer", displayName: "Device Manufacturer", isDefault: true),
+                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "DeviceType", displayName: "Device Type", isDefault: true),
+                ColumnDefinition(key: "Email", displayName: "Email", isDefault: true),
+                ColumnDefinition(key: "iOSSdkVersion", displayName: "i OSSdk Version", isDefault: true),
+                ColumnDefinition(key: "LastSync", displayName: "Last Sync", isDefault: true),
+                ColumnDefinition(key: "MDMDeviceID", displayName: "MDMDevice ID", isDefault: true),
+                ColumnDefinition(key: "_Platform", displayName: "_Platform", isDefault: true),
+                ColumnDefinition(key: "PlatformVersion", displayName: "Platform Version", isDefault: true),
+                ColumnDefinition(key: "Policy", displayName: "Policy", isDefault: true),
+                ColumnDefinition(key: "User", displayName: "User", isDefault: true)
+            ]
+        )
         
+        reports["MAMAppConfigurationStatusV2"] = ReportDefinition(
+            type: "MAMAppConfigurationStatusV2",
+            displayName: "MAM App Configuration Status V2",
+            description: "See MAM App Configuration Status",
+            category: "Mobile Application Management",
+            intuneConsolePath: "Under Apps > Monitor",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AADDeviceID", displayName: "AADDevice ID", isDefault: true),
+                ColumnDefinition(key: "AndroidMamSdkVersion", displayName: "Android Mam Sdk Version", isDefault: true),
+                ColumnDefinition(key: "AndroidSecurityPatchVersion", displayName: "Android Security Patch Version", isDefault: true),
+                ColumnDefinition(key: "App", displayName: "App", isDefault: true),
+                ColumnDefinition(key: "AppInstanceId", displayName: "App Instance Id", isDefault: true),
+                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: true),
+                ColumnDefinition(key: "DeviceManufacturer", displayName: "Device Manufacturer", isDefault: true),
+                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "DeviceType", displayName: "Device Type", isDefault: true),
+                ColumnDefinition(key: "Email", displayName: "Email", isDefault: true),
+                ColumnDefinition(key: "iOSSdkVersion", displayName: "i OSSdk Version", isDefault: true),
+                ColumnDefinition(key: "LastSync", displayName: "Last Sync", isDefault: true),
+                ColumnDefinition(key: "MDMDeviceID", displayName: "MDMDevice ID", isDefault: true),
+                ColumnDefinition(key: "_Platform", displayName: "_Platform", isDefault: true),
+                ColumnDefinition(key: "PlatformVersion", displayName: "Platform Version", isDefault: true),
+                ColumnDefinition(key: "Policy", displayName: "Policy", isDefault: true),
+                ColumnDefinition(key: "User", displayName: "User", isDefault: true)
+            ]
+        )
+        
+        reports["MAMAppProtectionStatus"] = ReportDefinition(
+            type: "MAMAppProtectionStatus",
+            displayName: "MAM App Protection Status",
+            description: "Mobile Application Management app protection policy status",
+            category: "Mobile Application Management",
+            supportedFilters: [
+                FilterDefinition(key: "platform", displayName: "Platform", type: .dropdown,
+                                 options: ["All", "Android", "iOS"]),
+                FilterDefinition(key: "policyName", displayName: "Policy Name", type: .text,
+                                 placeholder: "Enter policy name")
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true),
+                ColumnDefinition(key: "AppName", displayName: "App Name", isDefault: true),
+                ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
+                ColumnDefinition(key: "ComplianceStatus", displayName: "Compliance Status", isDefault: true)
+            ]
+        )
+        
+        reports["MAMAppProtectionStatusScopedV2"] = ReportDefinition(
+            type: "MAMAppProtectionStatusScopedV2",
+            displayName: "MAM App Protection Status Scoped V2",
+            description: "See MAM App Protection Status Scoped",
+            category: "Mobile Application Management",
+            intuneConsolePath: "Under Apps > Monitor",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AADDeviceID", displayName: "AADDevice ID", isDefault: true),
+                ColumnDefinition(key: "AndroidMamSdkVersion", displayName: "Android Mam Sdk Version", isDefault: true),
+                ColumnDefinition(key: "AndroidSecurityPatchVersion", displayName: "Android Security Patch Version", isDefault: true),
+                ColumnDefinition(key: "App", displayName: "App", isDefault: true),
+                ColumnDefinition(key: "AppInstanceId", displayName: "App Instance Id", isDefault: true),
+                ColumnDefinition(key: "AppProtectionStatus", displayName: "App Protection Status", isDefault: true),
+                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: true),
+                ColumnDefinition(key: "ComplianceState", displayName: "Compliance State", isDefault: true),
+                ColumnDefinition(key: "DeviceManufacturer", displayName: "Device Manufacturer", isDefault: true),
+                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "DeviceType", displayName: "Device Type", isDefault: true),
+                ColumnDefinition(key: "Email", displayName: "Email", isDefault: true),
+                ColumnDefinition(key: "iOSSdkVersion", displayName: "i OSSdk Version", isDefault: true),
+                ColumnDefinition(key: "LastSync", displayName: "Last Sync", isDefault: true),
+                ColumnDefinition(key: "ManagementType", displayName: "Management Type", isDefault: true),
+                ColumnDefinition(key: "MDMDeviceID", displayName: "MDMDevice ID", isDefault: true),
+                ColumnDefinition(key: "_Platform", displayName: "_Platform", isDefault: true),
+                ColumnDefinition(key: "PlatformVersion", displayName: "Platform Version", isDefault: true),
+                ColumnDefinition(key: "Policy", displayName: "Policy", isDefault: true),
+                ColumnDefinition(key: "User", displayName: "User", isDefault: true)
+            ]
+        )
+        
+        reports["MAMAppProtectionStatusV2"] = ReportDefinition(
+            type: "MAMAppProtectionStatusV2",
+            displayName: "MAM App Protection Status V2",
+            description: "See MAM App Protection Status",
+            category: "Mobile Application Management",
+            intuneConsolePath: "Under Apps > Monitor",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AADDeviceID", displayName: "AADDevice ID", isDefault: true),
+                ColumnDefinition(key: "AndroidMamSdkVersion", displayName: "Android Mam Sdk Version", isDefault: true),
+                ColumnDefinition(key: "AndroidSecurityPatchVersion", displayName: "Android Security Patch Version", isDefault: true),
+                ColumnDefinition(key: "App", displayName: "App", isDefault: true),
+                ColumnDefinition(key: "AppInstanceId", displayName: "App Instance Id", isDefault: true),
+                ColumnDefinition(key: "AppProtectionStatus", displayName: "App Protection Status", isDefault: true),
+                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: true),
+                ColumnDefinition(key: "ComplianceState", displayName: "Compliance State", isDefault: true),
+                ColumnDefinition(key: "DeviceManufacturer", displayName: "Device Manufacturer", isDefault: true),
+                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "DeviceType", displayName: "Device Type", isDefault: true),
+                ColumnDefinition(key: "Email", displayName: "Email", isDefault: true),
+                ColumnDefinition(key: "iOSSdkVersion", displayName: "i OSSdk Version", isDefault: true),
+                ColumnDefinition(key: "LastSync", displayName: "Last Sync", isDefault: true),
+                ColumnDefinition(key: "ManagementType", displayName: "Management Type", isDefault: true),
+                ColumnDefinition(key: "MDMDeviceID", displayName: "MDMDevice ID", isDefault: true),
+                ColumnDefinition(key: "_Platform", displayName: "_Platform", isDefault: true),
+                ColumnDefinition(key: "PlatformVersion", displayName: "Platform Version", isDefault: true),
+                ColumnDefinition(key: "Policy", displayName: "Policy", isDefault: true),
+                ColumnDefinition(key: "User", displayName: "User", isDefault: true)
+            ]
+        )
+
         // MARK: - Update Management Reports
         
         reports["DriverUpdatePolicyStatusSummary"] = ReportDefinition(
@@ -1876,6 +2176,79 @@ class ReportRegistry {
             ]
         )
         
+        reports["QualityUpdateDeviceErrorsByPolicy"] = ReportDefinition(
+            type: "QualityUpdateDeviceErrorsByPolicy",
+            displayName: "Quality Update Device Errors By Policy",
+            description: "See Quality Update Device Errors By Policy",
+            category: "Update Management",
+            intuneConsolePath: "Under Devices > Monitor > Windows Expedited update failures > Select a profile",
+            supportedFilters: [
+                FilterDefinition(key: "AlertMessage", displayName: "Alert Message", type: .text),
+                FilterDefinition(key: "PolicyId", displayName: "Policy Id", type: .text, isRequired: true)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AlertMessage", displayName: "Alert Message", isDefault: true),
+                ColumnDefinition(key: "AlertMessage_loc", displayName: "Alert Message_loc", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "ExpediteQUReleaseDate", displayName: "Expedite QURelease Date", isDefault: true),
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
+                ColumnDefinition(key: "Win32ErrorCode", displayName: "Win32Error Code", isDefault: true)
+            ],
+            requiredParameters: ["PolicyId"]
+        )
+
+        reports["QualityUpdateDeviceStatusByPolicy"] = ReportDefinition(
+            type: "QualityUpdateDeviceStatusByPolicy",
+            displayName: "Quality Update Device Status By Policy",
+            description: "See Quality Update Device Status By Policy",
+            category: "Update Management",
+            intuneConsolePath: "Under Reports > Windows updates > Reports > Windows Expedited Update Report",
+            supportedFilters: [
+                FilterDefinition(key: "AggregateState", displayName: "Aggregate State", type: .text),
+                FilterDefinition(key: "OwnerType", displayName: "Owner Type", type: .text),
+                FilterDefinition(key: "PolicyId", displayName: "Policy Id", type: .text, isRequired: true)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AADDeviceId", displayName: "AADDevice Id", isDefault: true),
+                ColumnDefinition(key: "AggregateState", displayName: "Aggregate State", isDefault: true),
+                ColumnDefinition(key: "AggregateState_loc", displayName: "Aggregate State_loc", isDefault: true),
+                ColumnDefinition(key: "CurrentDeviceUpdateStatus", displayName: "Current Device Update Status", isDefault: true),
+                ColumnDefinition(key: "CurrentDeviceUpdateStatus_loc", displayName: "Current Device Update Status_loc", isDefault: true),
+                ColumnDefinition(key: "CurrentDeviceUpdateSubstatus", displayName: "Current Device Update Substatus", isDefault: true),
+                ColumnDefinition(key: "CurrentDeviceUpdateSubstatus_loc", displayName: "Current Device Update Substatus_loc", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "EventDateTimeUTC", displayName: "Event Date Time UTC", isDefault: true),
+                ColumnDefinition(key: "LastWUScanTimeUTC", displayName: "Last WUScan Time UTC", isDefault: true),
+                ColumnDefinition(key: "LatestAlertMessage", displayName: "Latest Alert Message", isDefault: true),
+                ColumnDefinition(key: "LatestAlertMessage_loc", displayName: "Latest Alert Message_loc", isDefault: true),
+                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: true),
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true)
+            ],
+            requiredParameters: ["PolicyId"]
+        )
+
+        reports["QualityUpdatePolicyStatusSummary"] = ReportDefinition(
+            type: "QualityUpdatePolicyStatusSummary",
+            displayName: "Quality Update Policy Status Summary",
+            description: "See Quality Update Policy Summary",
+            category: "Update Management",
+            intuneConsolePath: "Under Reports > Device management > Windows updates",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "CountDevicesErrorStatus", displayName: "Count Devices Error Status", isDefault: true),
+                ColumnDefinition(key: "CountDevicesInProgressStatus", displayName: "Count Devices In Progress Status", isDefault: true),
+                ColumnDefinition(key: "CountDevicesSuccessStatus", displayName: "Count Devices Success Status", isDefault: true),
+                ColumnDefinition(key: "ExpediteQUReleaseDate", displayName: "Expedite QURelease Date", isDefault: true),
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true)
+            ]
+        )
+
         reports["WindowsUpdatePerPolicyPerDeviceStatus"] = ReportDefinition(
             type: "WindowsUpdatePerPolicyPerDeviceStatus",
             displayName: "Windows Update Per Policy Per Device Status",
@@ -1905,10 +2278,10 @@ class ReportRegistry {
             supportedFilters: [
             ],
             supportedColumns: [
-                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: false),
-                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: false),
-                ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: false),
-                ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: false)
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
+                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: true),
+                ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
+                ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
             ]
         )
 

@@ -230,7 +230,12 @@ extension EditViewController {
             // Unzip the file
             let unzip = Process()
             unzip.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
-            unzip.arguments = ["-q", tempZipPath.path, "-d", tempDir.path]
+            unzip.arguments = ["-qq", tempZipPath.path, "-d", tempDir.path]
+            
+            // Redirect output to prevent terminal spam
+            unzip.standardOutput = FileHandle.nullDevice
+            unzip.standardError = FileHandle.nullDevice
+
             try unzip.run()
             unzip.waitUntilExit()
             
@@ -343,7 +348,7 @@ extension EditViewController {
             // Unzip
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
-            process.arguments = ["-q", tempZipPath.path, "-d", tempDir.path]
+            process.arguments = ["-qq", tempZipPath.path, "-d", tempDir.path]
             try process.run()
             process.waitUntilExit()
             
@@ -516,7 +521,7 @@ extension EditViewController {
         // Unzip and process
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
-        process.arguments = ["-q", location.path, "-d", tempDir.path]
+        process.arguments = ["-qq", location.path, "-d", tempDir.path]
         try process.run()
         process.waitUntilExit()
         
