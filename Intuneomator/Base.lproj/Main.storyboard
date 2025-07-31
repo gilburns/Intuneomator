@@ -638,7 +638,7 @@
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="eu3-7i-yIM"/>
-                                        <menuItem title="Intune Reporting" id="v3Y-hK-1Qj">
+                                        <menuItem title="Intune Reporting:" id="v3Y-hK-1Qj">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                         </menuItem>
                                         <menuItem title="App Installation Status…" indentationLevel="1" id="dVf-GS-AET">
@@ -677,7 +677,7 @@
                                                 <action selector="openReportsScheduleManagerWindow:" target="Ady-hI-5gd" id="xmh-18-XXu"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Intune Management" id="OI9-GC-YtT">
+                                        <menuItem title="Intune Management:" id="OI9-GC-YtT">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                         </menuItem>
                                         <menuItem title="App Category Manager…" indentationLevel="1" id="Sio-Iq-pzP">
