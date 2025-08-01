@@ -59,7 +59,7 @@ extension EntraGraphRequests {
             // Check for next page
             nextPageUrl = json["@odata.nextLink"] as? String
             
-            Logger.info("Fetched page \(pageCount) with \(pageShellScripts.count) shell scripts (total: \(pageShellScripts.count))", category: .core)
+            Logger.debug("Fetched page \(pageCount) with \(pageShellScripts.count) shell scripts (total: \(pageShellScripts.count))", category: .core)
             
             // Safety check to prevent infinite loops
             if pageCount > 100 {
@@ -1019,7 +1019,7 @@ extension EntraGraphRequests {
             // Check for next page
             nextPageUrl = json["@odata.nextLink"] as? String
             
-            Logger.info("Fetched page \(pageCount) with \(pageDeviceStates.count) device run states (total: \(allDeviceStates.count))", category: .core)
+            Logger.debug("Fetched page \(pageCount) with \(pageDeviceStates.count) device run states (total: \(allDeviceStates.count))", category: .core)
             
             // Safety check to prevent infinite loops
             if pageCount > 100 {

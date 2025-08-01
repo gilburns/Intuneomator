@@ -68,7 +68,7 @@ extension EntraGraphRequests {
             // Check for next page
             nextPageUrl = json["@odata.nextLink"] as? String
             
-            Logger.info("Fetched page \(pageCount) with \(pageManagedDevices.count) managed devices (total: \(allManagedDevices.count))", category: .core)
+            Logger.debug("Fetched page \(pageCount) with \(pageManagedDevices.count) managed devices (total: \(allManagedDevices.count))", category: .core)
             
             // Safety check to prevent infinite loops
             if pageCount > 100 {

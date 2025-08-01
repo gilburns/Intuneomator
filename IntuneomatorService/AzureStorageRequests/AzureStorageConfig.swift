@@ -166,13 +166,13 @@ class AzureStorageConfig {
         
         if hasSASAuth, let sasToken = sasToken {
             authMethod = .sasToken(sasToken)
-            Logger.info("Using SAS token authentication for Azure Storage", category: .core)
+            Logger.info("Using SAS token authentication for Azure Storage", category: .reports)
         } else if hasSharedKeyAuth, let accountKey = accountKey {
             authMethod = .storageKey(accountKey)
-            Logger.info("Using shared key authentication for Azure Storage", category: .core)
+            Logger.info("Using shared key authentication for Azure Storage", category: .reports)
         } else if hasAzureADAuth, let tenantId = tenantId, let clientId = clientId, let clientSecret = clientSecret {
             authMethod = .azureAD(tenantId: tenantId, clientId: clientId, clientSecret: clientSecret)
-            Logger.info("Using Azure AD authentication for Azure Storage", category: .core)
+            Logger.info("Using Azure AD authentication for Azure Storage", category: .reports)
         } else {
             throw ConfigurationError.noValidAuthMethod
         }
@@ -196,7 +196,7 @@ class AzureStorageConfig {
         clientId = nil
         clientSecret = nil
         
-        Logger.info("Cleared Azure Storage configuration", category: .core)
+        Logger.info("Cleared Azure Storage configuration", category: .reports)
     }
     
     /// Validates connection to Azure Storage
@@ -209,11 +209,11 @@ class AzureStorageConfig {
             // Try to list blobs to validate connection and permissions
             let _ = try await manager.testConnection()
             
-            Logger.info("Azure Storage connection validation successful", category: .core)
+            Logger.info("Azure Storage connection validation successful", category: .reports)
             return (true, nil)
         } catch {
             let errorMessage = "Azure Storage connection validation failed: \(error.localizedDescription)"
-            Logger.error(errorMessage, category: .core)
+            Logger.error(errorMessage, category: .reports)
             return (false, errorMessage)
         }
     }
@@ -226,7 +226,7 @@ class AzureStorageConfig {
         self.accountKey = accountKey
         self.containerName = containerName
         
-        Logger.info("Set up default Azure Storage configuration for account: \(accountName)", category: .core)
+        Logger.info("Set up default Azure Storage configuration for account: \(accountName)", category: .reports)
     }
     
     // MARK: - Multiple Named Configurations
@@ -351,28 +351,28 @@ class AzureStorageConfig {
               !Self.reservedNames.contains(name.lowercased()),
               name.count <= 50,
               name.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" || $0 == " " }) else {
-            Logger.error("Invalid configuration name: \(name). Names must be 1-50 characters, alphanumeric with dashes, underscores, and spaces only", category: .core)
+            Logger.error("Invalid configuration name: \(name). Names must be 1-50 characters, alphanumeric with dashes, underscores, and spaces only", category: .reports)
             return false
         }
         
         // Check if we're at the limit (unless updating existing)
         let existingNames = availableConfigurationNames
         if !existingNames.contains(name) && existingNames.count >= Self.maxConfigurations {
-            Logger.error("Cannot add configuration '\(name)': maximum of \(Self.maxConfigurations) configurations allowed", category: .core)
+            Logger.error("Cannot add configuration '\(name)': maximum of \(Self.maxConfigurations) configurations allowed", category: .reports)
             return false
         }
         
         // Encode configuration
         guard let configData = try? JSONEncoder().encode(configuration),
               let configJson = String(data: configData, encoding: .utf8) else {
-            Logger.error("Failed to encode configuration '\(name)'", category: .core)
+            Logger.error("Failed to encode configuration '\(name)'", category: .reports)
             return false
         }
         
         // Store configuration
         let configKey = "azure_storage_config_\(name.lowercased())"
         guard KeychainManager.shared.setValue(configJson, for: configKey) else {
-            Logger.error("Failed to store configuration '\(name)' in keychain", category: .core)
+            Logger.error("Failed to store configuration '\(name)' in keychain", category: .reports)
             return false
         }
         
@@ -386,7 +386,7 @@ class AzureStorageConfig {
             KeychainManager.shared.setValue(listJson, for: configListKey)
         }
         
-        Logger.info("Saved Azure Storage configuration '\(name)' for account: \(configuration.accountName)", category: .core)
+        Logger.info("Saved Azure Storage configuration '\(name)' for account: \(configuration.accountName)", category: .reports)
         return true
     }
     
@@ -412,7 +412,7 @@ class AzureStorageConfig {
             KeychainManager.shared.removeValue(for: configListKey)
         }
         
-        Logger.info("Removed Azure Storage configuration '\(name)'", category: .core)
+        Logger.info("Removed Azure Storage configuration '\(name)'", category: .reports)
         return removed
     }
     
@@ -460,7 +460,7 @@ class AzureStorageConfig {
         // Clear the list
         KeychainManager.shared.removeValue(for: "azure_storage_config_list")
         
-        Logger.info("Cleared all named Azure Storage configurations (\(names.count) removed)", category: .core)
+        Logger.info("Cleared all named Azure Storage configurations (\(names.count) removed)", category: .reports)
     }
     
     /// Gets summary information about all configurations

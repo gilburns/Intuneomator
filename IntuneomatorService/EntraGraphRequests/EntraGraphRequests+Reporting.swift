@@ -64,7 +64,7 @@ extension EntraGraphRequests {
             // Check for next page
             nextPageUrl = json["@odata.nextLink"] as? String
             
-            Logger.info("Fetched page \(pageCount) with \(pageIntuneApps.count) Intune apps (total: \(allIntuneApps.count))", category: .reports)
+            Logger.debug("Fetched page \(pageCount) with \(pageIntuneApps.count) Intune apps (total: \(allIntuneApps.count))", category: .reports)
             
             // Safety check to prevent infinite loops
             if pageCount > 100 {
@@ -197,7 +197,7 @@ extension EntraGraphRequests {
                 }
             }
             
-            Logger.info("Fetched page \(pageCount) with \(pageDeviceInstallationData.count) device installation records (total: \(allDeviceInstallationData.count))", category: .reports)
+            Logger.debug("Fetched page \(pageCount) with \(pageDeviceInstallationData.count) device installation records (total: \(allDeviceInstallationData.count))", category: .reports)
             
             // Safety check to prevent infinite loops
             if pageCount > 100 {
@@ -403,7 +403,7 @@ extension EntraGraphRequests {
                 // Check for next page
                 nextPageUrl = json["@odata.nextLink"] as? String
                 
-                Logger.info("Fetched page \(pageCount) with \(pageConfigurationProfiles.count) configuration profiles from \(endpoint.url) (total so far: \(allConfigurationProfiles.count))", category: .reports)
+                Logger.debug("Fetched page \(pageCount) with \(pageConfigurationProfiles.count) configuration profiles from \(endpoint.url) (total so far: \(allConfigurationProfiles.count))", category: .reports)
                 
                 // Safety check to prevent infinite loops
                 if pageCount > 100 {
@@ -536,7 +536,7 @@ extension EntraGraphRequests {
                 skipToken = String(currentRecords)
             }
             
-            Logger.info("Fetched page \(pageCount) with \(pageDeviceDeploymentData.count) device deployment records (total: \(allDeviceDeploymentData.count))", category: .reports)
+            Logger.debug("Fetched page \(pageCount) with \(pageDeviceDeploymentData.count) device deployment records (total: \(allDeviceDeploymentData.count))", category: .reports)
             
             // Safety check to prevent infinite loops
             if pageCount > 100 {
@@ -576,7 +576,7 @@ extension EntraGraphRequests {
         filter: String? = nil,
         select: [String]? = nil,
         format: String = "csv",
-        localizationType: String = "LocalizedValuesAsAdditionalColumn"
+        localizationType: String = "ReplaceLocalizableValues"
     ) async throws -> String {
         Logger.info("Creating export job for report: \(reportName)", category: .reports)
         

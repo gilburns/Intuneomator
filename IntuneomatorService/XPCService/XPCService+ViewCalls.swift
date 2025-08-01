@@ -36,7 +36,7 @@ extension XPCService {
                 let success = await withTaskGroup(of: Bool.self) { taskGroup in
                     for subdir in subdirectories {
                         #if DEBUG
-                        Logger.info("Directory to process: \(subdir.lastPathComponent)", category: .core)
+                        Logger.debug("Directory to process: \(subdir.lastPathComponent)", category: .core)
                         #endif
                         let folderName = subdir.lastPathComponent
 
@@ -158,7 +158,7 @@ extension XPCService {
                         let trackingID = folderName.components(separatedBy: "_")[1]
 
                         #if DEBUG
-                        Logger.info("Checking for Intune automation in folder \(labelName) (GUID: \(trackingID))", category: .core)
+                        Logger.debug("Checking for Intune automation in folder \(labelName) (GUID: \(trackingID))", category: .core)
                         #endif
 
                         do {
