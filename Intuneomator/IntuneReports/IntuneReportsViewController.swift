@@ -14,6 +14,7 @@ class IntuneReportsViewController: NSViewController {
     @IBOutlet weak var runReportButton: NSButton!
     @IBOutlet weak var scheduleReportButton: NSButton!
     @IBOutlet weak var manageSchedulesButton: NSButton!
+    
     @IBOutlet weak var progressIndicator: NSProgressIndicator!
     @IBOutlet weak var statusLabel: NSTextField!
     @IBOutlet weak var cancelButton: NSButton!
