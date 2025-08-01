@@ -254,7 +254,7 @@ extension MainViewController {
      * - Parameter sender: The UI control that triggered this action
      */
     @IBAction func openStatisticsSheet(_ sender: Any) {
-        let storyboard = NSStoryboard(name: "Main", bundle: nil)
+        let storyboard = NSStoryboard(name: "StatsView", bundle: nil)
         guard let controller = storyboard.instantiateController(withIdentifier: "StatsViewController") as? StatsViewController else { return }
 
         presentAsSheet(controller)
