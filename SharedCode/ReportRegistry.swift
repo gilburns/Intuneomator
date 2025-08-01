@@ -689,6 +689,37 @@ class ReportRegistry {
             requiredParameters: ["ApplicationId"]
         )
 
+        reports["FilteredAppsList"] = ReportDefinition(
+            type: "FilteredAppsList",
+            displayName: "Filtered Apps List",
+            description: "See Applications",
+            category: "Application Management",
+            intuneConsolePath: "Under Apps > All Apps",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "ApplicationId", displayName: "Application Id", isDefault: true),
+                ColumnDefinition(key: "ApplicationName", displayName: "Application Name", isDefault: true),
+                ColumnDefinition(key: "AppLastModifiedTime", displayName: "App Last Modified Time", isDefault: true),
+                ColumnDefinition(key: "AppStatus", displayName: "App Status", isDefault: true),
+                ColumnDefinition(key: "AppType", displayName: "App Type", isDefault: true),
+                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: true),
+                ColumnDefinition(key: "Assigned", displayName: "Assigned", isDefault: true),
+                ColumnDefinition(key: "CreationTime", displayName: "Creation Time", isDefault: true),
+                ColumnDefinition(key: "Description", displayName: "Description", isDefault: true),
+                ColumnDefinition(key: "Developer", displayName: "Developer", isDefault: true),
+                ColumnDefinition(key: "ExpirationTime", displayName: "Expiration Time", isDefault: true),
+                ColumnDefinition(key: "IsFeaturedApp", displayName: "Is Featured App", isDefault: true),
+                ColumnDefinition(key: "MoreInformationLink", displayName: "More Information Link", isDefault: true),
+                ColumnDefinition(key: "Notes", displayName: "Notes", isDefault: true),
+                ColumnDefinition(key: "Owner", displayName: "Owner", isDefault: true),
+                ColumnDefinition(key: "Platform", displayName: "Platform", isDefault: true),
+                ColumnDefinition(key: "PrivacyLink", displayName: "Privacy Link", isDefault: true),
+                ColumnDefinition(key: "Publisher", displayName: "Publisher", isDefault: true),
+                ColumnDefinition(key: "StoreUrl", displayName: "Store Url", isDefault: true)
+            ]
+        )
+
         reports["UserInstallStatusAggregateByApp"] = ReportDefinition(
             type: "UserInstallStatusAggregateByApp",
             displayName: "User Install Status Aggregate By App",
@@ -1075,6 +1106,34 @@ class ReportRegistry {
             ]
         )
 
+        reports["DevicesByAppInv"] = ReportDefinition(
+            type: "DevicesByAppInv",
+            displayName: "Devices By App Inv",
+            description: "See devices by application inventory",
+            category: "Application Management",
+            intuneConsolePath: "Under Apps > Monitor > Discovered apps > Discovered app> Export ",
+            supportedFilters: [
+                FilterDefinition(key: "ApplicationKey", displayName: "Application Key", type: .text, isRequired: true)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "ApplicationId", displayName: "Application Id", isDefault: true),
+                ColumnDefinition(key: "ApplicationKey", displayName: "Application Key", isDefault: true),
+                ColumnDefinition(key: "ApplicationName", displayName: "Application Name", isDefault: true),
+                ColumnDefinition(key: "ApplicationPublisher", displayName: "Application Publisher", isDefault: true),
+                ColumnDefinition(key: "ApplicationShortVersion", displayName: "Application Short Version", isDefault: true),
+                ColumnDefinition(key: "ApplicationVersion", displayName: "Application Version", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "EmailAddress", displayName: "Email Address", isDefault: true),
+                ColumnDefinition(key: "OSDescription", displayName: "OSDescription", isDefault: true),
+                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
+                ColumnDefinition(key: "Platform", displayName: "Platform", isDefault: true),
+                ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
+                ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
+            ],
+            requiredParameters: ["ApplicationKey"]
+        )
+
         reports["DevicesStatusByPolicyPlatformComplianceReport"] = ReportDefinition(
             type: "DevicesStatusByPolicyPlatformComplianceReport",
             displayName: "Devices Status By Policy Platform Compliance Report",
@@ -1354,6 +1413,50 @@ class ReportRegistry {
                 ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: true),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
+            ]
+        )
+        
+        reports["SettingComplianceAggReport"] = ReportDefinition(
+            type: "SettingComplianceAggReport",
+            displayName: "Setting Compliance Aggregate Report",
+            description: "See Setting Compliance Aggregate Report",
+            category: "Device Compliance",
+            intuneConsolePath: "Under Reports > Device management > Device compliance",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "NumberOfCompliantDevices", displayName: "Number Of Compliant Devices", isDefault: true),
+                ColumnDefinition(key: "NumberOfConflictDevices", displayName: "Number Of Conflict Devices", isDefault: true),
+                ColumnDefinition(key: "NumberOfNonCompliantDevices", displayName: "Number Of Non Compliant Devices", isDefault: true),
+                ColumnDefinition(key: "NumberOfNotApplicableDevices", displayName: "Number Of Not Applicable Devices", isDefault: true),
+                ColumnDefinition(key: "NumberOfNotEvaluatedDevices", displayName: "Number Of Not Evaluated Devices", isDefault: true),
+                ColumnDefinition(key: "PolicyPlatform", displayName: "Policy Platform", isDefault: true),
+                ColumnDefinition(key: "PolicyPlatformType", displayName: "Policy Platform Type", isDefault: true),
+                ColumnDefinition(key: "SettingId", displayName: "Setting Id", isDefault: true),
+                ColumnDefinition(key: "SettingName", displayName: "Setting Name", isDefault: true),
+                ColumnDefinition(key: "SettingNm", displayName: "Setting Nm", isDefault: true)
+            ]
+        )
+        
+        reports["SettingComplianceAggReportV3"] = ReportDefinition(
+            type: "SettingComplianceAggReportV3",
+            displayName: "Setting Compliance Aggregate Report V3",
+            description: "See Setting Compliance Aggregate Report V3",
+            category: "Device Compliance",
+            intuneConsolePath: "Under Reports > Device management > Device compliance",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "NumberOfCompliantDevices", displayName: "Number Of Compliant Devices", isDefault: true),
+                ColumnDefinition(key: "NumberOfConflictDevices", displayName: "Number Of Conflict Devices", isDefault: true),
+                ColumnDefinition(key: "NumberOfNonCompliantDevices", displayName: "Number Of Non Compliant Devices", isDefault: true),
+                ColumnDefinition(key: "NumberOfNotApplicableDevices", displayName: "Number Of Not Applicable Devices", isDefault: true),
+                ColumnDefinition(key: "NumberOfNotEvaluatedDevices", displayName: "Number Of Not Evaluated Devices", isDefault: true),
+                ColumnDefinition(key: "PolicyPlatform", displayName: "Policy Platform", isDefault: true),
+                ColumnDefinition(key: "PolicyPlatformType", displayName: "Policy Platform Type", isDefault: true),
+                ColumnDefinition(key: "SettingId", displayName: "Setting Id", isDefault: true),
+                ColumnDefinition(key: "SettingName", displayName: "Setting Name", isDefault: true),
+                ColumnDefinition(key: "SettingNm", displayName: "Setting Nm", isDefault: true)
             ]
         )
         
@@ -1789,6 +1892,30 @@ class ReportRegistry {
             ]
         )
         
+        reports["EpmAggregationReportByApplication"] = ReportDefinition(
+            type: "EpmAggregationReportByApplication",
+            displayName: "Endpoint Privilege Management Aggregation Report By Application",
+            description: "See Endpoint Privilege elevation report by applications",
+            category: "Security",
+            intuneConsolePath: "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report by applications",
+            supportedFilters: [
+                FilterDefinition(key: "CompanyName", displayName: "Company Name", type: .text),
+                FilterDefinition(key: "ElevationType", displayName: "Elevation Type", type: .text),
+                FilterDefinition(key: "FileName", displayName: "File Name", type: .text),
+                FilterDefinition(key: "FileVersion", displayName: "File Version", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "CompanyName", displayName: "Company Name", isDefault: true),
+                ColumnDefinition(key: "ElevationCount", displayName: "Elevation Count", isDefault: true),
+                ColumnDefinition(key: "ElevationType", displayName: "Elevation Type", isDefault: true),
+                ColumnDefinition(key: "FileName", displayName: "File Name", isDefault: true),
+                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: true),
+                ColumnDefinition(key: "Hash", displayName: "Hash", isDefault: true),
+                ColumnDefinition(key: "InternalName", displayName: "Internal Name", isDefault: true),
+                ColumnDefinition(key: "IsBackgroundProcess", displayName: "Is Background Process", isDefault: true)
+            ]
+        )
+
         reports["EpmAggregationReportByApplicationV2"] = ReportDefinition(
             type: "EpmAggregationReportByApplicationV2",
             displayName: "Endpoint Privilege Management Aggregation report by application V2",
@@ -1919,6 +2046,113 @@ class ReportRegistry {
             ]
         )
 
+        reports["EpmElevationReportByUserAppByDayToReporting"] = ReportDefinition(
+            type: "EpmElevationReportByUserAppByDayToReporting",
+            displayName: "Endpoint Privilege Management Elevation Report By User App By Day To Reporting",
+            description: "See Endpoint Privilege report by user by applications by day",
+            category: "Security",
+            intuneConsolePath: "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "DateCreated", displayName: "Date Created", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "ElevationCount", displayName: "Elevation Count", isDefault: true),
+                ColumnDefinition(key: "ElevationType", displayName: "Elevation Type", isDefault: true),
+                ColumnDefinition(key: "FileName", displayName: "File Name", isDefault: true),
+                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: true),
+                ColumnDefinition(key: "HashValue", displayName: "Hash Value", isDefault: true),
+                ColumnDefinition(key: "Publisher", displayName: "Publisher", isDefault: true),
+                ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
+            ]
+        )
+
+        reports["EpmElevationReportElevationEvent"] = ReportDefinition(
+            type: "EpmElevationReportElevationEvent",
+            displayName: "Endpoint Privilege Management Elevation Report Elevation Event",
+            description: "See Endpoint Privilege report by user by applications by day",
+            category: "Security",
+            intuneConsolePath: "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report",
+            supportedFilters: [
+                FilterDefinition(key: "ElevationType", displayName: "Elevation Type", type: .text),
+                FilterDefinition(key: "EventDateTime", displayName: "Event Date Time", type: .text),
+                FilterDefinition(key: "Result", displayName: "Result", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "CompanyName", displayName: "Company Name", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "ElevationType", displayName: "Elevation Type", isDefault: true),
+                ColumnDefinition(key: "EventDateTime", displayName: "Event Date Time", isDefault: true),
+                ColumnDefinition(key: "FileDescription", displayName: "File Description", isDefault: true),
+                ColumnDefinition(key: "FilePath", displayName: "File Path", isDefault: true),
+                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: true),
+                ColumnDefinition(key: "Hash", displayName: "Hash", isDefault: true),
+                ColumnDefinition(key: "Id", displayName: "Id", isDefault: true),
+                ColumnDefinition(key: "InternalName", displayName: "Internal Name", isDefault: true),
+                ColumnDefinition(key: "IsSystemInitiated", displayName: "Is System Initiated", isDefault: true),
+                ColumnDefinition(key: "Justification", displayName: "Justification", isDefault: true),
+                ColumnDefinition(key: "ParentProcessName", displayName: "Parent Process Name", isDefault: true),
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
+                ColumnDefinition(key: "ProcessType", displayName: "Process Type", isDefault: true),
+                ColumnDefinition(key: "ProductName", displayName: "Product Name", isDefault: true),
+                ColumnDefinition(key: "Result", displayName: "Result", isDefault: true),
+                ColumnDefinition(key: "RuleId", displayName: "Rule Id", isDefault: true),
+                ColumnDefinition(key: "Upn", displayName: "Upn", isDefault: true),
+                ColumnDefinition(key: "UserType", displayName: "User Type", isDefault: true)
+            ]
+        )
+
+        reports["EpmInsightsElevationTrend"] = ReportDefinition(
+            type: "EpmInsightsElevationTrend",
+            displayName: "Endpoint Privilege Management Insights Elevation Trend",
+            description: "See Endpoint Privilege Insights Elevation Trend",
+            category: "Security",
+            intuneConsolePath: "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "DateCreated", displayName: "Date Created", isDefault: true),
+                ColumnDefinition(key: "ElevationType", displayName: "Elevation Type", isDefault: true),
+                ColumnDefinition(key: "DailyElevationCount", displayName: "Daily Elevation Count", isDefault: true)
+            ]
+        )
+
+        reports["EpmInsightsMostFrequentElevations"] = ReportDefinition(
+            type: "EpmInsightsMostFrequentElevations",
+            displayName: "Endpoint Privilege Management Insights Most Frequent Elevations",
+            description: "See Endpoint Privilege Most Frequent Elevations",
+            category: "Security",
+            intuneConsolePath: "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "ElevationType", displayName: "Elevation Type", isDefault: true),
+                ColumnDefinition(key: "FileInternalName", displayName: "File Internal Name", isDefault: true),
+                ColumnDefinition(key: "FileName", displayName: "File Name", isDefault: true),
+                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: true),
+                ColumnDefinition(key: "HashValue", displayName: "Hash Value", isDefault: true),
+                ColumnDefinition(key: "MonthElevationCount", displayName: "Month Elevation Count", isDefault: true),
+                ColumnDefinition(key: "Publisher", displayName: "Publisher", isDefault: true)
+            ]
+        )
+
+        reports["EpmInsightsReport"] = ReportDefinition(
+            type: "EpmInsightsReport",
+            displayName: "Endpoint Privilege Management Insights Report",
+            description: "See Endpoint Privilege Insights Report",
+            category: "Security",
+            intuneConsolePath: "Under Endpoint security > Manage > Endpoint Privilege Management > Elevation report",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "Green", displayName: "Green", isDefault: true),
+                ColumnDefinition(key: "Yellow", displayName: "Yellow", isDefault: true),
+                ColumnDefinition(key: "Red", displayName: "Red", isDefault: true)
+            ]
+        )
+
         reports["FirewallStatus"] = ReportDefinition(
             type: "FirewallStatus",
             displayName: "Firewall Status",
@@ -1937,6 +2171,28 @@ class ReportRegistry {
             ]
         )
         
+        reports["FirewallUnhealthyStatus"] = ReportDefinition(
+            type: "FirewallUnhealthyStatus",
+            displayName: "Firewall Unhealthy Status",
+            description: "See Device Failures By Feature Update Policy",
+            category: "Security",
+            intuneConsolePath: "Under Reports > Endpoint security > Firewall",
+            supportedFilters: [
+                FilterDefinition(key: "FirewallStatus", displayName: "Firewall Status", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "FirewallStatus", displayName: "Firewall Status", isDefault: true),
+                ColumnDefinition(key: "LastReportedDateTime", displayName: "Last Reported Date Time", isDefault: true),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
+                ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true),
+                ColumnDefinition(key: "_OS", displayName: "_OS", isDefault: true),
+                ColumnDefinition(key: "_ManagedBy", displayName: "_Managed By", isDefault: true),
+                ColumnDefinition(key: "ReferenceId", displayName: "Reference Id", isDefault: true)
+            ]
+        )
+
         reports["Malware"] = ReportDefinition(
             type: "Malware",
             displayName: "Malware",
@@ -1953,7 +2209,57 @@ class ReportRegistry {
                 ColumnDefinition(key: "Status", displayName: "Status", isDefault: true)
             ]
         )
-                        
+                  
+        reports["TicketingSecurityTaskAppsList"] = ReportDefinition(
+            type: "TicketingSecurityTaskAppsList",
+            displayName: "Ticketing Security Task Apps List",
+            description: "See Ticketing Security Task Apps List",
+            category: "Security",
+            intuneConsolePath: "Under Endpoint security > Security tasks",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "ApplicationId", displayName: "Application Id", isDefault: true),
+                ColumnDefinition(key: "ApplicationName", displayName: "Application Name", isDefault: true),
+                ColumnDefinition(key: "AppLastModifiedTime", displayName: "App Last Modified Time", isDefault: true),
+                ColumnDefinition(key: "AppType", displayName: "App Type", isDefault: true),
+                ColumnDefinition(key: "CurrentAppVersion", displayName: "Current App Version", isDefault: true),
+                ColumnDefinition(key: "InstalledDeviceCount", displayName: "Installed Device Count", isDefault: true),
+                ColumnDefinition(key: "IsSuperseded", displayName: "Is Superseded", isDefault: true),
+                ColumnDefinition(key: "LatestAvailableVersion", displayName: "Latest Available Version", isDefault: true),
+                ColumnDefinition(key: "UpdateAvailable", displayName: "Update Available", isDefault: true)
+            ]
+        )
+
+        reports["TpmAttestationStatus"] = ReportDefinition(
+            type: "TpmAttestationStatus",
+            displayName: "TPM Attestation Status",
+            description: "See TPM Attestation Status",
+            category: "Security",
+            intuneConsolePath: "Under Devices > Manage devices > Configuration > Monitor > Device encryption status",
+            supportedFilters: [
+                FilterDefinition(key: "AttestationStatus", displayName: "Attestation Status", type: .text),
+                FilterDefinition(key: "Ownership", displayName: "Ownership", type: .text),
+                FilterDefinition(key: "OSDescription", displayName: "OSDescription", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AttestationStatus", displayName: "Attestation Status", isDefault: true),
+                ColumnDefinition(key: "AttestationStatusDetail", displayName: "Attestation Status Detail", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "EnrolledByUser", displayName: "Enrolled By User", isDefault: true),
+                ColumnDefinition(key: "EnrollmentDate", displayName: "Enrollment Date", isDefault: true),
+                ColumnDefinition(key: "LastCheckin", displayName: "Last Checkin", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
+                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
+                ColumnDefinition(key: "Ownership", displayName: "Ownership", isDefault: true),
+                ColumnDefinition(key: "TpmManufacturer", displayName: "Tpm Manufacturer", isDefault: true),
+                ColumnDefinition(key: "TpmVersion", displayName: "Tpm Version", isDefault: true),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true)
+            ]
+        )
+
         reports["UnhealthyDefenderAgents"] = ReportDefinition(
             type: "UnhealthyDefenderAgents",
             displayName: "Defender Agents (Unhealthy)",
@@ -2139,6 +2445,46 @@ class ReportRegistry {
 
         // MARK: - Update Management Reports
         
+        reports["DeviceFailuresByFeatureUpdatePolicy"] = ReportDefinition(
+            type: "DeviceFailuresByFeatureUpdatePolicy",
+            displayName: "Device Failures By Feature Update Policy",
+            description: "See Device Failures By Feature Update Policy",
+            category: "Update Management",
+            intuneConsolePath: "Under Devices > Monitor > Failure for feature updates > click on error",
+            supportedFilters: [
+                FilterDefinition(key: "AlertMessage", displayName: "Alert Message", type: .text),
+                FilterDefinition(key: "PolicyId", displayName: "Policy Id", type: .text, isRequired: true),
+                FilterDefinition(key: "RecommendedAction", displayName: "Recommended Action", type: .text),
+                FilterDefinition(key: "WindowsUpdateVersion", displayName: "Windows Update Version", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AADDeviceId", displayName: "AADDevice Id", isDefault: true),
+                ColumnDefinition(key: "AlertClassification", displayName: "Alert Classification", isDefault: true),
+                ColumnDefinition(key: "AlertId", displayName: "Alert Id", isDefault: true),
+                ColumnDefinition(key: "AlertMessage", displayName: "Alert Message", isDefault: true),
+                ColumnDefinition(key: "AlertMessageData", displayName: "Alert Message Data", isDefault: true),
+                ColumnDefinition(key: "AlertMessageDescription", displayName: "Alert Message Description", isDefault: true),
+                ColumnDefinition(key: "AlertStatus", displayName: "Alert Status", isDefault: true),
+                ColumnDefinition(key: "AlertType", displayName: "Alert Type", isDefault: true),
+                ColumnDefinition(key: "Build", displayName: "Build", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "EventDateTimeUTC", displayName: "Event Date Time UTC", isDefault: true),
+                ColumnDefinition(key: "ExtendedRecommendedAction", displayName: "Extended Recommended Action", isDefault: true),
+                ColumnDefinition(key: "FeatureUpdateVersion", displayName: "Feature Update Version", isDefault: true),
+                ColumnDefinition(key: "LastUpdatedAlertStatusDateTimeUTC", displayName: "Last Updated Alert Status Date Time UTC", isDefault: true),
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
+                ColumnDefinition(key: "RecommendedAction", displayName: "Recommended Action", isDefault: true),
+                ColumnDefinition(key: "ResolvedDateTimeUTC", displayName: "Resolved Date Time UTC", isDefault: true),
+                ColumnDefinition(key: "StartDateTimeUTC", displayName: "Start Date Time UTC", isDefault: true),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
+                ColumnDefinition(key: "Win32ErrorCode", displayName: "Win32Error Code", isDefault: true),
+                ColumnDefinition(key: "WindowsUpdateVersion", displayName: "Windows Update Version", isDefault: true)
+            ],
+            requiredParameters: ["PolicyId"]
+        )
+
         reports["DriverUpdatePolicyStatusSummary"] = ReportDefinition(
             type: "DriverUpdatePolicyStatusSummary",
             displayName: "Driver Update Policy Status Summary",
@@ -2159,6 +2505,48 @@ class ReportRegistry {
             ]
         )
 
+        reports["FeatureUpdateDeviceState"] = ReportDefinition(
+            type: "FeatureUpdateDeviceState",
+            displayName: "Feature Update Device State",
+            description: "See Feature Update Device State",
+            category: "Update Management",
+            intuneConsolePath: "Under Reports > Window Updates > Reports> Windows Feature Update Report ",
+            supportedFilters: [
+                FilterDefinition(key: "AggregateState", displayName: "Aggregate State", type: .text),
+                FilterDefinition(key: "LatestAlertMessage", displayName: "Latest Alert Message", type: .text),
+                FilterDefinition(key: "OwnerType", displayName: "Owner Type", type: .text),
+                FilterDefinition(key: "PolicyId", displayName: "Policy Id", type: .text, isRequired: true)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AADDeviceId", displayName: "AADDevice Id", isDefault: true),
+                ColumnDefinition(key: "AggregateState", displayName: "Aggregate State", isDefault: true),
+                ColumnDefinition(key: "Build", displayName: "Build", isDefault: true),
+                ColumnDefinition(key: "CurrentDeviceUpdateStatus", displayName: "Current Device Update Status", isDefault: true),
+                ColumnDefinition(key: "CurrentDeviceUpdateStatusEventDateTimeUTC", displayName: "Current Device Update Status Event Date Time UTC", isDefault: true),
+                ColumnDefinition(key: "CurrentDeviceUpdateSubstatus", displayName: "Current Device Update Substatus", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "EventDateTimeUTC", displayName: "Event Date Time UTC", isDefault: true),
+                ColumnDefinition(key: "FeatureUpdateVersion", displayName: "Feature Update Version", isDefault: true),
+                ColumnDefinition(key: "LastSuccessfulDeviceUpdateStatus", displayName: "Last Successful Device Update Status", isDefault: true),
+                ColumnDefinition(key: "LastSuccessfulDeviceUpdateStatusEventDateTimeUTC", displayName: "Last Successful Device Update Status Event Date Time UTC", isDefault: true),
+                ColumnDefinition(key: "LastSuccessfulDeviceUpdateSubstatus", displayName: "Last Successful Device Update Substatus", isDefault: true),
+                ColumnDefinition(key: "LastWUScanTimeUTC", displayName: "Last WUScan Time UTC", isDefault: true),
+                ColumnDefinition(key: "LatestAlertExtendedRecommendedAction", displayName: "Latest Alert Extended Recommended Action", isDefault: true),
+                ColumnDefinition(key: "LatestAlertMessage", displayName: "Latest Alert Message", isDefault: true),
+                ColumnDefinition(key: "LatestAlertMessageDescription", displayName: "Latest Alert Message Description", isDefault: true),
+                ColumnDefinition(key: "LatestAlertRecommendedAction", displayName: "Latest Alert Recommended Action", isDefault: true),
+                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: true),
+                ColumnDefinition(key: "PartnerPolicyId", displayName: "Partner Policy Id", isDefault: true),
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
+                ColumnDefinition(key: "UpdateCategory", displayName: "Update Category", isDefault: true),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
+                ColumnDefinition(key: "WindowsUpdateVersion", displayName: "Windows Update Version", isDefault: true)
+            ],
+            requiredParameters: ["PolicyId"]
+        )
+        
         reports["FeatureUpdatePolicyFailuresAggregate"] = ReportDefinition(
             type: "FeatureUpdatePolicyFailuresAggregate",
             displayName: "Feature Update Policy Failures",
@@ -2176,6 +2564,24 @@ class ReportRegistry {
             ]
         )
         
+        reports["FeatureUpdatePolicyStatusSummary"] = ReportDefinition(
+            type: "FeatureUpdatePolicyStatusSummary",
+            displayName: "Feature Update Policy Status Summary",
+            description: "See Feature Update Policy Status Summary",
+            category: "Update Management",
+            intuneConsolePath: "Under Devices > Manage updates > Windows updates > Feature updates",
+            supportedFilters: [
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "CountDevicesErrorStatus", displayName: "Count Devices Error Status", isDefault: true),
+                ColumnDefinition(key: "CountDevicesInProgressStatus", displayName: "Count Devices In Progress Status", isDefault: true),
+                ColumnDefinition(key: "CountDevicesSuccessStatus", displayName: "Count Devices Success Status", isDefault: true),
+                ColumnDefinition(key: "FeatureUpdateVersion", displayName: "Feature Update Version", isDefault: true),
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true)
+            ]
+        )
+
         reports["QualityUpdateDeviceErrorsByPolicy"] = ReportDefinition(
             type: "QualityUpdateDeviceErrorsByPolicy",
             displayName: "Quality Update Device Errors By Policy",
