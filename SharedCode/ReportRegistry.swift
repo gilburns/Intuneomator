@@ -271,14 +271,43 @@ class ReportRegistry {
                 control = checkbox
                 
             case .date:
+                // For date filters, create a popup with "All" and "Custom" options
                 let controlX = xPosition + labelWidth + labelControlSpacing
-                let datePicker = NSDatePicker(frame: NSRect(x: controlX, y: controlY, width: controlWidth, height: controlHeight))
-                datePicker.controlSize = .small
-                datePicker.font = NSFont.systemFont(ofSize: 11)
-                datePicker.datePickerStyle = .textField
-                datePicker.datePickerElements = .yearMonthDay
+                let datePopup = NSPopUpButton(frame: NSRect(x: controlX, y: controlY, width: controlWidth, height: controlHeight))
+                datePopup.controlSize = .small
+                datePopup.font = NSFont.systemFont(ofSize: 11)
                 
-                control = datePicker
+                // Add "All" option (no date filter)
+                let allItem = NSMenuItem(title: "All", action: nil, keyEquivalent: "")
+                allItem.representedObject = "All"
+                datePopup.menu?.addItem(allItem)
+                
+                // Add separator
+                datePopup.menu?.addItem(NSMenuItem.separator())
+                
+                // Add some common date ranges
+                let dateRanges = [
+                    ("Last 1 day", "last1day"),
+                    ("Last 7 days", "last7days"),
+                    ("Last 15 days", "last15days"),
+                    ("Last 30 days", "last30days"),
+                    ("Last 90 days", "last90days"),
+                    ("More than 7 days", "morethan7days"),
+                    ("More than 15 days", "morethan15days"),
+                    ("More than 30 days", "morethan30days"),
+                    ("More than 90 days", "morethan90days")
+                ]
+                
+                for (title, value) in dateRanges {
+                    let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+                    item.representedObject = value
+                    datePopup.menu?.addItem(item)
+                }
+                
+                // Select "All" by default
+                datePopup.selectItem(at: 0)
+                
+                control = datePopup
             }
             
             if let control = control {
@@ -318,8 +347,15 @@ class ReportRegistry {
             case let popup as NSPopUpButton:
                 let selectedTitle = popup.titleOfSelectedItem ?? ""
                 if selectedTitle != "All" && !selectedTitle.isEmpty {
-                    // Apply API value mapping if available
-                    value = filterDef.getAPIValue(for: selectedTitle)
+                    // For date filters, use the representedObject directly
+                    if filterDef.type == .date,
+                       let selectedItem = popup.selectedItem,
+                       let representedValue = selectedItem.representedObject as? String {
+                        value = representedValue
+                    } else {
+                        // Apply API value mapping for other filter types
+                        value = filterDef.getAPIValue(for: selectedTitle)
+                    }
                 }
                 
             case let textField as NSTextField:
@@ -333,11 +369,6 @@ class ReportRegistry {
                     value = "true"
                 }
                 
-            case let datePicker as NSDatePicker:
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
-                value = formatter.string(from: datePicker.dateValue)
-                
             default:
                 break
             }
@@ -349,6 +380,26 @@ class ReportRegistry {
         
         return filters
     }
+    
+    
+    /*
+     
+     No official documentation on the filter syntax or supported operators for the Intune reports
+     API appears to exist. Based on testing, the following operators appear to be supported.
+     
+     Some of these items, such as not and in, can produce errors. Test thoroughly.
+     
+     • Equal to (eq)
+     • Not equal to (ne)
+     • Logical negation (not)
+     • In (in)
+     • Has (has)
+     • Less than (1t)
+     • Greather than (gt)
+     • Less than or equal to (le)
+     • Greater than or equal to (ge)
+     
+     */
     
     /// Builds an OData filter string from filter parameters
     func buildODataFilter(from filters: [String: String], for reportType: String) -> String? {
@@ -380,12 +431,85 @@ class ReportRegistry {
                 let boolValue = apiValue.lowercased() == "true"
                 filterComponents.append("(\(key) eq \(boolValue))")
             case .date:
-                // Date filters (need more info on the format and logic to fully implement)
-                filterComponents.append("(\(key) eq '\(apiValue)')")
+                // Date filters - convert date range values to OData format
+                let dateFilter = buildDateFilter(key: key, value: apiValue)
+                if let dateFilter = dateFilter {
+                    filterComponents.append(dateFilter)
+                }
             }
         }
         
         return filterComponents.isEmpty ? nil : filterComponents.joined(separator: " and ")
+    }
+    
+    /// Builds a date filter component for OData queries
+    /// - Parameters:
+    ///   - key: The filter field name
+    ///   - value: The date range value (e.g., "last7days", "last30days", or "All")
+    /// - Returns: OData filter string or nil if no filter should be applied
+    private func buildDateFilter(key: String, value: String) -> String? {
+        // Skip filter if "All" is selected
+        guard value != "All" else { return nil }
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        
+        let now = Date()
+        let calendar = Calendar.current
+        
+        switch value {
+        case "last1day":
+            let oneDayAgo = calendar.date(byAdding: .day, value: -1, to: now) ?? now
+            let startDate = formatter.string(from: oneDayAgo)
+            return "(\(key) ge '\(startDate)')"
+
+        case "last7days":
+            let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: now) ?? now
+            let startDate = formatter.string(from: sevenDaysAgo)
+            return "(\(key) ge '\(startDate)')"
+
+        case "last15days":
+            let fifteenDaysAgo = calendar.date(byAdding: .day, value: -15, to: now) ?? now
+            let startDate = formatter.string(from: fifteenDaysAgo)
+            return "(\(key) ge '\(startDate)')"
+
+        case "last30days":
+            let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: now) ?? now
+            let startDate = formatter.string(from: thirtyDaysAgo)
+            return "(\(key) ge '\(startDate)')"
+
+        case "last90days":
+            let ninetyDaysAgo = calendar.date(byAdding: .day, value: -90, to: now) ?? now
+            let startDate = formatter.string(from: ninetyDaysAgo)
+            return "(\(key) ge '\(startDate)')"
+
+        case "morethan7days":
+            let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: now) ?? now
+            let startDate = formatter.string(from: sevenDaysAgo)
+            return "(\(key) le '\(startDate)')"
+
+        case "morethan15days":
+            let fifteenDaysAgo = calendar.date(byAdding: .day, value: -15, to: now) ?? now
+            let startDate = formatter.string(from: fifteenDaysAgo)
+            return "(\(key) le '\(startDate)')"
+
+        case "morethan30days":
+            let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: now) ?? now
+            let startDate = formatter.string(from: thirtyDaysAgo)
+            return "(\(key) le '\(startDate)')"
+
+        case "morethan90days":
+            let ninetyDaysAgo = calendar.date(byAdding: .day, value: -90, to: now) ?? now
+            let startDate = formatter.string(from: ninetyDaysAgo)
+            return "(\(key) le '\(startDate)')"
+
+        default:
+            // If it's a specific date in yyyy-MM-dd format, use exact match
+            if value.matches("\\d{4}-\\d{2}-\\d{2}") {
+                return "(\(key) eq '\(value)')"
+            }
+            return nil
+        }
     }
     
     /// Gets default columns for a report type
@@ -436,13 +560,6 @@ class ReportRegistry {
                 
             case let checkbox as NSButton:
                 checkbox.state = (value.lowercased() == "true") ? .on : .off
-                
-            case let datePicker as NSDatePicker:
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
-                if let date = formatter.date(from: value) {
-                    datePicker.dateValue = date
-                }
                 
             default:
                 break
@@ -1560,17 +1677,23 @@ class ReportRegistry {
             category: "Device Management",
             intuneConsolePath: "Devices > All devices",
             supportedFilters: [
-                FilterDefinition(key: "OwnerType", displayName: "Owner Type", type: .dropdown,
-                               options: ["All", "Company", "Personal"],
-                               optionValues: ["Company": "1", "Personal": "2"]),
+                FilterDefinition(key: "CategoryName", displayName: "Category Name", type: .text),
                 FilterDefinition(key: "ComplianceState", displayName: "Compliance State", type: .dropdown,
                                options: ["All", "Compliant", "Noncompliant", "InGracePeriod"]),
+                FilterDefinition(key: "CreatedDate", displayName: "Created Date", type: .date),
+                FilterDefinition(key: "DeviceType", displayName: "Device Type", type: .dropdown,
+                               options: ["All", "Desktop", "Windows", "winMO6", "Nokia", "WindowsPhone", "Mac", "WinCE", "WinEmbedded", "iPhone", "iPad", "iPod", "Android", "iSocConsumer", "Unix", "MacMDM", "HoloLens", "SurfaceHub", "AndroidForWork", "AndroidEnterprise", "Windows10x", "AndroidnGMS", "CloudPC", "Linux"],
+                               optionValues: ["Desktop": "0", "Windows": "1", "winMO6": "2", "Nokia": "3", "WindowsPhone": "4", "Mac": "5", "WinCE": "6", "WinEmbedded": "7", "iPhone": "8", "iPad": "9", "iPod": "10", "Android": "11", "iSocConsumer": "12", "Unix": "13", "MacMDM": "14", "HoloLens": "15", "SurfaceHub": "16", "AndroidForWork": "17", "AndroidEnterprise": "18", "Windows10x": "19", "AndroidnGMS": "20", "CloudPC": "21", "Linux": "22"]),
+                FilterDefinition(key: "EnrollmentType", displayName: "Enrollment Type", type: .text),
+                FilterDefinition(key: "JailBroken", displayName: "Jail Broken", type: .text),
+                FilterDefinition(key: "LastContact", displayName: "Last Contact", type: .date),
+                FilterDefinition(key: "ManagementAgents", displayName: "Management Agents", type: .text),
                 FilterDefinition(key: "ManagementState", displayName: "Management State", type: .dropdown,
                                options: ["All", "Managed", "Discovered", "Unhealthy", "Retire Pending", "Wipe Pending"],
                                optionValues: ["Managed": "0", "Retire Pending": "1", "Wipe Pending": "3", "Unhealthy": "5", "Discovered": "11"]),
-                FilterDefinition(key: "DeviceType", displayName: "Device Type", type: .dropdown,
-                               options: ["All", "Desktop", "Windows", "winMO6", "Nokia", "WindowsPhone", "Mac", "WinCE", "WinEmbedded", "iPhone", "iPad", "iPod", "Android", "iSocConsumer", "Unix", "MacMDM", "HoloLens", "SurfaceHub", "AndroidForWork", "AndroidEnterprise", "Windows10x", "AndroidnGMS", "CloudPC", "Linux"],
-                               optionValues: ["Desktop": "0", "Windows": "1", "winMO6": "2", "Nokia": "3", "WindowsPhone": "4", "Mac": "5", "WinCE": "6", "WinEmbedded": "7", "iPhone": "8", "iPad": "9", "iPod": "10", "Android": "11", "iSocConsumer": "12", "Unix": "13", "MacMDM": "14", "HoloLens": "15", "SurfaceHub": "16", "AndroidForWork": "17", "AndroidEnterprise": "18", "Windows10x": "19", "AndroidnGMS": "20", "CloudPC": "21", "Linux": "22"])
+                FilterDefinition(key: "OwnerType", displayName: "Owner Type", type: .dropdown,
+                               options: ["All", "Company", "Personal"],
+                               optionValues: ["Company": "1", "Personal": "2"])
             ],
             supportedColumns: [
                 // Essential columns (must be included for API compatibility)
@@ -1698,8 +1821,8 @@ class ReportRegistry {
                 FilterDefinition(key: "CategoryName", displayName: "Category Name", type: .text),
                 FilterDefinition(key: "CompliantState", displayName: "Compliance State", type: .dropdown,
                                options: ["All", "Compliant", "Noncompliant", "InGracePeriod"]),
-                FilterDefinition(key: "ManagementAgents", displayName: "Management Agents", type: .dropdown,
-                               options: ["All", "MDM", "ConfigManager", "EAS", "Intunepc"]),
+                FilterDefinition(key: "ManagementAgents", displayName: "Management Agents", type: .text,
+                               placeholder: "Agent value (2, 514)"),
                 FilterDefinition(key: "OwnerType", displayName: "Owner Type", type: .dropdown,
                                options: ["All", "Company", "Personal"],
                                optionValues: ["Company": "1", "Personal": "2"]),
@@ -1711,8 +1834,8 @@ class ReportRegistry {
                                optionValues: ["Desktop": "0", "Windows": "1", "winMO6": "2", "Nokia": "3", "WindowsPhone": "4", "Mac": "5", "WinCE": "6", "WinEmbedded": "7", "iPhone": "8", "iPad": "9", "iPod": "10", "Android": "11", "iSocConsumer": "12", "Unix": "13", "MacMDM": "14", "HoloLens": "15", "SurfaceHub": "16", "AndroidForWork": "17", "AndroidEnterprise": "18", "Windows10x": "19", "AndroidnGMS": "20", "CloudPC": "21", "Linux": "22"]),
                 FilterDefinition(key: "JailBroken", displayName: "Jail Broken", type: .dropdown,
                                options: ["All", "Yes", "No"]),
-                FilterDefinition(key: "EnrollmentType", displayName: "Enrollment Type", type: .dropdown,
-                               options: ["All", "UserEnrollment", "DeviceEnrollmentManager", "AppleBulkWithUser", "AppleBulkWithoutUser", "WindowsAzureADJoin", "WindowsBulkUserless", "WindowsAutoEnrollment", "WindowsBulkAzureDomainJoin", "WindowsCoManagement"])
+                FilterDefinition(key: "EnrollmentType", displayName: "Enrollment Type", type: .text,
+                                 placeholder: "Type value (4, 19, 26)")
             ],
             supportedColumns: [
                 // Essential columns (must be included for API compatibility)
@@ -2691,5 +2814,14 @@ class ReportRegistry {
             ]
         )
 
+    }
+}
+
+// MARK: - String Extensions
+
+extension String {
+    /// Checks if the string matches a regular expression pattern
+    func matches(_ pattern: String) -> Bool {
+        return self.range(of: pattern, options: .regularExpression) != nil
     }
 }
