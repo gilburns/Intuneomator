@@ -197,7 +197,7 @@ class ScheduledReportsManager {
                         Logger.info("✅ Successfully loaded report: \(report.name)", category: .reports)
                         Logger.info("Report: \(report)", category: .reports)
                         reports.append(report)
-                        Logger.info("Reports Count: \(reports.count)")
+                        Logger.info("Reports Count: \(reports.count)", category: .reports)
                     } else {
                         Logger.error("❌ Failed to load report file: \(fileURL.lastPathComponent)", category: .reports)
                     }
