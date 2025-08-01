@@ -653,7 +653,7 @@
                                                 <action selector="openConfigReportingManagerWindow:" target="Ady-hI-5gd" id="kfl-aV-i5X"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Intune Devices…" indentationLevel="1" id="swm-eN-GIv" userLabel="Devices…">
+                                        <menuItem title="Devices…" indentationLevel="1" id="swm-eN-GIv" userLabel="Devices…">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="openDevicesManagerWindow:" target="Ady-hI-5gd" id="RWN-3d-k5r"/>
