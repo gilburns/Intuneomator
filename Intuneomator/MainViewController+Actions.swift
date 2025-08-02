@@ -239,7 +239,7 @@ extension MainViewController {
      * - Parameter sender: The UI control that triggered this action
      */
     @IBAction func openScheduleEditor(_ sender: Any) {
-        let storyboard = NSStoryboard(name: "Main", bundle: nil)
+        let storyboard = NSStoryboard(name: "ScheduleEditor", bundle: nil)
         guard let controller = storyboard.instantiateController(withIdentifier: "ScheduleEditorViewController") as? ScheduleEditorViewController else { return }
 
         presentAsSheet(controller)
