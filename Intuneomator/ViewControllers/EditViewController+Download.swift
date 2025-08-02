@@ -411,7 +411,7 @@ extension EditViewController {
             return
         }
         
-        let storyboard = NSStoryboard(name: "Main", bundle: nil)
+        let storyboard = NSStoryboard(name: "Inspectors", bundle: nil)
         let pkgInspectorVC = storyboard.instantiateController(withIdentifier: "PkgInspectorViewController") as! PkgInspectorViewController
         
         // Pass data to the modal
@@ -636,7 +636,7 @@ extension EditViewController {
             return
         }
         
-        let storyboard = NSStoryboard(name: "Main", bundle: nil)
+        let storyboard = NSStoryboard(name: "Inspectors", bundle: nil)
         let appInspectorVC = storyboard.instantiateController(withIdentifier: "AppInspectorViewController") as! AppInspectorViewController
         
         // Pass data to the modal
