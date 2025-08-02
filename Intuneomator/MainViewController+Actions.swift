@@ -37,7 +37,10 @@ extension MainViewController {
      * - Parameter sender: The UI control that triggered this action
      */
     @IBAction func addRow(_ sender: Any) {
-        presentSheet(withIdentifier: "LabelView")
+        let storyboard = NSStoryboard(name: "LabelView", bundle: nil)
+        guard let controller = storyboard.instantiateController(withIdentifier: "LabelView") as? LabelViewController else { return }
+
+        presentAsSheet(controller)
     }
 
     /**
