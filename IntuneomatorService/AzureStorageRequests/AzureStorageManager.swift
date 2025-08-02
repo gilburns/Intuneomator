@@ -132,7 +132,7 @@ class AzureStorageManager {
     
     /// Uploads data to a specific blob
     private func uploadBlob(name: String, data: Data, contentType: String) async throws {
-        let url = URL(string: "https://\(config.accountName).blob.reports.windows.net/\(config.containerName)/\(name)")!
+        let url = URL(string: "https://\(config.accountName).blob.core.windows.net/\(config.containerName)/\(name)")!
         
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
@@ -162,7 +162,7 @@ class AzureStorageManager {
     
     /// Lists blobs with optional prefix filtering
     func listBlobs(prefix: String? = nil) async throws -> [BlobInfo] {
-        var urlComponents = URLComponents(string: "https://\(config.accountName).blob.reports.windows.net/\(config.containerName)")!
+        var urlComponents = URLComponents(string: "https://\(config.accountName).blob.core.windows.net/\(config.containerName)")!
         urlComponents.queryItems = [
             URLQueryItem(name: "restype", value: "container"),
             URLQueryItem(name: "comp", value: "list")
@@ -223,7 +223,7 @@ class AzureStorageManager {
     
     /// Deletes a specific blob
     private func deleteBlob(name: String) async throws {
-        let url = URL(string: "https://\(config.accountName).blob.reports.windows.net/\(config.containerName)/\(name)")!
+        let url = URL(string: "https://\(config.accountName).blob.core.windows.net/\(config.containerName)/\(name)")!
         
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
@@ -245,7 +245,7 @@ class AzureStorageManager {
     
     /// Checks if a blob exists
     private func blobExists(name: String) async throws -> Bool {
-        let url = URL(string: "https://\(config.accountName).blob.reports.windows.net/\(config.containerName)/\(name)")!
+        let url = URL(string: "https://\(config.accountName).blob.core.windows.net/\(config.containerName)/\(name)")!
         
         var request = URLRequest(url: url)
         request.httpMethod = "HEAD"
@@ -345,7 +345,7 @@ class AzureStorageManager {
             // For SAS token configurations, we can only return the blob URL with the existing token
             // Note: The expiration cannot be modified as we don't have the storage key
             Logger.warning("SAS token authentication: Cannot modify expiration time, using existing token expiration", category: .reports)
-            let baseUrl = "https://\(config.accountName).blob.reports.windows.net/\(config.containerName)/\(blobName)"
+            let baseUrl = "https://\(config.accountName).blob.core.windows.net/\(config.containerName)/\(blobName)"
             let urlWithSAS = "\(baseUrl)?\(token)"
             guard let url = URL(string: urlWithSAS) else {
                 throw AzureStorageError.sasGenerationError("Failed to construct SAS URL with existing token")
@@ -398,7 +398,7 @@ class AzureStorageManager {
         let signature = try signString(stringToSign, with: keyData)
         
         // Construct final URL with parameters in correct order
-        var urlComponents = URLComponents(string: "https://\(config.accountName).blob.reports.windows.net/\(config.containerName)/\(blobName)")!
+        var urlComponents = URLComponents(string: "https://\(config.accountName).blob.core.windows.net/\(config.containerName)/\(blobName)")!
         
         // Add parameters in the order: sv, sr, sp, se, sig (no protocol restriction)
         urlComponents.queryItems = [
