@@ -14,18 +14,18 @@ extension XPCService {
     
     /// Configures Azure Storage settings for report management
     func configureAzureStorage(accountName: String, containerName: String, accountKey: String?, sasToken: String?, reply: @escaping (Bool) -> Void) {
-        Logger.info("Configuring Azure Storage for account: \(accountName), container: \(containerName)", category: .core)
+        Logger.info("Configuring Azure Storage for account: \(accountName), container: \(containerName)", category: .reports)
         
         // Validate inputs
         guard !accountName.isEmpty, !containerName.isEmpty else {
-            Logger.error("Azure Storage configuration failed: account name and container name are required", category: .core)
+            Logger.error("Azure Storage configuration failed: account name and container name are required", category: .reports)
             reply(false)
             return
         }
         
         // Must have at least one authentication method
         guard (accountKey != nil && !accountKey!.isEmpty) || (sasToken != nil && !sasToken!.isEmpty) else {
-            Logger.error("Azure Storage configuration failed: either account key or SAS token is required", category: .core)
+            Logger.error("Azure Storage configuration failed: either account key or SAS token is required", category: .reports)
             reply(false)
             return
         }
@@ -43,19 +43,19 @@ extension XPCService {
             config.accountKey = nil  // Clear account key if using SAS token
         }
         
-        Logger.info("Azure Storage configuration completed successfully", category: .core)
+        Logger.info("Azure Storage configuration completed successfully", category: .reports)
         reply(true)
     }
     
     /// Uploads a report file to Azure Storage
     func uploadReportToAzureStorage(fileURL: URL, reply: @escaping (Bool) -> Void) {
-        Logger.info("Starting Azure Storage upload for file: \(fileURL.lastPathComponent)", category: .core)
+        Logger.info("Starting Azure Storage upload for file: \(fileURL.lastPathComponent)", category: .reports)
         
         Task {
             do {
                 // Verify configuration
                 guard AzureStorageConfig.shared.isConfigured else {
-                    Logger.error("Azure Storage upload failed: not properly configured", category: .core)
+                    Logger.error("Azure Storage upload failed: not properly configured", category: .reports)
                     DispatchQueue.main.async { reply(false) }
                     return
                 }
@@ -67,11 +67,11 @@ extension XPCService {
                 // Upload file
                 try await manager.uploadReport(fileURL: fileURL)
                 
-                Logger.info("Azure Storage upload completed successfully for: \(fileURL.lastPathComponent)", category: .core)
+                Logger.info("Azure Storage upload completed successfully for: \(fileURL.lastPathComponent)", category: .reports)
                 DispatchQueue.main.async { reply(true) }
                 
             } catch {
-                Logger.error("Azure Storage upload failed: \(error.localizedDescription)", category: .core)
+                Logger.error("Azure Storage upload failed: \(error.localizedDescription)", category: .reports)
                 DispatchQueue.main.async { reply(false) }
             }
         }
@@ -79,13 +79,13 @@ extension XPCService {
     
     /// Deletes old reports from Azure Storage based on age
     func deleteOldReportsFromAzureStorage(olderThan days: Int, reply: @escaping (Int, Int64) -> Void) {
-        Logger.info("Starting Azure Storage cleanup for reports older than \(days) days", category: .core)
+        Logger.info("Starting Azure Storage cleanup for reports older than \(days) days", category: .reports)
         
         Task {
             do {
                 // Verify configuration
                 guard AzureStorageConfig.shared.isConfigured else {
-                    Logger.error("Azure Storage cleanup failed: not properly configured", category: .core)
+                    Logger.error("Azure Storage cleanup failed: not properly configured", category: .reports)
                     DispatchQueue.main.async { reply(0, 0) }
                     return
                 }
@@ -99,11 +99,11 @@ extension XPCService {
                 
                 // For now, return placeholder values since the manager doesn't return counts yet
                 // TODO: Modify deleteOldReports to return deletion statistics
-                Logger.info("Azure Storage cleanup completed successfully", category: .core)
+                Logger.info("Azure Storage cleanup completed successfully", category: .reports)
                 DispatchQueue.main.async { reply(0, 0) }
                 
             } catch {
-                Logger.error("Azure Storage cleanup failed: \(error.localizedDescription)", category: .core)
+                Logger.error("Azure Storage cleanup failed: \(error.localizedDescription)", category: .reports)
                 DispatchQueue.main.async { reply(0, 0) }
             }
         }
@@ -111,13 +111,13 @@ extension XPCService {
     
     /// Generates a download link for a specific report
     func generateAzureStorageDownloadLink(for reportName: String, expiresIn days: Int, reply: @escaping (URL?) -> Void) {
-        Logger.info("Generating Azure Storage download link for: \(reportName), expires in \(days) days", category: .core)
+        Logger.info("Generating Azure Storage download link for: \(reportName), expires in \(days) days", category: .reports)
         
         Task {
             do {
                 // Verify configuration
                 guard AzureStorageConfig.shared.isConfigured else {
-                    Logger.error("Azure Storage download link generation failed: not properly configured", category: .core)
+                    Logger.error("Azure Storage download link generation failed: not properly configured", category: .reports)
                     DispatchQueue.main.async { reply(nil) }
                     return
                 }
@@ -129,11 +129,11 @@ extension XPCService {
                 // Generate download link
                 let downloadUrl = try await manager.generateDownloadLink(for: reportName, expiresIn: days)
                 
-                Logger.info("Azure Storage download link generated successfully for: \(reportName)", category: .core)
+                Logger.info("Azure Storage download link generated successfully for: \(reportName)", category: .reports)
                 DispatchQueue.main.async { reply(downloadUrl) }
                 
             } catch {
-                Logger.error("Azure Storage download link generation failed: \(error.localizedDescription)", category: .core)
+                Logger.error("Azure Storage download link generation failed: \(error.localizedDescription)", category: .reports)
                 DispatchQueue.main.async { reply(nil) }
             }
         }
@@ -141,7 +141,7 @@ extension XPCService {
     
     /// Validates Azure Storage connection and permissions
     func validateAzureStorageConnection(reply: @escaping (Bool, String?) -> Void) {
-        Logger.info("Validating Azure Storage connection", category: .core)
+        Logger.info("Validating Azure Storage connection", category: .reports)
         
         Task {
             let result = await AzureStorageConfig.shared.validateConnection()
@@ -154,13 +154,13 @@ extension XPCService {
     /// Gets current Azure Storage configuration status
     func getAzureStorageConfigurationStatus(reply: @escaping (Bool) -> Void) {
         let isConfigured = AzureStorageConfig.shared.isConfigured
-        Logger.info("Azure Storage configuration status: \(isConfigured ? "configured" : "not configured")", category: .core)
+        Logger.info("Azure Storage configuration status: \(isConfigured ? "configured" : "not configured")", category: .reports)
         reply(isConfigured)
     }
     
     /// Clears all Azure Storage configuration
     func clearAzureStorageConfiguration(reply: @escaping (Bool) -> Void) {
-        Logger.info("Clearing Azure Storage configuration", category: .core)
+        Logger.info("Clearing Azure Storage configuration", category: .reports)
         AzureStorageConfig.shared.clearConfiguration()
         reply(true)
     }
@@ -169,7 +169,7 @@ extension XPCService {
     
     /// Sets the Azure Storage account name
     func setAzureStorageAccountName(_ accountName: String, reply: @escaping (Bool) -> Void) {
-        Logger.info("Setting Azure Storage account name: \(accountName)", category: .core)
+        Logger.info("Setting Azure Storage account name: \(accountName)", category: .reports)
         AzureStorageConfig.shared.accountName = accountName
         reply(true)
     }
@@ -182,7 +182,7 @@ extension XPCService {
     
     /// Sets the Azure Storage container name
     func setAzureStorageContainerName(_ containerName: String, reply: @escaping (Bool) -> Void) {
-        Logger.info("Setting Azure Storage container name: \(containerName)", category: .core)
+        Logger.info("Setting Azure Storage container name: \(containerName)", category: .reports)
         AzureStorageConfig.shared.containerName = containerName
         reply(true)
     }
@@ -195,7 +195,7 @@ extension XPCService {
     
     /// Sets the Azure Storage account key
     func setAzureStorageAccountKey(_ accountKey: String, reply: @escaping (Bool) -> Void) {
-        Logger.info("Setting Azure Storage account key", category: .core)
+        Logger.info("Setting Azure Storage account key", category: .reports)
         AzureStorageConfig.shared.accountKey = accountKey
         reply(true)
     }
@@ -208,7 +208,7 @@ extension XPCService {
     
     /// Sets the Azure Storage SAS token
     func setAzureStorageSASToken(_ sasToken: String, reply: @escaping (Bool) -> Void) {
-        Logger.info("Setting Azure Storage SAS token", category: .core)
+        Logger.info("Setting Azure Storage SAS token", category: .reports)
         AzureStorageConfig.shared.sasToken = sasToken
         reply(true)
     }
@@ -221,14 +221,14 @@ extension XPCService {
     
     /// Removes the Azure Storage account key from keychain
     func removeAzureStorageAccountKey(reply: @escaping (Bool) -> Void) {
-        Logger.info("Removing Azure Storage account key", category: .core)
+        Logger.info("Removing Azure Storage account key", category: .reports)
         AzureStorageConfig.shared.accountKey = nil
         reply(true)
     }
     
     /// Removes the Azure Storage SAS token from keychain
     func removeAzureStorageSASToken(reply: @escaping (Bool) -> Void) {
-        Logger.info("Removing Azure Storage SAS token", category: .core)
+        Logger.info("Removing Azure Storage SAS token", category: .reports)
         AzureStorageConfig.shared.sasToken = nil
         reply(true)
     }
@@ -238,16 +238,16 @@ extension XPCService {
     /// Gets all available named Azure Storage configuration names
     func getAzureStorageConfigurationNames(reply: @escaping ([String]) -> Void) {
         let names = AzureStorageConfig.shared.availableConfigurationNames
-        Logger.info("Retrieved \(names.count) Azure Storage configuration names", category: .core)
+        Logger.info("Retrieved \(names.count) Azure Storage configuration names", category: .reports)
         reply(names)
     }
     
     /// Gets a specific named Azure Storage configuration
     func getNamedAzureStorageConfiguration(name: String, reply: @escaping ([String: Any]?) -> Void) {
-        Logger.info("Retrieving Azure Storage configuration: \(name)", category: .core)
+        Logger.info("Retrieving Azure Storage configuration: \(name)", category: .reports)
         
         guard let config = AzureStorageConfig.shared.getConfiguration(named: name) else {
-            Logger.warning("Azure Storage configuration '\(name)' not found", category: .core)
+            Logger.warning("Azure Storage configuration '\(name)' not found", category: .reports)
             reply(nil)
             return
         }
@@ -282,13 +282,13 @@ extension XPCService {
     
     /// Sets a named Azure Storage configuration
     func setNamedAzureStorageConfiguration(name: String, configData: [String: Any], reply: @escaping (Bool) -> Void) {
-        Logger.info("Setting Azure Storage configuration: \(name)", category: .core)
+        Logger.info("Setting Azure Storage configuration: \(name)", category: .reports)
         
         // Extract required fields
         guard let accountName = configData["accountName"] as? String,
               let containerName = configData["containerName"] as? String,
               let authMethodType = configData["authMethodType"] as? String else {
-            Logger.error("Missing required fields for Azure Storage configuration '\(name)'", category: .core)
+            Logger.error("Missing required fields for Azure Storage configuration '\(name)'", category: .reports)
             reply(false)
             return
         }
@@ -298,7 +298,7 @@ extension XPCService {
         switch authMethodType {
         case "storageKey":
             guard let accountKey = configData["accountKey"] as? String else {
-                Logger.error("Missing account key for storage key authentication", category: .core)
+                Logger.error("Missing account key for storage key authentication", category: .reports)
                 reply(false)
                 return
             }
@@ -306,14 +306,14 @@ extension XPCService {
             
         case "sasToken":
             guard let sasToken = configData["sasToken"] as? String else {
-                Logger.error("Missing SAS token for SAS token authentication", category: .core)
+                Logger.error("Missing SAS token for SAS token authentication", category: .reports)
                 reply(false)
                 return
             }
             authMethod = .sasToken(sasToken)
                         
         default:
-            Logger.error("Invalid authentication method type: \(authMethodType)", category: .core)
+            Logger.error("Invalid authentication method type: \(authMethodType)", category: .reports)
             reply(false)
             return
         }
@@ -348,21 +348,21 @@ extension XPCService {
     
     /// Removes a named Azure Storage configuration
     func removeNamedAzureStorageConfiguration(name: String, reply: @escaping (Bool) -> Void) {
-        Logger.info("Removing Azure Storage configuration: \(name)", category: .core)
+        Logger.info("Removing Azure Storage configuration: \(name)", category: .reports)
         let success = AzureStorageConfig.shared.removeConfiguration(named: name)
         reply(success)
     }
     
     /// Validates a named Azure Storage configuration
     func validateNamedAzureStorageConfiguration(name: String, reply: @escaping (Bool) -> Void) {
-        Logger.info("Validating Azure Storage configuration: \(name)", category: .core)
+        Logger.info("Validating Azure Storage configuration: \(name)", category: .reports)
         let isValid = AzureStorageConfig.shared.validateConfiguration(named: name)
         reply(isValid)
     }
     
     /// Gets summary information for all Azure Storage configurations
     func getAzureStorageConfigurationSummaries(reply: @escaping ([[String: Any]]) -> Void) {
-        Logger.info("Retrieving Azure Storage configuration summaries", category: .core)
+        Logger.info("Retrieving Azure Storage configuration summaries", category: .reports)
         
         let summaries = AzureStorageConfig.shared.getConfigurationSummaries()
         let summaryDicts = summaries.map { summary in
@@ -391,7 +391,7 @@ extension XPCService {
     
     /// Uploads a report to a specific named Azure Storage configuration
     func uploadReportToNamedAzureStorage(fileURL: URL, configurationName: String, reply: @escaping (Bool) -> Void) {
-        Logger.info("Uploading report to named Azure Storage '\(configurationName)': \(fileURL.lastPathComponent)", category: .core)
+        Logger.info("Uploading report to named Azure Storage '\(configurationName)': \(fileURL.lastPathComponent)", category: .reports)
         
         Task {
             do {
@@ -401,11 +401,11 @@ extension XPCService {
                 // Upload the report
                 try await manager.uploadReport(fileURL: fileURL)
                 
-                Logger.info("Successfully uploaded report to '\(configurationName)': \(fileURL.lastPathComponent)", category: .core)
+                Logger.info("Successfully uploaded report to '\(configurationName)': \(fileURL.lastPathComponent)", category: .reports)
                 DispatchQueue.main.async { reply(true) }
                 
             } catch {
-                Logger.error("Failed to upload report to '\(configurationName)': \(error.localizedDescription)", category: .core)
+                Logger.error("Failed to upload report to '\(configurationName)': \(error.localizedDescription)", category: .reports)
                 DispatchQueue.main.async { reply(false) }
             }
         }
@@ -413,7 +413,7 @@ extension XPCService {
     
     /// Deletes old reports from a specific named Azure Storage configuration
     func deleteOldReportsFromNamedAzureStorage(olderThan days: Int, configurationName: String, reply: @escaping (Int, Int64) -> Void) {
-        Logger.info("Cleaning up reports older than \(days) days from '\(configurationName)'", category: .core)
+        Logger.info("Cleaning up reports older than \(days) days from '\(configurationName)'", category: .reports)
         
         Task {
             do {
@@ -424,11 +424,11 @@ extension XPCService {
                 try await manager.deleteOldReports(olderThan: days)
                 
                 // TODO: Return actual counts when implemented in AzureStorageManager
-                Logger.info("Successfully cleaned up old reports from '\(configurationName)'", category: .core)
+                Logger.info("Successfully cleaned up old reports from '\(configurationName)'", category: .reports)
                 DispatchQueue.main.async { reply(0, 0) }
                 
             } catch {
-                Logger.error("Failed to clean up reports from '\(configurationName)': \(error.localizedDescription)", category: .core)
+                Logger.error("Failed to clean up reports from '\(configurationName)': \(error.localizedDescription)", category: .reports)
                 DispatchQueue.main.async { reply(0, 0) }
             }
         }
@@ -436,7 +436,7 @@ extension XPCService {
     
     /// Generates a download link for a report in a specific named Azure Storage configuration
     func generateDownloadLinkFromNamedAzureStorage(for reportName: String, expiresIn days: Int, configurationName: String, reply: @escaping (URL?) -> Void) {
-        Logger.info("Generating download link for '\(reportName)' from '\(configurationName)', expires in \(days) days", category: .core)
+        Logger.info("Generating download link for '\(reportName)' from '\(configurationName)', expires in \(days) days", category: .reports)
         
         Task {
             do {
@@ -446,11 +446,11 @@ extension XPCService {
                 // Generate download link
                 let downloadUrl = try await manager.generateDownloadLink(for: reportName, expiresIn: days)
                 
-                Logger.info("Successfully generated download link for '\(reportName)' from '\(configurationName)'", category: .core)
+                Logger.info("Successfully generated download link for '\(reportName)' from '\(configurationName)'", category: .reports)
                 DispatchQueue.main.async { reply(downloadUrl) }
                 
             } catch {
-                Logger.error("Failed to generate download link for '\(reportName)' from '\(configurationName)': \(error.localizedDescription)", category: .core)
+                Logger.error("Failed to generate download link for '\(reportName)' from '\(configurationName)': \(error.localizedDescription)", category: .reports)
                 DispatchQueue.main.async { reply(nil) }
             }
         }
@@ -458,7 +458,7 @@ extension XPCService {
     
     /// Clears all named Azure Storage configurations (keeps default intact)
     func clearAllNamedAzureStorageConfigurations(reply: @escaping (Bool) -> Void) {
-        Logger.info("Clearing all named Azure Storage configurations", category: .core)
+        Logger.info("Clearing all named Azure Storage configurations", category: .reports)
         AzureStorageConfig.shared.clearAllNamedConfigurations()
         reply(true)
     }
