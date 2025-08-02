@@ -67,7 +67,7 @@ class WindowActionHandler: NSResponder {
     @IBAction func openDiscoveredAppsManagerWindow(_ sender: Any?) {
         WindowManager.shared.openWindow(
             identifier: "DiscoveredAppsViewController",
-            storyboardName: "Main",
+            storyboardName: "DiscoveredApps",
             controllerType: DiscoveredAppsViewController.self,
             windowTitle: "Intune Discovered Apps",
             defaultSize: NSSize(width: 800, height: 420),

@@ -346,7 +346,7 @@ class DiscoveredAppsViewController: NSViewController, NSTableViewDataSource, NST
     }
     
     func showDevicesSheet(for appName: String, labelName appLabelName: String, devices: [DeviceInfo]) {
-        let storyboard = NSStoryboard(name: "Main", bundle: nil)
+        let storyboard = NSStoryboard(name: "DiscoveredApps", bundle: nil)
         guard let sheetController = storyboard.instantiateController(withIdentifier: "DevicesSheetViewController") as? DevicesSheetViewController else {
             return
         }
