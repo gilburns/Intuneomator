@@ -92,16 +92,11 @@ class AzureStorageSettingsViewController: NSViewController {
         let configuration = storageConfigurations[selectedRow]
         guard let name = configuration["name"] as? String else { return }
         
-        let alert = NSAlert()
-        alert.messageText = "Delete Configuration"
-        alert.informativeText = "Are you sure you want to delete the configuration '\(name)'? This action cannot be undone."
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "Delete")
-        alert.addButton(withTitle: "Cancel")
-        
-        let response = alert.runModal()
-        if response == .alertFirstButtonReturn {
-            removeConfigurationWithName(name)
+        // Check for dependent scheduled reports first
+        XPCManager.shared.getScheduledReportsUsingAzureStorageConfiguration(name: name) { [weak self] dependentReports in
+            DispatchQueue.main.async {
+                self?.showDeleteConfirmation(for: name, dependentReports: dependentReports ?? [])
+            }
         }
     }
     
@@ -166,6 +161,10 @@ class AzureStorageSettingsViewController: NSViewController {
         
         editorVC.isNewConfiguration = isNew
         
+        // Pass existing configuration names for validation
+        let existingNames = storageConfigurations.compactMap { $0["name"] as? String }
+        editorVC.existingConfigurationNames = existingNames
+        
         if isNew {
             // For new configurations, use empty data
             editorVC.configurationData = [:]
@@ -222,6 +221,135 @@ class AzureStorageSettingsViewController: NSViewController {
     private func markAsChanged() {
         hasUnsavedChanges = true
         parentTabbedSheetViewController?.updateSaveButtonState()
+    }
+    
+    private func showDeleteConfirmation(for configName: String, dependentReports: [String]) {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        
+        if dependentReports.isEmpty {
+            // No dependencies - standard delete confirmation
+            alert.messageText = "Delete Configuration"
+            alert.informativeText = "Are you sure you want to delete the configuration '\(configName)'? This action cannot be undone."
+            alert.addButton(withTitle: "Delete")
+            alert.addButton(withTitle: "Cancel")
+        } else {
+            // Has dependencies - show warning with options
+            let reportCount = dependentReports.count
+            let reportList = dependentReports.prefix(5).joined(separator: "\n• ")
+            let truncated = dependentReports.count > 5 ? "\n• ... and \(dependentReports.count - 5) more" : ""
+            
+            alert.messageText = "Configuration In Use"
+            alert.informativeText = """
+            The configuration '\(configName)' is currently used by \(reportCount) scheduled report\(reportCount == 1 ? "" : "s"):
+            
+            • \(reportList)\(truncated)
+            
+            Choose how to handle the dependent reports:
+            """
+            
+            alert.addButton(withTitle: "Delete & Disable Reports")
+            alert.addButton(withTitle: "Cancel")
+            alert.addButton(withTitle: "Delete Anyway")
+            alert.addButton(withTitle: "View Reports")
+            
+            // Make "Cancel" the default button for safety
+            alert.buttons[0].keyEquivalent = ""  // Remove default from first button
+            alert.buttons[1].keyEquivalent = "\r"  // Make Cancel the default
+            alert.buttons[2].keyEquivalent = ""  // Ensure Delete Anyway is not default
+            alert.buttons[3].keyEquivalent = ""  // Ensure View Reports is not default
+        }
+        
+        let response = alert.runModal()
+        
+        if dependentReports.isEmpty {
+            // No dependencies - simple delete
+            if response == .alertFirstButtonReturn {
+                removeConfigurationWithName(configName)
+            }
+        } else {
+            // Has dependencies - handle different responses
+            switch response {
+            case .alertFirstButtonReturn: // Delete & Disable Reports
+                deleteConfigurationAndDisableReports(configName: configName, dependentReports: dependentReports)
+            case .alertSecondButtonReturn: // Cancel
+                break
+            case .alertThirdButtonReturn: // Delete Anyway
+                removeConfigurationWithName(configName)
+            case NSApplication.ModalResponse(rawValue: 1003): // View Reports (4th button)
+                showDependentReports(dependentReports)
+            default:
+                break
+            }
+        }
+    }
+    
+    private func showDependentReports(_ reportNames: [String]) {
+        // Open the Scheduled Reports Manager to show the dependent reports
+        // This gives users a way to easily find and modify the dependent reports
+        let alert = NSAlert()
+        alert.messageText = "Dependent Scheduled Reports"
+        alert.informativeText = """
+        The following scheduled reports use this Azure Storage configuration:
+        
+        \(reportNames.map { "• \($0)" }.joined(separator: "\n"))
+        
+        To safely delete this configuration, first edit these reports to use a different storage destination, or delete the reports entirely.
+        
+        Would you like to open the Scheduled Reports Manager?
+        """
+        alert.addButton(withTitle: "Open Reports Manager")
+        alert.addButton(withTitle: "Cancel")
+        
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            WindowManager.shared.openWindow(
+                identifier: "ScheduledReportsManagementViewController",
+                storyboardName: "IntuneReports",
+                controllerType: ScheduledReportsManagementViewController.self,
+                windowTitle: "Scheduled Reports Manager",
+                defaultSize: NSSize(width: 800, height: 600),
+                restoreKey: "ScheduledReportsManagementViewController"
+            )
+        }
+    }
+    
+    private func deleteConfigurationAndDisableReports(configName: String, dependentReports: [String]) {
+        // First disable the dependent reports
+        XPCManager.shared.disableScheduledReports(reportNames: dependentReports) { [weak self] success in
+            DispatchQueue.main.async {
+                if let success = success, success {
+                    // Reports disabled successfully, now delete the configuration
+                    self?.removeConfigurationWithName(configName)
+                    
+                    let alert = NSAlert()
+                    alert.messageText = "Configuration Deleted"
+                    alert.informativeText = """
+                    The Azure Storage configuration '\(configName)' has been deleted.
+                    
+                    The following scheduled reports have been disabled to prevent failures:
+                    \(dependentReports.map { "• \($0)" }.joined(separator: "\n"))
+                    
+                    You can re-enable these reports after configuring a new storage destination.
+                    """
+                    alert.alertStyle = .informational
+                    alert.addButton(withTitle: "OK")
+                    alert.runModal()
+                } else {
+                    // Failed to disable reports
+                    let alert = NSAlert()
+                    alert.messageText = "Failed to Disable Reports"
+                    alert.informativeText = """
+                    Unable to disable the dependent scheduled reports. The configuration was not deleted to prevent report failures.
+                    
+                    Please try again or manually disable the reports before deleting the configuration.
+                    """
+                    alert.alertStyle = .warning
+                    alert.addButton(withTitle: "OK")
+                    alert.runModal()
+                }
+            }
+        }
     }
 }
 

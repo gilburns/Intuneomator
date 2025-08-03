@@ -914,6 +914,18 @@ import Foundation
     ///   - reply: Callback indicating if update was successful
     func updateAzureStorageConfiguration(_ configuration: [String: Any], reply: @escaping (Bool) -> Void)
     
+    /// Checks which scheduled reports use a specific Azure Storage configuration
+    /// - Parameters:
+    ///   - name: Name of the configuration to check
+    ///   - reply: Callback with array of dependent report names
+    func getScheduledReportsUsingAzureStorageConfiguration(_ name: String, reply: @escaping ([String]) -> Void)
+    
+    /// Disables multiple scheduled reports by name
+    /// - Parameters:
+    ///   - reportNames: Array of report names to disable
+    ///   - reply: Callback with success status
+    func disableScheduledReports(_ reportNames: [String], reply: @escaping (Bool) -> Void)
+    
     /// Removes an Azure Storage configuration by name
     /// - Parameters:
     ///   - name: Name of the configuration to remove

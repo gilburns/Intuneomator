@@ -20,6 +20,8 @@ class ReportScheduleEditorViewController: NSViewController {
     // Report Configuration
     @IBOutlet weak var reportTypePopup: NSPopUpButton!
     @IBOutlet weak var formatSegmentedControl: NSSegmentedControl!
+    @IBOutlet weak var selectColumnsButton: NSButton!
+    @IBOutlet weak var columnsStatusLabel: NSTextField!
     @IBOutlet weak var filtersContainerView: NSView!
     @IBOutlet weak var filtersScrollView: NSScrollView!
     
@@ -76,6 +78,9 @@ class ReportScheduleEditorViewController: NSViewController {
     /// Currently selected report type
     private var selectedReportType: String?
     
+    /// Currently selected columns for the report
+    private var selectedColumns: [String]?
+    
     /// Callback called when save is successful
     var onSaveComplete: ((ScheduledReport) -> Void)?
     
@@ -117,6 +122,7 @@ class ReportScheduleEditorViewController: NSViewController {
         setupTimeZonePopup()
         setupDayPopups()
         setupFormatSegmentedControl()
+        setupColumnsSelection()
         setupAzureStoragePopup()
         setupDatePickers()
         setupMessageTemplate()
@@ -209,6 +215,36 @@ class ReportScheduleEditorViewController: NSViewController {
         formatSegmentedControl.selectedSegment = 0
         formatSegmentedControl.target = self
         formatSegmentedControl.action = #selector(formatChanged(_:))
+    }
+    
+    private func setupColumnsSelection() {
+        selectColumnsButton.title = "Select Columns"
+        selectColumnsButton.target = self
+        selectColumnsButton.action = #selector(selectColumnsClicked(_:))
+        
+        updateColumnsStatus()
+    }
+    
+    private func updateColumnsStatus() {
+        guard let reportType = selectedReportType else {
+            columnsStatusLabel.stringValue = "Select a report type first"
+            columnsStatusLabel.textColor = .secondaryLabelColor
+            selectColumnsButton.isEnabled = false
+            return
+        }
+        
+        selectColumnsButton.isEnabled = true
+        
+        if let selectedColumns = selectedColumns {
+            let totalColumns = ReportRegistry.shared.getReportDefinition(for: reportType)?.supportedColumns.count ?? 0
+            columnsStatusLabel.stringValue = "\(selectedColumns.count) of \(totalColumns) columns selected"
+            columnsStatusLabel.textColor = .labelColor
+        } else {
+            let defaultCount = ReportRegistry.shared.getDefaultColumns(for: reportType)?.count ?? 0
+            let totalColumns = ReportRegistry.shared.getReportDefinition(for: reportType)?.supportedColumns.count ?? 0
+            columnsStatusLabel.stringValue = "\(defaultCount) of \(totalColumns) columns (default)"
+            columnsStatusLabel.textColor = .secondaryLabelColor
+        }
     }
     
     private func setupAzureStoragePopup() {
@@ -304,9 +340,21 @@ class ReportScheduleEditorViewController: NSViewController {
                     self.azureStoragePopup.isEnabled = true
                 }
                 
+                // Now that popup is populated, select the stored configuration if editing existing report
+                self.selectStoredAzureStorageConfig()
+                
                 // Update link expiration validation when storage popup changes
                 self.validateLinkExpirationAgainstCleanupRules()
             }
+        }
+    }
+    
+    /// Selects the stored Azure Storage configuration in the popup (for existing reports)
+    private func selectStoredAzureStorageConfig() {
+        guard let report = scheduledReport else { return }
+        
+        if let index = azureStoragePopup.itemTitles.firstIndex(of: report.delivery.azureStorageConfigName) {
+            azureStoragePopup.selectItem(at: index)
         }
     }
     
@@ -384,6 +432,10 @@ class ReportScheduleEditorViewController: NSViewController {
         
         formatSegmentedControl.selectedSegment = report.format.lowercased() == "json" ? 1 : 0
         
+        // Restore column selection
+        selectedColumns = report.selectedColumns
+        updateColumnsStatus()
+        
         // Schedule configuration
         if let freqIndex = ScheduleFrequency.allCases.firstIndex(where: { $0.rawValue == report.schedule.frequency.rawValue }) {
             frequencyPopup.selectItem(at: freqIndex)
@@ -407,11 +459,7 @@ class ReportScheduleEditorViewController: NSViewController {
             dayOfMonthPopup.selectItem(withTag: dayOfMonth)
         }
         
-        // Delivery configuration
-        if let index = azureStoragePopup.itemTitles.firstIndex(of: report.delivery.azureStorageConfigName) {
-            azureStoragePopup.selectItem(at: index)
-        }
-        
+        // Delivery configuration (Azure Storage selection handled in selectStoredAzureStorageConfig after popup is populated)
         folderPathField.stringValue = report.delivery.folderPath
         fileNameTemplateField.stringValue = report.delivery.fileNameTemplate
         createLinkCheckbox.state = report.delivery.createShareableLink ? .on : .off
@@ -591,6 +639,10 @@ class ReportScheduleEditorViewController: NSViewController {
             reportTypePopup.selectItem(at: 0)
             
             updateFilterControls()
+            updateColumnsStatus()
+            
+            // Reset column selection when report type changes
+            selectedColumns = nil
         }
     }
     
@@ -637,6 +689,29 @@ class ReportScheduleEditorViewController: NSViewController {
     
     @IBAction func saveClicked(_ sender: NSButton) {
         saveScheduledReport()
+    }
+    
+    @IBAction func selectColumnsClicked(_ sender: NSButton) {
+        guard let reportType = selectedReportType else {
+            showAlert(title: "No Report Selected", message: "Please select a report type first.")
+            return
+        }
+        
+        guard let reportDef = ReportRegistry.shared.getReportDefinition(for: reportType) else {
+            showAlert(title: "Invalid Report", message: "Selected report type is not valid.")
+            return
+        }
+        
+        let columnSelectionVC = ColumnSelectionViewController(nibName: "ColumnSelectionViewController", bundle: nil)
+        
+        // Use current selection or defaults as preselection
+        let preselectedColumns = selectedColumns ?? ReportRegistry.shared.getDefaultColumns(for: reportType) ?? []
+        columnSelectionVC.configure(reportType: reportType, reportDisplayName: reportDef.displayName, preselectedColumns: preselectedColumns)
+        
+        columnSelectionVC.delegate = self
+        
+        // Present as sheet
+        presentAsSheet(columnSelectionVC)
     }
     
     @IBAction func cancelClicked(_ sender: NSButton) {
@@ -752,6 +827,9 @@ class ReportScheduleEditorViewController: NSViewController {
         
         // Extract filter values using ReportRegistry for proper API value mapping
         report.filters = ReportRegistry.shared.extractFilterValues(from: currentFilterControls, for: reportType)
+        
+        // Set selected columns (nil means use defaults)
+        report.selectedColumns = selectedColumns
         
         // Build schedule configuration
         let selectedFrequency = ScheduleFrequency.allCases[frequencyPopup.indexOfSelectedItem]
@@ -899,6 +977,15 @@ class ReportScheduleEditorViewController: NSViewController {
         alert.addButton(withTitle: "OK")
         alert.runModal()
     }
+    
+    private func showAlert(title: String, message: String) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+    }
 }
 
 
@@ -909,5 +996,21 @@ extension ReportScheduleEditorViewController: NSTextFieldDelegate {
     func controlTextDidChange(_ obj: Notification) {
         // Enable save button when fields change (basic validation could be added here)
         saveButton.isEnabled = !fieldScheduleName.stringValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+}
+
+// MARK: - ColumnSelectionDelegate
+
+extension ReportScheduleEditorViewController: ColumnSelectionDelegate {
+    
+    func columnSelectionDidComplete(_ selectedColumns: [String], displayNames: [String: String]) {
+        self.selectedColumns = selectedColumns
+        updateColumnsStatus()
+        
+        Logger.info("Column selection updated for scheduled report: \(selectedColumns.count) columns selected", category: .core, toUserDirectory: true)
+    }
+    
+    func columnSelectionDidCancel() {
+        Logger.info("Column selection cancelled for scheduled report", category: .core, toUserDirectory: true)
     }
 }

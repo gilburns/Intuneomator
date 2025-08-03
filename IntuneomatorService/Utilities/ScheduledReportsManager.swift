@@ -270,15 +270,15 @@ class ScheduledReportsManager {
             // Build OData filter from report filters
             let filterString = buildODataFilterFromScheduledReport(report)
             
-            // Get default columns for this report type
-            let defaultColumns = getDefaultColumnsForReportType(report.reportType)
+            // Get columns to export (custom selection or defaults)
+            let columnsToExport = getColumnsForScheduledReport(report)
             
             // Create the export job
             let jobId = try await EntraGraphRequests.createExportJob(
                 authToken: authToken,
                 reportName: report.reportType,
                 filter: filterString,
-                select: defaultColumns,
+                select: columnsToExport,
                 format: report.format
             )
             
@@ -417,9 +417,14 @@ class ScheduledReportsManager {
         return filterComponents.isEmpty ? nil : filterComponents.joined(separator: " and ")
     }
     
-    private static func getDefaultColumnsForReportType(_ reportType: String) -> [String] {
-        // Use ReportRegistry as single source of truth for column definitions
-        return ReportRegistry.shared.getDefaultColumns(for: reportType) ?? []
+    private static func getColumnsForScheduledReport(_ report: ScheduledReport) -> [String] {
+        // Use custom selection if available, otherwise fall back to defaults
+        if let selectedColumns = report.selectedColumns, !selectedColumns.isEmpty {
+            return selectedColumns
+        } else {
+            // Use ReportRegistry as single source of truth for column definitions
+            return ReportRegistry.shared.getDefaultColumns(for: report.reportType) ?? []
+        }
     }
     
     /// Uploads extracted report data to Azure Storage and returns Azure link if shareable link is enabled
@@ -850,5 +855,60 @@ class ScheduledReportsManager {
             Logger.error("Error sending scheduled report Teams card: \(error.localizedDescription)", category: .reports)
             return false
         }
+    }
+    
+    /// Disables scheduled reports by name
+    /// Used when deleting Azure Storage configurations to prevent continuous failures
+    /// - Parameter reportNames: Array of report names to disable
+    /// - Returns: True if all reports were successfully disabled
+    static func disableReportsByName(_ reportNames: [String]) async -> Bool {
+        Logger.info("🔄 Disabling \(reportNames.count) scheduled reports", category: .reports)
+        
+        let (reports, success) = await getAllScheduledReports()
+        guard success else {
+            Logger.error("❌ Failed to load scheduled reports for disabling", category: .reports)
+            return false
+        }
+        
+        var successCount = 0
+        
+        for reportName in reportNames {
+            if var report = reports.first(where: { $0.name == reportName }) {
+                if report.isEnabled {
+                    report.isEnabled = false
+                    
+                    // Save the modified report
+                    do {
+                        let reportData = try JSONEncoder().encode(report)
+                        let fileName = "\(report.id.uuidString).json"
+                        
+                        // Write directly to the file system (since we're in the privileged service)
+                        let scheduledReportsDirectory = AppConstants.intuneomatorScheduledReportsFolderURL
+                        let fileURL = scheduledReportsDirectory.appendingPathComponent(fileName)
+                        
+                        try reportData.write(to: fileURL)
+                        successCount += 1
+                        Logger.info("✅ Disabled scheduled report: \(reportName)", category: .reports)
+                    } catch {
+                        Logger.error("❌ Failed to disable scheduled report '\(reportName)': \(error)", category: .reports)
+                    }
+                } else {
+                    // Already disabled, count as success
+                    successCount += 1
+                    Logger.debug("📝 Scheduled report '\(reportName)' was already disabled", category: .reports)
+                }
+            } else {
+                Logger.warning("⚠️ Scheduled report not found for disabling: \(reportName)", category: .reports)
+            }
+        }
+        
+        let allSuccessful = successCount == reportNames.count
+        if allSuccessful {
+            Logger.info("✅ Successfully disabled \(successCount) scheduled reports", category: .reports)
+        } else {
+            Logger.error("❌ Only disabled \(successCount) of \(reportNames.count) scheduled reports", category: .reports)
+        }
+        
+        return allSuccessful
     }
 }

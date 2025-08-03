@@ -18,6 +18,7 @@ struct ScheduledReport: Codable {
     var reportDisplayName: String
     var format: String // "csv" or "json"
     var filters: [String: String]
+    var selectedColumns: [String]? // Column keys to include (nil = use defaults)
     var schedule: ScheduleConfiguration
     var delivery: DeliveryConfiguration
     var notifications: NotificationConfiguration
@@ -35,6 +36,7 @@ struct ScheduledReport: Codable {
         self.reportDisplayName = reportDisplayName
         self.format = format
         self.filters = [:]
+        self.selectedColumns = nil // Use defaults initially
         self.schedule = ScheduleConfiguration()
         self.delivery = DeliveryConfiguration()
         self.notifications = NotificationConfiguration()

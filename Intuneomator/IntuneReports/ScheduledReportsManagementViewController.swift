@@ -149,6 +149,9 @@ class ScheduledReportsManagementViewController: NSViewController {
     // MARK: - Data Management
     
     private func loadScheduledReports() {
+        // Validate and recover index if corrupted
+        ScheduledReportsManager.shared.validateAndRecoverIndex()
+        
         // Clean up any orphaned files first
         ScheduledReportsManager.shared.cleanupOrphanedFiles()
         
@@ -251,7 +254,16 @@ class ScheduledReportsManagementViewController: NSViewController {
     // MARK: - Actions
     
     @IBAction func addButtonClicked(_ sender: NSButton) {
-        showReportEditor(for: nil)
+        // Check if Azure Storage configurations exist before allowing report creation
+        XPCManager.shared.getAzureStorageConfigurationSummaries { [weak self] summaries in
+            DispatchQueue.main.async {
+                if summaries.isEmpty {
+                    self?.showNoStorageConfigurationsDialog()
+                } else {
+                    self?.showReportEditor(for: nil)
+                }
+            }
+        }
     }
     
     /// Creates a test scheduled report for demonstration purposes
@@ -510,6 +522,34 @@ class ScheduledReportsManagementViewController: NSViewController {
         alert.alertStyle = .informational
         alert.addButton(withTitle: "OK")
         alert.runModal()
+    }
+    
+    private func showNoStorageConfigurationsDialog() {
+        let alert = NSAlert()
+        alert.messageText = "No Storage Destinations Configured"
+        alert.informativeText = """
+        You need to configure at least one Azure Storage destination before you can create scheduled reports.
+        
+        Scheduled reports require a storage destination to deliver the generated reports to.
+        
+        Would you like to configure Azure Storage settings now?
+        """
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "Open Storage Settings")
+        alert.addButton(withTitle: "Cancel")
+        
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            // Open the Settings window with Azure Storage tab
+            openAzureStorageSettings()
+        }
+    }
+    
+    private func openAzureStorageSettings() {
+        // Open the main settings window - user can navigate to Azure Storage tab
+        if let appDelegate = NSApplication.shared.delegate as? AppDelegate {
+            appDelegate.openSettings()
+        }
     }
 }
 

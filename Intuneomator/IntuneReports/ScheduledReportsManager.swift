@@ -7,6 +7,11 @@
 
 import Foundation
 
+/// Notification names for scheduled reports
+extension NSNotification.Name {
+    static let scheduledReportsChanged = NSNotification.Name("scheduledReportsChanged")
+}
+
 /// Manager class for handling scheduled report operations
 /// Provides CRUD operations and validation for scheduled reports
 class ScheduledReportsManager {
@@ -80,7 +85,10 @@ class ScheduledReportsManager {
             XPCManager.shared.saveScheduledReportConfiguration(reportData: data, fileName: updatedReport.fileName) { [weak self] success in
                 DispatchQueue.main.async {
                     if let success = success, success {
-                        self?.updateIndexViaXPC()
+                        // Add a small delay to prevent race conditions with concurrent file operations
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            self?.updateIndexViaXPC()
+                        }
                         Logger.info("Saved scheduled report: \(updatedReport.name)", category: .core, toUserDirectory: true)
                         completion(true)
                     } else {
@@ -233,6 +241,45 @@ class ScheduledReportsManager {
         return saveScheduledReport(report)
     }
     
+    /// Disables scheduled reports by name
+    /// Used when deleting Azure Storage configurations to prevent continuous failures
+    /// - Parameter reportNames: Array of report names to disable
+    /// - Returns: True if all reports were successfully disabled
+    @discardableResult
+    func disableReportsByName(_ reportNames: [String]) -> Bool {
+        let reports = getAllScheduledReports()
+        var successCount = 0
+        
+        for reportName in reportNames {
+            if var report = reports.first(where: { $0.name == reportName }) {
+                if report.isEnabled {
+                    report.isEnabled = false
+                    if saveScheduledReport(report) {
+                        successCount += 1
+                        Logger.info("Disabled scheduled report: \(reportName)", category: .core, toUserDirectory: true)
+                    } else {
+                        Logger.error("Failed to disable scheduled report: \(reportName)", category: .core, toUserDirectory: true)
+                    }
+                } else {
+                    // Already disabled, count as success
+                    successCount += 1
+                    Logger.debug("Scheduled report '\(reportName)' was already disabled", category: .core, toUserDirectory: true)
+                }
+            } else {
+                Logger.warning("Scheduled report not found for disabling: \(reportName)", category: .core, toUserDirectory: true)
+            }
+        }
+        
+        let allSuccessful = successCount == reportNames.count
+        if allSuccessful {
+            Logger.info("Successfully disabled \(successCount) scheduled reports", category: .core, toUserDirectory: true)
+        } else {
+            Logger.error("Only disabled \(successCount) of \(reportNames.count) scheduled reports", category: .core, toUserDirectory: true)
+        }
+        
+        return allSuccessful
+    }
+    
     /// Gets a summary of scheduled report statistics
     /// - Returns: Dictionary with various statistics
     func getStatistics() -> [String: Any] {
@@ -270,11 +317,20 @@ class ScheduledReportsManager {
                 .filter { $0.pathExtension == "json" && $0.lastPathComponent != "index.json" }
             
             // Get the valid file names from the index, not from loading files
-            let indexValidFileNames = Set(getIndexedReportFileNames())
+            let indexValidFileNames = getIndexedReportFileNames()
+            
+            // SAFETY CHECK: If index is corrupted (empty result), skip cleanup to prevent data loss
+            if indexValidFileNames.isEmpty && !reportFiles.isEmpty {
+                Logger.error("Index appears corrupted (empty) but report files exist. Attempting to rebuild index from existing files.", category: .core, toUserDirectory: true)
+                rebuildIndexFromFiles()
+                return
+            }
+            
+            let indexValidFileNamesSet = Set(indexValidFileNames)
             
             for fileURL in reportFiles {
                 let fileName = fileURL.lastPathComponent
-                if !indexValidFileNames.contains(fileName) {
+                if !indexValidFileNamesSet.contains(fileName) {
                     Logger.warning("Found orphaned report file: \(fileName), requesting deletion via XPC", category: .core, toUserDirectory: true)
                     
                     // Delete orphaned file via XPC
@@ -293,6 +349,85 @@ class ScheduledReportsManager {
         }
     }
     
+    /// Rebuilds the index.json file from existing report files when corruption is detected
+    /// This is an emergency recovery mechanism to restore functionality after index corruption
+    private func rebuildIndexFromFiles() {
+        Logger.info("Starting index rebuild from existing report files...", category: .core, toUserDirectory: true)
+        
+        do {
+            let reportFiles = try FileManager.default.contentsOfDirectory(at: scheduledReportsDirectory, includingPropertiesForKeys: nil)
+                .filter { $0.pathExtension == "json" && $0.lastPathComponent != "index.json" }
+            
+            var validReports: [ScheduledReport] = []
+            var failedFiles: [String] = []
+            
+            // Load each report file and collect valid ones
+            for fileURL in reportFiles {
+                if let report = loadScheduledReport(from: fileURL) {
+                    validReports.append(report)
+                    Logger.debug("Recovered report: \(report.name) (\(report.id))", category: .core, toUserDirectory: true)
+                } else {
+                    failedFiles.append(fileURL.lastPathComponent)
+                }
+            }
+            
+            // Log recovery results
+            Logger.info("Index rebuild: recovered \(validReports.count) valid reports, \(failedFiles.count) failed", category: .core, toUserDirectory: true)
+            if !failedFiles.isEmpty {
+                Logger.warning("Failed to recover these files (may be corrupted): \(failedFiles.joined(separator: ", "))", category: .core, toUserDirectory: true)
+            }
+            
+            // Rebuild the index
+            let index = ScheduledReportIndex(
+                reports: validReports.map { ScheduledReportIndexEntry(from: $0) },
+                lastUpdated: Date()
+            )
+            
+            // Save the rebuilt index via XPC
+            let indexData = try JSONEncoder().encode(index)
+            XPCManager.shared.updateScheduledReportsIndex(indexData: indexData) { [weak self] success in
+                if let success = success, success {
+                    Logger.info("Successfully rebuilt index.json with \(validReports.count) reports", category: .core, toUserDirectory: true)
+                    
+                    // Trigger a refresh of the UI to show recovered reports
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(name: .scheduledReportsChanged, object: nil)
+                    }
+                } else {
+                    Logger.error("Failed to save rebuilt index via XPC", category: .core, toUserDirectory: true)
+                }
+            }
+            
+        } catch {
+            Logger.error("Failed to rebuild index from files: \(error)", category: .core, toUserDirectory: true)
+        }
+    }
+    
+    /// Manually triggers index rebuild from existing files
+    /// This can be called from UI when user suspects index corruption
+    func rebuildIndex() {
+        rebuildIndexFromFiles()
+    }
+    
+    /// Checks for index corruption and attempts recovery on app startup
+    /// Should be called when the view controller loads
+    func validateAndRecoverIndex() {
+        do {
+            let reportFiles = try FileManager.default.contentsOfDirectory(at: scheduledReportsDirectory, includingPropertiesForKeys: nil)
+                .filter { $0.pathExtension == "json" && $0.lastPathComponent != "index.json" }
+            
+            let indexValidFileNames = getIndexedReportFileNames()
+            
+            // Check for corruption: index empty but files exist
+            if indexValidFileNames.isEmpty && !reportFiles.isEmpty {
+                Logger.warning("Detected corrupted index on startup. Attempting automatic recovery.", category: .core, toUserDirectory: true)
+                rebuildIndexFromFiles()
+            }
+        } catch {
+            Logger.error("Failed to validate index on startup: \(error)", category: .core, toUserDirectory: true)
+        }
+    }
+    
     /// Checks if the scheduled reports index file exists
     /// - Returns: True if index exists, false otherwise
     func indexExists() -> Bool {
@@ -308,6 +443,7 @@ class ScheduledReportsManager {
             return index.reports.map { "\($0.id.uuidString).json" }
         } catch {
             Logger.error("Failed to load index for orphan cleanup: \(error)", category: .core, toUserDirectory: true)
+            // Return empty array - caller should check if this is safe to use
             return []
         }
     }

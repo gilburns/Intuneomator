@@ -982,6 +982,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         Logger.info("Showing Graph authentication warning to user", category: .core, toUserDirectory: true)
         alert.runModal()
     }
+    
+    // MARK: - Public Methods
+    
+    /// Opens the settings window by delegating to the main view controller
+    /// This provides a centralized way for other parts of the app to open settings
+    func openSettings() {
+        mainViewController?.openSettings(self)
+    }
 }
 
 // MARK: - NSWindowDelegate
