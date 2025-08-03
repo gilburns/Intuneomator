@@ -44,6 +44,9 @@ class TabbedSheetViewController: NSViewController {
     /// Initial data to provide to child view controllers
     var initialData: [String: Any] = [:]
     
+    /// Initial tab that should be selected when the view is opened
+    var initialTabIndex: Int = 0
+    
     /// Callback called when user saves - receives combined data from all tabs
     var saveHandler: (([String: Any]) -> Void)?
     
@@ -58,6 +61,7 @@ class TabbedSheetViewController: NSViewController {
         setupButtons()
         setupMinimumWindowSize()
         distributeInitialData()
+        selectInitialTabView()
         
         // Initialize save button state
         saveButton.isEnabled = false
@@ -141,6 +145,10 @@ class TabbedSheetViewController: NSViewController {
                 azureStorageSettings.parentTabbedSheetViewController = self
             }
         }
+    }
+    
+    func selectInitialTabView() {
+        tabView.selectTabViewItem(at: initialTabIndex)
     }
     
     // MARK: - Public Configuration Methods
@@ -442,13 +450,16 @@ extension TabbedSheetViewController {
     /// - Returns: Configured TabbedSheetViewController
     static func createSettingsEditor(
         settingsData: [String: Any],
+        initialSelectedTab: Int? = nil,
         saveHandler: @escaping ([String: Any]) -> Void,
         cancelHandler: (() -> Void)? = nil
     ) -> TabbedSheetViewController? {
         
+        
         // Load the XIB file
         let tabbedVC = TabbedSheetViewController(nibName: "TabbedSheetViewController", bundle: nil)
-        
+        tabbedVC.initialTabIndex = initialSelectedTab ?? 0
+
         // Load child view controllers from Settings storyboard
         let settingsStoryboard = NSStoryboard(name: "Settings", bundle: nil)
         

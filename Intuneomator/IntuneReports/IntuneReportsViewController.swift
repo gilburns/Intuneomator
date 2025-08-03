@@ -7,6 +7,13 @@
 
 import Cocoa
 
+/// Structure to hold export parameters during column selection
+private struct PendingExportParameters {
+    let reportName: String
+    let reportType: String
+    let format: String
+    let filters: [String: String]
+}
 
 class IntuneReportsViewController: NSViewController {
     
@@ -44,6 +51,9 @@ class IntuneReportsViewController: NSViewController {
     
     /// Filters to pre-populate when the export dialog opens (key = filter field name, value = filter value)
     var preselectedFilters: [String: String]?
+    
+    /// Temporary storage for export parameters during column selection
+    private var pendingExportParameters: PendingExportParameters?
     
     // MARK: - View Lifecycle
     /// Lifecycle callback invoked when the view loads.
@@ -336,7 +346,7 @@ class IntuneReportsViewController: NSViewController {
         }
         
         alert.accessoryView = accessoryView
-        alert.addButton(withTitle: "Export")
+        alert.addButton(withTitle: "Next")
         alert.addButton(withTitle: "Cancel")
         
         let response = alert.runModal()
@@ -346,9 +356,36 @@ class IntuneReportsViewController: NSViewController {
             // Extract filter values using ReportRegistry for proper API value mapping
             let filters = ReportRegistry.shared.extractFilterValues(from: filterControls, for: reportType)
             
-            // Show save panel
-            showSavePanelForFullReport(reportName: reportName, reportType: reportType, format: format, filters: filters)
+            // Show column selection dialog
+            showColumnSelectionDialog(reportName: reportName, reportType: reportType, format: format, filters: filters)
         }
+    }
+    
+    /// Shows column selection dialog for report export
+    /// - Parameters:
+    ///   - reportName: The report name for display
+    ///   - reportType: The report type for API calls
+    ///   - format: Export format (csv or json)
+    ///   - filters: Dictionary of filter values to apply
+    private func showColumnSelectionDialog(reportName: String, reportType: String, format: String, filters: [String: String] = [:]) {
+        let columnSelectionVC = ColumnSelectionViewController(nibName: "ColumnSelectionViewController", bundle: nil)
+        
+        // Get default columns as preselection
+        let defaultColumns = ReportRegistry.shared.getDefaultColumns(for: reportType) ?? []
+        columnSelectionVC.configure(reportType: reportType, reportDisplayName: reportName, preselectedColumns: defaultColumns)
+        
+        columnSelectionVC.delegate = self
+        
+        // Store the current export parameters for use in delegate callback
+        self.pendingExportParameters = PendingExportParameters(
+            reportName: reportName,
+            reportType: reportType,
+            format: format,
+            filters: filters
+        )
+        
+        // Present as sheet
+        presentAsSheet(columnSelectionVC)
     }
     
     /// Shows save panel for full report export
@@ -357,7 +394,8 @@ class IntuneReportsViewController: NSViewController {
     ///   - reportType: The report type for API calls
     ///   - format: Export format (csv or json)
     ///   - filters: Dictionary of filter values to apply
-    private func showSavePanelForFullReport(reportName: String, reportType: String, format: String, filters: [String: String] = [:]) {
+    ///   - selectedColumns: Array of selected column keys
+    private func showSavePanelForFullReport(reportName: String, reportType: String, format: String, filters: [String: String] = [:], selectedColumns: [String]) {
         let savePanel = NSSavePanel()
         savePanel.title = "Export '\(reportName)' Report"
         
@@ -378,7 +416,7 @@ class IntuneReportsViewController: NSViewController {
         
         savePanel.begin { [weak self] response in
             if response == .OK, let url = savePanel.url {
-                self?.performFullReportExport(reportName: reportName, reportType: reportType, format: format, filters: filters, saveUrl: url)
+                self?.performFullReportExport(reportName: reportName, reportType: reportType, format: format, filters: filters, selectedColumns: selectedColumns, saveUrl: url)
             }
         }
     }
@@ -389,8 +427,9 @@ class IntuneReportsViewController: NSViewController {
     ///   - reportType: The report type for API calls
     ///   - format: Export format (csv or json)
     ///   - filters: Dictionary of filter values to apply
+    ///   - selectedColumns: Array of selected column keys
     ///   - saveUrl: The file URL to save to
-    private func performFullReportExport(reportName: String, reportType: String, format: String, filters: [String: String] = [:], saveUrl: URL) {
+    private func performFullReportExport(reportName: String, reportType: String, format: String, filters: [String: String] = [:], selectedColumns: [String], saveUrl: URL) {
         // Reset cancellation state
         isExportCancelled = false
         exportStartTime = Date()
@@ -404,14 +443,14 @@ class IntuneReportsViewController: NSViewController {
         // Build OData filter string from filter parameters using ReportRegistry
         let filterString = ReportRegistry.shared.buildODataFilter(from: filters, for: reportType)
         
-        // Get default columns for the report type
-        let defaultColumns = ReportRegistry.shared.getDefaultColumns(for: reportType)
+        // Use selected columns instead of defaults
+        let columnsToExport = selectedColumns
         
         // Create export job using generic XPC method
         XPCManager.shared.createExportJob(
             reportName: reportType,
             filter: filterString,
-            select: defaultColumns,
+            select: columnsToExport,
             format: format
         ) { [weak self] jobId in
             DispatchQueue.main.async {
@@ -846,4 +885,36 @@ class IntuneReportsViewController: NSViewController {
         }
     }
 
+}
+
+// MARK: - ColumnSelectionDelegate
+
+extension IntuneReportsViewController: ColumnSelectionDelegate {
+    
+    func columnSelectionDidComplete(_ selectedColumns: [String], displayNames: [String: String]) {
+        guard let params = pendingExportParameters else {
+            Logger.error("No pending export parameters found for column selection", category: .core, toUserDirectory: true)
+            return
+        }
+        
+        // Clear pending parameters
+        pendingExportParameters = nil
+        
+        Logger.info("Column selection completed: \(selectedColumns.count) columns selected for \(params.reportName)", category: .core, toUserDirectory: true)
+        
+        // Proceed to save panel with selected columns
+        showSavePanelForFullReport(
+            reportName: params.reportName,
+            reportType: params.reportType,
+            format: params.format,
+            filters: params.filters,
+            selectedColumns: selectedColumns
+        )
+    }
+    
+    func columnSelectionDidCancel() {
+        // Clear pending parameters
+        pendingExportParameters = nil
+        Logger.info("Column selection cancelled by user", category: .core, toUserDirectory: true)
+    }
 }

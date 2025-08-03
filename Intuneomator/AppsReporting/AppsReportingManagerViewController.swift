@@ -545,7 +545,7 @@ class AppsReportingManagerViewController: NSViewController {
         case "macOS":
             return appDataType.contains("macOS") || appDataType.contains("macos")
         case "Windows":
-            return appDataType.contains("windows") || appDataType.contains("Windows") || appDataType.contains("win32") || appDataType.contains("officeSuiteApp") || appDataType.contains("microsoftStoreForBusinessApp")
+            return appDataType.contains("windows") || appDataType.contains("Windows") || appDataType.contains("win32") || appDataType.contains("officeSuiteApp") || appDataType.contains("microsoftStoreForBusinessApp") || appDataType.contains("winGetApp")
         default:
             return true
         }
@@ -567,7 +567,21 @@ class AppsReportingManagerViewController: NSViewController {
     }
     
     @IBAction func showDeviceReportButtonClicked(_ sender: NSButton) {
-        showDeviceReport()
+        
+        let selectedRow = tableView.selectedRow
+        guard selectedRow >= 0 && selectedRow < filteredIntuneApps.count else {
+            showError(message: "Please select an app to view a report for.")
+            return
+        }
+
+        // Check if the Option key is currently down
+        let optionKeyDown = NSEvent.modifierFlags.contains(.option)
+        if optionKeyDown {
+            // Perform alternate action
+            showAppDetails(forSelectedRow: selectedRow)
+        } else {
+            showDeviceReport(forSelectedRow: selectedRow)
+        }
     }
     
     /// Opens the selected app in the Intune web console
@@ -601,12 +615,7 @@ class AppsReportingManagerViewController: NSViewController {
         Logger.info("Opened app \(appId) in Intune console: \(intuneURL)", category: .core, toUserDirectory: true)
     }
     
-    private func showDeviceReport() {
-        let selectedRow = tableView.selectedRow
-        guard selectedRow >= 0 && selectedRow < filteredIntuneApps.count else {
-            showError(message: "Please select an app.")
-            return
-        }
+    private func showDeviceReport(forSelectedRow selectedRow: Int) {
         let intuneApp = filteredIntuneApps[selectedRow]
         
         let storyboard = NSStoryboard(name: "AppsReporting", bundle: nil)
@@ -614,9 +623,21 @@ class AppsReportingManagerViewController: NSViewController {
         
         reportVC.configure(with: intuneApp)
         presentAsSheet(reportVC)
-        
     }
     
+    private func showAppDetails(forSelectedRow selectedRow: Int) {
+        let selectedApp = filteredIntuneApps[selectedRow]
+        
+        // TODO: Implement profile details view
+        // For now, show basic info in an alert
+        let appName = selectedApp["displayName"] as? String ?? "Unknown"
+        let appType = selectedApp["@odata.type"] as? String ?? "Unknown"
+        let isAssigned = (selectedApp["isAssigned"] as? Bool) == true ? "Yes" : "No"
+        
+        showAlert(title: "Application Details",
+                 message: "Name: \(appName)\nType: \(appType)\nAssigned: \(isAssigned)")
+    }
+
     // MARK: - Assignment Data Transformation
     
     /// Looks up group display name by ID from cached Entra groups

@@ -153,6 +153,17 @@ extension MainViewController {
      * - Parameter sender: The UI control that triggered this action
      */
     @IBAction func openSettings(_ sender: Any) {
+        
+        let settingPanelIndex: Int
+        
+        if sender is NSMenuItem {
+            settingPanelIndex = 0
+        } else if sender is Intuneomator.AppDelegate {
+            settingPanelIndex = 3
+        } else {
+            settingPanelIndex = 0
+        }
+        
         // Load current settings from the daemon
         XPCManager.shared.getSettings { [weak self] settingsData in
             DispatchQueue.main.async {
@@ -171,6 +182,7 @@ extension MainViewController {
                 // Create tabbed settings editor
                 guard let settingsVC = TabbedSheetViewController.createSettingsEditor(
                     settingsData: data,
+                    initialSelectedTab: settingPanelIndex,
                     saveHandler: { [weak self] combinedData in
                         self?.handleSettingsSaved(combinedData)
                     },

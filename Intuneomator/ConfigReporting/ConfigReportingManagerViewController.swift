@@ -108,6 +108,8 @@ class ConfigReportingManagerViewController: NSViewController {
 //        if let window = view.window {
 //            restoreWindowFrame(window, forElement: "ConfigReportingManagerViewController")
 //        }
+        
+        reportButton.isEnabled = false
     }
     
     private func setupColumnSorting() {
@@ -166,6 +168,11 @@ class ConfigReportingManagerViewController: NSViewController {
         
         platformPopUpButton.target = self
         platformPopUpButton.action = #selector(platformPopUpChanged(_:))
+    }
+    
+    func updateButtonState() {
+        let hasSelection = tableView.selectedRow >= 0
+        reportButton?.isEnabled = hasSelection
     }
     
     // MARK: - Data Loading
@@ -358,6 +365,10 @@ class ConfigReportingManagerViewController: NSViewController {
         // Handle table view selection if needed
     }
     
+    func tableViewSelectionDidChange(_ notification: Notification) {
+        updateButtonState()
+    }
+
     // MARK: - UserDefaults Persistence
     private func saveShowAssignedSelection() {
         UserDefaults.standard.set(showOnlyAssigned, forKey: "ConfigReportingManager.showOnlyAssigned")

@@ -369,6 +369,14 @@ extension XPCManager {
         sendRequest({ $0.updateAzureStorageConfiguration(configuration, reply: $1) }, completion: completion)
     }
     
+    /// Gets scheduled reports that use a specific Azure Storage configuration
+    /// - Parameters:
+    ///   - name: Name of the configuration to check
+    ///   - completion: Callback with array of dependent report names or nil on XPC failure
+    func getScheduledReportsUsingAzureStorageConfiguration(name: String, completion: @escaping ([String]?) -> Void) {
+        sendRequest({ $0.getScheduledReportsUsingAzureStorageConfiguration(name, reply: $1) }, completion: completion)
+    }
+    
     /// Removes an Azure Storage configuration by name
     /// - Parameters:
     ///   - name: Name of the configuration to remove
@@ -421,6 +429,15 @@ extension XPCManager {
     ///   - completion: Callback indicating if update was successful or nil on XPC failure
     func updateScheduledReportsIndex(indexData: Data, completion: @escaping (Bool?) -> Void) {
         sendRequest({ $0.updateScheduledReportsIndex(indexData: indexData, reply: $1) }, completion: completion)
+    }
+    
+    /// Disables scheduled reports by name
+    /// Used when deleting Azure Storage configurations to prevent report failures
+    /// - Parameters:
+    ///   - reportNames: Array of report names to disable
+    ///   - completion: Callback indicating if all reports were successfully disabled or nil on XPC failure
+    func disableScheduledReports(reportNames: [String], completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.disableScheduledReports(reportNames, reply: $1) }, completion: completion)
     }
 
 }

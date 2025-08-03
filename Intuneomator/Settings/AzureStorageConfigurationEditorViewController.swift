@@ -44,6 +44,12 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
     /// Callback for when configuration is saved
     var saveHandler: (([String: Any]) -> Void)?
     
+    /// List of existing configuration names for validation
+    var existingConfigurationNames: [String] = []
+    
+    /// Original configuration name (for updates)
+    private var originalConfigurationName: String?
+    
     /// Tracks validation state
     private var isValid = false
     
@@ -121,7 +127,9 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
     
     private func populateFields() {
         if !isNewConfiguration {
-            fieldName.stringValue = configurationData["name"] as? String ?? ""
+            let configName = configurationData["name"] as? String ?? ""
+            fieldName.stringValue = configName
+            originalConfigurationName = configName
             fieldDescription.stringValue = configurationData["description"] as? String ?? ""
             fieldAccountName.stringValue = configurationData["accountName"] as? String ?? ""
             fieldContainerName.stringValue = configurationData["containerName"] as? String ?? ""
@@ -328,9 +336,28 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
         var errorMessage = ""
         
         // Validate required fields
-        if fieldName.stringValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        let configName = fieldName.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        if configName.isEmpty {
             isValid = false
             errorMessage = "Configuration name is required"
+        } else {
+            // Check for duplicate names (case-insensitive)
+            let lowercasedName = configName.lowercased()
+            
+            if isNewConfiguration {
+                // For new configurations, check against all existing names
+                if let conflictingName = existingConfigurationNames.first(where: { $0.lowercased() == lowercasedName }) {
+                    isValid = false
+                    errorMessage = "Name conflicts with existing configuration '\(conflictingName)'. Please choose a unique name."
+                }
+            } else {
+                // For updates, check against all existing names except the original
+                let otherNames = existingConfigurationNames.filter { $0 != originalConfigurationName }
+                if let conflictingName = otherNames.first(where: { $0.lowercased() == lowercasedName }) {
+                    isValid = false
+                    errorMessage = "Name conflicts with existing configuration '\(conflictingName)'. Please choose a unique name."
+                }
+            }
         }
         
         if fieldAccountName.stringValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -390,6 +417,7 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
         
         // Display validation error if there is one
         if !isValid && !errorMessage.isEmpty {
+            // Use cleanup summary label to show validation errors prominently
             labelCleanupSummary?.stringValue = errorMessage
             labelCleanupSummary?.textColor = .systemRed
         } else if isValid {

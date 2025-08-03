@@ -320,8 +320,10 @@ class AzureStorageConfig {
         guard let listJson = KeychainManager.shared.getValue(for: configListKey),
               let listData = listJson.data(using: .utf8),
               let names = try? JSONDecoder().decode([String].self, from: listData) else {
+            Logger.debug("availableConfigurationNames: No config list found, returning empty array", category: .reports)
             return []
         }
+        Logger.debug("availableConfigurationNames: Found \(names.count) configurations: \(names)", category: .reports)
         return names.sorted()
     }
     
@@ -355,8 +357,88 @@ class AzureStorageConfig {
             return false
         }
         
-        // Check if we're at the limit (unless updating existing)
+        // Check for duplicate keychain keys (lowercased names) by checking actual keychain entries
         let existingNames = availableConfigurationNames
+        let lowercasedName = name.lowercased()
+        
+        Logger.debug("setConfiguration: name='\(name)', existing names from list: \(existingNames)", category: .reports)
+        
+        // Check if there's actually a keychain entry with this lowercased name
+        let configKey = "azure_storage_config_\(lowercasedName)"
+        let actuallyExists = KeychainManager.shared.getValue(for: configKey) != nil
+        
+        Logger.debug("setConfiguration: keychain check for '\(configKey)' = \(actuallyExists)", category: .reports)
+        
+        if actuallyExists {
+            // Find which name in the list maps to this keychain key
+            let conflictingName = existingNames.first { $0.lowercased() == lowercasedName } ?? lowercasedName
+            Logger.error("Configuration name '\(name)' conflicts with existing keychain entry (case-insensitive): '\(conflictingName)'. Please choose a unique name.", category: .reports)
+            return false
+        }
+        
+        // Check if we're at the limit
+        if !existingNames.contains(name) && existingNames.count >= Self.maxConfigurations {
+            Logger.error("Cannot add configuration '\(name)': maximum of \(Self.maxConfigurations) configurations allowed", category: .reports)
+            return false
+        }
+        
+        // Encode configuration
+        guard let configData = try? JSONEncoder().encode(configuration),
+              let configJson = String(data: configData, encoding: .utf8) else {
+            Logger.error("Failed to encode configuration '\(name)'", category: .reports)
+            return false
+        }
+        
+        // Store configuration (reusing configKey from validation above)
+        guard KeychainManager.shared.setValue(configJson, for: configKey) else {
+            Logger.error("Failed to store configuration '\(name)' in keychain", category: .reports)
+            return false
+        }
+        
+        // Update configuration list
+        var updatedNames = Set(existingNames)
+        updatedNames.insert(name)
+        
+        let configListKey = "azure_storage_config_list"
+        if let listData = try? JSONEncoder().encode(Array(updatedNames)),
+           let listJson = String(data: listData, encoding: .utf8) {
+            KeychainManager.shared.setValue(listJson, for: configListKey)
+        }
+        
+        Logger.info("Saved Azure Storage configuration '\(name)' for account: \(configuration.accountName)", category: .reports)
+        return true
+    }
+    
+    /// Sets a named storage configuration for updates (allows existing names)
+    /// - Parameters:
+    ///   - name: The configuration name (can be existing for updates)
+    ///   - configuration: The storage configuration to save
+    /// - Returns: True if successful, false if failed
+    func setConfigurationForUpdate(named name: String, configuration: NamedStorageConfiguration) -> Bool {
+        guard !name.isEmpty,
+              !Self.reservedNames.contains(name.lowercased()),
+              name.count <= 50,
+              name.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" || $0 == " " }) else {
+            Logger.error("Invalid configuration name: \(name). Names must be 1-50 characters, alphanumeric with dashes, underscores, and spaces only", category: .reports)
+            return false
+        }
+        
+        let existingNames = availableConfigurationNames
+        let lowercasedName = name.lowercased()
+        let existingLowercasedNames = existingNames.map { $0.lowercased() }
+        
+        // For updates, only check for conflicts with OTHER configurations (case-insensitive)
+        let conflictingNames = existingNames.filter { existingName in
+            let existingLowercased = existingName.lowercased()
+            return existingLowercased == lowercasedName && existingName != name
+        }
+        
+        if !conflictingNames.isEmpty {
+            Logger.error("Configuration name '\(name)' conflicts with existing configuration(s) (case-insensitive): \(conflictingNames.joined(separator: ", ")). Please choose a unique name.", category: .reports)
+            return false
+        }
+        
+        // Check if we're at the limit (only for new configurations)
         if !existingNames.contains(name) && existingNames.count >= Self.maxConfigurations {
             Logger.error("Cannot add configuration '\(name)': maximum of \(Self.maxConfigurations) configurations allowed", category: .reports)
             return false
@@ -386,7 +468,7 @@ class AzureStorageConfig {
             KeychainManager.shared.setValue(listJson, for: configListKey)
         }
         
-        Logger.info("Saved Azure Storage configuration '\(name)' for account: \(configuration.accountName)", category: .reports)
+        Logger.info("Updated Azure Storage configuration '\(name)' for account: \(configuration.accountName)", category: .reports)
         return true
     }
     
@@ -463,8 +545,80 @@ class AzureStorageConfig {
         Logger.info("Cleared all named Azure Storage configurations (\(names.count) removed)", category: .reports)
     }
     
+    /// Synchronizes the configuration list with actual keychain entries
+    /// Removes orphaned entries from the list that don't have corresponding keychain data
+    func syncConfigurationList() {
+        let listedNames = availableConfigurationNames
+        var validNames: [String] = []
+        
+        for name in listedNames {
+            let configKey = "azure_storage_config_\(name.lowercased())"
+            if KeychainManager.shared.getValue(for: configKey) != nil {
+                validNames.append(name)
+            } else {
+                Logger.warning("Removing orphaned configuration name '\(name)' from list (no keychain data found)", category: .reports)
+            }
+        }
+        
+        // Update the list with only valid names
+        let configListKey = "azure_storage_config_list"
+        if validNames.isEmpty {
+            KeychainManager.shared.removeValue(for: configListKey)
+        } else if let listData = try? JSONEncoder().encode(validNames),
+                  let listJson = String(data: listData, encoding: .utf8) {
+            KeychainManager.shared.setValue(listJson, for: configListKey)
+        }
+        
+        let removedCount = listedNames.count - validNames.count
+        if removedCount > 0 {
+            Logger.info("Synchronized configuration list: removed \(removedCount) orphaned entries", category: .reports)
+        }
+    }
+    
+    /// Checks which scheduled reports are using a specific Azure Storage configuration
+    /// - Parameter configurationName: The name of the configuration to check
+    /// - Returns: Array of ScheduledReport objects that reference this configuration
+    func getScheduledReportsUsingConfiguration(_ configurationName: String) -> [String] {
+        let scheduledReportsDir = AppConstants.intuneomatorScheduledReportsFolderURL
+        var dependentReports: [String] = []
+        
+        Logger.debug("Checking for scheduled reports using configuration '\(configurationName)' in directory: \(scheduledReportsDir.path)", category: .reports)
+        
+        do {
+            // Ensure directory exists before trying to read it
+            guard FileManager.default.fileExists(atPath: scheduledReportsDir.path) else {
+                Logger.info("Scheduled reports directory doesn't exist yet: \(scheduledReportsDir.path)", category: .reports)
+                return []
+            }
+            
+            let reportFiles = try FileManager.default.contentsOfDirectory(at: scheduledReportsDir, includingPropertiesForKeys: nil)
+                .filter { $0.pathExtension == "json" && $0.lastPathComponent != "index.json" }
+            
+            Logger.debug("Found \(reportFiles.count) report files to check", category: .reports)
+            
+            for reportFile in reportFiles {
+                if let reportData = try? Data(contentsOf: reportFile),
+                   let report = try? JSONDecoder().decode(ScheduledReport.self, from: reportData) {
+                    if report.delivery.azureStorageConfigName == configurationName {
+                        dependentReports.append(report.name)
+                        Logger.debug("Found dependent report: \(report.name)", category: .reports)
+                    }
+                } else {
+                    Logger.warning("Failed to decode report file: \(reportFile.lastPathComponent)", category: .reports)
+                }
+            }
+        } catch {
+            Logger.error("Failed to check scheduled reports for Azure Storage dependencies: \(error.localizedDescription)", category: .reports)
+        }
+        
+        return dependentReports
+    }
+    
     /// Gets summary information about all configurations
     func getConfigurationSummaries() -> [ConfigurationSummary] {
+        // Sync the list to remove any orphaned entries
+        syncConfigurationList()
+        
         return availableConfigurationNames.compactMap { name in
             guard let config = getConfiguration(named: name) else { return nil }
             

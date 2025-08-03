@@ -556,8 +556,28 @@ extension XPCService {
             return
         }
         
-        let success = AzureStorageConfig.shared.setConfiguration(named: name, configuration: convertToNamedConfig(configuration))
+        let success = AzureStorageConfig.shared.setConfigurationForUpdate(named: name, configuration: convertToNamedConfig(configuration))
         reply(success)
+    }
+    
+    /// Checks which scheduled reports use a specific Azure Storage configuration
+    /// - Parameters:
+    ///   - name: Name of the configuration to check
+    ///   - reply: Callback with array of dependent report names
+    func getScheduledReportsUsingAzureStorageConfiguration(_ name: String, reply: @escaping ([String]) -> Void) {
+        let dependentReports = AzureStorageConfig.shared.getScheduledReportsUsingConfiguration(name)
+        reply(dependentReports)
+    }
+    
+    /// Disables multiple scheduled reports by name
+    /// - Parameters:
+    ///   - reportNames: Array of report names to disable
+    ///   - reply: Callback with success status
+    func disableScheduledReports(_ reportNames: [String], reply: @escaping (Bool) -> Void) {
+        Task {
+            let success = await ScheduledReportsManager.disableReportsByName(reportNames)
+            reply(success)
+        }
     }
     
     /// Removes an Azure Storage configuration by name
