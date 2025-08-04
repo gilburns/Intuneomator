@@ -180,9 +180,6 @@ class AzureStorageManager {
         request.httpMethod = "GET"
         request.setValue("2023-11-03", forHTTPHeaderField: "x-ms-version")
         
-        Logger.debug("Azure Storage List Request - URL: \(url.absoluteString)", category: .reports)
-        Logger.debug("Azure Storage List Request - Container: \(config.containerName)", category: .reports)
-        
         // Add authentication
         // For list blobs operation, the canonicalized resource includes query parameters
         var resourceComponents = ["/\(config.accountName)/\(config.containerName)"]
@@ -196,10 +193,7 @@ class AzureStorageManager {
         queryParams.append("restype:container")
         
         let resource = resourceComponents.joined() + "\n" + queryParams.joined(separator: "\n")
-        Logger.debug("Azure Storage List Request - Resource string: \(resource)", category: .reports)
         try await addAuthentication(to: &request, method: "GET", resource: resource)
-        
-        Logger.debug("Azure Storage List Request - Final URL: \(request.url?.absoluteString ?? "nil")", category: .reports)
         
         let (data, response) = try await session.data(for: request)
         
@@ -207,7 +201,7 @@ class AzureStorageManager {
             throw AzureStorageError.invalidResponse("Invalid response type")
         }
         
-        Logger.debug("Azure Storage List Response - Status: \(httpResponse.statusCode)", category: .reports)
+        // HTTP status: \(httpResponse.statusCode)
         if httpResponse.statusCode != 200 {
             if let responseData = String(data: data, encoding: .utf8) {
                 Logger.error("Azure Storage List Response - Error body: \(responseData)", category: .reports)
@@ -267,17 +261,12 @@ class AzureStorageManager {
     
     /// Adds authentication headers to the request
     private func addAuthentication(to request: inout URLRequest, method: String, resource: String) async throws {
-        Logger.error("Azure Storage Auth - Using auth method: \(config.authMethod)", category: .reports)
-        
         switch config.authMethod {
         case .storageKey(let key):
-            Logger.error("Azure Storage Auth - Using Shared Key authentication", category: .reports)
             try addSharedKeyAuthentication(to: &request, method: method, resource: resource, key: key)
         case .sasToken(let token):
-            Logger.error("Azure Storage Auth - Using SAS Token authentication", category: .reports)
             addSASAuthentication(to: &request, token: token)
         case .azureAD(let tenantId, let clientId, let clientSecret):
-            Logger.error("Azure Storage Auth - Using Azure AD authentication", category: .reports)
             try await addAzureADAuthentication(to: &request, tenantId: tenantId, clientId: clientId, clientSecret: clientSecret)
         }
     }
@@ -287,12 +276,8 @@ class AzureStorageManager {
         let dateString = DateFormatter.httpDate.string(from: Date())
         request.setValue(dateString, forHTTPHeaderField: "x-ms-date")
         
-        Logger.debug("Azure Storage Shared Key Auth - Account: \(config.accountName), Method: \(method), Resource: \(resource)", category: .reports)
-        Logger.debug("Azure Storage Shared Key Auth - Date: \(dateString)", category: .reports)
-        
         // Construct string to sign (after setting x-ms-date header)
         let stringToSign = buildStringToSign(method: method, request: request, resource: resource, date: dateString)
-        Logger.debug("Azure Storage Shared Key Auth - String to sign: \(stringToSign)", category: .reports)
         
         // Sign with storage key
         guard let keyData = Data(base64Encoded: key) else {
@@ -302,15 +287,11 @@ class AzureStorageManager {
         
         let signature = try signString(stringToSign, with: keyData)
         let authHeader = "SharedKey \(config.accountName):\(signature)"
-        Logger.debug("Azure Storage Shared Key Auth - Authorization header: \(authHeader)", category: .reports)
         request.setValue(authHeader, forHTTPHeaderField: "Authorization")
     }
     
     /// Adds SAS token authentication
     private func addSASAuthentication(to request: inout URLRequest, token: String) {
-        Logger.error("Azure Storage SAS Auth - Starting SAS authentication", category: .reports)
-        Logger.error("Azure Storage SAS Auth - Original URL: \(request.url?.absoluteString ?? "nil")", category: .reports)
-        
         // Don't parse and re-encode the SAS token - just append it directly to avoid double encoding
         guard let currentURL = request.url?.absoluteString else {
             Logger.error("Azure Storage SAS Auth - Invalid URL", category: .reports)
@@ -321,10 +302,7 @@ class AzureStorageManager {
         let separator = currentURL.contains("?") ? "&" : "?"
         let finalURL = "\(currentURL)\(separator)\(token)"
         
-        Logger.error("Azure Storage SAS Auth - Final URL: \(finalURL)", category: .reports)
-        
         request.url = URL(string: finalURL)
-        Logger.error("Azure Storage SAS Auth - Request headers: \(request.allHTTPHeaderFields ?? [:])", category: .reports)
     }
     
     /// Adds Azure AD authentication (requires separate app registration)
@@ -388,7 +366,7 @@ class AzureStorageManager {
             "se": expiryString     // Expiry time (no protocol restriction)
         ]
         
-        Logger.debug("SAS String to sign: \(stringToSign.replacingOccurrences(of: "\n", with: "\\n"))", category: .reports)
+        // Signing SAS token string
         
         // Sign the string
         guard let keyData = Data(base64Encoded: key) else {
@@ -413,7 +391,7 @@ class AzureStorageManager {
             throw AzureStorageError.sasGenerationError("Failed to construct SAS URL")
         }
         
-        Logger.debug("Generated SAS URL: \(finalUrl.absoluteString)", category: .reports)
+        // Generated SAS URL for blob access
         return finalUrl
     }
     
@@ -514,7 +492,7 @@ class AzureStorageManager {
     
     /// Parses blob list XML response
     private func parseBlobListResponse(_ data: Data) throws -> [BlobInfo] {
-        Logger.debug("Azure Storage - Starting blob list XML parsing, data size: \(data.count) bytes", category: .reports)
+        // Parsing blob list XML response
         
         let parser = BlobListXMLParser()
         let xmlParser = XMLParser(data: data)
@@ -535,7 +513,7 @@ class AzureStorageManager {
             throw AzureStorageError.listFailed("Blob list parsing error: \(parseError)")
         }
         
-        Logger.debug("Azure Storage - Successfully parsed \(parser.blobs.count) blobs from XML response", category: .reports)
+        // Successfully parsed \(parser.blobs.count) blobs
         return parser.blobs
     }
 }
