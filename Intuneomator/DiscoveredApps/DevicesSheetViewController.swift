@@ -79,7 +79,27 @@ class DevicesSheetViewController: NSViewController, NSTableViewDelegate, NSTable
             sheetWindow.setContentSize(savedSize) // Apply the saved or default size
             sheetWindow.minSize = NSSize(width: 700, height: 400) // Set minimum size
         }
+        
+        // Make view accept key events for ESC handling
+        view.window?.makeFirstResponder(self)
+
     }
+
+    // MARK: - Key Event Handling
+    
+    override var acceptsFirstResponder: Bool {
+        return true
+    }
+    
+    override func keyDown(with event: NSEvent) {
+        // Handle ESC key to close the sheet
+        if event.keyCode == 53 { // ESC key code
+            dismissSheet(self)
+        } else {
+            super.keyDown(with: event)
+        }
+    }
+    
 
     
     /// Loads the previously saved sheet size from user defaults.
@@ -156,7 +176,7 @@ class DevicesSheetViewController: NSViewController, NSTableViewDelegate, NSTable
     // MARK: - Actions
     /// IBAction to dismiss the sheet view.
     /// - Parameter sender: The button that triggered the dismissal.
-    @IBAction func dismissSheet(_ sender: NSButton) {
+    @IBAction func dismissSheet(_ sender: Any) {
         self.dismiss(self)
     }
     
