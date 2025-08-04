@@ -323,6 +323,7 @@ class ReportScheduleEditorViewController: NSViewController {
         
         // Select the placeholder item by default
         reportTypePopup.selectItem(at: 0)
+        reportTypePopup.item(at: 0)?.isEnabled = true
     }
     
     private func updateAzureStoragePopup() {
@@ -633,6 +634,7 @@ class ReportScheduleEditorViewController: NSViewController {
             // Update the placeholder item title (first item in the menu)
             if let placeholderItem = reportTypePopup.menu?.item(at: 0) {
                 placeholderItem.title = menuItem.title
+                placeholderItem.isEnabled = true
             }
             
             // Ensure the placeholder item remains selected
@@ -645,7 +647,7 @@ class ReportScheduleEditorViewController: NSViewController {
             selectedColumns = nil
         }
     }
-    
+        
     @objc private func endDateCheckboxChanged(_ sender: NSButton) {
         endDatePicker.isEnabled = sender.state == .on
     }
