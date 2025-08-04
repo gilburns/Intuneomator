@@ -320,10 +320,10 @@ class AzureStorageConfig {
         guard let listJson = KeychainManager.shared.getValue(for: configListKey),
               let listData = listJson.data(using: .utf8),
               let names = try? JSONDecoder().decode([String].self, from: listData) else {
-            Logger.debug("availableConfigurationNames: No config list found, returning empty array", category: .reports)
+            // No config list found, returning empty array
             return []
         }
-        Logger.debug("availableConfigurationNames: Found \(names.count) configurations: \(names)", category: .reports)
+        // Found \(names.count) configurations
         return names.sorted()
     }
     
@@ -361,13 +361,9 @@ class AzureStorageConfig {
         let existingNames = availableConfigurationNames
         let lowercasedName = name.lowercased()
         
-        Logger.debug("setConfiguration: name='\(name)', existing names from list: \(existingNames)", category: .reports)
-        
         // Check if there's actually a keychain entry with this lowercased name
         let configKey = "azure_storage_config_\(lowercasedName)"
         let actuallyExists = KeychainManager.shared.getValue(for: configKey) != nil
-        
-        Logger.debug("setConfiguration: keychain check for '\(configKey)' = \(actuallyExists)", category: .reports)
         
         if actuallyExists {
             // Find which name in the list maps to this keychain key
@@ -582,26 +578,20 @@ class AzureStorageConfig {
         let scheduledReportsDir = AppConstants.intuneomatorScheduledReportsFolderURL
         var dependentReports: [String] = []
         
-        Logger.debug("Checking for scheduled reports using configuration '\(configurationName)' in directory: \(scheduledReportsDir.path)", category: .reports)
-        
         do {
             // Ensure directory exists before trying to read it
             guard FileManager.default.fileExists(atPath: scheduledReportsDir.path) else {
-                Logger.info("Scheduled reports directory doesn't exist yet: \(scheduledReportsDir.path)", category: .reports)
                 return []
             }
             
             let reportFiles = try FileManager.default.contentsOfDirectory(at: scheduledReportsDir, includingPropertiesForKeys: nil)
                 .filter { $0.pathExtension == "json" && $0.lastPathComponent != "index.json" }
             
-            Logger.debug("Found \(reportFiles.count) report files to check", category: .reports)
-            
             for reportFile in reportFiles {
                 if let reportData = try? Data(contentsOf: reportFile),
                    let report = try? JSONDecoder().decode(ScheduledReport.self, from: reportData) {
                     if report.delivery.azureStorageConfigName == configurationName {
                         dependentReports.append(report.name)
-                        Logger.debug("Found dependent report: \(report.name)", category: .reports)
                     }
                 } else {
                     Logger.warning("Failed to decode report file: \(reportFile.lastPathComponent)", category: .reports)
