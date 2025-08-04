@@ -81,7 +81,7 @@ class WindowActionHandler: NSResponder {
             storyboardName: "IntuneReports",
             controllerType: IntuneReportsViewController.self,
             windowTitle: "Intune Reports Export",
-            defaultSize: NSSize(width: 500, height: 250),
+            defaultSize: NSSize(width: 550, height: 250),
             restoreKey: "IntuneReportsViewController"
         )
     }
