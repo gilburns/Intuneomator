@@ -820,11 +820,11 @@ class ReportRegistry {
                 ColumnDefinition(key: "AppLastModifiedTime", displayName: "App Last Modified Time", isDefault: true),
                 ColumnDefinition(key: "AppStatus", displayName: "App Status", isDefault: true),
                 ColumnDefinition(key: "AppType", displayName: "App Type", isDefault: true),
-                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: false),
+                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: true),
                 ColumnDefinition(key: "Assigned", displayName: "Assigned", isDefault: true),
                 ColumnDefinition(key: "CreationTime", displayName: "Creation Time", isDefault: true),
                 ColumnDefinition(key: "Description", displayName: "Description", isDefault: false),
-                ColumnDefinition(key: "Developer", displayName: "Developer", isDefault: false),
+                ColumnDefinition(key: "Developer", displayName: "Developer", isDefault: true),
                 ColumnDefinition(key: "ExpirationTime", displayName: "Expiration Time", isDefault: false),
                 ColumnDefinition(key: "IsFeaturedApp", displayName: "Is Featured App", isDefault: false),
                 ColumnDefinition(key: "MoreInformationLink", displayName: "More Information Link", isDefault: true),
@@ -833,7 +833,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "Platform", displayName: "Platform", isDefault: true),
                 ColumnDefinition(key: "PrivacyLink", displayName: "Privacy Link", isDefault: true),
                 ColumnDefinition(key: "Publisher", displayName: "Publisher", isDefault: true),
-                ColumnDefinition(key: "StoreUrl", displayName: "Store Url", isDefault: true)
+                ColumnDefinition(key: "StoreUrl", displayName: "Store Url", isDefault: false)
             ]
         )
 
