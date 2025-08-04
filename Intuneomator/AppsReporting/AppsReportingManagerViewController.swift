@@ -76,9 +76,12 @@ class AppsReportingManagerViewController: NSViewController {
               let platformPopUpButton = platformPopUpButton,
               let appCountLabel = appCountLabel,
               let reportButton = reportButton,
+              let refreshButton = refreshButton,
               let activityIndicator = activityIndicator else {
             fatalError("IBOutlets are not properly connected in Interface Builder")
         }
+        
+        refreshButton.isEnabled = false
         
         // Configure table view
         tableView.target = self
@@ -115,6 +118,7 @@ class AppsReportingManagerViewController: NSViewController {
         //        deleteButton.isEnabled = false
         //        editButton.isEnabled = false
         reportButton.isEnabled = false
+
     }
     
     private func setupAppTypePopUpButton() {
@@ -325,6 +329,8 @@ class AppsReportingManagerViewController: NSViewController {
                     // Reset selection and update button state
                     self.tableView?.deselectAll(nil)
                     self.updateButtonState()
+                    self.refreshButton.isEnabled = true
+
                     
                     Logger.info("Loaded \(self.intuneApps.count) Intune apps", toUserDirectory: true)
                 } else {
