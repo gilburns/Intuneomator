@@ -185,7 +185,7 @@ class IntuneReportsViewController: NSViewController {
         updateScheduleButtonsState()
         
         // Set up button appearance
-        scheduleReportButton.title = "Schedule Report"
+        scheduleReportButton.title = "Schedule Report…"
         manageSchedulesButton.title = "Manage Schedules"
         
         // Update button state when report selection changes
@@ -817,11 +817,13 @@ class IntuneReportsViewController: NSViewController {
             DispatchQueue.main.async {
                 let hasAzureStorage = !availableConfigs.isEmpty
                 self.scheduleReportButton.isEnabled = hasReportSelected && hasAzureStorage
-                
+
                 if !hasAzureStorage {
                     self.scheduleReportButton.toolTip = "Configure Azure Storage in Settings to enable report scheduling"
+                    self.manageSchedulesButton.toolTip = "Configure Azure Storage in Settings to enable report scheduling"
                 } else {
                     self.scheduleReportButton.toolTip = nil
+                    self.manageSchedulesButton.toolTip = nil
                 }
             }
         }
