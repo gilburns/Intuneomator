@@ -212,7 +212,7 @@ class ReportRegistry {
         if filters.count > 0 {
             let filtersTitle = NSTextField(labelWithString: "Filters:")
             filtersTitle.frame = NSRect(x: 10, y: titleY, width: 80, height: 18)
-            filtersTitle.font = NSFont.boldSystemFont(ofSize: 12)
+            filtersTitle.font = NSFont.boldSystemFont(ofSize: 11)
             filtersTitle.textColor = NSColor.labelColor
             containerView.addSubview(filtersTitle)
         } else {
@@ -583,25 +583,25 @@ class ReportRegistry {
             supportedFilters: [
             ],
             supportedColumns: [
-                ColumnDefinition(key: "AppIdentifier", displayName: "Application ID", isDefault: true),
+                ColumnDefinition(key: "AppIdentifier", displayName: "Application ID", isDefault: false),
                 ColumnDefinition(key: "Assigned", displayName: "Assigned", isDefault: true),
                 ColumnDefinition(key: "DateCreated", displayName: "Date Created", isDefault: true),
-                ColumnDefinition(key: "Description", displayName: "Description", isDefault: true),
-                ColumnDefinition(key: "Developer", displayName: "Developer", isDefault: true),
-                ColumnDefinition(key: "ExpirationDate", displayName: "Expiration Date", isDefault: true),
-                ColumnDefinition(key: "FeaturedApp", displayName: "Featured App", isDefault: true),
+                ColumnDefinition(key: "Description", displayName: "Description", isDefault: false),
+                ColumnDefinition(key: "Developer", displayName: "Developer", isDefault: false),
+                ColumnDefinition(key: "ExpirationDate", displayName: "Expiration Date", isDefault: false),
+                ColumnDefinition(key: "FeaturedApp", displayName: "Featured App", isDefault: false),
                 ColumnDefinition(key: "LastModified", displayName: "Last Modified", isDefault: true),
-                ColumnDefinition(key: "MoreInformationURL", displayName: "More Information URL", isDefault: true),
+                ColumnDefinition(key: "MoreInformationURL", displayName: "More Information URL", isDefault: false),
                 ColumnDefinition(key: "Name", displayName: "Name", isDefault: true),
-                ColumnDefinition(key: "Notes", displayName: "Notes", isDefault: true),
-                ColumnDefinition(key: "Owner", displayName: "Owner", isDefault: true),
+                ColumnDefinition(key: "Notes", displayName: "Notes", isDefault: false),
+                ColumnDefinition(key: "Owner", displayName: "Owner", isDefault: false),
                 ColumnDefinition(key: "Platform", displayName: "Platform", isDefault: true),
-                ColumnDefinition(key: "PrivacyInformationURL", displayName: "Privacy Information URL", isDefault: true),
+                ColumnDefinition(key: "PrivacyInformationURL", displayName: "Privacy Information URL", isDefault: false),
                 ColumnDefinition(key: "Publisher", displayName: "Publisher", isDefault: true),
                 ColumnDefinition(key: "Status", displayName: "Status", isDefault: true),
-                ColumnDefinition(key: "StoreURL", displayName: "Store URL", isDefault: true),
+                ColumnDefinition(key: "StoreURL", displayName: "Store URL", isDefault: false),
                 ColumnDefinition(key: "Type", displayName: "Type", isDefault: true),
-                ColumnDefinition(key: "Version", displayName: "Version", isDefault: true)
+                ColumnDefinition(key: "Version", displayName: "Version", isDefault: false)
             ]
         )
         
@@ -620,7 +620,7 @@ class ReportRegistry {
             supportedColumns: [
                 ColumnDefinition(key: "AppPlatform", displayName: "Application Platform", isDefault: true),
                 ColumnDefinition(key: "ApplicationId", displayName: "Application Id", isDefault: true),
-                ColumnDefinition(key: "AppVersion", displayName: "Application Version", isDefault: true),
+                ColumnDefinition(key: "AppVersion", displayName: "Application Version", isDefault: false),
                 ColumnDefinition(key: "DisplayName", displayName: "Display Name", isDefault: true),
                 ColumnDefinition(key: "FailedDeviceCount", displayName: "Failed Device Count", isDefault: true),
                 ColumnDefinition(key: "FailedDevicePercentage", displayName: "Failed Device Percentage", isDefault: true),
@@ -651,8 +651,8 @@ class ReportRegistry {
                 ColumnDefinition(key: "ApplicationKey", displayName: "Application Key", isDefault: true),
                 ColumnDefinition(key: "ApplicationName", displayName: "Application Name", isDefault: true),
                 ColumnDefinition(key: "ApplicationPublisher", displayName: "Application Publisher", isDefault: true),
-                ColumnDefinition(key: "ApplicationShortVersion", displayName: "Application Short Version", isDefault: true),
-                ColumnDefinition(key: "ApplicationVersion", displayName: "Application Version", isDefault: true),
+                ColumnDefinition(key: "ApplicationShortVersion", displayName: "Application Short Version", isDefault: false),
+                ColumnDefinition(key: "ApplicationVersion", displayName: "Application Version", isDefault: false),
                 ColumnDefinition(key: "DeviceCount", displayName: "Device Count", isDefault: true),
                 ColumnDefinition(key: "Platform", displayName: "Platform", isDefault: true)
             ]
@@ -673,13 +673,13 @@ class ReportRegistry {
                 ColumnDefinition(key: "ApplicationKey", displayName: "Application Key", isDefault: true),
                 ColumnDefinition(key: "ApplicationName", displayName: "Application Name", isDefault: true),
                 ColumnDefinition(key: "ApplicationPublisher", displayName: "Application Publisher", isDefault: true),
-                ColumnDefinition(key: "ApplicationShortVersion", displayName: "Application Short Version", isDefault: true),
-                ColumnDefinition(key: "ApplicationVersion", displayName: "Application Version", isDefault: true),
+                ColumnDefinition(key: "ApplicationShortVersion", displayName: "Application Short Version", isDefault: false),
+                ColumnDefinition(key: "ApplicationVersion", displayName: "Application Version", isDefault: false),
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
-                ColumnDefinition(key: "EmailAddress", displayName: "Email Address", isDefault: true),
-                ColumnDefinition(key: "OSDescription", displayName: "OSDescription", isDefault: true),
-                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
+                ColumnDefinition(key: "EmailAddress", displayName: "Email Address", isDefault: false),
+                ColumnDefinition(key: "OSDescription", displayName: "OSDescription", isDefault: false),
+                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: false),
                 ColumnDefinition(key: "Platform", displayName: "Platform", isDefault: true),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
@@ -713,13 +713,13 @@ class ReportRegistry {
                 ColumnDefinition(key: "ApplicationKey", displayName: "Application Key", isDefault: true),
                 ColumnDefinition(key: "ApplicationName", displayName: "Application Name", isDefault: true),
                 ColumnDefinition(key: "ApplicationPublisher", displayName: "Application Publisher", isDefault: true),
-                ColumnDefinition(key: "ApplicationShortVersion", displayName: "Application Short Version", isDefault: true),
-                ColumnDefinition(key: "ApplicationVersion", displayName: "Application Version", isDefault: true),
+                ColumnDefinition(key: "ApplicationShortVersion", displayName: "Application Short Version", isDefault: false),
+                ColumnDefinition(key: "ApplicationVersion", displayName: "Application Version", isDefault: false),
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
-                ColumnDefinition(key: "EmailAddress", displayName: "Email Address", isDefault: true),
-                ColumnDefinition(key: "OSDescription", displayName: "OS Description", isDefault: true),
-                ColumnDefinition(key: "OSVersion", displayName: "OS Version", isDefault: true),
+                ColumnDefinition(key: "EmailAddress", displayName: "Email Address", isDefault: false),
+                ColumnDefinition(key: "OSDescription", displayName: "OS Description", isDefault: false),
+                ColumnDefinition(key: "OSVersion", displayName: "OS Version", isDefault: false),
                 ColumnDefinition(key: "Platform", displayName: "Platform", isDefault: true),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
@@ -737,10 +737,10 @@ class ReportRegistry {
             supportedColumns: [
                 ColumnDefinition(key: "ApplicationId", displayName: "Application Id", isDefault: true),
                 ColumnDefinition(key: "ApplicationName", displayName: "Application Name", isDefault: true),
-                ColumnDefinition(key: "CurrentAppVersion", displayName: "Current App Version", isDefault: true),
+                ColumnDefinition(key: "CurrentAppVersion", displayName: "Current App Version", isDefault: false),
                 ColumnDefinition(key: "CurrentRevisionId", displayName: "Current Revision Id", isDefault: true),
                 ColumnDefinition(key: "IsSuperseded", displayName: "Is Superseded", isDefault: true),
-                ColumnDefinition(key: "LatestAvailableVersion", displayName: "Latest Available Version", isDefault: true),
+                ColumnDefinition(key: "LatestAvailableVersion", displayName: "Latest Available Version", isDefault: false),
                 ColumnDefinition(key: "LatestRevisionId", displayName: "Latest Revision Id", isDefault: true),
                 ColumnDefinition(key: "Publisher", displayName: "Publisher", isDefault: true),
                 ColumnDefinition(key: "UpdateAvailable", displayName: "Update Available", isDefault: true),
@@ -758,7 +758,7 @@ class ReportRegistry {
             ],
             supportedColumns: [
                 ColumnDefinition(key: "ApplicationId", displayName: "Application Id", isDefault: true),
-                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: true),
+                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: false),
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DisplayName", displayName: "Display Name", isDefault: true),
                 ColumnDefinition(key: "ErrorCode", displayName: "Error Code", isDefault: true),
@@ -769,7 +769,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "Replaced", displayName: "Replaced", isDefault: true),
                 ColumnDefinition(key: "SourceIds", displayName: "Source Ids", isDefault: true),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
-                ColumnDefinition(key: "UserPrincipalName", displayName: "User Principal Name", isDefault: true)
+                ColumnDefinition(key: "UserPrincipalName", displayName: "User Principal Name", isDefault: false)
             ]
         )
 
@@ -789,7 +789,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "AppInstallState", displayName: "App Install State", isDefault: true),
                 ColumnDefinition(key: "AppInstallStateDetails", displayName: "App Install State Details", isDefault: true),
                 ColumnDefinition(key: "ApplicationId", displayName: "Application Id", isDefault: true),
-                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: true),
+                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: false),
                 ColumnDefinition(key: "AssignmentFilterIdsExist", displayName: "Assignment Filter Ids Exist", isDefault: true),
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
@@ -801,7 +801,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "Platform", displayName: "Platform", isDefault: true),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true),
-                ColumnDefinition(key: "UserPrincipalName", displayName: "User Principal Name", isDefault: true)
+                ColumnDefinition(key: "UserPrincipalName", displayName: "User Principal Name", isDefault: false)
             ],
             requiredParameters: ["ApplicationId"]
         )
@@ -820,16 +820,16 @@ class ReportRegistry {
                 ColumnDefinition(key: "AppLastModifiedTime", displayName: "App Last Modified Time", isDefault: true),
                 ColumnDefinition(key: "AppStatus", displayName: "App Status", isDefault: true),
                 ColumnDefinition(key: "AppType", displayName: "App Type", isDefault: true),
-                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: true),
+                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: false),
                 ColumnDefinition(key: "Assigned", displayName: "Assigned", isDefault: true),
                 ColumnDefinition(key: "CreationTime", displayName: "Creation Time", isDefault: true),
-                ColumnDefinition(key: "Description", displayName: "Description", isDefault: true),
-                ColumnDefinition(key: "Developer", displayName: "Developer", isDefault: true),
-                ColumnDefinition(key: "ExpirationTime", displayName: "Expiration Time", isDefault: true),
-                ColumnDefinition(key: "IsFeaturedApp", displayName: "Is Featured App", isDefault: true),
+                ColumnDefinition(key: "Description", displayName: "Description", isDefault: false),
+                ColumnDefinition(key: "Developer", displayName: "Developer", isDefault: false),
+                ColumnDefinition(key: "ExpirationTime", displayName: "Expiration Time", isDefault: false),
+                ColumnDefinition(key: "IsFeaturedApp", displayName: "Is Featured App", isDefault: false),
                 ColumnDefinition(key: "MoreInformationLink", displayName: "More Information Link", isDefault: true),
-                ColumnDefinition(key: "Notes", displayName: "Notes", isDefault: true),
-                ColumnDefinition(key: "Owner", displayName: "Owner", isDefault: true),
+                ColumnDefinition(key: "Notes", displayName: "Notes", isDefault: false),
+                ColumnDefinition(key: "Owner", displayName: "Owner", isDefault: false),
                 ColumnDefinition(key: "Platform", displayName: "Platform", isDefault: true),
                 ColumnDefinition(key: "PrivacyLink", displayName: "Privacy Link", isDefault: true),
                 ColumnDefinition(key: "Publisher", displayName: "Publisher", isDefault: true),
@@ -855,7 +855,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "PendingInstallCount", displayName: "Pending Install Count", isDefault: true),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true),
-                ColumnDefinition(key: "UserPrincipalName", displayName: "User Principal Name", isDefault: true)
+                ColumnDefinition(key: "UserPrincipalName", displayName: "User Principal Name", isDefault: false)
             ],
             requiredParameters: ["ApplicationId"]
         )
@@ -882,20 +882,20 @@ class ReportRegistry {
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "DeviceRegisteredDateTime", displayName: "Device Registered Date Time", isDefault: true),
-                ColumnDefinition(key: "DeviceSerialNumber", displayName: "Device Serial Number", isDefault: true),
+                ColumnDefinition(key: "DeviceSerialNumber", displayName: "Device Serial Number", isDefault: false),
                 ColumnDefinition(key: "DeviceSetupDuration", displayName: "Device Setup Duration", isDefault: true),
                 ColumnDefinition(key: "DeviceSetupStatus", displayName: "Device Setup Status", isDefault: true),
                 ColumnDefinition(key: "EnrollmentDateTime", displayName: "Enrollment Date Time", isDefault: true),
                 ColumnDefinition(key: "EnrollmentMethod", displayName: "Enrollment Method", isDefault: true),
                 ColumnDefinition(key: "EnrollmentStatus", displayName: "Enrollment Status", isDefault: true),
-                ColumnDefinition(key: "ESPPolicyId", displayName: "ESPPolicy Id", isDefault: true),
-                ColumnDefinition(key: "ESPPolicyName", displayName: "ESPPolicy Name", isDefault: true),
-                ColumnDefinition(key: "EspDeviceSetupFailureDetails", displayName: "Esp Device Setup Failure Details", isDefault: true),
-                ColumnDefinition(key: "EspUserSetupFailureDetails", displayName: "Esp User Setup Failure Details", isDefault: true),
+                ColumnDefinition(key: "ESPPolicyId", displayName: "ESP Policy Id", isDefault: true),
+                ColumnDefinition(key: "ESPPolicyName", displayName: "ESP Policy Name", isDefault: true),
+                ColumnDefinition(key: "EspDeviceSetupFailureDetails", displayName: "ESP Device Setup Failure Details", isDefault: true),
+                ColumnDefinition(key: "EspUserSetupFailureDetails", displayName: "ESP User Setup Failure Details", isDefault: true),
                 ColumnDefinition(key: "FailureDetails", displayName: "Failure Details", isDefault: true),
                 ColumnDefinition(key: "FailureReason", displayName: "Failure Reason", isDefault: true),
                 ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
-                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
+                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: false),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
                 ColumnDefinition(key: "UserSetupStatus", displayName: "User Setup Status", isDefault: true)
@@ -916,10 +916,10 @@ class ReportRegistry {
                 ColumnDefinition(key: "DeploymentStatus", displayName: "Deployment Status", isDefault: true),
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
-                ColumnDefinition(key: "EnrollmentTimeInUtc", displayName: "Enrollment Time In Utc", isDefault: true),
+                ColumnDefinition(key: "EnrollmentTimeInUtc", displayName: "Enrollment Time In UTC", isDefault: true),
                 ColumnDefinition(key: "Phase", displayName: "Phase", isDefault: true),
                 ColumnDefinition(key: "ResultCode", displayName: "Result Code", isDefault: true),
-                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: true),
+                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: false),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true)
             ]
         )
@@ -977,7 +977,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "FailureGuid", displayName: "Failure Guid", isDefault: true),
                 ColumnDefinition(key: "FailureReason", displayName: "Failure Reason", isDefault: true),
                 ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
-                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
+                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: false),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true)
             ]
@@ -1008,10 +1008,10 @@ class ReportRegistry {
                 ColumnDefinition(key: "FailureDetails", displayName: "Failure Details", isDefault: true),
                 ColumnDefinition(key: "FailureReason", displayName: "Failure Reason", isDefault: true),
                 ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
-                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
-                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: true),
+                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: false),
+                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: false),
                 ColumnDefinition(key: "Remediation", displayName: "Remediation", isDefault: true),
-                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: true),
+                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: false),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true)
             ]
@@ -1034,7 +1034,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "PolicyType", displayName: "Policy Type", isDefault: true),
                 ColumnDefinition(key: "ProfileName", displayName: "Profile Name", isDefault: true),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
-                ColumnDefinition(key: "UserPrincipalName", displayName: "User Principal Name", isDefault: true),
+                ColumnDefinition(key: "UserPrincipalName", displayName: "User Principal Name", isDefault: false),
                 ColumnDefinition(key: "State", displayName: "State", isDefault: true),
                 ColumnDefinition(key: "Priority", displayName: "Priority", isDefault: true),
                 ColumnDefinition(key: "FilterIds", displayName: "Filter Ids", isDefault: true),
@@ -1063,27 +1063,27 @@ class ReportRegistry {
                                optionValues: ["Desktop": "0", "Windows": "1", "winMO6": "2", "Nokia": "3", "WindowsPhone": "4", "Mac": "5", "WinCE": "6", "WinEmbedded": "7", "iPhone": "8", "iPad": "9", "iPod": "10", "Android": "11", "iSocConsumer": "12", "Unix": "13", "MacMDM": "14", "HoloLens": "15", "SurfaceHub": "16", "AndroidForWork": "17", "AndroidEnterprise": "18", "Windows10x": "19", "AndroidnGMS": "20", "CloudPC": "21", "Linux": "22"])
             ],
             supportedColumns: [
-                ColumnDefinition(key: "DeviceId", displayName: "Device ID", isDefault: true),
-                ColumnDefinition(key: "IntuneDeviceId", displayName: "Intune Device ID", isDefault: true),
-                ColumnDefinition(key: "AadDeviceId", displayName: "Azure AD Device ID", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device ID", isDefault: false),
+                ColumnDefinition(key: "IntuneDeviceId", displayName: "Intune Device ID", isDefault: false),
+                ColumnDefinition(key: "AadDeviceId", displayName: "Azure AD Device ID", isDefault: false),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "DeviceType", displayName: "Device Type", isDefault: true),
-                ColumnDefinition(key: "OSDescription", displayName: "OS Description", isDefault: true),
-                ColumnDefinition(key: "OSVersion", displayName: "OS Version", isDefault: true),
-                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: true),
+                ColumnDefinition(key: "OSDescription", displayName: "OS Description", isDefault: false),
+                ColumnDefinition(key: "OSVersion", displayName: "OS Version", isDefault: false),
+                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: false),
                 ColumnDefinition(key: "LastContact", displayName: "Last Contact", isDefault: true),
                 ColumnDefinition(key: "InGracePeriodUntil", displayName: "Grace Period Until", isDefault: true),
-                ColumnDefinition(key: "IMEI", displayName: "IMEI", isDefault: true),
-                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: true),
+                ColumnDefinition(key: "IMEI", displayName: "IMEI", isDefault: false),
+                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: false),
                 ColumnDefinition(key: "ManagementAgents", displayName: "Management Agents", isDefault: true),
                 ColumnDefinition(key: "PrimaryUser", displayName: "Primary User", isDefault: true),
-                ColumnDefinition(key: "UserId", displayName: "User ID", isDefault: true),
+                ColumnDefinition(key: "UserId", displayName: "User ID", isDefault: false),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
-                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: true),
+                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: false),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true),
                 ColumnDefinition(key: "DeviceHealthThreatLevel", displayName: "Health Threat Level", isDefault: true),
                 ColumnDefinition(key: "RetireAfterDatetime", displayName: "Retire After", isDefault: true),
-                ColumnDefinition(key: "PartnerDeviceId", displayName: "Partner Device ID", isDefault: true),
+                ColumnDefinition(key: "PartnerDeviceId", displayName: "Partner Device ID", isDefault: false),
                 ColumnDefinition(key: "ComplianceState", displayName: "Compliance State", isDefault: true),
                 ColumnDefinition(key: "OS", displayName: "OS", isDefault: true)
             ]
@@ -1102,8 +1102,8 @@ class ReportRegistry {
                 ColumnDefinition(key: "Count", displayName: "Count", isDefault: true),
                 ColumnDefinition(key: "Date", displayName: "Date", isDefault: true),
                 ColumnDefinition(key: "DeviceType", displayName: "Device Type", isDefault: true),
-                ColumnDefinition(key: "OSFamily", displayName: "OSFamily", isDefault: true),
-                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: true)
+                ColumnDefinition(key: "OSFamily", displayName: "OS Family", isDefault: true),
+                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: false)
             ]
         )
 
@@ -1142,9 +1142,9 @@ class ReportRegistry {
                 ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
                 ColumnDefinition(key: "PolicyPlatformType", displayName: "Policy Platform Type", isDefault: true),
                 ColumnDefinition(key: "PolicyStatus", displayName: "Policy Status", isDefault: true),
-                ColumnDefinition(key: "PolicyVersion", displayName: "Policy Version", isDefault: true),
+                ColumnDefinition(key: "PolicyVersion", displayName: "Policy Version", isDefault: false),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
-                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: true),
+                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: false),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
             ]
@@ -1165,9 +1165,9 @@ class ReportRegistry {
                 ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
                 ColumnDefinition(key: "PolicyPlatformType", displayName: "Policy Platform Type", isDefault: true),
                 ColumnDefinition(key: "PolicyStatus", displayName: "Policy Status", isDefault: true),
-                ColumnDefinition(key: "PolicyVersion", displayName: "Policy Version", isDefault: true),
+                ColumnDefinition(key: "PolicyVersion", displayName: "Policy Version", isDefault: false),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
-                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: true),
+                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: false),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
             ]
@@ -1186,7 +1186,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "ErrorCode", displayName: "Error Code", isDefault: true),
                 ColumnDefinition(key: "ErrorType", displayName: "Error Type", isDefault: true),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
-                ColumnDefinition(key: "PolicyVersion", displayName: "Policy Version", isDefault: true),
+                ColumnDefinition(key: "PolicyVersion", displayName: "Policy Version", isDefault: false),
                 ColumnDefinition(key: "SettingId", displayName: "Setting Id", isDefault: true),
                 ColumnDefinition(key: "SettingInstanceId", displayName: "Setting Instance Id", isDefault: true),
                 ColumnDefinition(key: "SettingName", displayName: "Setting Name", isDefault: true),
@@ -1211,7 +1211,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "ErrorCode", displayName: "Error Code", isDefault: true),
                 ColumnDefinition(key: "ErrorType", displayName: "Error Type", isDefault: true),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
-                ColumnDefinition(key: "PolicyVersion", displayName: "Policy Version", isDefault: true),
+                ColumnDefinition(key: "PolicyVersion", displayName: "Policy Version", isDefault: false),
                 ColumnDefinition(key: "SettingId", displayName: "Setting Id", isDefault: true),
                 ColumnDefinition(key: "SettingInstanceId", displayName: "Setting Instance Id", isDefault: true),
                 ColumnDefinition(key: "SettingName", displayName: "Setting Name", isDefault: true),
@@ -1237,13 +1237,13 @@ class ReportRegistry {
                 ColumnDefinition(key: "ApplicationKey", displayName: "Application Key", isDefault: true),
                 ColumnDefinition(key: "ApplicationName", displayName: "Application Name", isDefault: true),
                 ColumnDefinition(key: "ApplicationPublisher", displayName: "Application Publisher", isDefault: true),
-                ColumnDefinition(key: "ApplicationShortVersion", displayName: "Application Short Version", isDefault: true),
-                ColumnDefinition(key: "ApplicationVersion", displayName: "Application Version", isDefault: true),
+                ColumnDefinition(key: "ApplicationShortVersion", displayName: "Application Short Version", isDefault: false),
+                ColumnDefinition(key: "ApplicationVersion", displayName: "Application Version", isDefault: false),
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
-                ColumnDefinition(key: "EmailAddress", displayName: "Email Address", isDefault: true),
-                ColumnDefinition(key: "OSDescription", displayName: "OSDescription", isDefault: true),
-                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
+                ColumnDefinition(key: "EmailAddress", displayName: "Email Address", isDefault: false),
+                ColumnDefinition(key: "OSDescription", displayName: "OS Description", isDefault: false),
+                ColumnDefinition(key: "OSVersion", displayName: "OS Version", isDefault: false),
                 ColumnDefinition(key: "Platform", displayName: "Platform", isDefault: true),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
@@ -1266,7 +1266,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "InGracePeriodUntil", displayName: "In Grace Period Until", isDefault: true),
                 ColumnDefinition(key: "LastContact", displayName: "Last Contact", isDefault: true),
-                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: false),
                 ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
                 ColumnDefinition(key: "PolicyPlatformType", displayName: "Policy Platform Type", isDefault: true),
@@ -1290,7 +1290,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "InGracePeriodUntil", displayName: "In Grace Period Until", isDefault: true),
                 ColumnDefinition(key: "LastContact", displayName: "Last Contact", isDefault: true),
-                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: false),
                 ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
                 ColumnDefinition(key: "PolicyPlatformType", displayName: "Policy Platform Type", isDefault: true),
@@ -1359,12 +1359,12 @@ class ReportRegistry {
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "ManagementAgents", displayName: "Management Agents", isDefault: true),
-                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: false),
                 ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
                 ColumnDefinition(key: "SettingId", displayName: "Setting Id", isDefault: true),
                 ColumnDefinition(key: "SettingName", displayName: "Setting Name", isDefault: true),
-                ColumnDefinition(key: "SettingNm", displayName: "Setting Nm", isDefault: true),
+                ColumnDefinition(key: "SettingNm", displayName: "Setting NM", isDefault: true),
                 ColumnDefinition(key: "SettingStatus", displayName: "Setting Status", isDefault: true),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true)
             ]
@@ -1384,12 +1384,12 @@ class ReportRegistry {
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "ManagementAgents", displayName: "Management Agents", isDefault: true),
-                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: false),
                 ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
                 ColumnDefinition(key: "SettingId", displayName: "Setting Id", isDefault: true),
                 ColumnDefinition(key: "SettingName", displayName: "Setting Name", isDefault: true),
-                ColumnDefinition(key: "SettingNm", displayName: "Setting Nm", isDefault: true),
+                ColumnDefinition(key: "SettingNm", displayName: "Setting NM", isDefault: true),
                 ColumnDefinition(key: "SettingStatus", displayName: "Setting Status", isDefault: true),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true)
             ]
@@ -1447,7 +1447,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
                 ColumnDefinition(key: "SettingId", displayName: "Setting Id", isDefault: true),
                 ColumnDefinition(key: "SettingName", displayName: "Setting Name", isDefault: true),
-                ColumnDefinition(key: "SettingNm", displayName: "Setting Nm", isDefault: true)
+                ColumnDefinition(key: "SettingNm", displayName: "Setting NM", isDefault: true)
             ]
         )
         
@@ -1469,7 +1469,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
                 ColumnDefinition(key: "SettingId", displayName: "Setting Id", isDefault: true),
                 ColumnDefinition(key: "SettingName", displayName: "Setting Name", isDefault: true),
-                ColumnDefinition(key: "SettingNm", displayName: "Setting Nm", isDefault: true)
+                ColumnDefinition(key: "SettingNm", displayName: "Setting NM", isDefault: true)
             ]
         )
 
@@ -1485,19 +1485,19 @@ class ReportRegistry {
                 ColumnDefinition(key: "AadDeviceId", displayName: "AAD Device Id", isDefault: true),
                 ColumnDefinition(key: "ComplianceState", displayName: "Compliance State", isDefault: true),
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
-                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: true),
+                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: false),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "DeviceType", displayName: "Device Type", isDefault: true),
                 ColumnDefinition(key: "LastContact", displayName: "Last Contact", isDefault: true),
                 ColumnDefinition(key: "LastContactedUserId", displayName: "Last Contacted User Id", isDefault: true),
                 ColumnDefinition(key: "ManagementAgents", displayName: "Management Agents", isDefault: true),
                 ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
-                ColumnDefinition(key: "OSDescription", displayName: "OSDescription", isDefault: true),
-                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
-                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: true),
+                ColumnDefinition(key: "OSDescription", displayName: "OS Description", isDefault: false),
+                ColumnDefinition(key: "OSVersion", displayName: "OS Version", isDefault: false),
+                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: false),
                 ColumnDefinition(key: "PrimaryUser", displayName: "Primary User", isDefault: true),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
-                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: true),
+                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: false),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
             ]
@@ -1515,19 +1515,19 @@ class ReportRegistry {
                 ColumnDefinition(key: "AadDeviceId", displayName: "AAD Device Id", isDefault: true),
                 ColumnDefinition(key: "ComplianceState", displayName: "Compliance State", isDefault: true),
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
-                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: true),
+                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: false),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "DeviceType", displayName: "Device Type", isDefault: true),
                 ColumnDefinition(key: "LastContact", displayName: "Last Contact", isDefault: true),
                 ColumnDefinition(key: "LastContactedUserId", displayName: "Last Contacted User Id", isDefault: true),
                 ColumnDefinition(key: "ManagementAgents", displayName: "Management Agents", isDefault: true),
                 ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
-                ColumnDefinition(key: "OSDescription", displayName: "OSDescription", isDefault: true),
-                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
-                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: true),
+                ColumnDefinition(key: "OSDescription", displayName: "OS Description", isDefault: false),
+                ColumnDefinition(key: "OSVersion", displayName: "OS Version", isDefault: false),
+                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: false),
                 ColumnDefinition(key: "PrimaryUser", displayName: "Primary User", isDefault: true),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
-                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: true),
+                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: false),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
             ]
@@ -1551,7 +1551,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "PolicyPlatformType", displayName: "Policy Platform Type", isDefault: true),
                 ColumnDefinition(key: "SettingId", displayName: "Setting Id", isDefault: true),
                 ColumnDefinition(key: "SettingName", displayName: "Setting Name", isDefault: true),
-                ColumnDefinition(key: "SettingNm", displayName: "Setting Nm", isDefault: true)
+                ColumnDefinition(key: "SettingNm", displayName: "Setting NM", isDefault: true)
             ]
         )
         
@@ -1573,7 +1573,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "PolicyPlatformType", displayName: "Policy Platform Type", isDefault: true),
                 ColumnDefinition(key: "SettingId", displayName: "Setting Id", isDefault: true),
                 ColumnDefinition(key: "SettingName", displayName: "Setting Name", isDefault: true),
-                ColumnDefinition(key: "SettingNm", displayName: "Setting Nm", isDefault: true)
+                ColumnDefinition(key: "SettingNm", displayName: "Setting NM", isDefault: true)
             ]
         )
         
@@ -1591,25 +1591,25 @@ class ReportRegistry {
                 ColumnDefinition(key: "BitlockerStatus", displayName: "Bitlocker Status", isDefault: true),
                 ColumnDefinition(key: "BootDebuggingStatus", displayName: "Boot Debugging Status", isDefault: true),
                 ColumnDefinition(key: "CodeIntegrityStatus", displayName: "Code Integrity Status", isDefault: true),
-                ColumnDefinition(key: "DEPPolicy", displayName: "DEPPolicy", isDefault: true),
+                ColumnDefinition(key: "DEPPolicy", displayName: "DEP Policy", isDefault: true),
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "DeviceOS", displayName: "Device OS", isDefault: true),
-                ColumnDefinition(key: "ELAMDriverLoadedStatus", displayName: "ELAMDriver Loaded Status", isDefault: true),
+                ColumnDefinition(key: "ELAMDriverLoadedStatus", displayName: "ELAM Driver Loaded Status", isDefault: true),
                 ColumnDefinition(key: "FirmwareProtectionStatus", displayName: "Firmware Protection Status", isDefault: true),
                 ColumnDefinition(key: "HealthCertIssuedDate", displayName: "Health Cert Issued Date", isDefault: true),
                 ColumnDefinition(key: "MemoryAccessProtectionStatus", displayName: "Memory Access Protection Status", isDefault: true),
                 ColumnDefinition(key: "MemoryIntegrityProtectionStatus", displayName: "Memory Integrity Protection Status", isDefault: true),
-                ColumnDefinition(key: "OSKernelDebuggingStatus", displayName: "OSKernel Debugging Status", isDefault: true),
+                ColumnDefinition(key: "OSKernelDebuggingStatus", displayName: "OS Kernel Debugging Status", isDefault: true),
                 ColumnDefinition(key: "PrimaryUser", displayName: "Primary User", isDefault: true),
                 ColumnDefinition(key: "SafeModeStatus", displayName: "Safe Mode Status", isDefault: true),
                 ColumnDefinition(key: "SecuredCorePCStatus", displayName: "Secured Core PCStatus", isDefault: true),
                 ColumnDefinition(key: "SecureBootStatus", displayName: "Secure Boot Status", isDefault: true),
                 ColumnDefinition(key: "SystemManagementMode", displayName: "System Management Mode", isDefault: true),
-                ColumnDefinition(key: "TpmVersion", displayName: "Tpm Version", isDefault: true),
+                ColumnDefinition(key: "TpmVersion", displayName: "TPM Version", isDefault: false),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
-                ColumnDefinition(key: "VSMStatus", displayName: "VSMStatus", isDefault: true),
-                ColumnDefinition(key: "WinPEStatus", displayName: "Win PEStatus", isDefault: true)
+                ColumnDefinition(key: "VSMStatus", displayName: "VSM Status", isDefault: true),
+                ColumnDefinition(key: "WinPEStatus", displayName: "WinPE Status", isDefault: true)
             ]
         )
 
@@ -1632,7 +1632,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "ErrorType", displayName: "Error Type", isDefault: true),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
                 ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
-                ColumnDefinition(key: "PolicyVersion", displayName: "Policy Version", isDefault: true),
+                ColumnDefinition(key: "PolicyVersion", displayName: "Policy Version", isDefault: false),
                 ColumnDefinition(key: "SettingId", displayName: "Setting Id", isDefault: true),
                 ColumnDefinition(key: "SettingInstanceId", displayName: "Setting Instance Id", isDefault: true),
                 ColumnDefinition(key: "SettingInstancePath", displayName: "Setting Instance Path", isDefault: true),
@@ -1655,16 +1655,16 @@ class ReportRegistry {
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "ErrorCode", displayName: "Error Code", isDefault: true),
-                ColumnDefinition(key: "ErrorDescription", displayName: "Error Description", isDefault: true),
+                ColumnDefinition(key: "ErrorDescription", displayName: "Error Description", isDefault: false),
                 ColumnDefinition(key: "ModifiedTime", displayName: "Modified Time", isDefault: true),
-                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
+                ColumnDefinition(key: "OSVersion", displayName: "OS Version", isDefault: false),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
                 ColumnDefinition(key: "PolicyResultDetail", displayName: "Policy Result Detail", isDefault: true),
                 ColumnDefinition(key: "PolicyResultState", displayName: "Policy Result State", isDefault: true),
-                ColumnDefinition(key: "PolicyVersion", displayName: "Policy Version", isDefault: true),
+                ColumnDefinition(key: "PolicyVersion", displayName: "Policy Version", isDefault: false),
                 ColumnDefinition(key: "RunState", displayName: "Run State", isDefault: true),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
-                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: true),
+                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: false),
                 ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
             ]
@@ -1697,61 +1697,61 @@ class ReportRegistry {
             ],
             supportedColumns: [
                 // Essential columns (must be included for API compatibility)
-                ColumnDefinition(key: "DeviceId", displayName: "Device ID", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device ID", isDefault: false),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "DeviceType", displayName: "Device Type", isDefault: true),
                 ColumnDefinition(key: "ClientRegistrationStatus", displayName: "Registration Status", isDefault: true),
-                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: true),
+                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: false),
                 ColumnDefinition(key: "CreatedDate", displayName: "Created Date", isDefault: true),
                 ColumnDefinition(key: "LastContact", displayName: "Last Contact", isDefault: true),
                 ColumnDefinition(key: "ManagementAgents", displayName: "Management Agents", isDefault: true),
                 ColumnDefinition(key: "ManagementState", displayName: "Management State", isDefault: true),
-                ColumnDefinition(key: "ReferenceId", displayName: "Reference ID", isDefault: true),
-                ColumnDefinition(key: "CategoryId", displayName: "Category ID", isDefault: true),
+                ColumnDefinition(key: "ReferenceId", displayName: "Reference ID", isDefault: false),
+                ColumnDefinition(key: "CategoryId", displayName: "Category ID", isDefault: false),
                 ColumnDefinition(key: "EnrollmentType", displayName: "Enrollment Type", isDefault: true),
-                ColumnDefinition(key: "CertExpirationDate", displayName: "Certificate Expiration", isDefault: true),
+                ColumnDefinition(key: "CertExpirationDate", displayName: "Certificate Expiration", isDefault: false),
                 ColumnDefinition(key: "MDMStatus", displayName: "MDM Status", isDefault: true),
-                ColumnDefinition(key: "OSVersion", displayName: "OS Version", isDefault: true),
+                ColumnDefinition(key: "OSVersion", displayName: "OS Version", isDefault: false),
                 ColumnDefinition(key: "GraphDeviceIsManaged", displayName: "Graph Device Managed", isDefault: true),
                 ColumnDefinition(key: "EasID", displayName: "EAS ID", isDefault: true),
-                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: true),
+                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: false),
                 ColumnDefinition(key: "EnrolledByUser", displayName: "Enrolled By User", isDefault: true),
-                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
-                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
-                ColumnDefinition(key: "OSDescription", displayName: "OS Description", isDefault: true),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: false),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: false),
+                ColumnDefinition(key: "OSDescription", displayName: "OS Description", isDefault: false),
                 ColumnDefinition(key: "IsManaged", displayName: "Is Managed", isDefault: true),
                 ColumnDefinition(key: "EasActivationStatus", displayName: "EAS Activation Status", isDefault: true),
-                ColumnDefinition(key: "IMEI", displayName: "IMEI", isDefault: true),
+                ColumnDefinition(key: "IMEI", displayName: "IMEI", isDefault: false),
                 ColumnDefinition(key: "EasLastSyncSuccessUtc", displayName: "EAS Last Sync", isDefault: true),
                 ColumnDefinition(key: "EasStateReason", displayName: "EAS State Reason", isDefault: true),
                 ColumnDefinition(key: "EasAccessState", displayName: "EAS Access State", isDefault: true),
-                ColumnDefinition(key: "EncryptionStatus", displayName: "Encryption Status", isDefault: true),
+                ColumnDefinition(key: "EncryptionStatus", displayName: "Encryption Status", isDefault: false),
                 ColumnDefinition(key: "SupervisedStatus", displayName: "Supervised Status", isDefault: true),
-                ColumnDefinition(key: "PhoneNumberE164Format", displayName: "Phone Number", isDefault: true),
+                ColumnDefinition(key: "PhoneNumberE164Format", displayName: "Phone Number", isDefault: false),
                 ColumnDefinition(key: "InGracePeriodUntil", displayName: "Grace Period Until", isDefault: true),
                 ColumnDefinition(key: "WifiMacAddress", displayName: "WiFi MAC Address", isDefault: true),
-                ColumnDefinition(key: "StorageTotal", displayName: "Total Storage", isDefault: true),
-                ColumnDefinition(key: "StorageFree", displayName: "Free Storage", isDefault: true),
+                ColumnDefinition(key: "StorageTotal", displayName: "Total Storage", isDefault: false),
+                ColumnDefinition(key: "StorageFree", displayName: "Free Storage", isDefault: false),
                 ColumnDefinition(key: "ManagedDeviceName", displayName: "Managed Device Name", isDefault: true),
                 ColumnDefinition(key: "LastLoggedOnUserUPN", displayName: "Last Logged User UPN", isDefault: true),
                 ColumnDefinition(key: "UserApprovedEnrollment", displayName: "User Approved Enrollment", isDefault: true),
                 ColumnDefinition(key: "ExtendedProperties", displayName: "Extended Properties", isDefault: true),
                 ColumnDefinition(key: "EntitySource", displayName: "Entity Source", isDefault: true),
                 ColumnDefinition(key: "PrimaryUser", displayName: "Primary User", isDefault: true),
-                ColumnDefinition(key: "CategoryName", displayName: "Category Name", isDefault: true),
-                ColumnDefinition(key: "UserId", displayName: "User ID", isDefault: true),
+                ColumnDefinition(key: "CategoryName", displayName: "Category Name", isDefault: false),
+                ColumnDefinition(key: "UserId", displayName: "User ID", isDefault: false),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
-                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: true),
+                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: false),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true),
                 ColumnDefinition(key: "RetireAfterDatetime", displayName: "Retire After", isDefault: true),
                 ColumnDefinition(key: "HasUnlockToken", displayName: "Has Unlock Token", isDefault: true),
                 ColumnDefinition(key: "CompliantState", displayName: "Compliant State", isDefault: true),
                 ColumnDefinition(key: "ManagedBy", displayName: "Managed By", isDefault: true),
-                ColumnDefinition(key: "Ownership", displayName: "Ownership", isDefault: true),
+                ColumnDefinition(key: "Ownership", displayName: "Ownership", isDefault: false),
                 ColumnDefinition(key: "DeviceState", displayName: "Device State", isDefault: true),
                 ColumnDefinition(key: "DeviceRegistrationState", displayName: "Registration State", isDefault: true),
                 ColumnDefinition(key: "SupervisedStatusString", displayName: "Supervised Status String", isDefault: true),
-                ColumnDefinition(key: "EncryptionStatusString", displayName: "Encryption Status String", isDefault: true),
+                ColumnDefinition(key: "EncryptionStatusString", displayName: "Encryption Status String", isDefault: false),
                 ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
                 ColumnDefinition(key: "JoinType", displayName: "Join Type", isDefault: true)
             ]
@@ -1771,13 +1771,13 @@ class ReportRegistry {
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "InGracePeriodUntil", displayName: "In Grace Period Until", isDefault: true),
-                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: false),
                 ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
                 ColumnDefinition(key: "PolicyPlatformType", displayName: "Policy Platform Type", isDefault: true),
                 ColumnDefinition(key: "PrimaryUser", displayName: "Primary User", isDefault: true),
                 ColumnDefinition(key: "SettingId", displayName: "Setting Id", isDefault: true),
                 ColumnDefinition(key: "SettingName", displayName: "Setting Name", isDefault: true),
-                ColumnDefinition(key: "SettingNm", displayName: "Setting Nm", isDefault: true),
+                ColumnDefinition(key: "SettingNm", displayName: "Setting NM", isDefault: true),
                 ColumnDefinition(key: "SettingStatus", displayName: "Setting Status", isDefault: true),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true)
             ]
@@ -1797,13 +1797,13 @@ class ReportRegistry {
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "InGracePeriodUntil", displayName: "In Grace Period Until", isDefault: true),
-                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: false),
                 ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
                 ColumnDefinition(key: "PolicyPlatformType", displayName: "Policy Platform Type", isDefault: true),
                 ColumnDefinition(key: "PrimaryUser", displayName: "Primary User", isDefault: true),
                 ColumnDefinition(key: "SettingId", displayName: "Setting Id", isDefault: true),
                 ColumnDefinition(key: "SettingName", displayName: "Setting Name", isDefault: true),
-                ColumnDefinition(key: "SettingNm", displayName: "Setting Nm", isDefault: true),
+                ColumnDefinition(key: "SettingNm", displayName: "Setting NM", isDefault: true),
                 ColumnDefinition(key: "SettingStatus", displayName: "Setting Status", isDefault: true),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true)
             ]
@@ -1839,19 +1839,19 @@ class ReportRegistry {
             ],
             supportedColumns: [
                 // Essential columns (must be included for API compatibility)
-                ColumnDefinition(key: "DeviceId", displayName: "Device ID", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device ID", isDefault: false),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "CreatedDate", displayName: "Created Date", isDefault: true),
                 ColumnDefinition(key: "LastContact", displayName: "Last Contact", isDefault: true),
-                ColumnDefinition(key: "ReferenceId", displayName: "Reference ID", isDefault: true),
-                ColumnDefinition(key: "OSVersion", displayName: "OS Version", isDefault: true),
+                ColumnDefinition(key: "ReferenceId", displayName: "Reference ID", isDefault: false),
+                ColumnDefinition(key: "OSVersion", displayName: "OS Version", isDefault: false),
                 ColumnDefinition(key: "GraphDeviceIsManaged", displayName: "Graph Device Managed", isDefault: true),
                 ColumnDefinition(key: "EasID", displayName: "EAS ID", isDefault: true),
-                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: true),
-                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
-                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: false),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: false),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: false),
                 ColumnDefinition(key: "EasActivationStatus", displayName: "EAS Activation Status", isDefault: true),
-                ColumnDefinition(key: "IMEI", displayName: "IMEI", isDefault: true),
+                ColumnDefinition(key: "IMEI", displayName: "IMEI", isDefault: false),
                 ColumnDefinition(key: "EasLastSyncSuccessUtc", displayName: "EAS Last Sync", isDefault: true),
                 ColumnDefinition(key: "EasStateReason", displayName: "EAS State Reason", isDefault: true),
                 ColumnDefinition(key: "EasAccessState", displayName: "EAS Access State", isDefault: true),
@@ -1860,19 +1860,19 @@ class ReportRegistry {
                 ColumnDefinition(key: "WifiMacAddress", displayName: "WiFi MAC Address", isDefault: true),
                 ColumnDefinition(key: "MEID", displayName: "MEID", isDefault: true),
                 ColumnDefinition(key: "SubscriberCarrierNetwork", displayName: "Carrier Network", isDefault: true),
-                ColumnDefinition(key: "StorageTotal", displayName: "Total Storage", isDefault: true),
-                ColumnDefinition(key: "StorageFree", displayName: "Free Storage", isDefault: true),
+                ColumnDefinition(key: "StorageTotal", displayName: "Total Storage", isDefault: false),
+                ColumnDefinition(key: "StorageFree", displayName: "Free Storage", isDefault: false),
                 ColumnDefinition(key: "ManagedDeviceName", displayName: "Managed Device Name", isDefault: true),
-                ColumnDefinition(key: "CategoryName", displayName: "Category Name", isDefault: true),
-                ColumnDefinition(key: "UserId", displayName: "User ID", isDefault: true),
+                ColumnDefinition(key: "CategoryName", displayName: "Category Name", isDefault: false),
+                ColumnDefinition(key: "UserId", displayName: "User ID", isDefault: false),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
-                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: true),
+                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: false),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true),
                 ColumnDefinition(key: "WiFiIPv4Address", displayName: "WiFi IPv4 Address", isDefault: true),
                 ColumnDefinition(key: "WiFiSubnetID", displayName: "WiFi Subnet ID", isDefault: true),
                 ColumnDefinition(key: "ComplianceState", displayName: "Compliance State", isDefault: true),
                 ColumnDefinition(key: "ManagementAgent", displayName: "Management Agent", isDefault: true),
-                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: true),
+                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: false),
                 ColumnDefinition(key: "ManagementState", displayName: "Management State", isDefault: true),
                 ColumnDefinition(key: "DeviceRegistrationState", displayName: "Registration State", isDefault: true),
                 ColumnDefinition(key: "IsSupervised", displayName: "Is Supervised", isDefault: true),
@@ -1880,21 +1880,21 @@ class ReportRegistry {
                 ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
                 ColumnDefinition(key: "SkuFamily", displayName: "SKU Family", isDefault: true),
                 ColumnDefinition(key: "JoinType", displayName: "Join Type", isDefault: true),
-                ColumnDefinition(key: "PhoneNumber", displayName: "Phone Number", isDefault: true),
+                ColumnDefinition(key: "PhoneNumber", displayName: "Phone Number", isDefault: false),
                 ColumnDefinition(key: "JailBroken", displayName: "Jail Broken", isDefault: true),
                 ColumnDefinition(key: "ICCID", displayName: "ICCID", isDefault: true),
                 ColumnDefinition(key: "EthernetMAC", displayName: "Ethernet MAC", isDefault: true),
-                ColumnDefinition(key: "CellularTechnology", displayName: "Cellular Technology", isDefault: true),
-                ColumnDefinition(key: "ProcessorArchitecture", displayName: "Processor Architecture", isDefault: true),
+                ColumnDefinition(key: "CellularTechnology", displayName: "Cellular Technology", isDefault: false),
+                ColumnDefinition(key: "ProcessorArchitecture", displayName: "Processor Architecture", isDefault: false),
                 ColumnDefinition(key: "EID", displayName: "EID", isDefault: true),
                 ColumnDefinition(key: "EnrollmentType", displayName: "Enrollment Type", isDefault: true),
                 ColumnDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", isDefault: true),
                 ColumnDefinition(key: "ManagementAgents", displayName: "Management Agents", isDefault: true),
-                ColumnDefinition(key: "CertExpirationDate", displayName: "Certificate Expiration", isDefault: true),
+                ColumnDefinition(key: "CertExpirationDate", displayName: "Certificate Expiration", isDefault: false),
                 ColumnDefinition(key: "IsManaged", displayName: "Is Managed", isDefault: true),
-                ColumnDefinition(key: "SystemManagementBIOSVersion", displayName: "BIOS Version", isDefault: true),
-                ColumnDefinition(key: "TPMManufacturerId", displayName: "TPM Manufacturer ID", isDefault: true),
-                ColumnDefinition(key: "TPMManufacturerVersion", displayName: "TPM Manufacturer Version", isDefault: true)
+                ColumnDefinition(key: "SystemManagementBIOSVersion", displayName: "BIOS Version", isDefault: false),
+                ColumnDefinition(key: "TPMManufacturerId", displayName: "TPM Manufacturer ID", isDefault: false),
+                ColumnDefinition(key: "TPMManufacturerVersion", displayName: "TPM Manufacturer Version", isDefault: false)
             ]
         )
         
@@ -1929,7 +1929,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "IssuerName", displayName: "Issuer Name", isDefault: true),
                 ColumnDefinition(key: "KeyUsage", displayName: "Key Usage", isDefault: true),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
-                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: true),
+                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: false),
                 ColumnDefinition(key: "SubjectName", displayName: "Subject Name", isDefault: true),
                 ColumnDefinition(key: "Thumbprint", displayName: "Thumbprint", isDefault: true),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
@@ -1956,7 +1956,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "IssuerName", displayName: "Issuer Name", isDefault: true),
                 ColumnDefinition(key: "KeyUsage", displayName: "Key Usage", isDefault: true),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
-                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: true),
+                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: false),
                 ColumnDefinition(key: "SubjectName", displayName: "Subject Name", isDefault: true),
                 ColumnDefinition(key: "Thumbprint", displayName: "Thumbprint", isDefault: true),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
@@ -1985,7 +1985,7 @@ class ReportRegistry {
                                options: ["All", "True", "False"])
             ],
             supportedColumns: [
-                ColumnDefinition(key: "DeviceId", displayName: "Device ID", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device ID", isDefault: false),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "DeviceState", displayName: "Device State", isDefault: true),
                 ColumnDefinition(key: "PendingFullScan", displayName: "Pending Full Scan", isDefault: true),
@@ -2001,16 +2001,16 @@ class ReportRegistry {
                 ColumnDefinition(key: "FullScanOverdue", displayName: "Full Scan Overdue", isDefault: true),
                 ColumnDefinition(key: "RebootRequired", displayName: "Reboot Required", isDefault: true),
                 ColumnDefinition(key: "FullScanRequired", displayName: "Full Scan Required", isDefault: true),
-                ColumnDefinition(key: "EngineVersion", displayName: "Engine Version", isDefault: true),
-                ColumnDefinition(key: "SignatureVersion", displayName: "Signature Version", isDefault: true),
-                ColumnDefinition(key: "AntiMalwareVersion", displayName: "Anti Malware Version", isDefault: true),
+                ColumnDefinition(key: "EngineVersion", displayName: "Engine Version", isDefault: false),
+                ColumnDefinition(key: "SignatureVersion", displayName: "Signature Version", isDefault: false),
+                ColumnDefinition(key: "AntiMalwareVersion", displayName: "Anti Malware Version", isDefault: false),
                 ColumnDefinition(key: "LastQuickScanDateTime", displayName: "Last Quick Scan", isDefault: true),
                 ColumnDefinition(key: "LastFullScanDateTime", displayName: "Last Full Scan", isDefault: true),
                 ColumnDefinition(key: "LastQuickScanSignatureVersion", displayName: "Last Quick Scan Signature", isDefault: true),
                 ColumnDefinition(key: "LastFullScanSignatureVersion", displayName: "Last Full Scan Signature", isDefault: true),
                 ColumnDefinition(key: "LastReportedDateTime", displayName: "Last Reported", isDefault: true),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
-                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: true),
+                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: false),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
             ]
         )
@@ -2032,7 +2032,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "ElevationCount", displayName: "Elevation Count", isDefault: true),
                 ColumnDefinition(key: "ElevationType", displayName: "Elevation Type", isDefault: true),
                 ColumnDefinition(key: "FileName", displayName: "File Name", isDefault: true),
-                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: true),
+                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: false),
                 ColumnDefinition(key: "Hash", displayName: "Hash", isDefault: true),
                 ColumnDefinition(key: "InternalName", displayName: "Internal Name", isDefault: true),
                 ColumnDefinition(key: "IsBackgroundProcess", displayName: "Is Background Process", isDefault: true)
@@ -2052,7 +2052,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "ElevationCount", displayName: "Elevation Count", isDefault: true),
                 ColumnDefinition(key: "ElevationType", displayName: "Elevation Type", isDefault: true),
                 ColumnDefinition(key: "FileName", displayName: "File Name", isDefault: true),
-                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: true),
+                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: false),
                 ColumnDefinition(key: "Hash", displayName: "Hash", isDefault: true),
                 ColumnDefinition(key: "InternalName", displayName: "Internal Name", isDefault: true),
                 ColumnDefinition(key: "IsBackgroundProcess", displayName: "Is Background Process", isDefault: true)
@@ -2101,7 +2101,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "ManagedCount", displayName: "Managed Count", isDefault: true),
                 ColumnDefinition(key: "TotalCount", displayName: "Total Count", isDefault: true),
                 ColumnDefinition(key: "UnmanagedCount", displayName: "Unmanaged Count", isDefault: true),
-                ColumnDefinition(key: "Upn", displayName: "Upn", isDefault: true),
+                ColumnDefinition(key: "Upn", displayName: "UPN", isDefault: true),
             ]
         )
 
@@ -2117,7 +2117,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "ManagedCount", displayName: "Managed Count", isDefault: true),
                 ColumnDefinition(key: "TotalCount", displayName: "Total Count", isDefault: true),
                 ColumnDefinition(key: "UnmanagedCount", displayName: "Unmanaged Count", isDefault: true),
-                ColumnDefinition(key: "Upn", displayName: "Upn", isDefault: true),
+                ColumnDefinition(key: "Upn", displayName: "UPN", isDefault: true),
             ]
         )
 
@@ -2133,11 +2133,11 @@ class ReportRegistry {
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "ElevationType", displayName: "Elevation Type", isDefault: true),
-                ColumnDefinition(key: "FileDescription", displayName: "File Description", isDefault: true),
+                ColumnDefinition(key: "FileDescription", displayName: "File Description", isDefault: false),
                 ColumnDefinition(key: "FileInternalName", displayName: "File Internal Name", isDefault: true),
                 ColumnDefinition(key: "FileName", displayName: "File Name", isDefault: true),
                 ColumnDefinition(key: "FileProductName", displayName: "File Product Name", isDefault: true),
-                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: true),
+                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: false),
                 ColumnDefinition(key: "HashValue", displayName: "Hash Value", isDefault: true),
                 ColumnDefinition(key: "MonthElevationCount", displayName: "Month Elevation Count", isDefault: true),
                 ColumnDefinition(key: "Publisher", displayName: "Publisher", isDefault: true),
@@ -2159,9 +2159,9 @@ class ReportRegistry {
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "FileName", displayName: "File Name", isDefault: true),
                 ColumnDefinition(key: "FileProductName", displayName: "File Product Name", isDefault: true),
-                ColumnDefinition(key: "FileDescription", displayName: "File Description", isDefault: true),
+                ColumnDefinition(key: "FileDescription", displayName: "File Description", isDefault: false),
                 ColumnDefinition(key: "FileInternalName", displayName: "File Internal Name", isDefault: true),
-                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: true),
+                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: false),
                 ColumnDefinition(key: "HashValue", displayName: "Hash Value", isDefault: true),
                 ColumnDefinition(key: "Publisher", displayName: "Publisher", isDefault: true),
                 ColumnDefinition(key: "ElevationType", displayName: "Elevation Type", isDefault: true),
@@ -2183,7 +2183,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "ElevationCount", displayName: "Elevation Count", isDefault: true),
                 ColumnDefinition(key: "ElevationType", displayName: "Elevation Type", isDefault: true),
                 ColumnDefinition(key: "FileName", displayName: "File Name", isDefault: true),
-                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: true),
+                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: false),
                 ColumnDefinition(key: "HashValue", displayName: "Hash Value", isDefault: true),
                 ColumnDefinition(key: "Publisher", displayName: "Publisher", isDefault: true),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
@@ -2207,9 +2207,9 @@ class ReportRegistry {
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "ElevationType", displayName: "Elevation Type", isDefault: true),
                 ColumnDefinition(key: "EventDateTime", displayName: "Event Date Time", isDefault: true),
-                ColumnDefinition(key: "FileDescription", displayName: "File Description", isDefault: true),
+                ColumnDefinition(key: "FileDescription", displayName: "File Description", isDefault: false),
                 ColumnDefinition(key: "FilePath", displayName: "File Path", isDefault: true),
-                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: true),
+                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: false),
                 ColumnDefinition(key: "Hash", displayName: "Hash", isDefault: true),
                 ColumnDefinition(key: "Id", displayName: "Id", isDefault: true),
                 ColumnDefinition(key: "InternalName", displayName: "Internal Name", isDefault: true),
@@ -2222,7 +2222,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "ProductName", displayName: "Product Name", isDefault: true),
                 ColumnDefinition(key: "Result", displayName: "Result", isDefault: true),
                 ColumnDefinition(key: "RuleId", displayName: "Rule Id", isDefault: true),
-                ColumnDefinition(key: "Upn", displayName: "Upn", isDefault: true),
+                ColumnDefinition(key: "Upn", displayName: "UPN", isDefault: true),
                 ColumnDefinition(key: "UserType", displayName: "User Type", isDefault: true)
             ]
         )
@@ -2254,7 +2254,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "ElevationType", displayName: "Elevation Type", isDefault: true),
                 ColumnDefinition(key: "FileInternalName", displayName: "File Internal Name", isDefault: true),
                 ColumnDefinition(key: "FileName", displayName: "File Name", isDefault: true),
-                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: true),
+                ColumnDefinition(key: "FileVersion", displayName: "File Version", isDefault: false),
                 ColumnDefinition(key: "HashValue", displayName: "Hash Value", isDefault: true),
                 ColumnDefinition(key: "MonthElevationCount", displayName: "Month Elevation Count", isDefault: true),
                 ColumnDefinition(key: "Publisher", displayName: "Publisher", isDefault: true)
@@ -2310,9 +2310,9 @@ class ReportRegistry {
                 ColumnDefinition(key: "LastReportedDateTime", displayName: "Last Reported Date Time", isDefault: true),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true),
-                ColumnDefinition(key: "_OS", displayName: "_OS", isDefault: true),
-                ColumnDefinition(key: "_ManagedBy", displayName: "_Managed By", isDefault: true),
-                ColumnDefinition(key: "ReferenceId", displayName: "Reference Id", isDefault: true)
+                ColumnDefinition(key: "_OS", displayName: "OS", isDefault: true),
+                ColumnDefinition(key: "_ManagedBy", displayName: "Managed By", isDefault: true),
+                ColumnDefinition(key: "ReferenceId", displayName: "Reference Id", isDefault: false)
             ]
         )
 
@@ -2346,10 +2346,10 @@ class ReportRegistry {
                 ColumnDefinition(key: "ApplicationName", displayName: "Application Name", isDefault: true),
                 ColumnDefinition(key: "AppLastModifiedTime", displayName: "App Last Modified Time", isDefault: true),
                 ColumnDefinition(key: "AppType", displayName: "App Type", isDefault: true),
-                ColumnDefinition(key: "CurrentAppVersion", displayName: "Current App Version", isDefault: true),
+                ColumnDefinition(key: "CurrentAppVersion", displayName: "Current App Version", isDefault: false),
                 ColumnDefinition(key: "InstalledDeviceCount", displayName: "Installed Device Count", isDefault: true),
                 ColumnDefinition(key: "IsSuperseded", displayName: "Is Superseded", isDefault: true),
-                ColumnDefinition(key: "LatestAvailableVersion", displayName: "Latest Available Version", isDefault: true),
+                ColumnDefinition(key: "LatestAvailableVersion", displayName: "Latest Available Version", isDefault: false),
                 ColumnDefinition(key: "UpdateAvailable", displayName: "Update Available", isDefault: true)
             ]
         )
@@ -2363,7 +2363,7 @@ class ReportRegistry {
             supportedFilters: [
                 FilterDefinition(key: "AttestationStatus", displayName: "Attestation Status", type: .text),
                 FilterDefinition(key: "Ownership", displayName: "Ownership", type: .text),
-                FilterDefinition(key: "OSDescription", displayName: "OSDescription", type: .text)
+                FilterDefinition(key: "OSDescription", displayName: "OS Description", type: .text)
             ],
             supportedColumns: [
                 ColumnDefinition(key: "AttestationStatus", displayName: "Attestation Status", isDefault: true),
@@ -2373,12 +2373,12 @@ class ReportRegistry {
                 ColumnDefinition(key: "EnrolledByUser", displayName: "Enrolled By User", isDefault: true),
                 ColumnDefinition(key: "EnrollmentDate", displayName: "Enrollment Date", isDefault: true),
                 ColumnDefinition(key: "LastCheckin", displayName: "Last Checkin", isDefault: true),
-                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: false),
                 ColumnDefinition(key: "OS", displayName: "OS", isDefault: true),
-                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
-                ColumnDefinition(key: "Ownership", displayName: "Ownership", isDefault: true),
-                ColumnDefinition(key: "TpmManufacturer", displayName: "Tpm Manufacturer", isDefault: true),
-                ColumnDefinition(key: "TpmVersion", displayName: "Tpm Version", isDefault: true),
+                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: false),
+                ColumnDefinition(key: "Ownership", displayName: "Ownership", isDefault: false),
+                ColumnDefinition(key: "TpmManufacturer", displayName: "TPM Manufacturer", isDefault: false),
+                ColumnDefinition(key: "TpmVersion", displayName: "TPM Version", isDefault: false),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true)
             ]
         )
@@ -2430,22 +2430,22 @@ class ReportRegistry {
             supportedFilters: [
             ],
             supportedColumns: [
-                ColumnDefinition(key: "AADDeviceID", displayName: "AADDevice ID", isDefault: true),
-                ColumnDefinition(key: "AndroidMamSdkVersion", displayName: "Android Mam Sdk Version", isDefault: true),
-                ColumnDefinition(key: "AndroidSecurityPatchVersion", displayName: "Android Security Patch Version", isDefault: true),
+                ColumnDefinition(key: "AADDeviceID", displayName: "AAD Device ID", isDefault: true),
+                ColumnDefinition(key: "AndroidMamSdkVersion", displayName: "Android MAM SDK Version", isDefault: false),
+                ColumnDefinition(key: "AndroidSecurityPatchVersion", displayName: "Android Security Patch Version", isDefault: false),
                 ColumnDefinition(key: "App", displayName: "App", isDefault: true),
                 ColumnDefinition(key: "AppInstanceId", displayName: "App Instance Id", isDefault: true),
-                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: true),
-                ColumnDefinition(key: "DeviceManufacturer", displayName: "Device Manufacturer", isDefault: true),
-                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: true),
+                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: false),
+                ColumnDefinition(key: "DeviceManufacturer", displayName: "Device Manufacturer", isDefault: false),
+                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: false),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "DeviceType", displayName: "Device Type", isDefault: true),
-                ColumnDefinition(key: "Email", displayName: "Email", isDefault: true),
-                ColumnDefinition(key: "iOSSdkVersion", displayName: "i OSSdk Version", isDefault: true),
+                ColumnDefinition(key: "Email", displayName: "Email", isDefault: false),
+                ColumnDefinition(key: "iOSSdkVersion", displayName: "iOS SDK Version", isDefault: false),
                 ColumnDefinition(key: "LastSync", displayName: "Last Sync", isDefault: true),
-                ColumnDefinition(key: "MDMDeviceID", displayName: "MDMDevice ID", isDefault: true),
-                ColumnDefinition(key: "_Platform", displayName: "_Platform", isDefault: true),
-                ColumnDefinition(key: "PlatformVersion", displayName: "Platform Version", isDefault: true),
+                ColumnDefinition(key: "MDMDeviceID", displayName: "MDM Device ID", isDefault: true),
+                ColumnDefinition(key: "_Platform", displayName: "Platform", isDefault: true),
+                ColumnDefinition(key: "PlatformVersion", displayName: "Platform Version", isDefault: false),
                 ColumnDefinition(key: "Policy", displayName: "Policy", isDefault: true),
                 ColumnDefinition(key: "User", displayName: "User", isDefault: true)
             ]
@@ -2460,22 +2460,22 @@ class ReportRegistry {
             supportedFilters: [
             ],
             supportedColumns: [
-                ColumnDefinition(key: "AADDeviceID", displayName: "AADDevice ID", isDefault: true),
-                ColumnDefinition(key: "AndroidMamSdkVersion", displayName: "Android Mam Sdk Version", isDefault: true),
-                ColumnDefinition(key: "AndroidSecurityPatchVersion", displayName: "Android Security Patch Version", isDefault: true),
+                ColumnDefinition(key: "AADDeviceID", displayName: "AAD Device ID", isDefault: true),
+                ColumnDefinition(key: "AndroidMamSdkVersion", displayName: "Android MAM SDK Version", isDefault: false),
+                ColumnDefinition(key: "AndroidSecurityPatchVersion", displayName: "Android Security Patch Version", isDefault: false),
                 ColumnDefinition(key: "App", displayName: "App", isDefault: true),
                 ColumnDefinition(key: "AppInstanceId", displayName: "App Instance Id", isDefault: true),
-                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: true),
-                ColumnDefinition(key: "DeviceManufacturer", displayName: "Device Manufacturer", isDefault: true),
-                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: true),
+                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: false),
+                ColumnDefinition(key: "DeviceManufacturer", displayName: "Device Manufacturer", isDefault: false),
+                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: false),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "DeviceType", displayName: "Device Type", isDefault: true),
-                ColumnDefinition(key: "Email", displayName: "Email", isDefault: true),
-                ColumnDefinition(key: "iOSSdkVersion", displayName: "i OSSdk Version", isDefault: true),
+                ColumnDefinition(key: "Email", displayName: "Email", isDefault: false),
+                ColumnDefinition(key: "iOSSdkVersion", displayName: "iOS SDK Version", isDefault: false),
                 ColumnDefinition(key: "LastSync", displayName: "Last Sync", isDefault: true),
-                ColumnDefinition(key: "MDMDeviceID", displayName: "MDMDevice ID", isDefault: true),
-                ColumnDefinition(key: "_Platform", displayName: "_Platform", isDefault: true),
-                ColumnDefinition(key: "PlatformVersion", displayName: "Platform Version", isDefault: true),
+                ColumnDefinition(key: "MDMDeviceID", displayName: "MDM Device ID", isDefault: true),
+                ColumnDefinition(key: "_Platform", displayName: "Platform", isDefault: true),
+                ColumnDefinition(key: "PlatformVersion", displayName: "Platform Version", isDefault: false),
                 ColumnDefinition(key: "Policy", displayName: "Policy", isDefault: true),
                 ColumnDefinition(key: "User", displayName: "User", isDefault: true)
             ]
@@ -2509,25 +2509,25 @@ class ReportRegistry {
             supportedFilters: [
             ],
             supportedColumns: [
-                ColumnDefinition(key: "AADDeviceID", displayName: "AADDevice ID", isDefault: true),
-                ColumnDefinition(key: "AndroidMamSdkVersion", displayName: "Android Mam Sdk Version", isDefault: true),
-                ColumnDefinition(key: "AndroidSecurityPatchVersion", displayName: "Android Security Patch Version", isDefault: true),
+                ColumnDefinition(key: "AADDeviceID", displayName: "AAD Device ID", isDefault: true),
+                ColumnDefinition(key: "AndroidMamSdkVersion", displayName: "Android MAM SDK Version", isDefault: false),
+                ColumnDefinition(key: "AndroidSecurityPatchVersion", displayName: "Android Security Patch Version", isDefault: false),
                 ColumnDefinition(key: "App", displayName: "App", isDefault: true),
                 ColumnDefinition(key: "AppInstanceId", displayName: "App Instance Id", isDefault: true),
                 ColumnDefinition(key: "AppProtectionStatus", displayName: "App Protection Status", isDefault: true),
-                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: true),
+                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: false),
                 ColumnDefinition(key: "ComplianceState", displayName: "Compliance State", isDefault: true),
-                ColumnDefinition(key: "DeviceManufacturer", displayName: "Device Manufacturer", isDefault: true),
-                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: true),
+                ColumnDefinition(key: "DeviceManufacturer", displayName: "Device Manufacturer", isDefault: false),
+                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: false),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "DeviceType", displayName: "Device Type", isDefault: true),
-                ColumnDefinition(key: "Email", displayName: "Email", isDefault: true),
-                ColumnDefinition(key: "iOSSdkVersion", displayName: "i OSSdk Version", isDefault: true),
+                ColumnDefinition(key: "Email", displayName: "Email", isDefault: false),
+                ColumnDefinition(key: "iOSSdkVersion", displayName: "iOS SDK Version", isDefault: false),
                 ColumnDefinition(key: "LastSync", displayName: "Last Sync", isDefault: true),
                 ColumnDefinition(key: "ManagementType", displayName: "Management Type", isDefault: true),
-                ColumnDefinition(key: "MDMDeviceID", displayName: "MDMDevice ID", isDefault: true),
-                ColumnDefinition(key: "_Platform", displayName: "_Platform", isDefault: true),
-                ColumnDefinition(key: "PlatformVersion", displayName: "Platform Version", isDefault: true),
+                ColumnDefinition(key: "MDMDeviceID", displayName: "MDM Device ID", isDefault: true),
+                ColumnDefinition(key: "_Platform", displayName: "Platform", isDefault: true),
+                ColumnDefinition(key: "PlatformVersion", displayName: "Platform Version", isDefault: false),
                 ColumnDefinition(key: "Policy", displayName: "Policy", isDefault: true),
                 ColumnDefinition(key: "User", displayName: "User", isDefault: true)
             ]
@@ -2542,25 +2542,25 @@ class ReportRegistry {
             supportedFilters: [
             ],
             supportedColumns: [
-                ColumnDefinition(key: "AADDeviceID", displayName: "AADDevice ID", isDefault: true),
-                ColumnDefinition(key: "AndroidMamSdkVersion", displayName: "Android Mam Sdk Version", isDefault: true),
-                ColumnDefinition(key: "AndroidSecurityPatchVersion", displayName: "Android Security Patch Version", isDefault: true),
+                ColumnDefinition(key: "AADDeviceID", displayName: "AAD Device ID", isDefault: true),
+                ColumnDefinition(key: "AndroidMamSdkVersion", displayName: "Android MAM SDK Version", isDefault: false),
+                ColumnDefinition(key: "AndroidSecurityPatchVersion", displayName: "Android Security Patch Version", isDefault: false),
                 ColumnDefinition(key: "App", displayName: "App", isDefault: true),
                 ColumnDefinition(key: "AppInstanceId", displayName: "App Instance Id", isDefault: true),
                 ColumnDefinition(key: "AppProtectionStatus", displayName: "App Protection Status", isDefault: true),
-                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: true),
+                ColumnDefinition(key: "AppVersion", displayName: "App Version", isDefault: false),
                 ColumnDefinition(key: "ComplianceState", displayName: "Compliance State", isDefault: true),
-                ColumnDefinition(key: "DeviceManufacturer", displayName: "Device Manufacturer", isDefault: true),
-                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: true),
+                ColumnDefinition(key: "DeviceManufacturer", displayName: "Device Manufacturer", isDefault: false),
+                ColumnDefinition(key: "DeviceModel", displayName: "Device Model", isDefault: false),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "DeviceType", displayName: "Device Type", isDefault: true),
-                ColumnDefinition(key: "Email", displayName: "Email", isDefault: true),
-                ColumnDefinition(key: "iOSSdkVersion", displayName: "i OSSdk Version", isDefault: true),
+                ColumnDefinition(key: "Email", displayName: "Email", isDefault: false),
+                ColumnDefinition(key: "iOSSdkVersion", displayName: "iOS SDK Version", isDefault: false),
                 ColumnDefinition(key: "LastSync", displayName: "Last Sync", isDefault: true),
                 ColumnDefinition(key: "ManagementType", displayName: "Management Type", isDefault: true),
-                ColumnDefinition(key: "MDMDeviceID", displayName: "MDMDevice ID", isDefault: true),
-                ColumnDefinition(key: "_Platform", displayName: "_Platform", isDefault: true),
-                ColumnDefinition(key: "PlatformVersion", displayName: "Platform Version", isDefault: true),
+                ColumnDefinition(key: "MDMDeviceID", displayName: "MDM Device ID", isDefault: true),
+                ColumnDefinition(key: "_Platform", displayName: "Platform", isDefault: true),
+                ColumnDefinition(key: "PlatformVersion", displayName: "Platform Version", isDefault: false),
                 ColumnDefinition(key: "Policy", displayName: "Policy", isDefault: true),
                 ColumnDefinition(key: "User", displayName: "User", isDefault: true)
             ]
@@ -2581,12 +2581,12 @@ class ReportRegistry {
                 FilterDefinition(key: "WindowsUpdateVersion", displayName: "Windows Update Version", type: .text)
             ],
             supportedColumns: [
-                ColumnDefinition(key: "AADDeviceId", displayName: "AADDevice Id", isDefault: true),
+                ColumnDefinition(key: "AADDeviceId", displayName: "AAD Device Id", isDefault: true),
                 ColumnDefinition(key: "AlertClassification", displayName: "Alert Classification", isDefault: true),
                 ColumnDefinition(key: "AlertId", displayName: "Alert Id", isDefault: true),
                 ColumnDefinition(key: "AlertMessage", displayName: "Alert Message", isDefault: true),
                 ColumnDefinition(key: "AlertMessageData", displayName: "Alert Message Data", isDefault: true),
-                ColumnDefinition(key: "AlertMessageDescription", displayName: "Alert Message Description", isDefault: true),
+                ColumnDefinition(key: "AlertMessageDescription", displayName: "Alert Message Description", isDefault: false),
                 ColumnDefinition(key: "AlertStatus", displayName: "Alert Status", isDefault: true),
                 ColumnDefinition(key: "AlertType", displayName: "Alert Type", isDefault: true),
                 ColumnDefinition(key: "Build", displayName: "Build", isDefault: true),
@@ -2594,7 +2594,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "EventDateTimeUTC", displayName: "Event Date Time UTC", isDefault: true),
                 ColumnDefinition(key: "ExtendedRecommendedAction", displayName: "Extended Recommended Action", isDefault: true),
-                ColumnDefinition(key: "FeatureUpdateVersion", displayName: "Feature Update Version", isDefault: true),
+                ColumnDefinition(key: "FeatureUpdateVersion", displayName: "Feature Update Version", isDefault: false),
                 ColumnDefinition(key: "LastUpdatedAlertStatusDateTimeUTC", displayName: "Last Updated Alert Status Date Time UTC", isDefault: true),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
                 ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
@@ -2602,8 +2602,8 @@ class ReportRegistry {
                 ColumnDefinition(key: "ResolvedDateTimeUTC", displayName: "Resolved Date Time UTC", isDefault: true),
                 ColumnDefinition(key: "StartDateTimeUTC", displayName: "Start Date Time UTC", isDefault: true),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
-                ColumnDefinition(key: "Win32ErrorCode", displayName: "Win32Error Code", isDefault: true),
-                ColumnDefinition(key: "WindowsUpdateVersion", displayName: "Windows Update Version", isDefault: true)
+                ColumnDefinition(key: "Win32ErrorCode", displayName: "Win32 Error Code", isDefault: true),
+                ColumnDefinition(key: "WindowsUpdateVersion", displayName: "Windows Update Version", isDefault: false)
             ],
             requiredParameters: ["PolicyId"]
         )
@@ -2641,7 +2641,7 @@ class ReportRegistry {
                 FilterDefinition(key: "PolicyId", displayName: "Policy Id", type: .text, isRequired: true)
             ],
             supportedColumns: [
-                ColumnDefinition(key: "AADDeviceId", displayName: "AADDevice Id", isDefault: true),
+                ColumnDefinition(key: "AADDeviceId", displayName: "AAD Device Id", isDefault: true),
                 ColumnDefinition(key: "AggregateState", displayName: "Aggregate State", isDefault: true),
                 ColumnDefinition(key: "Build", displayName: "Build", isDefault: true),
                 ColumnDefinition(key: "CurrentDeviceUpdateStatus", displayName: "Current Device Update Status", isDefault: true),
@@ -2650,22 +2650,22 @@ class ReportRegistry {
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
                 ColumnDefinition(key: "EventDateTimeUTC", displayName: "Event Date Time UTC", isDefault: true),
-                ColumnDefinition(key: "FeatureUpdateVersion", displayName: "Feature Update Version", isDefault: true),
+                ColumnDefinition(key: "FeatureUpdateVersion", displayName: "Feature Update Version", isDefault: false),
                 ColumnDefinition(key: "LastSuccessfulDeviceUpdateStatus", displayName: "Last Successful Device Update Status", isDefault: true),
                 ColumnDefinition(key: "LastSuccessfulDeviceUpdateStatusEventDateTimeUTC", displayName: "Last Successful Device Update Status Event Date Time UTC", isDefault: true),
                 ColumnDefinition(key: "LastSuccessfulDeviceUpdateSubstatus", displayName: "Last Successful Device Update Substatus", isDefault: true),
-                ColumnDefinition(key: "LastWUScanTimeUTC", displayName: "Last WUScan Time UTC", isDefault: true),
+                ColumnDefinition(key: "LastWUScanTimeUTC", displayName: "Last WU Scan Time UTC", isDefault: true),
                 ColumnDefinition(key: "LatestAlertExtendedRecommendedAction", displayName: "Latest Alert Extended Recommended Action", isDefault: true),
                 ColumnDefinition(key: "LatestAlertMessage", displayName: "Latest Alert Message", isDefault: true),
-                ColumnDefinition(key: "LatestAlertMessageDescription", displayName: "Latest Alert Message Description", isDefault: true),
+                ColumnDefinition(key: "LatestAlertMessageDescription", displayName: "Latest Alert Message Description", isDefault: false),
                 ColumnDefinition(key: "LatestAlertRecommendedAction", displayName: "Latest Alert Recommended Action", isDefault: true),
-                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: true),
+                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: false),
                 ColumnDefinition(key: "PartnerPolicyId", displayName: "Partner Policy Id", isDefault: true),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
                 ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
-                ColumnDefinition(key: "UpdateCategory", displayName: "Update Category", isDefault: true),
+                ColumnDefinition(key: "UpdateCategory", displayName: "Update Category", isDefault: false),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
-                ColumnDefinition(key: "WindowsUpdateVersion", displayName: "Windows Update Version", isDefault: true)
+                ColumnDefinition(key: "WindowsUpdateVersion", displayName: "Windows Update Version", isDefault: false)
             ],
             requiredParameters: ["PolicyId"]
         )
@@ -2699,7 +2699,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "CountDevicesErrorStatus", displayName: "Count Devices Error Status", isDefault: true),
                 ColumnDefinition(key: "CountDevicesInProgressStatus", displayName: "Count Devices In Progress Status", isDefault: true),
                 ColumnDefinition(key: "CountDevicesSuccessStatus", displayName: "Count Devices Success Status", isDefault: true),
-                ColumnDefinition(key: "FeatureUpdateVersion", displayName: "Feature Update Version", isDefault: true),
+                ColumnDefinition(key: "FeatureUpdateVersion", displayName: "Feature Update Version", isDefault: false),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
                 ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true)
             ]
@@ -2720,10 +2720,10 @@ class ReportRegistry {
                 ColumnDefinition(key: "AlertMessage_loc", displayName: "Alert Message_loc", isDefault: true),
                 ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
                 ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
-                ColumnDefinition(key: "ExpediteQUReleaseDate", displayName: "Expedite QURelease Date", isDefault: true),
+                ColumnDefinition(key: "ExpediteQUReleaseDate", displayName: "Expedite QU Release Date", isDefault: true),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
-                ColumnDefinition(key: "Win32ErrorCode", displayName: "Win32Error Code", isDefault: true)
+                ColumnDefinition(key: "Win32ErrorCode", displayName: "Win32 Error Code", isDefault: true)
             ],
             requiredParameters: ["PolicyId"]
         )
@@ -2740,7 +2740,7 @@ class ReportRegistry {
                 FilterDefinition(key: "PolicyId", displayName: "Policy Id", type: .text, isRequired: true)
             ],
             supportedColumns: [
-                ColumnDefinition(key: "AADDeviceId", displayName: "AADDevice Id", isDefault: true),
+                ColumnDefinition(key: "AADDeviceId", displayName: "AAD Device Id", isDefault: true),
                 ColumnDefinition(key: "AggregateState", displayName: "Aggregate State", isDefault: true),
                 ColumnDefinition(key: "AggregateState_loc", displayName: "Aggregate State_loc", isDefault: true),
                 ColumnDefinition(key: "CurrentDeviceUpdateStatus", displayName: "Current Device Update Status", isDefault: true),
@@ -2753,7 +2753,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "LastWUScanTimeUTC", displayName: "Last WUScan Time UTC", isDefault: true),
                 ColumnDefinition(key: "LatestAlertMessage", displayName: "Latest Alert Message", isDefault: true),
                 ColumnDefinition(key: "LatestAlertMessage_loc", displayName: "Latest Alert Message_loc", isDefault: true),
-                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: true),
+                ColumnDefinition(key: "OwnerType", displayName: "Owner Type", isDefault: false),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
                 ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true)
             ],
@@ -2772,7 +2772,7 @@ class ReportRegistry {
                 ColumnDefinition(key: "CountDevicesErrorStatus", displayName: "Count Devices Error Status", isDefault: true),
                 ColumnDefinition(key: "CountDevicesInProgressStatus", displayName: "Count Devices In Progress Status", isDefault: true),
                 ColumnDefinition(key: "CountDevicesSuccessStatus", displayName: "Count Devices Success Status", isDefault: true),
-                ColumnDefinition(key: "ExpediteQUReleaseDate", displayName: "Expedite QURelease Date", isDefault: true),
+                ColumnDefinition(key: "ExpediteQUReleaseDate", displayName: "Expedite QU Release Date", isDefault: true),
                 ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
                 ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true)
             ]
@@ -2798,21 +2798,21 @@ class ReportRegistry {
         )
 
         // MARK: - User Reports
-        reports["Users"] = ReportDefinition(
-            type: "Users",
-            displayName: "Users",
-            description: "See all Users",
-            category: "Users",
-            intuneConsolePath: "Under Users",
-            supportedFilters: [
-            ],
-            supportedColumns: [
-                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
-                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: true),
-                ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
-                ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
-            ]
-        )
+//        reports["Users"] = ReportDefinition(
+//            type: "Users",
+//            displayName: "Users",
+//            description: "See all Users",
+//            category: "Users",
+//            intuneConsolePath: "Under Users",
+//            supportedFilters: [
+//            ],
+//            supportedColumns: [
+//                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
+//                ColumnDefinition(key: "UserEmail", displayName: "User Email", isDefault: false),
+//                ColumnDefinition(key: "UserId", displayName: "User Id", isDefault: true),
+//                ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
+//            ]
+//        )
 
     }
 }
