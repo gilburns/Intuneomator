@@ -329,7 +329,7 @@ class ScriptEditorViewController: NSViewController, TabbedSheetChildProtocol, NS
         let savePanel = NSSavePanel()
         savePanel.message = "Save Script"
         savePanel.nameFieldStringValue = scriptName + ".sh" // Default file name
-        savePanel.allowedFileTypes = ["sh"] // Only allow shell script files
+        savePanel.allowedContentTypes = [.shellScript, .text, .pythonScript] // Only allow shell script files
         
         savePanel.begin { response in
             if response == .OK, let fileURL = savePanel.url {
