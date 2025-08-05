@@ -153,7 +153,7 @@ extension XPCService {
 
             let success = await withTaskGroup(of: Bool.self) { group in
                 for folderName in validFolders {
-                    group.addTask { [self] in
+                    group.addTask {
                         let labelName = folderName.components(separatedBy: "_")[0]
                         let trackingID = folderName.components(separatedBy: "_")[1]
 
