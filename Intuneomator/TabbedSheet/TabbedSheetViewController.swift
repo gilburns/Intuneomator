@@ -214,7 +214,7 @@ class TabbedSheetViewController: NSViewController {
     private func collectDataFromAllTabs() -> [String: Any] {
         var combinedData: [String: Any] = initialData
         
-        for (index, childVC) in tabChildViewControllers.enumerated() {
+        for (_, childVC) in tabChildViewControllers.enumerated() {
             if let protocolChild = childVC as? TabbedSheetChildProtocol {
                 if let childData = protocolChild.getDataForSave() {
                     // Merge child data into combined data
