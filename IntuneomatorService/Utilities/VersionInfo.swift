@@ -11,8 +11,8 @@ import Foundation
 struct VersionInfo {
     
     // MARK: - Version Constants (Update when preparing a release)
-    private static let DAEMON_VERSION = "1.0.1"
-    private static let DAEMON_BUILD = "077"
+    private static let DAEMON_VERSION = "1.0.2"
+    private static let DAEMON_BUILD = "182"
     
     /// Gets the current daemon version information
     /// - Returns: Tuple containing version and build strings
