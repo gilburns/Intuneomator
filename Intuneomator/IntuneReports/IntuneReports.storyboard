@@ -715,14 +715,14 @@ Gw
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <scrollView fixedFrame="YES" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="SRM-scroll-view">
-                                <rect key="frame" x="20" y="78" width="760" height="499"/>
+                                <rect key="frame" x="20" y="78" width="760" height="461"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <clipView key="contentView" id="SRM-clip-view">
-                                    <rect key="frame" x="1" y="1" width="758" height="497"/>
+                                    <rect key="frame" x="1" y="1" width="758" height="459"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" headerView="SRM-header-view" viewBased="YES" id="SRM-table-view">
-                                            <rect key="frame" x="0.0" y="0.0" width="758" height="474"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="758" height="436"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -854,9 +854,9 @@ Gw
                                 </connections>
                             </button>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="SRM-status-label">
-                                <rect key="frame" x="400" y="59" width="382" height="14"/>
+                                <rect key="frame" x="18" y="59" width="764" height="14"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                                <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="Ready" id="SRM-status-cell">
+                                <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" alignment="right" title="Ready" id="SRM-status-cell">
                                     <font key="font" metaFont="smallSystem"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -917,6 +917,22 @@ Gw
                                     <action selector="enableDisableButtonClicked:" target="SRM-vc-001" id="J70-7c-4Go"/>
                                 </connections>
                             </button>
+                            <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" baseWritingDirection="leftToRight" alignment="left" translatesAutoresizingMaskIntoConstraints="NO" id="EVc-NV-n8b">
+                                <rect key="frame" x="18" y="556" width="42" height="25"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <connections>
+                                    <action selector="enableReportsSwitchViewClicked:" target="SRM-vc-001" id="E6i-O0-emk"/>
+                                </connections>
+                            </switch>
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="WwJ-gm-L1f">
+                                <rect key="frame" x="64" y="561" width="204" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="Enable Intune Report Automation" id="rTu-tQ-Lje">
+                                    <font key="font" usesAppearanceFont="YES"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                     </view>
                     <connections>
@@ -924,6 +940,7 @@ Gw
                         <outlet property="deleteButton" destination="SRM-delete-btn" id="SRM-delete-outlet"/>
                         <outlet property="editButton" destination="SRM-edit-btn" id="SRM-edit-outlet"/>
                         <outlet property="enableDisableButton" destination="EBK-L2-cfk" id="LmT-Ez-dTc"/>
+                        <outlet property="enableReportsSwitchView" destination="EVc-NV-n8b" id="YdG-HP-TP8"/>
                         <outlet property="refreshButton" destination="Bls-gv-Sro" id="keU-8x-k74"/>
                         <outlet property="runNowButton" destination="tkr-wm-Oul" id="67e-kB-4hH"/>
                         <outlet property="statusLabel" destination="SRM-status-label" id="SRM-status-outlet"/>
