@@ -13,8 +13,10 @@ DAEMON_DIR="/Library/LaunchDaemons"
 SERVICE_SETTINGS_PATH="/Library/Application Support/Intuneomator/IntuneomatorService.plist"
 SERVICE_STATUS_PATH="/Library/Application Support/Intuneomator/IntuneomatorStatus.json"
 TRIGGER_PATH="/Library/Application Support/Intuneomator"
+SCHEDULED_REPORTS="com.gilburns.intuneomator.scheduledreports.plist"
 BACKUP_DIR="/tmp/Intuneomator_Install_Backup"
 BACKUP_SETTINGS_PATH="$BACKUP_DIR/IntuneomatorService.plist"
+BACKUP_SCHEDREPORTS_PATH="$BACKUP_DIR/$SCHEDULED_REPORTS"
 
 # List of daemon watch path filenames
 triggers=(
@@ -66,6 +68,19 @@ else
   # Create empty marker file to indicate no settings existed
   touch "$BACKUP_DIR/no_settings_existed"
 fi
+
+# Backup scheduled reports daemon if it exists
+if [[ -f "$DAEMON_DIR/$SCHEDULED_REPORTS" ]]; then
+  echo "Backing up daemon from: $SCHEDULED_REPORTS"
+  cp "$DAEMON_DIR/$SCHEDULED_REPORTS" "$BACKUP_SCHEDREPORTS_PATH"
+  echo "Daemon backed up to: $BACKUP_SCHEDREPORTS_PATH"
+else
+  echo "No existing service settings found at: $SCHEDULED_REPORTS"
+  # Create empty marker file to indicate no settings existed
+  touch "$BACKUP_DIR/no_scheduledreports_existed"
+fi
+
+
 
 # === Unload Launch Daemons ===
 echo "Unloading launch daemons..."
