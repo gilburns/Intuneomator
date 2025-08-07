@@ -198,6 +198,7 @@ class AzureStorageSettingsViewController: NSViewController {
     private func handleConfigurationSaved(_ configuration: [String: Any], isNew: Bool) {
         markAsChanged()
         loadStorageConfigurations() // Reload to get updated data
+        testButton.isEnabled = false
     }
     
     private func removeConfigurationWithName(_ name: String) {
