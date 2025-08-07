@@ -763,7 +763,7 @@ extension XPCService {
             do {
                 Logger.info("Listing Azure Storage files using configuration '\(configurationName)'", category: .core)
                 let manager = try AzureStorageManager.withNamedConfiguration(configurationName)
-                let blobs = try await manager.listBlobs(prefix: "reports/")
+                let blobs = try await manager.listBlobs(prefix: nil)
                 
                 // Convert BlobInfo objects to dictionaries for XPC transfer
                 let fileList = blobs.map { blob -> [String: Any] in
@@ -831,7 +831,7 @@ extension XPCService {
                 let manager = try AzureStorageManager.withNamedConfiguration(configurationName)
                 
                 // Get list of files before deletion for reporting
-                let beforeBlobs = try await manager.listBlobs(prefix: "reports/")
+                let beforeBlobs = try await manager.listBlobs(prefix: nil)
                 let beforeCount = beforeBlobs.count
                 let beforeSize = beforeBlobs.compactMap { $0.size }.reduce(0, +)
                 
@@ -839,7 +839,7 @@ extension XPCService {
                 try await manager.deleteOldReports(olderThan: olderThanDays)
                 
                 // Get list of files after deletion for reporting
-                let afterBlobs = try await manager.listBlobs(prefix: "reports/")
+                let afterBlobs = try await manager.listBlobs(prefix: nil)
                 let afterCount = afterBlobs.count
                 let afterSize = afterBlobs.compactMap { $0.size }.reduce(0, +)
                 
