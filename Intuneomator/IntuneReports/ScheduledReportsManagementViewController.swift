@@ -13,6 +13,7 @@ class ScheduledReportsManagementViewController: NSViewController {
     
     // MARK: - UI Outlets
     
+    @IBOutlet weak var enableReportsSwitchView: NSSwitch!
     @IBOutlet weak var tableView: NSTableView!
     @IBOutlet weak var addButton: NSButton!
     @IBOutlet weak var editButton: NSButton!
@@ -46,7 +47,9 @@ class ScheduledReportsManagementViewController: NSViewController {
         super.viewDidLoad()
         setupTableView()
         setupButtons()
+        updateToggleButtonState()
         loadScheduledReports()
+        updateInterfaceEnabledState()
         startAutoRefresh()
     }
     
@@ -132,7 +135,6 @@ class ScheduledReportsManagementViewController: NSViewController {
         addButton.title = "Add"
         editButton.title = "Edit"
         deleteButton.title = "Delete"
-        enableDisableButton?.title = "Enable/Disable"
         runNowButton?.title = "Run Now"
         testScheduleButton?.title = "Test Schedule"
         viewLogsButton?.title = "View Logs"
@@ -181,46 +183,51 @@ class ScheduledReportsManagementViewController: NSViewController {
             statusText = "\(total) reports (\(enabled) enabled, \(disabled) disabled)"
         }
         
-        // Add scheduler status information
-        updateSchedulerStatus { [weak self] schedulerInfo in
-            DispatchQueue.main.async {
-                var fullStatusText = statusText
-                
-                if let schedulerInfo = schedulerInfo {
-                    let schedulerEnabled = schedulerInfo["schedulerEnabled"] as? Bool ?? false
-                    let interval = schedulerInfo["schedulerInterval"] as? Int ?? 600
-                    let overdueReports = schedulerInfo["overdueReports"] as? Int ?? 0
+        if enableReportsSwitchView.state == .on {
+            // Add scheduler status information
+            updateSchedulerStatus { [weak self] schedulerInfo in
+                DispatchQueue.main.async {
+                    var fullStatusText = statusText
                     
-                    // Add scheduler status
-                    let schedulerStatus = schedulerEnabled ? "✅ Active" : "⚠️ Inactive"
-                    fullStatusText += " • Scheduler: \(schedulerStatus) (every \(interval/60)min)"
-                    
-                    // Add last run information if available
-                    if let lastRun = schedulerInfo["lastSchedulerRun"] as? Date {
-                        let formatter = RelativeDateTimeFormatter()
-                        formatter.dateTimeStyle = .named
-                        let relativeTime = formatter.localizedString(for: lastRun, relativeTo: Date())
-                        fullStatusText += " • Last run: \(relativeTime)"
+                    if let schedulerInfo = schedulerInfo {
+                        let schedulerEnabled = schedulerInfo["schedulerEnabled"] as? Bool ?? false
+                        let interval = schedulerInfo["schedulerInterval"] as? Int ?? 600
+                        let overdueReports = schedulerInfo["overdueReports"] as? Int ?? 0
+                        
+                        // Add scheduler status
+                        let schedulerStatus = schedulerEnabled ? "✅ Active" : "⚠️ Inactive"
+                        fullStatusText += " • Scheduler: \(schedulerStatus) (every \(interval/60)min)"
+                        
+                        // Add last run information if available
+                        if let lastRun = schedulerInfo["lastSchedulerRun"] as? Date {
+                            let formatter = RelativeDateTimeFormatter()
+                            formatter.dateTimeStyle = .named
+                            let relativeTime = formatter.localizedString(for: lastRun, relativeTo: Date())
+                            fullStatusText += " • Last run: \(relativeTime)"
+                        }
+                        
+                        // Add overdue warning if needed
+                        if overdueReports > 0 {
+                            fullStatusText += " • ⚠️ \(overdueReports) overdue"
+                        }
+                        
+                        // Add next due time if available
+                        if let nextDue = schedulerInfo["nextReportDue"] as? Date {
+                            let formatter = RelativeDateTimeFormatter()
+                            formatter.dateTimeStyle = .named
+                            let relativeTime = formatter.localizedString(for: nextDue, relativeTo: Date())
+                            fullStatusText += " • Next due: \(relativeTime)"
+                        }
+                    } else {
+                        fullStatusText += " • Scheduler: Unknown"
                     }
                     
-                    // Add overdue warning if needed
-                    if overdueReports > 0 {
-                        fullStatusText += " • ⚠️ \(overdueReports) overdue"
-                    }
-                    
-                    // Add next due time if available
-                    if let nextDue = schedulerInfo["nextReportDue"] as? Date {
-                        let formatter = RelativeDateTimeFormatter()
-                        formatter.dateTimeStyle = .named
-                        let relativeTime = formatter.localizedString(for: nextDue, relativeTo: Date())
-                        fullStatusText += " • Next due: \(relativeTime)"
-                    }
-                } else {
-                    fullStatusText += " • Scheduler: Unknown"
+                    self?.statusLabel.stringValue = fullStatusText
                 }
-                
-                self?.statusLabel.stringValue = fullStatusText
             }
+
+        } else {
+            self.statusLabel.stringValue = "Scheduled reports are disabled. Enable them to utilize this feature."
         }
     }
     
@@ -247,7 +254,7 @@ class ScheduledReportsManagementViewController: NSViewController {
         if let report = selectedReport {
             enableDisableButton?.title = report.isEnabled ? "Disable" : "Enable"
         } else {
-            enableDisableButton?.title = "Enable/Disable"
+            enableDisableButton?.title = "Disable"
         }
     }
     
@@ -319,6 +326,28 @@ class ScheduledReportsManagementViewController: NSViewController {
     
     @IBAction func refreshButtonClicked(_ sender: NSButton) {
         loadScheduledReports()
+    }
+    
+    
+    @IBAction func enableReportsSwitchViewClicked(_ sender: NSSwitch) {
+        let isEnabled = sender.state == .on
+        
+        XPCManager.shared.toggleScheduledTask(label: "com.gilburns.intuneomator.scheduledreports", enable: isEnabled) { [weak self] success, message in
+            DispatchQueue.main.async {
+                if success {
+                    // Update interface state when daemon state changes successfully
+                    self?.updateInterfaceEnabledState()
+                } else {
+                    // Revert switch state on failure
+                    sender.state = isEnabled ? .off : .on
+                    let alert = NSAlert()
+                    alert.messageText = "Failed to \(isEnabled ? "enable" : "disable") task"
+                    alert.informativeText = message ?? "Unknown error occurred"
+                    alert.alertStyle = .warning
+                    alert.runModal()
+                }
+            }
+        }
     }
     
     // MARK: - Report Management Methods
@@ -551,6 +580,93 @@ class ScheduledReportsManagementViewController: NSViewController {
             appDelegate.openSettings()
         }
     }
+    
+    /// Updates the toggle switch state based on the current daemon's enabled/disabled status
+    private func updateToggleButtonState() {
+
+        let daemonPath = "/Library/LaunchDaemons/com.gilburns.intuneomator.scheduledreports.plist"
+        let daemonExists = FileManager.default.fileExists(atPath: daemonPath)
+        
+        enableReportsSwitchView.isEnabled = daemonExists
+        
+        if daemonExists {
+            let isDisabled = isDaemonDisabled(atPath: daemonPath)
+            enableReportsSwitchView.state = isDisabled ? .off : .on
+        } else {
+            enableReportsSwitchView.state = .off
+        }
+    }
+
+    /// Reads the Disabled state from the daemon plist file
+    /// - Parameter label: The daemon label to check
+    /// - Returns: True if daemon is disabled, false if enabled or if plist doesn't exist
+    private func isDaemonDisabled(atPath daemonPath: String) -> Bool {
+        let daemonPath = daemonPath
+        
+        guard FileManager.default.fileExists(atPath: daemonPath) else {
+            return false
+        }
+        
+        do {
+            let plistURL = URL(fileURLWithPath: daemonPath)
+            let plistData = try Data(contentsOf: plistURL)
+            guard let plistDict = try PropertyListSerialization.propertyList(from: plistData, options: [], format: nil) as? [String: Any] else {
+                return false
+            }
+            
+            return plistDict["Disabled"] as? Bool ?? false
+        } catch {
+            return false
+        }
+    }
+    
+    /// Updates the enabled/disabled state of interface elements based on daemon status
+    /// When daemon is disabled, users shouldn't be able to manage reports
+    private func updateInterfaceEnabledState() {
+        let daemonPath = "/Library/LaunchDaemons/com.gilburns.intuneomator.scheduledreports.plist"
+        let daemonExists = FileManager.default.fileExists(atPath: daemonPath)
+        let isDaemonEnabled = daemonExists && !isDaemonDisabled(atPath: daemonPath)
+        
+        // Enable/disable table view
+        tableView.isEnabled = isDaemonEnabled
+        
+        // Enable/disable main action buttons
+        addButton.isEnabled = isDaemonEnabled
+        editButton.isEnabled = isDaemonEnabled && tableView.selectedRow >= 0
+        deleteButton.isEnabled = isDaemonEnabled && tableView.selectedRow >= 0
+        refreshButton?.isEnabled = isDaemonEnabled
+        
+        // Enable/disable optional buttons if they exist
+        enableDisableButton?.isEnabled = isDaemonEnabled && tableView.selectedRow >= 0
+        runNowButton?.isEnabled = isDaemonEnabled && tableView.selectedRow >= 0
+        testScheduleButton?.isEnabled = isDaemonEnabled && tableView.selectedRow >= 0
+        viewLogsButton?.isEnabled = isDaemonEnabled && tableView.selectedRow >= 0
+        
+        // Visual feedback: make table view appear grayed out when disabled
+        tableView.alphaValue = isDaemonEnabled ? 1.0 : 0.6
+        
+        // Update button titles with contextual information
+        if !isDaemonEnabled {
+            addButton.toolTip = "Enable scheduled reporting to add reports"
+            editButton.toolTip = "Enable scheduled reporting to edit reports"
+            deleteButton.toolTip = "Enable scheduled reporting to delete reports"
+            refreshButton?.toolTip = "Enable scheduled reporting to delete reports"
+            enableDisableButton?.toolTip = "Enable scheduled reporting to delete reports"
+            statusLabel.stringValue = "Scheduled reports are disabled. Enable them to utilize this feature."
+        } else {
+            addButton.toolTip = nil
+            editButton.toolTip = nil
+            deleteButton.toolTip = nil
+            refreshButton?.toolTip = nil
+            enableDisableButton?.toolTip = nil
+            updateStatusLabel()
+            
+            // Update button states (including enable/disable button title) when daemon is enabled
+            updateButtonStates()
+        }
+    }
+    
+
 }
 
 // MARK: - NSTableViewDataSource
@@ -665,6 +781,6 @@ extension ScheduledReportsManagementViewController: NSTableViewDelegate {
     }
     
     func tableViewSelectionDidChange(_ notification: Notification) {
-        updateButtonStates()
+        updateInterfaceEnabledState()
     }
 }
