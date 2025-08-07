@@ -269,9 +269,7 @@ extension XPCService {
     /// - Returns: Tuple containing array of scheduled reports and success status
     private func getAllScheduledReports() -> ([ScheduledReport], Bool) {
         let reportsDirectory = AppConstants.intuneomatorScheduledReportsFolderURL
-        
-        Logger.info("📁 Looking for scheduled reports in: \(reportsDirectory.path)", category: .reports)
-        
+                
         do {
             // Ensure directory exists
             if !FileManager.default.fileExists(atPath: reportsDirectory.path) {
