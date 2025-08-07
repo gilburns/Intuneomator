@@ -11,8 +11,10 @@ DAEMON_DIR="/Library/LaunchDaemons"
 
 # Service settings restoration
 SERVICE_SETTINGS_PATH="/Library/Application Support/Intuneomator/IntuneomatorService.plist"
+SCHEDULED_REPORTS="com.gilburns.intuneomator.scheduledreports.plist"
 BACKUP_DIR="/tmp/Intuneomator_Install_Backup"
 BACKUP_SETTINGS_PATH="$BACKUP_DIR/IntuneomatorService.plist"
+BACKUP_SCHEDREPORTS_PATH="$BACKUP_DIR/$SCHEDULED_REPORTS"
 
 # Reset the access to the Entra Secret
 security set-generic-password-partition-list -S apple-tool:,apple: -s "EntraIDSecret" -a "com.intuneomator.entrasecret" -k /Library/Keychains/System.keychain
@@ -40,6 +42,20 @@ elif [[ -f "$BACKUP_DIR/no_settings_existed" ]]; then
   echo "No previous service settings existed, skipping restoration"
 else
   echo "No backup found at: $BACKUP_SETTINGS_PATH"
+fi
+
+# Check if scheduled reports backup exists and restore if present
+if [[ -f "$BACKUP_SCHEDREPORTS_PATH" ]]; then
+  echo "Restoring service settings from: $BACKUP_SCHEDREPORTS_PATH"
+  cp "$BACKUP_SCHEDREPORTS_PATH" "$BACKUP_SCHEDREPORTS_PATH"
+  # Set proper permissions for the restored settings
+  chown root:wheel "$BACKUP_SCHEDREPORTS_PATH"
+  chmod 644 "$BACKUP_SCHEDREPORTS_PATH"
+  echo "Service settings restored to: $BACKUP_SCHEDREPORTS_PATH"
+elif [[ -f "$BACKUP_DIR/no_scheduledreports_existed" ]]; then
+  echo "No previous scheduled reports daemon existed, skipping restoration"
+else
+  echo "No backup found at: $BACKUP_SCHEDREPORTS_PATH"
 fi
 
 # List of daemon plist filenames
