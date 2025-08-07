@@ -331,6 +331,21 @@ class ScheduledReportsManager {
             for fileURL in reportFiles {
                 let fileName = fileURL.lastPathComponent
                 if !indexValidFileNamesSet.contains(fileName) {
+                    // Check file creation time to avoid deleting recently saved files
+                    // Add a 5-second grace period for files that might have just been saved
+                    do {
+                        let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+                        if let creationDate = fileAttributes[.creationDate] as? Date {
+                            let fileAge = Date().timeIntervalSince(creationDate)
+                            if fileAge < 5.0 {
+                                Logger.info("Skipping recent file during orphan cleanup: \(fileName) (created \(String(format: "%.1f", fileAge))s ago)", category: .core, toUserDirectory: true)
+                                continue
+                            }
+                        }
+                    } catch {
+                        Logger.warning("Could not get creation date for \(fileName), treating as orphaned: \(error)", category: .core, toUserDirectory: true)
+                    }
+                    
                     Logger.warning("Found orphaned report file: \(fileName), requesting deletion via XPC", category: .core, toUserDirectory: true)
                     
                     // Delete orphaned file via XPC
