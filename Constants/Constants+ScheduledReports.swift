@@ -268,9 +268,9 @@ struct NotificationConfiguration: Codable {
     
     /// Default Teams message template
     static let defaultMessageTemplate = """
-📊 **Scheduled Report Complete**
+📊 **Scheduled Report Complete: {status}**
 
-**{reportName}** generated successfully
+**{reportName}** generated
 - **Records:** {recordCount}
 - **File Size:** {fileSize}
 - **Format:** {format}
