@@ -52,7 +52,9 @@ class AzureStorageManager {
     /// - Throws: AzureStorageError for various failure scenarios
     func uploadReport(fileURL: URL) async throws {
         let fileName = fileURL.lastPathComponent
-        let blobName = "reports/\(fileName)"
+        // Don't hardcode "reports/" prefix - let the calling code determine the blob path
+        // If container is already named "reports", we don't need another "reports/" prefix
+        let blobName = fileName
         
         Logger.info("Starting upload of report: \(fileName) to blob: \(blobName)", category: .reports)
         
@@ -67,7 +69,50 @@ class AzureStorageManager {
         // Upload to blob storage
         try await uploadBlob(name: blobName, data: fileData, contentType: detectContentType(for: fileName))
         
+        // Verify upload by checking if blob exists
+        let exists = try await blobExists(name: blobName)
+        Logger.info("Upload verification: blob '\(blobName)' exists = \(exists)", category: .reports)
+        
         Logger.info("Successfully uploaded report: \(fileName) (\(ByteCountFormatter.string(fromByteCount: Int64(fileData.count), countStyle: .file)))", category: .reports)
+    }
+    
+    /// Uploads a report file to Azure Storage with custom blob path
+    /// - Parameters:
+    ///   - fileURL: Local file URL to upload
+    ///   - blobPath: Full blob path within the container
+    /// - Throws: AzureStorageError for various failure scenarios
+    func uploadReport(fileURL: URL, toBlobPath blobPath: String) async throws {
+        let fileName = fileURL.lastPathComponent
+        // Clean up blob path to avoid double "reports/" when container is already named "reports"
+        let cleanBlobPath = sanitizeBlobPath(blobPath)
+        
+        Logger.info("Starting upload of report: \(fileName) to blob: \(cleanBlobPath)", category: .reports)
+        
+        // Read file data
+        let fileData: Data
+        do {
+            fileData = try Data(contentsOf: fileURL)
+        } catch {
+            throw AzureStorageError.fileReadError("Failed to read file at \(fileURL.path): \(error.localizedDescription)")
+        }
+        
+        // Upload to blob storage
+        try await uploadBlob(name: cleanBlobPath, data: fileData, contentType: detectContentType(for: fileName))
+        
+        Logger.info("Successfully uploaded report: \(fileName) (\(ByteCountFormatter.string(fromByteCount: Int64(fileData.count), countStyle: .file)))", category: .reports)
+    }
+    
+    /// Sanitizes blob path to avoid double "reports/" prefix when container is named "reports"
+    /// - Parameter blobPath: Original blob path
+    /// - Returns: Sanitized blob path
+    private func sanitizeBlobPath(_ blobPath: String) -> String {
+        // If container name is "reports" and blob path starts with "reports/", remove the prefix
+        if config.containerName.lowercased() == "reports" && blobPath.hasPrefix("reports/") {
+            let sanitized = String(blobPath.dropFirst("reports/".count))
+            Logger.info("Sanitized blob path: '\(blobPath)' → '\(sanitized)' (container already named 'reports')", category: .reports)
+            return sanitized
+        }
+        return blobPath
     }
     
     /// Deletes old reports based on age
@@ -76,8 +121,8 @@ class AzureStorageManager {
     func deleteOldReports(olderThan days: Int) async throws {
         Logger.info("Starting deletion of reports older than \(days) days", category: .reports)
         
-        // List all blobs in the reports folder
-        let reportBlobs = try await listBlobs(prefix: "reports/")
+        // List all blobs (no prefix needed if container is already "reports")
+        let reportBlobs = try await listBlobs(prefix: nil)
         
         // Calculate cutoff date
         let cutoffDate = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
@@ -110,7 +155,7 @@ class AzureStorageManager {
     /// - Returns: Download URL with SAS token
     /// - Throws: AzureStorageError for various failure scenarios
     func generateDownloadLink(for reportName: String, expiresIn days: Int) async throws -> URL {
-        let blobName = "reports/\(reportName)"
+        let blobName = reportName
         
         Logger.info("Generating download link for report: \(reportName), expires in \(days) days", category: .reports)
         
@@ -132,7 +177,13 @@ class AzureStorageManager {
     
     /// Uploads data to a specific blob
     private func uploadBlob(name: String, data: Data, contentType: String) async throws {
-        let url = URL(string: "https://\(config.accountName).blob.core.windows.net/\(config.containerName)/\(name)")!
+        // URL encode the blob name to handle special characters and spaces
+        guard let encodedName = name.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            throw AzureStorageError.invalidURL("Failed to URL encode blob name: \(name)")
+        }
+        
+        let url = URL(string: "https://\(config.accountName).blob.core.windows.net/\(config.containerName)/\(encodedName)")!
+        Logger.info("Upload URL: \(url.absoluteString)", category: .reports)
         
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
@@ -144,8 +195,10 @@ class AzureStorageManager {
         request.setValue("BlockBlob", forHTTPHeaderField: "x-ms-blob-type")
         request.setValue("2023-11-03", forHTTPHeaderField: "x-ms-version")
         
-        // Add authentication
-        try await addAuthentication(to: &request, method: "PUT", resource: "/\(config.accountName)/\(config.containerName)/\(name)")
+        Logger.info("Upload headers: Content-Type=\(contentType), Content-Length=\(data.count)", category: .reports)
+        
+        // Add authentication - use URL-encoded name for signature to match what Azure expects
+        try await addAuthentication(to: &request, method: "PUT", resource: "/\(config.accountName)/\(config.containerName)/\(encodedName)")
         
         let (responseData, response) = try await session.data(for: request)
         
@@ -153,10 +206,17 @@ class AzureStorageManager {
             throw AzureStorageError.invalidResponse("Invalid response type")
         }
         
+        Logger.info("Upload response status: \(httpResponse.statusCode)", category: .reports)
+        
         guard httpResponse.statusCode == 201 else {
             let responseBody = String(data: responseData, encoding: .utf8) ?? "No response body"
             Logger.error("Azure Storage upload failed with status \(httpResponse.statusCode), response: \(responseBody)", category: .reports)
             throw AzureStorageError.uploadFailed("Upload failed with status \(httpResponse.statusCode): \(responseBody)")
+        }
+        
+        // Log success with response headers
+        if let etag = httpResponse.value(forHTTPHeaderField: "ETag") {
+            Logger.info("Upload successful - ETag: \(etag)", category: .reports)
         }
     }
     
@@ -212,19 +272,26 @@ class AzureStorageManager {
             throw AzureStorageError.listFailed("List operation failed with status \(httpResponse.statusCode)")
         }
         
-        return try parseBlobListResponse(data)
+        let blobs = try parseBlobListResponse(data)
+        Logger.info("Listed \(blobs.count) blobs: \(blobs.map { $0.name }.joined(separator: ", "))", category: .reports)
+        return blobs
     }
     
     /// Deletes a specific blob
     private func deleteBlob(name: String) async throws {
-        let url = URL(string: "https://\(config.accountName).blob.core.windows.net/\(config.containerName)/\(name)")!
+        // URL encode the blob name to handle special characters and spaces
+        guard let encodedName = name.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            throw AzureStorageError.invalidURL("Failed to URL encode blob name: \(name)")
+        }
+        
+        let url = URL(string: "https://\(config.accountName).blob.core.windows.net/\(config.containerName)/\(encodedName)")!
         
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
         request.setValue("2023-11-03", forHTTPHeaderField: "x-ms-version")
         
-        // Add authentication
-        try await addAuthentication(to: &request, method: "DELETE", resource: "/\(config.accountName)/\(config.containerName)/\(name)")
+        // Add authentication - use URL-encoded name for signature
+        try await addAuthentication(to: &request, method: "DELETE", resource: "/\(config.accountName)/\(config.containerName)/\(encodedName)")
         
         let (_, response) = try await session.data(for: request)
         
@@ -239,14 +306,19 @@ class AzureStorageManager {
     
     /// Checks if a blob exists
     private func blobExists(name: String) async throws -> Bool {
-        let url = URL(string: "https://\(config.accountName).blob.core.windows.net/\(config.containerName)/\(name)")!
+        // URL encode the blob name to handle special characters and spaces
+        guard let encodedName = name.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            throw AzureStorageError.invalidURL("Failed to URL encode blob name: \(name)")
+        }
+        
+        let url = URL(string: "https://\(config.accountName).blob.core.windows.net/\(config.containerName)/\(encodedName)")!
         
         var request = URLRequest(url: url)
         request.httpMethod = "HEAD"
         request.setValue("2023-11-03", forHTTPHeaderField: "x-ms-version")
         
-        // Add authentication
-        try await addAuthentication(to: &request, method: "HEAD", resource: "/\(config.accountName)/\(config.containerName)/\(name)")
+        // Add authentication - use URL-encoded name for signature
+        try await addAuthentication(to: &request, method: "HEAD", resource: "/\(config.accountName)/\(config.containerName)/\(encodedName)")
         
         let (_, response) = try await session.data(for: request)
         
@@ -279,6 +351,9 @@ class AzureStorageManager {
         // Construct string to sign (after setting x-ms-date header)
         let stringToSign = buildStringToSign(method: method, request: request, resource: resource, date: dateString)
         
+        Logger.info("Shared Key Auth - String to sign: '\(stringToSign)'", category: .reports)
+        Logger.info("Shared Key Auth - Resource: '\(resource)'", category: .reports)
+        
         // Sign with storage key
         guard let keyData = Data(base64Encoded: key) else {
             Logger.error("Azure Storage Shared Key Auth - Invalid key format: key length \(key.count)", category: .reports)
@@ -287,6 +362,7 @@ class AzureStorageManager {
         
         let signature = try signString(stringToSign, with: keyData)
         let authHeader = "SharedKey \(config.accountName):\(signature)"
+        Logger.info("Shared Key Auth - Authorization header: \(authHeader)", category: .reports)
         request.setValue(authHeader, forHTTPHeaderField: "Authorization")
     }
     
@@ -301,6 +377,9 @@ class AzureStorageManager {
         // Append SAS token parameters directly to the URL
         let separator = currentURL.contains("?") ? "&" : "?"
         let finalURL = "\(currentURL)\(separator)\(token)"
+        
+        Logger.info("SAS Auth - Original URL: \(currentURL)", category: .reports)
+        Logger.info("SAS Auth - Final URL: \(finalURL)", category: .reports)
         
         request.url = URL(string: finalURL)
     }
@@ -323,7 +402,10 @@ class AzureStorageManager {
             // For SAS token configurations, we can only return the blob URL with the existing token
             // Note: The expiration cannot be modified as we don't have the storage key
             Logger.warning("SAS token authentication: Cannot modify expiration time, using existing token expiration", category: .reports)
-            let baseUrl = "https://\(config.accountName).blob.core.windows.net/\(config.containerName)/\(blobName)"
+            guard let encodedBlobName = blobName.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+                throw AzureStorageError.sasGenerationError("Failed to URL encode blob name for SAS URL")
+            }
+            let baseUrl = "https://\(config.accountName).blob.core.windows.net/\(config.containerName)/\(encodedBlobName)"
             let urlWithSAS = "\(baseUrl)?\(token)"
             guard let url = URL(string: urlWithSAS) else {
                 throw AzureStorageError.sasGenerationError("Failed to construct SAS URL with existing token")
@@ -339,34 +421,29 @@ class AzureStorageManager {
         let expiryDate = Date().addingTimeInterval(TimeInterval(days * 24 * 60 * 60))
         let expiryString = DateFormatter.sasDate.string(from: expiryDate)
         
-        // Let's use the standard Service SAS format without protocol restrictions
-        // Standard format: signedpermissions + "\n" + signedstart + "\n" + signedexpiry + "\n" + canonicalizedresource + "\n" + signedidentifier + "\n" + signedIP + "\n" + signedProtocol + "\n" + signedversion + "\n" + rscc + "\n" + rscd + "\n" + rsce + "\n" + rscl + "\n" + rsct
+        // Use the Service SAS string-to-sign format for Storage Account Key authentication
+        // https://docs.microsoft.com/en-us/rest/api/storageservices/constructing-a-service-sas
+        // For blob resource type (sr=b), use the correct blob format with /blob/ prefix and UNENCODED blob name in signature
         let canonicalizedResource = "/blob/\(config.accountName)/\(config.containerName)/\(blobName)"
+        
+        // Using Service SAS format for blob access (standard format with all response headers)
         let stringToSign = [
-            "r",                    // signedpermissions
-            "",                     // signedstart (empty)
-            expiryString,          // signedexpiry  
+            "r",                    // signedpermissions (read)
+            "",                     // signedstart (empty)  
+            expiryString,          // signedexpiry
             canonicalizedResource, // canonicalizedresource
             "",                     // signedidentifier (empty)
-            "",                     // signedIP (empty)
-            "",                     // signedProtocol (empty - remove https restriction)
+            "",                     // signedIP (empty) 
+            "",                     // signedProtocol (empty)
             "2023-11-03",          // signedversion
-            "",                     // rscc (empty)
-            "",                     // rscd (empty)
-            "",                     // rsce (empty)
-            "",                     // rscl (empty)
-            ""                      // rsct (empty)
+            "",                     // rscc (Cache-Control response header)
+            "",                     // rscd (Content-Disposition response header)
+            "",                     // rsce (Content-Encoding response header)
+            "",                     // rscl (Content-Language response header)
+            ""                      // rsct (Content-Type response header)
         ].joined(separator: "\n")
         
-        // SAS parameters - simpler set without protocol restriction
-        let sasParams = [
-            "sv": "2023-11-03",    // API version
-            "sr": "b",             // Resource type (blob) 
-            "sp": "r",             // Permissions (read)
-            "se": expiryString     // Expiry time (no protocol restriction)
-        ]
-        
-        // Signing SAS token string
+        Logger.info("SAS String to sign (Service SAS 13-field format): '\(stringToSign.replacingOccurrences(of: "\n", with: "\\n"))'", category: .reports)
         
         // Sign the string
         guard let keyData = Data(base64Encoded: key) else {
@@ -374,11 +451,16 @@ class AzureStorageManager {
         }
         
         let signature = try signString(stringToSign, with: keyData)
+        Logger.info("SAS Signature generated: '\(signature)'", category: .reports)
         
         // Construct final URL with parameters in correct order
-        var urlComponents = URLComponents(string: "https://\(config.accountName).blob.core.windows.net/\(config.containerName)/\(blobName)")!
+        guard let encodedBlobName = blobName.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            throw AzureStorageError.sasGenerationError("Failed to URL encode blob name for SAS URL")
+        }
         
-        // Add parameters in the order: sv, sr, sp, se, sig (no protocol restriction)
+        var urlComponents = URLComponents(string: "https://\(config.accountName).blob.core.windows.net/\(config.containerName)/\(encodedBlobName)")!
+        
+        // Add parameters in the order: sv, sr, sp, se, sig
         urlComponents.queryItems = [
             URLQueryItem(name: "sv", value: "2023-11-03"),
             URLQueryItem(name: "sr", value: "b"), 
@@ -391,7 +473,7 @@ class AzureStorageManager {
             throw AzureStorageError.sasGenerationError("Failed to construct SAS URL")
         }
         
-        // Generated SAS URL for blob access
+        Logger.info("Generated SAS URL: \(finalUrl.absoluteString)", category: .reports)
         return finalUrl
     }
     
@@ -399,7 +481,7 @@ class AzureStorageManager {
     /// - Parameter reportName: Name of the report file to delete
     /// - Throws: AzureStorageError for various failure scenarios
     func deleteReport(named reportName: String) async throws {
-        let blobName = reportName.hasPrefix("reports/") ? reportName : "reports/\(reportName)"
+        let blobName = reportName
         
         Logger.info("Deleting report: \(reportName) (blob: \(blobName))", category: .reports)
         
