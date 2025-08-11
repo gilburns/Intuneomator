@@ -559,7 +559,6 @@ class IntuneReportsViewController: NSViewController {
             return try Data(contentsOf: fallbackFile)
         }
         
-        Logger.info("Extracted \(extractedFile.lastPathComponent) from export ZIP", category: .core, toUserDirectory: true)
         return try Data(contentsOf: extractedFile)
     }
     

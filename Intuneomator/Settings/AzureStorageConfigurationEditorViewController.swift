@@ -20,6 +20,7 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
     @IBOutlet weak var popupAuthMethod: NSPopUpButton!
     @IBOutlet weak var fieldAccountKey: NSSecureTextField!
     @IBOutlet weak var fieldSASToken: NSSecureTextField!
+    @IBOutlet weak var fieldReadOnlySASToken: NSSecureTextField!
     @IBOutlet weak var saveButton: NSButton!
     @IBOutlet weak var cancelButton: NSButton!
     @IBOutlet weak var testButton: NSButton!
@@ -32,7 +33,12 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
     // MARK: - Labels for conditional display
     @IBOutlet weak var labelAccountKey: NSTextField!
     @IBOutlet weak var labelSASToken: NSTextField!
-    
+    @IBOutlet weak var labelReadOnlySASToken: NSTextField!
+
+    // MARK: - Help Buttons for conditional display
+    @IBOutlet weak var buttonHelpAccountKey: NSButton!
+    @IBOutlet weak var buttonHelpSASToken: NSButton!
+
     // MARK: - Properties
     
     /// Whether this is a new configuration or editing existing
@@ -52,6 +58,10 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
     
     /// Tracks validation state
     private var isValid = false
+    
+    /// HelpPopover instance for showing contextual help messages in the UI.
+    let helpPopover = HelpPopover()
+
     
     // MARK: - Lifecycle
     
@@ -78,7 +88,7 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
     private func setupValidation() {
         // Add observers for text field changes
         let textFields = [fieldName, fieldDescription, fieldAccountName, fieldContainerName, 
-                         fieldAccountKey, fieldSASToken,
+                         fieldAccountKey, fieldSASToken, fieldReadOnlySASToken,
                          fieldMaxFileAgeInDays]
         
         for textField in textFields {
@@ -169,6 +179,10 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
             if let sasToken = configurationData["sasToken"] as? String, !sasToken.isEmpty {
                 fieldSASToken.stringValue = sasToken
             }
+            
+            if let readOnlySASToken = configurationData["readOnlySASToken"] as? String, !readOnlySASToken.isEmpty {
+                fieldReadOnlySASToken.stringValue = readOnlySASToken
+            }
         }
         
         updateCleanupSummary()
@@ -198,8 +212,9 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
     }
     
     private func hideAllAuthFields() {
-        let fields = [fieldAccountKey, fieldSASToken]
-        let labels = [labelAccountKey, labelSASToken]
+        let fields = [fieldAccountKey, fieldSASToken, fieldReadOnlySASToken]
+        let labels = [labelAccountKey, labelSASToken, labelReadOnlySASToken]
+        let buttons = [buttonHelpAccountKey, buttonHelpSASToken]
         
         for field in fields {
             field?.isHidden = true
@@ -207,16 +222,23 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
         for label in labels {
             label?.isHidden = true
         }
+        for button in buttons {
+            button?.isHidden = true
+        }
     }
     
     private func showStorageKeyFields() {
         fieldAccountKey.isHidden = false
         labelAccountKey.isHidden = false
+        buttonHelpAccountKey.isHidden = false
     }
     
     private func showSASTokenFields() {
         fieldSASToken.isHidden = false
         labelSASToken.isHidden = false
+        fieldReadOnlySASToken.isHidden = false
+        labelReadOnlySASToken.isHidden = false
+        buttonHelpSASToken.isHidden = false
     }
         
     // MARK: - Actions
@@ -296,6 +318,11 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
         case 1: // SAS Token
             data["authMethod"] = "sasToken"
             data["sasToken"] = fieldSASToken.stringValue
+            // Include read-only SAS token if provided
+            let readOnlyToken = fieldReadOnlySASToken.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !readOnlyToken.isEmpty {
+                data["readOnlySASToken"] = readOnlyToken
+            }
         default:
             break
         }
@@ -427,6 +454,122 @@ class AzureStorageConfigurationEditorViewController: NSViewController {
         
         return isValid
     }
+    
+    // MARK: - Help Button Functions
+    
+    @IBAction func showHelpForStorageName(_ sender: NSButton) {
+        // Create the full string
+        let helpText = NSMutableAttributedString(string: "This can be any name you like.\n\nIt is used to identify the storage account in the Intuneomator app.\n\nThis name is also used for report uploads and notifications.\n\n")
+
+        // Add custom styling for the rest of the text
+        helpText.addAttributes([
+            .foregroundColor: NSColor.textColor,
+            .font: NSFont.systemFont(ofSize: 13)
+        ], range: NSRange(location: 0, length: helpText.length))
+
+        // Show the popover
+        helpPopover.showHelp(anchorView: sender, helpText: helpText)
+    }
+
+    @IBAction func showHelpForStorageDesc(_ sender: NSButton) {
+        // Create the full string
+        let helpText = NSMutableAttributedString(string: "The description is used to identify the storage account in the Intuneomator app.\n\nIt is optional and can be left blank.")
+
+        // Add custom styling for the rest of the text
+        helpText.addAttributes([
+            .foregroundColor: NSColor.textColor,
+            .font: NSFont.systemFont(ofSize: 13)
+        ], range: NSRange(location: 0, length: helpText.length))
+
+        // Show the popover
+        helpPopover.showHelp(anchorView: sender, helpText: helpText)
+    }
+
+    @IBAction func showHelpForStorageAccount(_ sender: NSButton) {
+        // Create the full string
+        let helpText = NSMutableAttributedString(string: "This is the name of your Azure storage account.\n\nIt is used to identify the storage account in the Intuneomator app.\n\nThis should exactly match the name of your storage account in Azure.\n\n")
+
+        // Add custom styling for the rest of the text
+        helpText.addAttributes([
+            .foregroundColor: NSColor.textColor,
+            .font: NSFont.systemFont(ofSize: 13)
+        ], range: NSRange(location: 0, length: helpText.length))
+
+        // Show the popover
+        helpPopover.showHelp(anchorView: sender, helpText: helpText)
+    }
+
+    @IBAction func showHelpForStorageContainer(_ sender: NSButton) {
+        // Create the full string
+        let helpText = NSMutableAttributedString(string: "This is the name of the Azure storage container.\n\nIt is used to identify the storage container in the Intuneomator app.\n\nIt should exactly match the name of the storage container in Azure.\n\n")
+
+        // Add custom styling for the rest of the text
+        helpText.addAttributes([
+            .foregroundColor: NSColor.textColor,
+            .font: NSFont.systemFont(ofSize: 13)
+        ], range: NSRange(location: 0, length: helpText.length))
+
+        // Show the popover
+        helpPopover.showHelp(anchorView: sender, helpText: helpText)
+    }
+
+    @IBAction func showHelpForStorageAuth(_ sender: NSButton) {
+        // Create the full string
+        let helpText = NSMutableAttributedString(string: "There are two ways to authenticate with Azure Storage.\n\nYou can either use a Storage Account Key or a Shared Access Signature (SAS) Token.\n\nThe SAS token is is less sensitive than a Storage key, but the Storage Key can generate a SAS token that can be used for Teams notifications and downloads with specific expiry dates.\n\nChoose the one that best suits your needs.\n")
+
+        // Add custom styling for the rest of the text
+        helpText.addAttributes([
+            .foregroundColor: NSColor.textColor,
+            .font: NSFont.systemFont(ofSize: 13)
+        ], range: NSRange(location: 0, length: helpText.length))
+
+        // Show the popover
+        helpPopover.showHelp(anchorView: sender, helpText: helpText)
+    }
+
+    @IBAction func showHelpForStorageKey(_ sender: NSButton) {
+        // Create the full string
+        let helpText = NSMutableAttributedString(string: "Storage Keys are used to authenticate with Azure Storage.\n\nThis token can generate a read only Shared Access Signature (SAS) token that can be used for Teams notifications. So only one key is necessary.")
+
+        // Add custom styling for the rest of the text
+        helpText.addAttributes([
+            .foregroundColor: NSColor.textColor,
+            .font: NSFont.systemFont(ofSize: 13)
+        ], range: NSRange(location: 0, length: helpText.length))
+
+        // Show the popover
+        helpPopover.showHelp(anchorView: sender, helpText: helpText)
+    }
+
+    @IBAction func showHelpForSASToken(_ sender: NSButton) {
+        // Create the full string
+        let helpText = NSMutableAttributedString(string: "If you will be using a Shared Access Signature (SAS) token to authenticate with Azure Storage, enter it here.\n\nIf you will also be sending Teams notifications with report links, it is recommended that also enter a SAS token with read permission only for those messages.")
+
+        // Add custom styling for the rest of the text
+        helpText.addAttributes([
+            .foregroundColor: NSColor.textColor,
+            .font: NSFont.systemFont(ofSize: 13)
+        ], range: NSRange(location: 0, length: helpText.length))
+
+        // Show the popover
+        helpPopover.showHelp(anchorView: sender, helpText: helpText)
+    }
+
+    @IBAction func showHelpForStorageCleanUp(_ sender: NSButton) {
+        // Create the full string
+        let helpText = NSMutableAttributedString(string: "You can optionaly configure how old files should be deleted from Azure Storage.\n\nIf you do not configure this, files will never be deleted from Azure Storage.\n\nThis is useful if you want to keep only the last X days of reports.\n\nUncheck this option if you do not want to delete files from Azure Storage automatically.\n\n1 means that files older than 1 day will be deleted.\n\nAnd so on...")
+
+        // Add custom styling for the rest of the text
+        helpText.addAttributes([
+            .foregroundColor: NSColor.textColor,
+            .font: NSFont.systemFont(ofSize: 13)
+        ], range: NSRange(location: 0, length: helpText.length))
+
+        // Show the popover
+        helpPopover.showHelp(anchorView: sender, helpText: helpText)
+    }
+
+    
 }
 
 // MARK: - NSTextFieldDelegate

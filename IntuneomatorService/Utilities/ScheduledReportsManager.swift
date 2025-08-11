@@ -45,14 +45,11 @@ class ScheduledReportsManager {
     /// Executes all scheduled reports that are due to run
     /// This is the main entry point called by the command-line daemon
     static func executeScheduledReports() async {
-        Logger.info("🔄 Execute scheduled reports...", category: .reports)
-//        let reportSummary = await executeScheduledReportsWithSummary()
-//        Logger.info("📝 Summary: \(reportSummary)", category: .reports)
         
         do {
         let reportSummary = await executeScheduledReportsWithSummary()
-        Logger.info("📝 Summary: \(reportSummary)", category: .reports)
-            try await Task.sleep(for: .seconds(5)) // Suspends the current task for 5 seconds
+            Logger.info("📝 Summary: \(reportSummary)", category: .reportdelivery)
+            try await Task.sleep(for: .seconds(1)) // Suspends the current task for 1 seconds
         } catch {
             Logger.info(error.localizedDescription, category: .reports)
         }
@@ -63,7 +60,6 @@ class ScheduledReportsManager {
     /// Used by XPC service methods that need to return summary data
     /// - Returns: Dictionary containing execution statistics and results
     static func executeScheduledReportsWithSummary() async -> [String: Any] {
-        Logger.info("🔄 Checking for scheduled reports due to run...", category: .reports)
         
         var executedCount = 0
         var successCount = 0
@@ -89,7 +85,6 @@ class ScheduledReportsManager {
         }
         
         executionSummary["totalReportsChecked"] = allReports.count
-        Logger.info("📋 Found \(allReports.count) total scheduled reports", category: .reports)
         
         guard !allReports.isEmpty else {
             Logger.info("📋 No scheduled reports found", category: .reports)
@@ -97,28 +92,24 @@ class ScheduledReportsManager {
         }
         
         let currentTime = Date()
-        Logger.info("🕐 Current time for comparison: \(currentTime)", category: .reports)
         
         // Check each report to see if it's due to run
-        Logger.info("🔄 Starting to check \(allReports.count) reports...", category: .reports)
         for report in allReports {
-            Logger.info("📊 Checking report '\(report.name)' - Enabled: \(report.isEnabled), NextRun: \(report.nextRun?.description ?? "nil")", category: .reports)
-            Logger.info("📊 Current time: \(currentTime), Report nextRun: \(report.nextRun?.description ?? "nil")", category: .reports)
             
             // Debug the time comparison
             if let nextRun = report.nextRun {
                 let timeComparison = nextRun <= currentTime
-                Logger.info("📊 Time comparison for '\(report.name)': nextRun (\(nextRun)) <= currentTime (\(currentTime)) = \(timeComparison)", category: .reports)
+                Logger.debug("📊 Time comparison for '\(report.name)': nextRun (\(nextRun)) <= currentTime (\(currentTime)) = \(timeComparison)", category: .reports)
             }
             
             guard report.isEnabled,
                   let nextRun = report.nextRun,
                   nextRun <= currentTime else {
-                Logger.info("⏭️ Skipping report '\(report.name)' - not due yet or disabled", category: .reports)
+                Logger.debug("⏭️ Skipping report '\(report.name)' - not due yet", category: .reports)
                 continue
             }
             
-            Logger.info("⚡ Executing scheduled report: \(report.name)", category: .reports)
+            Logger.debug("⚡ Executing scheduled report: \(report.name)", category: .reports)
             executedCount += 1
             
             let executionStart = Date()
@@ -137,7 +128,6 @@ class ScheduledReportsManager {
             
             if success {
                 successCount += 1
-                Logger.info("✅ Successfully executed: \(report.name) in \(String(format: "%.2f", executionTime))s", category: .reports)
                 
                 // Update the report's next run time and last run
                 await updateReportAfterExecution(report, success: true)
@@ -157,12 +147,11 @@ class ScheduledReportsManager {
         executionSummary["results"] = results
         
         if executedCount > 0 {
-            Logger.info("📊 Scheduler summary: \(executedCount) executed, \(successCount) successful, \(failureCount) failed", category: .reports)
+            Logger.info("📊 Scheduler summary: \(executedCount) executed, \(successCount) successful, \(failureCount) failed", category: .reportdelivery)
         } else {
-            Logger.info("⏱️ No scheduled reports were due to run", category: .reports)
+            Logger.debug("⏱️ No scheduled reports were due to run", category: .reports)
         }
         
-        Logger.info("🏁 Scheduler execution completed, returning summary", category: .reports)
         return executionSummary
     }
     
@@ -172,9 +161,7 @@ class ScheduledReportsManager {
     /// - Returns: Tuple containing array of scheduled reports and success status
     private static func getAllScheduledReports() async -> ([ScheduledReport], Bool) {
         let reportsDirectory = AppConstants.intuneomatorScheduledReportsFolderURL
-        
-        Logger.info("📁 Looking for scheduled reports in: \(reportsDirectory.path)", category: .reports)
-        
+                
         do {
             // Ensure directory exists
             if !FileManager.default.fileExists(atPath: reportsDirectory.path) {
@@ -186,26 +173,25 @@ class ScheduledReportsManager {
             let reportFiles = try FileManager.default.contentsOfDirectory(at: reportsDirectory, includingPropertiesForKeys: nil)
                 .filter { $0.pathExtension == "json" && $0.lastPathComponent != "index.json" }
             
-            Logger.info("📄 Found \(reportFiles.count) JSON report files", category: .reports)
+            Logger.debug("📄 Found \(reportFiles.count) JSON report files", category: .reports)
             
             var reports: [ScheduledReport] = []
             
             for fileURL in reportFiles {
-                Logger.info("📖 Loading report file: \(fileURL.lastPathComponent)", category: .reports)
+                Logger.debug("📖 Loading report file: \(fileURL.lastPathComponent)", category: .reports)
                 do {
                     if let report = await loadScheduledReportFromFile(fileURL) {
-                        Logger.info("✅ Successfully loaded report: \(report.name)", category: .reports)
+                        Logger.debug("✅ Successfully loaded report: \(report.name)", category: .reports)
                         Logger.debug("Report: \(report)", category: .reports)
                         reports.append(report)
                         Logger.debug("Reports Count: \(reports.count)", category: .reports)
                     } else {
                         Logger.error("❌ Failed to load report file: \(fileURL.lastPathComponent)", category: .reports)
                     }
-                    Logger.info("🎯 Completed processing file: \(fileURL.lastPathComponent)", category: .reports)
                 }
             }
             
-            Logger.info("🏁 Finished loading all \(reports.count) reports", category: .reports)
+            Logger.debug("🏁 Finished loading all \(reports.count) reports", category: .reports)
             
             return (reports.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }, true)
             
@@ -220,11 +206,7 @@ class ScheduledReportsManager {
     /// - Returns: The scheduled report or nil if loading failed
     private static func loadScheduledReportFromFile(_ fileURL: URL) async -> ScheduledReport? {
         do {
-            Logger.info("🔍 Reading data from: \(fileURL.lastPathComponent)", category: .reports)
             let data = try Data(contentsOf: fileURL)
-            Logger.info("📊 File size: \(data.count) bytes", category: .reports)
-            
-            Logger.info("🔄 Attempting JSON decode...", category: .reports)
             
             // Custom JSON decoder to handle macOS Reference Date (seconds since 2001-01-01)
             let decoder = JSONDecoder()
@@ -232,21 +214,16 @@ class ScheduledReportsManager {
                 let container = try decoder.singleValueContainer()
                 let timestamp = try container.decode(Double.self)
                 // Convert from macOS Reference Date (2001-01-01) to Date
-                Logger.info("Timestamp: \(fileURL.lastPathComponent) - \(timestamp)", category: .reports)
                 return Date(timeIntervalSinceReferenceDate: timestamp)
             }
             
             var report = try decoder.decode(ScheduledReport.self, from: data)
-            Logger.info("✅ JSON decode successful for: \(report.name)", category: .reports)
-            Logger.info("📅 Decoded nextRun: \(report.nextRun?.description ?? "nil")", category: .reports)
             
             // Don't recalculate nextRun during loading - preserve the original scheduled time
             // The execution logic will handle whether the report should run and update nextRun afterward
             if report.nextRun == nil {
                 Logger.info("⏰ No nextRun time set for \(report.name), calculating initial schedule", category: .reports)
                 report.nextRun = report.schedule.calculateNextRun(from: Date())
-            } else {
-                Logger.info("⏰ Preserving existing nextRun time for \(report.name): \(report.nextRun?.description ?? "nil")", category: .reports)
             }
             
             return report
@@ -299,7 +276,6 @@ class ScheduledReportsManager {
                 )
                 
                 if let status = jobStatus["status"] as? String {
-                    Logger.info("📊 Export job \(jobId) status: \(status)", category: .reports)
                     
                     if status == "completed" {
                         isComplete = true
@@ -349,7 +325,6 @@ class ScheduledReportsManager {
                 
                 // Send notification if enabled
                 await sendReportNotification(report: report, success: true, jobId: jobId, executionResult: executionResult)
-                Logger.info("✅ Successfully completed scheduled report: \(report.name)", category: .reports)
                 return true
             } else {
                 await sendReportNotification(report: report, success: false, jobId: jobId, executionResult: nil)
@@ -390,7 +365,6 @@ class ScheduledReportsManager {
             let fileURL = reportsDirectory.appendingPathComponent(fileName)
             
             try data.write(to: fileURL)
-            Logger.info("Updated scheduled report after execution: \(updatedReport.name)", category: .reports)
         } catch {
             Logger.error("Failed to update scheduled report after execution: \(error)", category: .reports)
         }
@@ -449,17 +423,20 @@ class ScheduledReportsManager {
             try await manager.uploadReport(fileURL: tempFileURL)
             Logger.info("☁️ Uploaded extracted report to Azure Storage: \(fileName)", category: .reports)
             
+            // Perform cleanup if enabled in storage configuration
+            await performAzureStorageCleanupIfEnabled(configName: report.delivery.azureStorageConfigName)
+            
             // Generate shareable link if requested
             if report.delivery.createShareableLink {
                 let expirationDays = report.delivery.linkExpirationDays ?? 7
-                Logger.info("🔗 Generating shareable link for report: \(report.name) (expires in \(expirationDays) days)", category: .reports)
+                Logger.info("🔗 Generating secure shareable link for report: \(report.name) (expires in \(expirationDays) days)", category: .reports)
                 
-                let azureLinkURL = try await manager.generateDownloadLink(
+                let azureLinkURL = try await AzureStorageManager.generateSecureDownloadLink(
+                    withConfig: report.delivery.azureStorageConfigName,
                     for: fileName,
                     expiresIn: expirationDays
                 )
                 let azureLink = azureLinkURL.absoluteString
-                Logger.info("✅ Generated Azure Storage link: \(azureLink)", category: .reports)
                 return (true, azureLink)
             }
             
@@ -542,7 +519,6 @@ class ScheduledReportsManager {
         let sendSuccess: Bool
         
         if let result = executionResult, let azureLink = result.azureLink {
-            Logger.info("🔗 Sending Teams card with Azure link: \(azureLink)", category: .reports)
             // Use structured card with proper action button for link
             sendSuccess = await sendScheduledReportCard(
                 teamsNotifier: teamsNotifier,
@@ -694,7 +670,6 @@ class ScheduledReportsManager {
             return try Data(contentsOf: fallbackFile)
         }
         
-        Logger.info("Extracted \(extractedFile.lastPathComponent) from export ZIP", category: .reports)
         return try Data(contentsOf: extractedFile)
     }
     
@@ -842,7 +817,6 @@ class ScheduledReportsManager {
             
             if let httpResponse = response as? HTTPURLResponse {
                 if (200...299).contains(httpResponse.statusCode) {
-                    Logger.info("Scheduled report card sent successfully to Teams!", category: .reports)
                     return true
                 } else {
                     Logger.error("Failed to send Teams card. HTTP Status: \(httpResponse.statusCode)", category: .reports)
@@ -910,5 +884,52 @@ class ScheduledReportsManager {
         }
         
         return allSuccessful
+    }
+    
+    /// Performs Azure Storage cleanup if enabled in the storage configuration
+    /// - Parameter configName: Named Azure Storage configuration to check for cleanup settings
+    private static func performAzureStorageCleanupIfEnabled(configName: String) async {
+        do {
+            // Get the named configuration
+            guard let namedConfig = AzureStorageConfig.shared.getConfiguration(named: configName) else {
+                Logger.debug("📂 Azure Storage config '\(configName)' not found, skipping cleanup", category: .reports)
+                return
+            }
+            
+            // Check if cleanup is enabled
+            guard namedConfig.cleanupEnabled else {
+                Logger.debug("🧹 Cleanup not enabled for Azure Storage config '\(configName)', skipping", category: .reports)
+                return
+            }
+            
+            // Get cleanup age limit
+            guard let maxFileAgeInDays = namedConfig.maxFileAgeInDays, maxFileAgeInDays > 0 else {
+                Logger.warning("⚠️ Cleanup enabled for '\(configName)' but no valid maxFileAgeInDays set, skipping cleanup", category: .reports)
+                return
+            }
+            
+            Logger.info("🧹 Starting cleanup for Azure Storage config '\(configName)' - deleting files older than \(maxFileAgeInDays) day\(maxFileAgeInDays == 1 ? "" : "s")", category: .reports)
+            
+            // Create Azure Storage manager for this configuration
+            let manager = try AzureStorageConfig.shared.createManager(for: configName)
+            
+            // Perform cleanup based on cleanup rules
+            let reportsOnlyCleanup = namedConfig.cleanupRules?.reportsOnlyCleanup ?? true
+            
+            if reportsOnlyCleanup {
+                // Only cleanup files with "reports/" prefix or in a "reports" container
+                Logger.debug("🗂️ Performing reports-only cleanup for '\(configName)'", category: .reports)
+                try await manager.deleteOldReports(olderThan: maxFileAgeInDays)
+            } else {
+                // Cleanup all files in the container (more aggressive)
+                Logger.debug("🗂️ Performing full container cleanup for '\(configName)'", category: .reports)
+                try await manager.deleteOldReports(olderThan: maxFileAgeInDays)
+            }
+            
+            Logger.info("✅ Completed cleanup for Azure Storage config '\(configName)'", category: .reports)
+            
+        } catch {
+            Logger.error("❌ Failed to perform cleanup for Azure Storage config '\(configName)': \(error.localizedDescription)", category: .reports)
+        }
     }
 }

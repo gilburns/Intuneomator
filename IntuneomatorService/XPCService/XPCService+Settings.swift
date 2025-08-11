@@ -662,6 +662,10 @@ extension XPCService {
             authMethod = .storageKey("")
         }
         
+        // Extract read-only SAS token if provided
+        let readOnlySASToken = dict["readOnlySASToken"] as? String
+        Logger.debug("Azure Storage Config - Read-only SAS token length: \(readOnlySASToken?.count ?? 0)", category: .core)
+        
         // Extract cleanup configuration fields
         let cleanupEnabled = dict["cleanupEnabled"] as? Bool ?? false
         let maxFileAgeInDays = dict["maxFileAgeInDays"] as? Int
@@ -678,6 +682,7 @@ extension XPCService {
             description: description,
             created: Date(),
             modified: Date(),
+            readOnlySASToken: readOnlySASToken,
             cleanupEnabled: cleanupEnabled,
             maxFileAgeInDays: maxFileAgeInDays,
             cleanupRules: cleanupRules
