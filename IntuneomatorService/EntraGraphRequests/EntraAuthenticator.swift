@@ -64,8 +64,6 @@ class EntraAuthenticator {
         if let token = cachedToken, let expiration = tokenExpiration, expiration > Date() {
             return token
         }
-        
-        Logger.info("Retrieving a new Entra ID token.", category: .core)
 
         // Otherwise, request a new token
         let tenantId = ConfigManager.readPlistValue(key: "TenantID") ?? ""

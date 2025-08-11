@@ -321,8 +321,8 @@ Gw
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <datePickerCell key="cell" controlSize="small" borderStyle="bezel" alignment="left" useCurrentDate="YES" id="FHh-Yc-fL5">
                                     <font key="font" metaFont="smallSystem"/>
-                                    <date key="date" timeIntervalSinceReferenceDate="775784940.44995904">
-                                        <!--2025-08-01 23:49:00 +0000-->
+                                    <date key="date" timeIntervalSinceReferenceDate="776573519.71561205">
+                                        <!--2025-08-11 02:51:59 +0000-->
                                     </date>
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -342,8 +342,8 @@ Gw
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <datePickerCell key="cell" controlSize="small" borderStyle="bezel" alignment="left" useCurrentDate="YES" id="Jw1-HK-vXL">
                                     <font key="font" metaFont="smallSystem"/>
-                                    <date key="date" timeIntervalSinceReferenceDate="775784940.45172095">
-                                        <!--2025-08-01 23:49:00 +0000-->
+                                    <date key="date" timeIntervalSinceReferenceDate="776573519.71766603">
+                                        <!--2025-08-11 02:51:59 +0000-->
                                     </date>
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -361,7 +361,7 @@ Gw
                                 <rect key="frame" x="18" y="352" width="69" height="14"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="Schedule:" id="gjc-N2-JFJ">
-                                    <font key="font" metaFont="systemBold" size="11"/>
+                                    <font key="font" metaFont="smallSystemBold"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
@@ -374,7 +374,7 @@ Gw
                                 <rect key="frame" x="311" y="352" width="62" height="14"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="Delivery:" id="eBG-9q-hY9">
-                                    <font key="font" metaFont="systemBold" size="11"/>
+                                    <font key="font" metaFont="smallSystemBold"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
@@ -511,7 +511,7 @@ Gw
                                 <rect key="frame" x="311" y="218" width="92" height="14"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="Notifications:" id="Bqu-RV-FSi">
-                                    <font key="font" metaFont="systemBold" size="11"/>
+                                    <font key="font" metaFont="smallSystemBold"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
@@ -624,8 +624,8 @@ Gw
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <datePickerCell key="cell" controlSize="small" borderStyle="bezel" alignment="left" datePickerStyle="textField" useCurrentDate="YES" id="30w-Xh-bga">
                                     <font key="font" metaFont="smallSystem"/>
-                                    <date key="date" timeIntervalSinceReferenceDate="775784940.45864105">
-                                        <!--2025-08-01 23:49:00 +0000-->
+                                    <date key="date" timeIntervalSinceReferenceDate="776573519.72698104">
+                                        <!--2025-08-11 02:51:59 +0000-->
                                     </date>
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -656,7 +656,7 @@ Gw
                                 <rect key="frame" x="30" y="383" width="50" height="14"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="Output:" id="HAy-ON-Mfm">
-                                    <font key="font" metaFont="systemBold" size="11"/>
+                                    <font key="font" metaFont="smallSystemBold"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>

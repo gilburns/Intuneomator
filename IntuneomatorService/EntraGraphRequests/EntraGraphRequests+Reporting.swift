@@ -578,7 +578,7 @@ extension EntraGraphRequests {
         format: String = "csv",
         localizationType: String = "ReplaceLocalizableValues"
     ) async throws -> String {
-        Logger.info("Creating export job for report: \(reportName)", category: .reports)
+        Logger.debug("Creating export job for report: \(reportName)", category: .reports)
         
         let urlString = "https://graph.microsoft.com/beta/deviceManagement/reports/exportJobs"
         
@@ -613,7 +613,7 @@ extension EntraGraphRequests {
             // Debug logging
             if let jsonData = request.httpBody,
                let jsonString = String(data: jsonData, encoding: .utf8) {
-                Logger.info("Export job request body: \(jsonString)", category: .reports)
+                Logger.debug("Export job request body: \(jsonString)", category: .reports)
             }
         } catch {
             throw NSError(domain: "EntraGraphRequests.ExportJobs", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to serialize export job request body: \(error.localizedDescription)"])
@@ -639,7 +639,7 @@ extension EntraGraphRequests {
             throw NSError(domain: "EntraGraphRequests.ExportJobs", code: 500, userInfo: [NSLocalizedDescriptionKey: "Export job ID not found in response"])
         }
         
-        Logger.info("Successfully created export job for \(reportName) with ID: \(jobId)", category: .reports)
+        Logger.debug("Successfully created export job for \(reportName) with ID: \(jobId)", category: .reports)
         return jobId
     }
     
@@ -650,7 +650,6 @@ extension EntraGraphRequests {
     /// - Returns: Dictionary containing job status and details (status, downloadUrl, etc.)
     /// - Throws: Network errors, authentication errors, or JSON parsing errors
     static func getExportJobStatus(authToken: String, jobId: String) async throws -> [String: Any] {
-        Logger.info("Checking status of export job: \(jobId)", category: .reports)
         
         let urlString = "https://graph.microsoft.com/beta/deviceManagement/reports/exportJobs('\(jobId)')"
         
@@ -679,7 +678,7 @@ extension EntraGraphRequests {
         }
         
         let status = json["status"] as? String ?? "unknown"
-        Logger.info("Export job \(jobId) status: \(status)", category: .reports)
+        Logger.debug("Export job \(jobId) status: \(status)", category: .reports)
         
         return json
     }
@@ -691,7 +690,7 @@ extension EntraGraphRequests {
     /// - Returns: Raw data from the export (CSV or JSON format depending on job creation)
     /// - Throws: Network errors, authentication errors, or download errors
     static func downloadExportJobData(authToken: String, downloadUrl: String) async throws -> Data {
-        Logger.info("Downloading export job data from: \(downloadUrl)", category: .reports)
+        Logger.debug("Downloading export job data from: \(downloadUrl)", category: .reports)
         
         guard let url = URL(string: downloadUrl) else {
             throw NSError(domain: "EntraGraphRequests.ExportJobs", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid download URL"])
@@ -714,7 +713,7 @@ extension EntraGraphRequests {
             throw NSError(domain: "EntraGraphRequests.ExportJobs", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to download export job data. Status: \(httpResponse.statusCode)"])
         }
         
-        Logger.info("Successfully downloaded export job data (\(data.count) bytes)", category: .reports)
+        Logger.debug("Successfully downloaded export job data (\(data.count) bytes)", category: .reports)
         return data
     }
     

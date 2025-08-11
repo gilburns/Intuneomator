@@ -372,16 +372,14 @@ func testFunction() {
 /// Executes scheduled reports directly without XPC layer
 /// Follows the same pattern as other command line functions like runIntuneAutomationQuiet()
 func checkScheduledReports() {
-    Logger.info("🕒 Starting scheduled reports check...", category: .reports)
+    Logger.info("🚀 Starting scheduled reports check...", category: .reports)
     
     let group = DispatchGroup()
     
     group.enter()
     Task {
         do {
-            Logger.info("🚀 About to call ScheduledReportsManager.executeScheduledReports()", category: .reports)
             await ScheduledReportsManager.executeScheduledReports()
-            Logger.info("🎯 ScheduledReportsManager.executeScheduledReports() completed normally", category: .reports)
         }
         group.leave()
     }
@@ -389,11 +387,11 @@ func checkScheduledReports() {
     // Notify when all tasks are complete
     group.notify(queue: .main) {
         print("All tasks completed successfully!")
-        // Update UI or perform further actions
     }
-
+    
     group.wait()
-    Logger.info("✅ Scheduled reports check completed - exiting function", category: .reports)
+    Logger.info("🛑 Completed scheduled reports check...", category: .reports)
+
 }
 
 

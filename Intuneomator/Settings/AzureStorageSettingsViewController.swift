@@ -431,7 +431,16 @@ extension AzureStorageSettingsViewController: NSTableViewDelegate {
         case "container":
             cell?.textField?.stringValue = configuration["containerName"] as? String ?? ""
         case "auth":
-            cell?.textField?.stringValue = configuration["authMethod"] as? String ?? ""
+            let authMethod = configuration["authMethod"] as? String ?? ""
+            let hasReadOnlyToken = configuration["hasReadOnlyToken"] as? Bool ?? false
+            
+            if hasReadOnlyToken && authMethod == "SAS Token" {
+                cell?.textField?.stringValue = "\(authMethod) + Read"
+                cell?.textField?.textColor = .systemBlue
+            } else {
+                cell?.textField?.stringValue = authMethod
+                cell?.textField?.textColor = .labelColor
+            }
         case "cleanup":
             cell?.textField?.stringValue = configuration["cleanupSummary"] as? String ?? "Disabled"
             let cleanupEnabled = configuration["cleanupEnabled"] as? Bool ?? false

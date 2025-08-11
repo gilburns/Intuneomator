@@ -19,6 +19,7 @@ class Logger {
         case automation = "Automation"   // Label processing, Graph API, metadata operations
         case download = "Download"       // Download tracking (kept separate)
         case reports = "Reports"         // Reports tracking (kept separate)
+        case reportdelivery = "ReportDelivery"  // Reports delivery tracking (kept separate)
         case upload = "Upload"           // Upload tracking (kept separate)
         case debug = "Debug"             // Development debugging (can be disabled in production)
         
@@ -209,7 +210,7 @@ class Logger {
     ) {
         loggingQueue.async {
             var logDirectory: URL
-            if logType == "Download" || logType == "Upload" {
+            if logType == "Download" || logType == "Upload" || logType == "ReportDelivery"{
                 logDirectory = logDirectoryStats
             } else {
                 logDirectory = toUserDirectory ? logDirectoryUser : self.logDirectory

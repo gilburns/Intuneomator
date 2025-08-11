@@ -281,17 +281,17 @@ extension XPCService {
             let reportFiles = try FileManager.default.contentsOfDirectory(at: reportsDirectory, includingPropertiesForKeys: nil)
                 .filter { $0.pathExtension == "json" && $0.lastPathComponent != "index.json" }
             
-            Logger.info("📄 Found \(reportFiles.count) JSON report files", category: .reports)
+            Logger.debug("📄 Found \(reportFiles.count) JSON report files", category: .reports)
             for file in reportFiles {
-                Logger.info("📄 Report file: \(file.lastPathComponent)", category: .reports)
+                Logger.debug("📄 Report file: \(file.lastPathComponent)", category: .reports)
             }
             
             var reports: [ScheduledReport] = []
             
             for fileURL in reportFiles {
-                Logger.info("📖 Loading report file: \(fileURL.lastPathComponent)", category: .reports)
+                Logger.debug("📖 Loading report file: \(fileURL.lastPathComponent)", category: .reports)
                 if let report = loadScheduledReportFromFile(fileURL) {
-                    Logger.info("✅ Successfully loaded report: \(report.name)", category: .reports)
+                    Logger.debug("✅ Successfully loaded report: \(report.name)", category: .reports)
                     reports.append(report)
                 } else {
                     Logger.error("❌ Failed to load report file: \(fileURL.lastPathComponent)", category: .reports)
@@ -311,13 +311,13 @@ extension XPCService {
     /// - Returns: The scheduled report or nil if loading failed
     private func loadScheduledReportFromFile(_ fileURL: URL) -> ScheduledReport? {
         do {
-            Logger.info("🔍 Reading data from: \(fileURL.lastPathComponent)", category: .reports)
+            Logger.debug("🔍 Reading data from: \(fileURL.lastPathComponent)", category: .reports)
             let data = try Data(contentsOf: fileURL)
-            Logger.info("📊 File size: \(data.count) bytes", category: .reports)
+            Logger.debug("📊 File size: \(data.count) bytes", category: .reports)
             
-            Logger.info("🔄 Attempting JSON decode...", category: .reports)
+            Logger.debug("🔄 Attempting JSON decode...", category: .reports)
             var report = try JSONDecoder().decode(ScheduledReport.self, from: data)
-            Logger.info("✅ JSON decode successful for: \(report.name)", category: .reports)
+            Logger.debug("✅ JSON decode successful for: \(report.name)", category: .reports)
             
             // Update next run time if it's nil or outdated (in memory only)
             if report.nextRun == nil || (report.nextRun != nil && report.nextRun! < Date()) {
@@ -431,7 +431,7 @@ extension XPCService {
                     continue
                 }
                 
-                Logger.info("⚡ Executing scheduled report: \(report.name)", category: .reports)
+                Logger.debug("⚡ Executing scheduled report: \(report.name)", category: .reports)
                 executedCount += 1
                 
                 let executionStart = Date()

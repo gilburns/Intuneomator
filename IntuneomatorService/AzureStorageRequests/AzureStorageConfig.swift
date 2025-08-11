@@ -170,9 +170,6 @@ class AzureStorageConfig {
         } else if hasSharedKeyAuth, let accountKey = accountKey {
             authMethod = .storageKey(accountKey)
             Logger.info("Using shared key authentication for Azure Storage", category: .reports)
-        } else if hasAzureADAuth, let tenantId = tenantId, let clientId = clientId, let clientSecret = clientSecret {
-            authMethod = .azureAD(tenantId: tenantId, clientId: clientId, clientSecret: clientSecret)
-            Logger.info("Using Azure AD authentication for Azure Storage", category: .reports)
         } else {
             throw ConfigurationError.noValidAuthMethod
         }
@@ -241,6 +238,11 @@ class AzureStorageConfig {
         let created: Date
         let modified: Date
         
+        // MARK: - Read-Only Access Configuration
+        /// Optional read-only SAS token for sharing download links (e.g., in Teams notifications)
+        /// This token should have only read permissions and be used for generating public download URLs
+        let readOnlySASToken: String?
+        
         // MARK: - Cleanup Rule Configuration
         /// Whether automatic cleanup is enabled for this storage location
         let cleanupEnabled: Bool
@@ -287,6 +289,30 @@ class AzureStorageConfig {
                 case .sasToken:
                     return "SAS Token"
                 }
+            }
+        }
+        
+        /// Whether this configuration has a read-only SAS token configured
+        var hasReadOnlyToken: Bool {
+            return readOnlySASToken != nil && !readOnlySASToken!.isEmpty
+        }
+        
+        /// Returns appropriate token for the given operation type
+        /// - Parameter requiresWrite: Whether the operation requires write access
+        /// - Returns: The appropriate SAS token to use, or nil if not using SAS authentication
+        func tokenForOperation(requiresWrite: Bool) -> String? {
+            switch authMethod {
+            case .sasToken(let fullToken):
+                // For write operations or when no read-only token exists, use the full token
+                if requiresWrite || !hasReadOnlyToken {
+                    return fullToken
+                } else {
+                    // For read operations, prefer the read-only token if available
+                    return readOnlySASToken
+                }
+            case .storageKey:
+                // Storage key authentication doesn't use tokens
+                return nil
             }
         }
         
@@ -622,7 +648,8 @@ class AzureStorageConfig {
                 modified: config.modified,
                 isValid: validateConfiguration(named: name),
                 cleanupEnabled: config.cleanupEnabled,
-                maxFileAgeInDays: config.maxFileAgeInDays
+                maxFileAgeInDays: config.maxFileAgeInDays,
+                hasReadOnlyToken: config.hasReadOnlyToken
             )
         }
     }
@@ -639,6 +666,7 @@ class AzureStorageConfig {
         let isValid: Bool
         let cleanupEnabled: Bool
         let maxFileAgeInDays: Int?
+        let hasReadOnlyToken: Bool
         
         /// Human-readable cleanup summary
         var cleanupSummary: String {

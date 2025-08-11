@@ -238,13 +238,13 @@ extension XPCService {
     /// Gets all available named Azure Storage configuration names
     func getAzureStorageConfigurationNames(reply: @escaping ([String]) -> Void) {
         let names = AzureStorageConfig.shared.availableConfigurationNames
-        Logger.info("Retrieved \(names.count) Azure Storage configuration names", category: .reports)
+        Logger.debug("Retrieved \(names.count) Azure Storage configuration names", category: .reports)
         reply(names)
     }
     
     /// Gets a specific named Azure Storage configuration
     func getNamedAzureStorageConfiguration(name: String, reply: @escaping ([String: Any]?) -> Void) {
-        Logger.info("Retrieving Azure Storage configuration: \(name)", category: .reports)
+        Logger.debug("Retrieving Azure Storage configuration: \(name)", category: .reports)
         
         guard let config = AzureStorageConfig.shared.getConfiguration(named: name) else {
             Logger.warning("Azure Storage configuration '\(name)' not found", category: .reports)
@@ -275,6 +275,10 @@ extension XPCService {
             configDict["accountKey"] = key
         case .sasToken(let token):
             configDict["sasToken"] = token
+            // Also include read-only SAS token if available
+            if let readOnlyToken = config.readOnlySASToken, !readOnlyToken.isEmpty {
+                configDict["readOnlySASToken"] = readOnlyToken
+            }
         }
         
         reply(configDict)
@@ -318,6 +322,9 @@ extension XPCService {
             return
         }
         
+        // Extract read-only SAS token if provided
+        let readOnlySASToken = configData["readOnlySASToken"] as? String
+        
         // Extract cleanup configuration fields
         let cleanupEnabled = configData["cleanupEnabled"] as? Bool ?? false
         let maxFileAgeInDays = configData["maxFileAgeInDays"] as? Int
@@ -336,6 +343,7 @@ extension XPCService {
             description: configData["description"] as? String,
             created: configData["created"] as? Date ?? now,
             modified: now,
+            readOnlySASToken: readOnlySASToken,
             cleanupEnabled: cleanupEnabled,
             maxFileAgeInDays: maxFileAgeInDays,
             cleanupRules: cleanupRules
@@ -362,7 +370,7 @@ extension XPCService {
     
     /// Gets summary information for all Azure Storage configurations
     func getAzureStorageConfigurationSummaries(reply: @escaping ([[String: Any]]) -> Void) {
-        Logger.info("Retrieving Azure Storage configuration summaries", category: .reports)
+        Logger.debug("Retrieving Azure Storage configuration summaries", category: .reports)
         
         let summaries = AzureStorageConfig.shared.getConfigurationSummaries()
         let summaryDicts = summaries.map { summary in
@@ -376,7 +384,8 @@ extension XPCService {
                 "modified": summary.modified.timeIntervalSince1970,
                 "isValid": summary.isValid,
                 "cleanupEnabled": summary.cleanupEnabled,
-                "cleanupSummary": summary.cleanupSummary
+                "cleanupSummary": summary.cleanupSummary,
+                "hasReadOnlyToken": summary.hasReadOnlyToken
             ]
             
             if let maxAge = summary.maxFileAgeInDays {
@@ -440,13 +449,14 @@ extension XPCService {
         
         Task {
             do {
-                // Get the named configuration and create manager
-                let manager = try AzureStorageConfig.shared.createManager(for: configurationName)
+                // Generate secure download link (uses read-only token when available)
+                let downloadUrl = try await AzureStorageManager.generateSecureDownloadLink(
+                    withConfig: configurationName,
+                    for: reportName,
+                    expiresIn: days
+                )
                 
-                // Generate download link
-                let downloadUrl = try await manager.generateDownloadLink(for: reportName, expiresIn: days)
-                
-                Logger.info("Successfully generated download link for '\(reportName)' from '\(configurationName)'", category: .reports)
+                Logger.info("Successfully generated secure download link for '\(reportName)' from '\(configurationName)' (uses read-only token when available)", category: .reports)
                 DispatchQueue.main.async { reply(downloadUrl) }
                 
             } catch {
