@@ -181,10 +181,18 @@ class PKGCreatorUniversal {
         let infoPlistPath = "\(appPath)/Contents/Info.plist"
         guard let plistData = NSDictionary(contentsOfFile: infoPlistPath),
               let appID = plistData["CFBundleIdentifier"] as? String,
-              let appVersion = plistData["CFBundleShortVersionString"] as? String,
-              let appName = plistData["CFBundleName"] as? String else {
+              let appVersion = plistData["CFBundleShortVersionString"] as? String else {
             return nil
         }
+        
+        let appName: String
+        if let bundleName = plistData["CFBundleName"] as? String {
+            appName = bundleName
+        } else {
+            let pathComponent = (appPath as NSString).lastPathComponent
+            appName = (pathComponent as NSString).deletingPathExtension
+        }
+        
         return (appName, appID, appVersion)
     }
 
