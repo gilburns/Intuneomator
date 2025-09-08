@@ -188,6 +188,9 @@
                                                 <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                 <font key="font" metaFont="system"/>
                                             </buttonCell>
+                                            <connections>
+                                                <action selector="notificationCategoryToggled:" target="notifications-settings-vc" id="zTR-Ea-372"/>
+                                            </connections>
                                         </button>
                                         <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Q9d-RS-E43">
                                             <rect key="frame" x="44" y="112" width="314" height="18"/>
@@ -196,6 +199,9 @@
                                                 <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                 <font key="font" metaFont="system"/>
                                             </buttonCell>
+                                            <connections>
+                                                <action selector="notificationCategoryToggled:" target="notifications-settings-vc" id="bhL-Gp-ryk"/>
+                                            </connections>
                                         </button>
                                         <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="90K-W3-1am">
                                             <rect key="frame" x="44" y="63" width="334" height="18"/>
@@ -204,6 +210,9 @@
                                                 <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                 <font key="font" metaFont="system"/>
                                             </buttonCell>
+                                            <connections>
+                                                <action selector="notificationCategoryToggled:" target="notifications-settings-vc" id="s4Y-aS-vxl"/>
+                                            </connections>
                                         </button>
                                         <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="uKU-6j-jie">
                                             <rect key="frame" x="44" y="41" width="365" height="18"/>
@@ -212,6 +221,9 @@
                                                 <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                 <font key="font" metaFont="system"/>
                                             </buttonCell>
+                                            <connections>
+                                                <action selector="notificationCategoryToggled:" target="notifications-settings-vc" id="77f-rm-xtI"/>
+                                            </connections>
                                         </button>
                                         <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="q9i-Gz-N09">
                                             <rect key="frame" x="44" y="19" width="243" height="18"/>
@@ -220,6 +232,9 @@
                                                 <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                                 <font key="font" metaFont="system"/>
                                             </buttonCell>
+                                            <connections>
+                                                <action selector="notificationCategoryToggled:" target="notifications-settings-vc" id="8Id-pv-TWb"/>
+                                            </connections>
                                         </button>
                                         <box verticalHuggingPriority="750" fixedFrame="YES" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="Leo-JI-Wpw">
                                             <rect key="frame" x="20" y="86" width="518" height="5"/>
