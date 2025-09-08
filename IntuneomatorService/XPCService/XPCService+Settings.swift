@@ -364,7 +364,7 @@ extension XPCService {
         
         // Convert notification style from Int to String for UI compatibility
         let notificationStyleInt = ConfigManager.readPlistValue(key: "TeamsNotificationsStyle") ?? 0
-        settings["notificationStyle"] = notificationStyleInt == 1 ? "Send a notification each automation run" : "Send a notification for each software title update"
+        settings["notificationStyle"] = notificationStyleInt
         
         // Entra ID settings
         settings["tenantID"] = ConfigManager.readPlistValue(key: "TenantID") ?? ""
@@ -460,9 +460,11 @@ extension XPCService {
             allSucceeded = allSucceeded && ConfigManager.writePlistValue(key: "TeamsNotificationsForUpdates", value: updates)
         }
         
-        if let style = settingsData["notificationStyle"] as? String {
-            let styleValue = style == "Standard" ? 0 : (style == "Detailed" ? 1 : 2)
-            allSucceeded = allSucceeded && ConfigManager.writePlistValue(key: "TeamsNotificationsStyle", value: styleValue)
+        if let style = settingsData["notificationStyle"] as? Int {
+            // notificationStyle is now the popup index:
+            // 0=Send a notification for each software title update
+            // 1=Send a notification each automation run
+            allSucceeded = allSucceeded && ConfigManager.writePlistValue(key: "TeamsNotificationsStyle", value: style)
         }
         
         // Save Entra ID settings
