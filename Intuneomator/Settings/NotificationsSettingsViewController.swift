@@ -37,7 +37,6 @@ class NotificationsSettingsViewController: NSViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupNotificationStylePopup()
         setupObservers()
         populateFields()
     }
@@ -120,11 +119,8 @@ class NotificationsSettingsViewController: NSViewController {
             buttonSendTeamsNotificationsForUpdates.state = updates ? .on : .off
         }
         
-        if let style = initialData["notificationStyle"] as? String {
-            let titles = buttonSendTeamsNotificationsStyle.itemTitles
-            if let index = titles.firstIndex(of: style) {
-                buttonSendTeamsNotificationsStyle.selectItem(at: index)
-            }
+        if let style = initialData["notificationStyle"] as? Int {
+            buttonSendTeamsNotificationsStyle.selectItem(at: style)
         }
         
         updateNotificationControlsState()
@@ -160,8 +156,8 @@ extension NotificationsSettingsViewController: TabbedSheetChildProtocol {
         data["sendNotificationsForLabelUpdates"] = labelUpdatesButton.state == .on
         data["sendNotificationsForUpdates"] = updatesButton.state == .on
         
-        if let selectedTitle = styleButton.titleOfSelectedItem {
-            data["notificationStyle"] = selectedTitle
+        if let selectedIndex = styleButton.selectedItem?.tag {
+            data["notificationStyle"] = selectedIndex
         }
         
         return data
