@@ -40,7 +40,7 @@ class ReportRegistry {
             case date
         }
         
-        init(key: String, displayName: String, type: FilterType, isRequired: Bool = false, 
+        init(key: String, displayName: String, type: FilterType, isRequired: Bool = false,
              options: [String]? = nil, optionValues: [String: String]? = nil, placeholder: String? = nil) {
             self.key = key
             self.displayName = displayName
@@ -83,7 +83,7 @@ class ReportRegistry {
         let supportsCSV: Bool
         let supportsJSON: Bool
         
-        init(type: String, displayName: String, description: String, category: String, 
+        init(type: String, displayName: String, description: String, category: String,
              intuneConsolePath: String? = nil, supportedFilters: [FilterDefinition] = [], supportedColumns: [ColumnDefinition] = [],
              requiredParameters: [String] = [], supportsCSV: Bool = true, supportsJSON: Bool = true) {
             self.type = type
@@ -1251,6 +1251,178 @@ class ReportRegistry {
             requiredParameters: ["ApplicationKey"]
         )
 
+        reports["DeviceConfigurationPolicyStatuses"] = ReportDefinition(
+            type: "DeviceConfigurationPolicyStatuses",
+            displayName: "Device Configuration Policy Statuses",
+            description: "Device Configuration Policy Statuses",
+            category: "Device Compliance",
+            intuneConsolePath: "Under Reports > Device management > Device Compliance > Reports",
+            supportedFilters: [
+                FilterDefinition(key: "IntuneDeviceId", displayName: "Intune Device Id", type: .text),
+                FilterDefinition(key: "PolicyBaseTypeName", displayName: "Policy Base Type Name", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
+                ColumnDefinition(key: "IntuneDeviceId", displayName: "Intune Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
+                ColumnDefinition(key: "PolicyStatus", displayName: "Policy Status", isDefault: true),
+                ColumnDefinition(key: "PspdpuLastModifiedTimeUtc", displayName: "Pspdpu Last Modified Time Utc", isDefault: false),
+                ColumnDefinition(key: "UnifiedPolicyPlatformType", displayName: "Unified Policy Platform Type", isDefault: false),
+                ColumnDefinition(key: "UnifiedPolicyType", displayName: "Unified Policy Type", isDefault: false),
+                ColumnDefinition(key: "AssignmentFilterIds", displayName: "Assignment Filter Ids", isDefault: false),
+                ColumnDefinition(key: "TemplateVersion", displayName: "Template Version", isDefault: false),
+                ColumnDefinition(key: "ReportStatus", displayName: "Report Status", isDefault: true)
+            ]
+        )
+
+        reports["DeviceConfigurationPolicyStatusesV3"] = ReportDefinition(
+            type: "DeviceConfigurationPolicyStatusesV3",
+            displayName: "Device Configuration Policy Statuses V3",
+            description: "Device Configuration Policy Statuses V3",
+            category: "Device Compliance",
+            intuneConsolePath: "Under Reports > Device management > Device Compliance > Reports",
+            supportedFilters: [
+                FilterDefinition(key: "IntuneDeviceId", displayName: "Intune Device Id", type: .text),
+                FilterDefinition(key: "PolicyBaseTypeName", displayName: "Policy Base Type Name", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
+                ColumnDefinition(key: "IntuneDeviceId", displayName: "Intune Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
+                ColumnDefinition(key: "PolicyStatus", displayName: "Policy Status", isDefault: true),
+                ColumnDefinition(key: "PspdpuLastModifiedTimeUtc", displayName: "Pspdpu Last Modified Time Utc", isDefault: false),
+                ColumnDefinition(key: "UnifiedPolicyPlatformType", displayName: "Unified Policy Platform Type", isDefault: false),
+                ColumnDefinition(key: "UnifiedPolicyType", displayName: "Unified Policy Type", isDefault: false),
+                ColumnDefinition(key: "AssignmentFilterIds", displayName: "Assignment Filter Ids", isDefault: false),
+                ColumnDefinition(key: "TemplateVersion", displayName: "Template Version", isDefault: false),
+                ColumnDefinition(key: "ReportStatus", displayName: "Report Status", isDefault: true)
+            ]
+        )
+
+        reports["DeviceConfigurationPolicyStatusesWithPF"] = ReportDefinition(
+            type: "DeviceConfigurationPolicyStatusesWithPF",
+            displayName: "Device Configuration Policy Statuses With PF",
+            description: "Device Configuration Policy Statuses With PF",
+            category: "Device Compliance",
+            intuneConsolePath: "Under Reports > Device management > Device Compliance > Reports",
+            supportedFilters: [
+                FilterDefinition(key: "IntuneDeviceId", displayName: "Intune Device Id", type: .text),
+                FilterDefinition(key: "PolicyBaseTypeName", displayName: "Policy Base Type Name", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
+                ColumnDefinition(key: "IntuneDeviceId", displayName: "Intune Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
+                ColumnDefinition(key: "PolicyStatus", displayName: "Policy Status", isDefault: true),
+                ColumnDefinition(key: "PspdpuLastModifiedTimeUtc", displayName: "Pspdpu Last Modified Time Utc", isDefault: false),
+                ColumnDefinition(key: "UnifiedPolicyPlatformType", displayName: "Unified Policy Platform Type", isDefault: false),
+                ColumnDefinition(key: "UnifiedPolicyType", displayName: "Unified Policy Type", isDefault: false),
+                ColumnDefinition(key: "AssignmentFilterIds", displayName: "Assignment Filter Ids", isDefault: false),
+                ColumnDefinition(key: "TemplateVersion", displayName: "Template Version", isDefault: false),
+                ColumnDefinition(key: "ReportStatus", displayName: "Report Status", isDefault: true)
+            ]
+        )
+
+        reports["DeviceConfigurationPolicyStatusesWithPFV3"] = ReportDefinition(
+            type: "DeviceConfigurationPolicyStatusesWithPFV3",
+            displayName: "Device Configuration Policy Statuses With PF V3",
+            description: "Device Configuration Policy Statuses With PF V3",
+            category: "Device Compliance",
+            intuneConsolePath: "Under Reports > Device management > Device Compliance > Reports",
+            supportedFilters: [
+                FilterDefinition(key: "IntuneDeviceId", displayName: "Intune Device Id", type: .text),
+                FilterDefinition(key: "PolicyBaseTypeName", displayName: "Policy Base Type Name", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
+                ColumnDefinition(key: "IntuneDeviceId", displayName: "Intune Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true),
+                ColumnDefinition(key: "PolicyStatus", displayName: "Policy Status", isDefault: true),
+                ColumnDefinition(key: "PspdpuLastModifiedTimeUtc", displayName: "Pspdpu Last Modified Time Utc", isDefault: false),
+                ColumnDefinition(key: "UnifiedPolicyPlatformType", displayName: "Unified Policy Platform Type", isDefault: false),
+                ColumnDefinition(key: "UnifiedPolicyType", displayName: "Unified Policy Type", isDefault: false),
+                ColumnDefinition(key: "AssignmentFilterIds", displayName: "Assignment Filter Ids", isDefault: false),
+                ColumnDefinition(key: "TemplateVersion", displayName: "Template Version", isDefault: false),
+                ColumnDefinition(key: "ReportStatus", displayName: "Report Status", isDefault: true)
+            ]
+        )
+        
+        reports["DeviceStatusesByInventoryPolicyWithPF"] = ReportDefinition(
+            type: "DeviceStatusesByInventoryPolicyWithPF",
+            displayName: "Device Statuses By Inventory Policy With PF",
+            description: "Device Statuses By Inventory Policy With PF",
+            category: "Device Compliance",
+            intuneConsolePath: "Under Devices > Manage devices > Compliance",
+            supportedFilters: [
+                FilterDefinition(key: "PolicyId", displayName: "Policy Id", type: .text),
+                FilterDefinition(key: "PolicyBaseTypeName", displayName: "Policy Base Type Name", type: .text),
+                FilterDefinition(key: "PolicyStatus", displayName: "Policy Status", type: .text),
+                FilterDefinition(key: "PolicyTypeName", displayName: "Policy Type Name", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AssignmentFilterIds", displayName: "Assignment Filter Ids", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "IntuneDeviceId", displayName: "Intune Device Id", isDefault: true),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
+                ColumnDefinition(key: "PolicyStatus", displayName: "Policy Status", isDefault: true),
+                ColumnDefinition(key: "PspdpuLastModifiedTimeUtc", displayName: "Pspdpu Last Modified Time Utc", isDefault: false),
+                ColumnDefinition(key: "ReportStatus", displayName: "Report Status", isDefault: true),
+                ColumnDefinition(key: "TemplateVersion", displayName: "Template Version", isDefault: false),
+                ColumnDefinition(key: "UnifiedPolicyPlatformType", displayName: "Unified Policy Platform Type", isDefault: false),
+                ColumnDefinition(key: "UnifiedPolicyType", displayName: "Unified Policy Type", isDefault: false),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true)
+            ]
+        )
+        
+        reports["DeviceStatusesByInventoryPolicyWithPFV3"] = ReportDefinition(
+            type: "DeviceStatusesByInventoryPolicyWithPFV3",
+            displayName: "Device Statuses By Inventory Policy With PF V3",
+            description: "Device Statuses By Inventory Policy With PF V3",
+            category: "Device Compliance",
+            intuneConsolePath: "Under Devices > Manage devices > Compliance",
+            supportedFilters: [
+                FilterDefinition(key: "PolicyId", displayName: "Policy Id", type: .text),
+                FilterDefinition(key: "PolicyBaseTypeName", displayName: "Policy Base Type Name", type: .text),
+                FilterDefinition(key: "PolicyStatus", displayName: "Policy Status", type: .text),
+                FilterDefinition(key: "PolicyTypeName", displayName: "Policy Type Name", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AssignmentFilterIds", displayName: "Assignment Filter Ids", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "IntuneDeviceId", displayName: "Intune Device Id", isDefault: true),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "PolicyId", displayName: "Policy Id", isDefault: true),
+                ColumnDefinition(key: "PolicyName", displayName: "Policy Name", isDefault: true),
+                ColumnDefinition(key: "PolicyStatus", displayName: "Policy Status", isDefault: true),
+                ColumnDefinition(key: "PspdpuLastModifiedTimeUtc", displayName: "Pspdpu Last Modified Time Utc", isDefault: false),
+                ColumnDefinition(key: "ReportStatus", displayName: "Report Status", isDefault: true),
+                ColumnDefinition(key: "TemplateVersion", displayName: "Template Version", isDefault: false),
+                ColumnDefinition(key: "UnifiedPolicyPlatformType", displayName: "Unified Policy Platform Type", isDefault: false),
+                ColumnDefinition(key: "UnifiedPolicyType", displayName: "Unified Policy Type", isDefault: false),
+                ColumnDefinition(key: "UPN", displayName: "UPN", isDefault: true)
+            ]
+        )
+
         reports["DevicesStatusByPolicyPlatformComplianceReport"] = ReportDefinition(
             type: "DevicesStatusByPolicyPlatformComplianceReport",
             displayName: "Devices Status By Policy Platform Compliance Report",
@@ -1817,7 +1989,7 @@ class ReportRegistry {
             intuneConsolePath: "Devices > Monitor > Managed device reports",
             supportedFilters: [
                 FilterDefinition(key: "CreatedDate", displayName: "Created Date", type: .date),
-                FilterDefinition(key: "LastContact", displayName: "Last Contact", type: .date), 
+                FilterDefinition(key: "LastContact", displayName: "Last Contact", type: .date),
                 FilterDefinition(key: "CategoryName", displayName: "Category Name", type: .text),
                 FilterDefinition(key: "CompliantState", displayName: "Compliance State", type: .dropdown,
                                options: ["All", "Compliant", "Noncompliant", "InGracePeriod"]),
@@ -2236,6 +2408,42 @@ class ReportRegistry {
             ]
         )
 
+        reports["EAAppPerformance"] = ReportDefinition(
+            type: "EAAppPerformance",
+            displayName: "EAApp Performance",
+            description: "EA App Performance",
+            category: "Endpoint Analytics",
+            intuneConsolePath: "Under Reports > Endpoint analytics > Application reliability > App performance",
+            supportedFilters: [
+                FilterDefinition(key: "ActiveDevices", displayName: "Active Devices", type: .text),
+                FilterDefinition(key: "AppHealthScore", displayName: "App Health Score", type: .text),
+                FilterDefinition(key: "DeviceScopeId", displayName: "Device Scope Id", type: .text),
+                FilterDefinition(key: "MeanTimeToFailure", displayName: "Mean Time To Failure", type: .text),
+                FilterDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", type: .text),
+                FilterDefinition(key: "TotalAppCrashes", displayName: "Total App Crashes", type: .text),
+                FilterDefinition(key: "TotalAppUsageDuration", displayName: "Total App Usage Duration", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "ActiveDevices", displayName: "Active Devices", isDefault: true),
+                ColumnDefinition(key: "AllOrgsHealthScore", displayName: "All Orgs Health Score", isDefault: true),
+                ColumnDefinition(key: "AllOrgsMeanTimeToFailure", displayName: "All Orgs Mean Time To Failure", isDefault: true),
+                ColumnDefinition(key: "AppFriendlyName", displayName: "App Friendly Name", isDefault: true),
+                ColumnDefinition(key: "AppHealthScore", displayName: "App Health Score", isDefault: true),
+                ColumnDefinition(key: "AppHealthStatus", displayName: "App Health Status", isDefault: true),
+                ColumnDefinition(key: "AppName", displayName: "App Name", isDefault: true),
+                ColumnDefinition(key: "AppPublisher", displayName: "App Publisher", isDefault: true),
+                ColumnDefinition(key: "DeviceScopeId", displayName: "Device Scope Id", isDefault: true),
+                ColumnDefinition(key: "MeanTimeToFailure", displayName: "Mean Time To Failure", isDefault: true),
+                ColumnDefinition(key: "MemaTimeGenerated", displayName: "Mema Time Generated", isDefault: true),
+                ColumnDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", isDefault: true),
+                ColumnDefinition(key: "RowCountInSnapshot", displayName: "Row Count In Snapshot", isDefault: true),
+                ColumnDefinition(key: "SchemaVersion", displayName: "Schema Version", isDefault: true),
+                ColumnDefinition(key: "TotalAppCrashes", displayName: "Total App Crashes", isDefault: true),
+                ColumnDefinition(key: "TotalAppHangs", displayName: "Total App Hangs", isDefault: true),
+                ColumnDefinition(key: "TotalAppUsageDuration", displayName: "Total App Usage Duration", isDefault: true)
+            ]
+        )
+
         reports["EADeviceModelPerformance"] = ReportDefinition(
             type: "EADeviceModelPerformance",
             displayName: "Device Model Performance",
@@ -2369,6 +2577,221 @@ class ReportRegistry {
                 ColumnDefinition(key: "TargetSnapshotId", displayName: "Target Snapshot Id", isDefault: false),
                 ColumnDefinition(key: "TotalAppCrashes", displayName: "Total App Crashes", isDefault: true),
                 ColumnDefinition(key: "TotalAppHangs", displayName: "Total App Hangs", isDefault: true)
+            ]
+        )
+
+        reports["EADeviceScoresV2"] = ReportDefinition(
+            type: "EADeviceScoresV2",
+            displayName: "EADevice Scores V2",
+            description: "EA Device Scores V2",
+            category: "Endpoint Analytics",
+            intuneConsolePath: "Under Reports > Endpoint analytics > Device scores",
+            supportedFilters: [
+                FilterDefinition(key: "AppReliabilityScore", displayName: "App Reliability Score", type: .text),
+                FilterDefinition(key: "DeviceScopeIds", displayName: "Device Scope Ids", type: .text),
+                FilterDefinition(key: "EndpointAnalyticsScore", displayName: "Endpoint Analytics Score", type: .text),
+                FilterDefinition(key: "HealthStatus", displayName: "Health Status", type: .text),
+                FilterDefinition(key: "OverviewBatteryHealthScore", displayName: "Overview Battery Health Score", type: .text),
+                FilterDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", type: .text),
+                FilterDefinition(key: "ResourcePerfScore", displayName: "Resource Perf Score", type: .text),
+                FilterDefinition(key: "StartupPerformanceScore", displayName: "Startup Performance Score", type: .text),
+                FilterDefinition(key: "WorkFromAnywhereScore", displayName: "Work From Anywhere Score", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AppReliabilityScore", displayName: "App Reliability Score", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "DeviceScopeIds", displayName: "Device Scope Ids", isDefault: false),
+                ColumnDefinition(key: "EndpointAnalyticsScore", displayName: "Endpoint Analytics Score", isDefault: true),
+                ColumnDefinition(key: "HealthStatus", displayName: "Health Status", isDefault: false),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "OverviewBatteryHealthScore", displayName: "Overview Battery Health Score", isDefault: false),
+                ColumnDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", isDefault: false),
+                ColumnDefinition(key: "ResourcePerfScore", displayName: "Resource Perf Score", isDefault: false),
+                ColumnDefinition(key: "StartupPerformanceScore", displayName: "Startup Performance Score", isDefault: true),
+                ColumnDefinition(key: "WorkFromAnywhereScore", displayName: "Work From Anywhere Score", isDefault: true)
+            ]
+        )
+
+        reports["EAModelScoresV2"] = ReportDefinition(
+            type: "EAModelScoresV2",
+            displayName: "EAModel Scores V2",
+            description: "EA Model Scores V2",
+            category: "Endpoint Analytics",
+            intuneConsolePath: "Under Reports > Endpoint analytics > Model scores",
+            supportedFilters: [
+                FilterDefinition(key: "AppReliabilityScore", displayName: "App Reliability Score", type: .text),
+                FilterDefinition(key: "DeviceScopeId", displayName: "Device Scope Id", type: .text),
+                FilterDefinition(key: "EndpointAnalyticsScore", displayName: "Endpoint Analytics Score", type: .text),
+                FilterDefinition(key: "HealthStatus", displayName: "Health Status", type: .text),
+                FilterDefinition(key: "ModelDeviceCount", displayName: "Model Device Count", type: .text),
+                FilterDefinition(key: "OverviewBatteryHealthScore", displayName: "Overview Battery Health Score", type: .text),
+                FilterDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", type: .text),
+                FilterDefinition(key: "ResourcePerfScore", displayName: "Resource Perf Score", type: .text),
+                FilterDefinition(key: "StartupPerformanceScore", displayName: "Startup Performance Score", type: .text),
+                FilterDefinition(key: "WorkFromAnywhereScore", displayName: "Work From Anywhere Score", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AppReliabilityScore", displayName: "App Reliability Score", isDefault: true),
+                ColumnDefinition(key: "DeviceScopeId", displayName: "Device Scope Id", isDefault: true),
+                ColumnDefinition(key: "EndpointAnalyticsScore", displayName: "Endpoint Analytics Score", isDefault: true),
+                ColumnDefinition(key: "HealthStatus", displayName: "Health Status", isDefault: true),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "ModelDeviceCount", displayName: "Model Device Count", isDefault: false),
+                ColumnDefinition(key: "OverviewBatteryHealthScore", displayName: "Overview Battery Health Score", isDefault: true),
+                ColumnDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", isDefault: false),
+                ColumnDefinition(key: "ResourcePerfScore", displayName: "Resource Perf Score", isDefault: false),
+                ColumnDefinition(key: "StartupPerformanceScore", displayName: "Startup Performance Score", isDefault: true),
+                ColumnDefinition(key: "WorkFromAnywhereScore", displayName: "Work From Anywhere Score", isDefault: true)
+            ]
+        )
+
+        reports["EAStartupPerfDeviceProcesses"] = ReportDefinition(
+            type: "EAStartupPerfDeviceProcesses",
+            displayName: "EAStartup Perf Device Processes",
+            description: "EA Startup Perf Device Processes",
+            category: "Endpoint Analytics",
+            intuneConsolePath: "Under Reports > Endpoint analytics > Startup performance > Startup processes",
+            supportedFilters: [
+                FilterDefinition(key: "DeviceScopeId", displayName: "Device Scope Id", type: .text),
+                FilterDefinition(key: "Median", displayName: "Median", type: .text),
+                FilterDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", type: .text),
+                FilterDefinition(key: "TimePerProcess", displayName: "Time Per Process", type: .text),
+                FilterDefinition(key: "TotalDeviceCount", displayName: "Total Device Count", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "DeviceScopeId", displayName: "Device Scope Id", isDefault: true),
+                ColumnDefinition(key: "FileDescription", displayName: "File Description", isDefault: true),
+                ColumnDefinition(key: "InsertedDate", displayName: "Inserted Date", isDefault: false),
+                ColumnDefinition(key: "Median", displayName: "Median", isDefault: true),
+                ColumnDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", isDefault: false),
+                ColumnDefinition(key: "ProcessName", displayName: "Process Name", isDefault: true),
+                ColumnDefinition(key: "ProductName", displayName: "Product Name", isDefault: true),
+                ColumnDefinition(key: "Publisher", displayName: "Publisher", isDefault: true),
+                ColumnDefinition(key: "TimePerProcess", displayName: "Time Per Process", isDefault: false),
+                ColumnDefinition(key: "TotalDeviceCount", displayName: "Total Device Count", isDefault: false)
+            ]
+        )
+
+        reports["EAStartupPerfModelPerformance"] = ReportDefinition(
+            type: "EAStartupPerfModelPerformance",
+            displayName: "EAStartup Perf Model Performance",
+            description: "EA Startup Perf Model Performance",
+            category: "Endpoint Analytics",
+            intuneConsolePath: "Under Reports > Endpoint analytics > Startup performance > Model performance",
+            supportedFilters: [
+                FilterDefinition(key: "AverageBlueScreens", displayName: "Average Blue Screens", type: .text),
+                FilterDefinition(key: "AverageRestarts", displayName: "Average Restarts", type: .text),
+                FilterDefinition(key: "CoreBootTime", displayName: "Core Boot Time", type: .text),
+                FilterDefinition(key: "CoreLogonTime", displayName: "Core Logon Time", type: .text),
+                FilterDefinition(key: "DeviceScopeId", displayName: "Device Scope Id", type: .text),
+                FilterDefinition(key: "Disktype", displayName: "Disktype", type: .text),
+                FilterDefinition(key: "GPBootTime", displayName: "GPBoot Time", type: .text),
+                FilterDefinition(key: "GPLogonTime", displayName: "GPLogon Time", type: .text),
+                FilterDefinition(key: "HealthStatus", displayName: "Health Status", type: .text),
+                FilterDefinition(key: "ModelId", displayName: "Model Id", type: .text),
+                FilterDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", type: .text),
+                FilterDefinition(key: "StartupPerformanceScore", displayName: "Startup Performance Score", type: .text),
+                FilterDefinition(key: "TotalDeviceRecordCount", displayName: "Total Device Record Count", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AverageBlueScreens", displayName: "Average Blue Screens", isDefault: true),
+                ColumnDefinition(key: "AverageRestarts", displayName: "Average Restarts", isDefault: true),
+                ColumnDefinition(key: "BootDeviceCount", displayName: "Boot Device Count", isDefault: true),
+                ColumnDefinition(key: "CoreBootTime", displayName: "Core Boot Time", isDefault: true),
+                ColumnDefinition(key: "CoreLogonTime", displayName: "Core Logon Time", isDefault: false),
+                ColumnDefinition(key: "DeviceBootTimeAverage", displayName: "Device Boot Time Average", isDefault: true),
+                ColumnDefinition(key: "DeviceScopeId", displayName: "Device Scope Id", isDefault: true),
+                ColumnDefinition(key: "Disktype", displayName: "Disktype", isDefault: true),
+                ColumnDefinition(key: "GPBootTime", displayName: "GPBoot Time", isDefault: true),
+                ColumnDefinition(key: "GPLogonTime", displayName: "GPLogon Time", isDefault: false),
+                ColumnDefinition(key: "HealthStatus", displayName: "Health Status", isDefault: true),
+                ColumnDefinition(key: "IsAnomalous", displayName: "Is Anomalous", isDefault: true),
+                ColumnDefinition(key: "LogonDeviceCount", displayName: "Logon Device Count", isDefault: false),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
+                ColumnDefinition(key: "MemaTimeGenerated", displayName: "Mema Time Generated", isDefault: false),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "ModelId", displayName: "Model Id", isDefault: true),
+                ColumnDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", isDefault: false),
+                ColumnDefinition(key: "StartupPerformanceScore", displayName: "Startup Performance Score", isDefault: true),
+                ColumnDefinition(key: "TargetSnapshotId", displayName: "Target Snapshot Id", isDefault: false),
+                ColumnDefinition(key: "TotalDeviceRecordCount", displayName: "Total Device Record Count", isDefault: false)
+            ]
+        )
+
+        reports["EAStartupPerfModelPerformanceV2"] = ReportDefinition(
+            type: "EAStartupPerfModelPerformanceV2",
+            displayName: "EAStartup Perf Model Performance V2",
+            description: "EA Startup Perf Model Performance V2",
+            category: "Endpoint Analytics",
+            intuneConsolePath: "Under Reports > Endpoint analytics > Startup performance > Model performance",
+            supportedFilters: [
+                FilterDefinition(key: "AverageBlueScreens", displayName: "Average Blue Screens", type: .text),
+                FilterDefinition(key: "AverageRestarts", displayName: "Average Restarts", type: .text),
+                FilterDefinition(key: "CoreBootTime", displayName: "Core Boot Time", type: .text),
+                FilterDefinition(key: "CoreLogonTime", displayName: "Core Logon Time", type: .text),
+                FilterDefinition(key: "DeviceScopeId", displayName: "Device Scope Id", type: .text),
+                FilterDefinition(key: "Disktype", displayName: "Disktype", type: .text),
+                FilterDefinition(key: "GPBootTime", displayName: "GPBoot Time", type: .text),
+                FilterDefinition(key: "GPLogonTime", displayName: "GPLogon Time", type: .text),
+                FilterDefinition(key: "HealthStatus", displayName: "Health Status", type: .text),
+                FilterDefinition(key: "ModelId", displayName: "Model Id", type: .text),
+                FilterDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", type: .text),
+                FilterDefinition(key: "StartupPerformanceScore", displayName: "Startup Performance Score", type: .text),
+                FilterDefinition(key: "TotalDeviceRecordCount", displayName: "Total Device Record Count", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AverageBlueScreens", displayName: "Average Blue Screens", isDefault: true),
+                ColumnDefinition(key: "AverageRestarts", displayName: "Average Restarts", isDefault: true),
+                ColumnDefinition(key: "BootDeviceCount", displayName: "Boot Device Count", isDefault: true),
+                ColumnDefinition(key: "CoreBootTime", displayName: "Core Boot Time", isDefault: true),
+                ColumnDefinition(key: "CoreLogonTime", displayName: "Core Logon Time", isDefault: false),
+                ColumnDefinition(key: "DeviceBootTimeAverage", displayName: "Device Boot Time Average", isDefault: true),
+                ColumnDefinition(key: "DeviceScopeId", displayName: "Device Scope Id", isDefault: true),
+                ColumnDefinition(key: "Disktype", displayName: "Disktype", isDefault: true),
+                ColumnDefinition(key: "GPBootTime", displayName: "GPBoot Time", isDefault: true),
+                ColumnDefinition(key: "GPLogonTime", displayName: "GPLogon Time", isDefault: false),
+                ColumnDefinition(key: "HealthStatus", displayName: "Health Status", isDefault: true),
+                ColumnDefinition(key: "IsAnomalous", displayName: "Is Anomalous", isDefault: true),
+                ColumnDefinition(key: "LogonDeviceCount", displayName: "Logon Device Count", isDefault: false),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
+                ColumnDefinition(key: "MemaTimeGenerated", displayName: "Mema Time Generated", isDefault: false),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "ModelId", displayName: "Model Id", isDefault: true),
+                ColumnDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", isDefault: false),
+                ColumnDefinition(key: "StartupPerformanceScore", displayName: "Startup Performance Score", isDefault: true),
+                ColumnDefinition(key: "TargetSnapshotId", displayName: "Target Snapshot Id", isDefault: false),
+                ColumnDefinition(key: "TotalDeviceRecordCount", displayName: "Total Device Record Count", isDefault: false)
+            ]
+        )
+
+        reports["EAOSVersionsPerformance"] = ReportDefinition(
+            type: "EAOSVersionsPerformance",
+            displayName: "EAOSVersions Performance",
+            description: "EA OS Versions Performance",
+            category: "Endpoint Analytics",
+            intuneConsolePath: "Under Reports > Endpoint analytics > Application reliability > OS versions performance",
+            supportedFilters: [
+                FilterDefinition(key: "ActiveDevices", displayName: "Active Devices", type: .text),
+                FilterDefinition(key: "DeviceScopeId", displayName: "Device Scope Id", type: .text),
+                FilterDefinition(key: "MeanTimeToFailure", displayName: "Mean Time To Failure", type: .text),
+                FilterDefinition(key: "OSVersionAppHealthScore", displayName: "OSVersion App Health Score", type: .text),
+                FilterDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "ActiveDevices", displayName: "Active Devices", isDefault: true),
+                ColumnDefinition(key: "DeviceScopeId", displayName: "Device Scope Id", isDefault: true),
+                ColumnDefinition(key: "MeanTimeToFailure", displayName: "Mean Time To Failure", isDefault: true),
+                ColumnDefinition(key: "MemaTimeGenerated", displayName: "Mema Time Generated", isDefault: false),
+                ColumnDefinition(key: "OSBuildNumber", displayName: "OSBuild Number", isDefault: false),
+                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
+                ColumnDefinition(key: "OSVersionAppHealthScore", displayName: "OSVersion App Health Score", isDefault: true),
+                ColumnDefinition(key: "OSVersionAppHealthStatus", displayName: "OSVersion App Health Status", isDefault: true),
+                ColumnDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", isDefault: false),
+                ColumnDefinition(key: "RowCountInSnapshot", displayName: "Row Count In Snapshot", isDefault: false),
+                ColumnDefinition(key: "SchemaVersion", displayName: "Schema Version", isDefault: false)
             ]
         )
 
@@ -2616,6 +3039,136 @@ class ReportRegistry {
             ]
         )
 
+        reports["EAWFADeviceList"] = ReportDefinition(
+            type: "EAWFADeviceList",
+            displayName: "EAWFADevice List",
+            description: "EA WFA Device List",
+            category: "Endpoint Analytics",
+            intuneConsolePath: "Under Reports > Endpoint analytics > Work from anywhere > Device performance",
+            supportedFilters: [
+                FilterDefinition(key: "AutoPilotProfileAssigned", displayName: "Auto Pilot Profile Assigned", type: .text),
+                FilterDefinition(key: "AutoPilotRegistered", displayName: "Auto Pilot Registered", type: .text),
+                FilterDefinition(key: "CompliancePolicySetToIntune", displayName: "Compliance Policy Set To Intune", type: .text),
+                FilterDefinition(key: "DeviceId", displayName: "Device Id", type: .text),
+                FilterDefinition(key: "DeviceScopeIds", displayName: "Device Scope Ids", type: .text),
+                FilterDefinition(key: "GraphDeviceIsManaged", displayName: "Graph Device Is Managed", type: .text),
+                FilterDefinition(key: "IsCloudManagedGatewayEnabled", displayName: "Is Cloud Managed Gateway Enabled", type: .text),
+                FilterDefinition(key: "JoinType", displayName: "Join Type", type: .text),
+                FilterDefinition(key: "ManagedBy", displayName: "Managed By", type: .text),
+                FilterDefinition(key: "OtherWorkloadsSetToIntune", displayName: "Other Workloads Set To Intune", type: .text),
+                FilterDefinition(key: "Ownership", displayName: "Ownership", type: .text),
+                FilterDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", type: .text),
+                FilterDefinition(key: "TenantAttached", displayName: "Tenant Attached", type: .text),
+                FilterDefinition(key: "UpgradeEligibility", displayName: "Upgrade Eligibility", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AutoPilotProfileAssigned", displayName: "Auto Pilot Profile Assigned", isDefault: true),
+                ColumnDefinition(key: "AutoPilotRegistered", displayName: "Auto Pilot Registered", isDefault: true),
+                ColumnDefinition(key: "CompliancePolicySetToIntune", displayName: "Compliance Policy Set To Intune", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "DeviceScopeIds", displayName: "Device Scope Ids", isDefault: false),
+                ColumnDefinition(key: "GraphDeviceIsManaged", displayName: "Graph Device Is Managed", isDefault: false),
+                ColumnDefinition(key: "IsCloudManagedGatewayEnabled", displayName: "Is Cloud Managed Gateway Enabled", isDefault: true),
+                ColumnDefinition(key: "JoinType", displayName: "Join Type", isDefault: true),
+                ColumnDefinition(key: "ManagedBy", displayName: "Managed By", isDefault: true),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "OSCheckFailed", displayName: "OSCheck Failed", isDefault: false),
+                ColumnDefinition(key: "OSDescription", displayName: "OSDescription", isDefault: true),
+                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
+                ColumnDefinition(key: "OtherWorkloadsSetToIntune", displayName: "Other Workloads Set To Intune", isDefault: false),
+                ColumnDefinition(key: "Ownership", displayName: "Ownership", isDefault: true),
+                ColumnDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", isDefault: false),
+                ColumnDefinition(key: "Processor64BitCheckFailed", displayName: "Processor64Bit Check Failed", isDefault: false),
+                ColumnDefinition(key: "ProcessorCoreCountCheckFailed", displayName: "Processor Core Count Check Failed", isDefault: false),
+                ColumnDefinition(key: "ProcessorFamilyCheckFailed", displayName: "Processor Family Check Failed", isDefault: true),
+                ColumnDefinition(key: "ProcessorSpeedCheckFailed", displayName: "Processor Speed Check Failed", isDefault: true),
+                ColumnDefinition(key: "RamCheckFailed", displayName: "Ram Check Failed", isDefault: true),
+                ColumnDefinition(key: "ReferenceId", displayName: "Reference Id", isDefault: true),
+                ColumnDefinition(key: "SecureBootCheckFailed", displayName: "Secure Boot Check Failed", isDefault: false),
+                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: true),
+                ColumnDefinition(key: "StorageCheckFailed", displayName: "Storage Check Failed", isDefault: true),
+                ColumnDefinition(key: "TenantAttached", displayName: "Tenant Attached", isDefault: true),
+                ColumnDefinition(key: "TPMCheckFailed", displayName: "TPMCheck Failed", isDefault: true),
+                ColumnDefinition(key: "UpgradeEligibility", displayName: "Upgrade Eligibility", isDefault: true)
+            ]
+        )
+
+        reports["EAWFAModelPerformance"] = ReportDefinition(
+            type: "EAWFAModelPerformance",
+            displayName: "EAWFAModel Performance",
+            description: "EA WFA Model Performance",
+            category: "Endpoint Analytics",
+            intuneConsolePath: "Under Reports > Endpoint analytics > Work from anywhere > Model performance",
+            supportedFilters: [
+                FilterDefinition(key: "CloudIdentityScore", displayName: "Cloud Identity Score", type: .text),
+                FilterDefinition(key: "CloudManagementScore", displayName: "Cloud Management Score", type: .text),
+                FilterDefinition(key: "CloudProvisioningScore", displayName: "Cloud Provisioning Score", type: .text),
+                FilterDefinition(key: "DeviceScopeId", displayName: "Device Scope Id", type: .text),
+                FilterDefinition(key: "HealthStatus", displayName: "Health Status", type: .text),
+                FilterDefinition(key: "ModelDeviceCount", displayName: "Model Device Count", type: .text),
+                FilterDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", type: .text),
+                FilterDefinition(key: "WindowsScore", displayName: "Windows Score", type: .text),
+                FilterDefinition(key: "WorkFromAnywhereScore", displayName: "Work From Anywhere Score", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "CloudIdentityScore", displayName: "Cloud Identity Score", isDefault: true),
+                ColumnDefinition(key: "CloudManagementScore", displayName: "Cloud Management Score", isDefault: true),
+                ColumnDefinition(key: "CloudProvisioningScore", displayName: "Cloud Provisioning Score", isDefault: true),
+                ColumnDefinition(key: "DeviceScopeId", displayName: "Device Scope Id", isDefault: false),
+                ColumnDefinition(key: "HealthStatus", displayName: "Health Status", isDefault: true),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
+                ColumnDefinition(key: "MemaTimeGenerated", displayName: "Mema Time Generated", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "ModelDeviceCount", displayName: "Model Device Count", isDefault: false),
+                ColumnDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", isDefault: false),
+                ColumnDefinition(key: "RowCountInSnapshot", displayName: "Row Count In Snapshot", isDefault: false),
+                ColumnDefinition(key: "SchemaVersion", displayName: "Schema Version", isDefault: true),
+                ColumnDefinition(key: "TargetSnapshotId", displayName: "Target Snapshot Id", isDefault: false),
+                ColumnDefinition(key: "WindowsScore", displayName: "Windows Score", isDefault: false),
+                ColumnDefinition(key: "WorkFromAnywhereScore", displayName: "Work From Anywhere Score", isDefault: true)
+            ]
+        )
+
+        reports["EAWFAPerDevicePerformance"] = ReportDefinition(
+            type: "EAWFAPerDevicePerformance",
+            displayName: "EAWFAPer Device Performance",
+            description: "EA WFA Per Device Performance",
+            category: "Endpoint Analytics",
+            intuneConsolePath: "Under Reports > Endpoint analytics > Work from anywhere > Device performance",
+            supportedFilters: [
+                FilterDefinition(key: "CloudIdentityScore", displayName: "Cloud Identity Score", type: .text),
+                FilterDefinition(key: "CloudManagementScore", displayName: "Cloud Management Score", type: .text),
+                FilterDefinition(key: "CloudProvisioningScore", displayName: "Cloud Provisioning Score", type: .text),
+                FilterDefinition(key: "DeviceId", displayName: "Device Id", type: .text),
+                FilterDefinition(key: "DeviceScopeIds", displayName: "Device Scope Ids", type: .text),
+                FilterDefinition(key: "HealthStatus", displayName: "Health Status", type: .text),
+                FilterDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", type: .text),
+                FilterDefinition(key: "WindowsScore", displayName: "Windows Score", type: .text),
+                FilterDefinition(key: "WorkFromAnywhereScore", displayName: "Work From Anywhere Score", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "CloudIdentityScore", displayName: "Cloud Identity Score", isDefault: true),
+                ColumnDefinition(key: "CloudManagementScore", displayName: "Cloud Management Score", isDefault: true),
+                ColumnDefinition(key: "CloudProvisioningScore", displayName: "Cloud Provisioning Score", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "DeviceScopeIds", displayName: "Device Scope Ids", isDefault: true),
+                ColumnDefinition(key: "HealthStatus", displayName: "Health Status", isDefault: true),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
+                ColumnDefinition(key: "MemaTimeGenerated", displayName: "Mema Time Generated", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", isDefault: false),
+                ColumnDefinition(key: "RowCountInSnapshot", displayName: "Row Count In Snapshot", isDefault: true),
+                ColumnDefinition(key: "SchemaVersion", displayName: "Schema Version", isDefault: false),
+                ColumnDefinition(key: "TargetSnapshotId", displayName: "Target Snapshot Id", isDefault: false),
+                ColumnDefinition(key: "WindowsScore", displayName: "Windows Score", isDefault: true),
+                ColumnDefinition(key: "WorkFromAnywhereScore", displayName: "Work From Anywhere Score", isDefault: true)
+            ]
+        )
+
+        
         reports["PolicyRunStatesByProactiveRemediation"] = ReportDefinition(
             type: "PolicyRunStatesByProactiveRemediation",
             displayName: "Policy Run States By Proactive Remediation",
@@ -2783,6 +3336,59 @@ class ReportRegistry {
                 ColumnDefinition(key: "UserName", displayName: "User Name", isDefault: true)
             ]
         )
+        
+        reports["WorkFromAnywhereDeviceList"] = ReportDefinition(
+            type: "WorkFromAnywhereDeviceList",
+            displayName: "Work From Anywhere Device List",
+            description: "Work From Anywhere Device List",
+            category: "Endpoint Analytics",
+            intuneConsolePath: "Under Reports > Endpoint analytics > Work from anywhere",
+            supportedFilters: [
+                FilterDefinition(key: "AutoPilotProfileAssigned", displayName: "Auto Pilot Profile Assigned", type: .text),
+                FilterDefinition(key: "AutoPilotRegistered", displayName: "Auto Pilot Registered", type: .text),
+                FilterDefinition(key: "CompliancePolicySetToIntune", displayName: "Compliance Policy Set To Intune", type: .text),
+                FilterDefinition(key: "DeviceId", displayName: "Device Id", type: .text),
+                FilterDefinition(key: "GraphDeviceIsManaged", displayName: "Graph Device Is Managed", type: .text),
+                FilterDefinition(key: "JoinType", displayName: "Join Type", type: .text),
+                FilterDefinition(key: "ManagedBy", displayName: "Managed By", type: .text),
+                FilterDefinition(key: "OtherWorkloadsSetToIntune", displayName: "Other Workloads Set To Intune", type: .text),
+                FilterDefinition(key: "Ownership", displayName: "Ownership", type: .text),
+                FilterDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", type: .text),
+                FilterDefinition(key: "TenantAttached", displayName: "Tenant Attached", type: .text),
+                FilterDefinition(key: "UpgradeEligibility", displayName: "Upgrade Eligibility", type: .text)
+            ],
+            supportedColumns: [
+                ColumnDefinition(key: "AutoPilotProfileAssigned", displayName: "Auto Pilot Profile Assigned", isDefault: true),
+                ColumnDefinition(key: "AutoPilotRegistered", displayName: "Auto Pilot Registered", isDefault: true),
+                ColumnDefinition(key: "CompliancePolicySetToIntune", displayName: "Compliance Policy Set To Intune", isDefault: true),
+                ColumnDefinition(key: "DeviceId", displayName: "Device Id", isDefault: true),
+                ColumnDefinition(key: "DeviceName", displayName: "Device Name", isDefault: true),
+                ColumnDefinition(key: "GraphDeviceIsManaged", displayName: "Graph Device Is Managed", isDefault: true),
+                ColumnDefinition(key: "JoinType", displayName: "Join Type", isDefault: true),
+                ColumnDefinition(key: "ManagedBy", displayName: "Managed By", isDefault: true),
+                ColumnDefinition(key: "Manufacturer", displayName: "Manufacturer", isDefault: true),
+                ColumnDefinition(key: "Model", displayName: "Model", isDefault: true),
+                ColumnDefinition(key: "OSCheckFailed", displayName: "OSCheck Failed", isDefault: true),
+                ColumnDefinition(key: "OSDescription", displayName: "OSDescription", isDefault: true),
+                ColumnDefinition(key: "OSVersion", displayName: "OSVersion", isDefault: true),
+                ColumnDefinition(key: "OtherWorkloadsSetToIntune", displayName: "Other Workloads Set To Intune", isDefault: true),
+                ColumnDefinition(key: "Ownership", displayName: "Ownership", isDefault: true),
+                ColumnDefinition(key: "PartnerFeaturesBitmask", displayName: "Partner Features Bitmask", isDefault: true),
+                ColumnDefinition(key: "Processor64BitCheckFailed", displayName: "Processor64Bit Check Failed", isDefault: true),
+                ColumnDefinition(key: "ProcessorCoreCountCheckFailed", displayName: "Processor Core Count Check Failed", isDefault: true),
+                ColumnDefinition(key: "ProcessorFamilyCheckFailed", displayName: "Processor Family Check Failed", isDefault: true),
+                ColumnDefinition(key: "ProcessorSpeedCheckFailed", displayName: "Processor Speed Check Failed", isDefault: true),
+                ColumnDefinition(key: "RamCheckFailed", displayName: "Ram Check Failed", isDefault: true),
+                ColumnDefinition(key: "ReferenceId", displayName: "Reference Id", isDefault: true),
+                ColumnDefinition(key: "SecureBootCheckFailed", displayName: "Secure Boot Check Failed", isDefault: true),
+                ColumnDefinition(key: "SerialNumber", displayName: "Serial Number", isDefault: true),
+                ColumnDefinition(key: "StorageCheckFailed", displayName: "Storage Check Failed", isDefault: true),
+                ColumnDefinition(key: "TenantAttached", displayName: "Tenant Attached", isDefault: true),
+                ColumnDefinition(key: "TPMCheckFailed", displayName: "TPMCheck Failed", isDefault: true),
+                ColumnDefinition(key: "UpgradeEligibility", displayName: "Upgrade Eligibility", isDefault: true)
+            ]
+        )
+
 
         
         // MARK: - Security Reports
