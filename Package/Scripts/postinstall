@@ -19,9 +19,25 @@ BACKUP_SCHEDREPORTS_PATH="$BACKUP_DIR/$SCHEDULED_REPORTS"
 # Reset the access to the Entra Secret
 security set-generic-password-partition-list -S apple-tool:,apple: -s "EntraIDSecret" -a "com.intuneomator.entrasecret" -k /Library/Keychains/System.keychain
 
+# Installomator daemon queue directory
+/bin/mkdir -m 755 -p "/Library/Application Support/Intuneomator/Installomator"
+/usr/sbin/chown -R root:wheel "/Library/Application Support/Intuneomator/Installomator"
+
+# ManagedTitles daemon queue directory
+/bin/mkdir -m 755 -p "/Library/Application Support/Intuneomator/ManagedTitles"
+/usr/sbin/chown -R root:wheel "/Library/Application Support/Intuneomator/ManagedTitles"
+
 # Ondemand daemon queue directory
 /bin/mkdir -m 755 -p "/Library/Application Support/Intuneomator/ondemandQueue"
 /usr/sbin/chown -R root:wheel "/Library/Application Support/Intuneomator/ondemandQueue"
+
+# Scripts daemon queue directory
+/bin/mkdir -m 755 -p "/Library/Application Support/Intuneomator/Scripts"
+/usr/sbin/chown -R root:wheel "/Library/Application Support/Intuneomator/Scripts"
+
+# Stats daemon queue directory
+/bin/mkdir -m 755 -p "/Library/Application Support/Intuneomator/Stats"
+/usr/sbin/chown -R root:wheel "/Library/Application Support/Intuneomator/Stats"
 
 # Service directory
 /usr/sbin/chown -R root:wheel "/Library/Application Support/Intuneomator"
