@@ -82,11 +82,6 @@ class AppCategoryManagerViewController: NSViewController {
                     // Update the categories array
                     self.categories = categories
                     
-                    // Validate data structure
-                    for (index, category) in categories.enumerated() {
-                        Logger.info("Category [\(index)]: \(category)", toUserDirectory: true)
-                    }
-                    
                     // Sort categories and reload table view consistently
                     self.reloadTableData()
                     
@@ -112,9 +107,6 @@ class AppCategoryManagerViewController: NSViewController {
     // Ensuring sorting consistency
     func reloadTableData() {
         sortCategories()
-        
-        // Light debugging - just the count and first category
-        Logger.info("Sorted \(categories.count) categories. First: \(categories.first?["displayName"] as? String ?? "None")", toUserDirectory: true)
         
         tableView?.reloadData()
     }
@@ -319,16 +311,13 @@ class AppCategoryManagerViewController: NSViewController {
     
     // Helper method to sort categories consistently
     private func sortCategories() {
-        Logger.info("Sorting \(categories.count) categories alphabetically...", toUserDirectory: true)
-        
+
         // Simple alphabetical sort by display name
         categories.sort { (a, b) -> Bool in
             let aName = a["displayName"] as? String ?? ""
             let bName = b["displayName"] as? String ?? ""
             return aName.localizedCaseInsensitiveCompare(bName) == .orderedAscending
         }
-        
-        Logger.info("Sorting complete. First category: \(categories.first?["displayName"] as? String ?? "None")", toUserDirectory: true)
     }
     
     private func updateCategory(id: String, name: String) {
@@ -477,14 +466,10 @@ class AppCategoryManagerViewController: NSViewController {
             let categoryId = selectedCategory["id"] as? String ?? "Unknown"
             let isSystem = isSystemCategory(categoryID: categoryId)
             
-            // Debug logging for button state updates
-            Logger.info("Selection: Row \(selectedRow) - \(categoryName) (\(isSystem ? "System" : "Custom")), Buttons: \(!isSystem ? "Enabled" : "Disabled")", toUserDirectory: true)
-            
             // Enable edit/delete only for custom categories
             editButton?.isEnabled = !isSystem
             deleteButton?.isEnabled = !isSystem
         } else {
-            Logger.info("No valid selection - disabling buttons", toUserDirectory: true)
             editButton?.isEnabled = false
             deleteButton?.isEnabled = false
         }
