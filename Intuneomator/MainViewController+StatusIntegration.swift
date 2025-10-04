@@ -188,10 +188,10 @@ extension MainViewController {
     private func handleOperationsUpdate(_ operations: [String: StatusMonitor.OperationProgress]) {
         Logger.info("HandleOperationsUpdate called with \(operations.count) operations", category: .core, toUserDirectory: true)
         
-        // Log details of each operation for debugging
-        for (id, operation) in operations {
-            Logger.info("Operation \(id): \(operation.appName) - \(operation.status.rawValue) - \(operation.progressPercentage) - phase: \(operation.currentPhase.name) - isActive: \(operation.status.isActive)", category: .core, toUserDirectory: true)
-        }
+//        // Log details of each operation for debugging
+//        for (id, operation) in operations {
+//            Logger.info("Operation \(id): \(operation.appName) - \(operation.status.rawValue) - \(operation.progressPercentage) - phase: \(operation.currentPhase.name) - isActive: \(operation.status.isActive)", category: .core, toUserDirectory: true)
+//        }
         
         // Update current progress operation if it's being tracked
         if let currentOpId = currentProgressOperation,
