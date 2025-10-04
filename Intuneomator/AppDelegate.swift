@@ -849,7 +849,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             if let httpResponse = response as? HTTPURLResponse {
                 // Accept any response in the 200-399 range as "connected"
-                let isConnected = (200...399).contains(httpResponse.statusCode)
+                let isConnected = (200...399).contains(httpResponse.statusCode) || httpResponse.statusCode == 405
                 Logger.info("Connectivity test to \(urlString): \(isConnected ? "Success" : "Failed") (Status: \(httpResponse.statusCode))", category: .core, toUserDirectory: true)
                 return isConnected
             }
