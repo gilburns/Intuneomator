@@ -96,7 +96,6 @@ class CustomAttributeManagerViewController: NSViewController, NSTableViewDelegat
         XPCManager.shared.fetchIntuneCustomAttributeShellScripts { customAttributes in
                 DispatchQueue.main.async {
                     if let customAttributes = customAttributes {
-                        Logger.info("Successfully loaded \(customAttributes.count) custom attributes ", category: .core, toUserDirectory: true)
                         self.allCustomAttributes = customAttributes
                         self.tableView.reloadData()
 
