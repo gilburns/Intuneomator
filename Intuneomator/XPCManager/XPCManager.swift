@@ -100,7 +100,136 @@ class XPCManager {
     func checkXPCServiceRunning(completion: @escaping (Bool?) -> Void) {
         sendRequest({ $0.ping(completion: $1) }, completion: completion)
     }
-    
+
+    // MARK: - Robust Transaction Management
+
+    /// Begins an XPC service transaction with retry logic and timeout handling
+    /// This method provides robust startup behavior by retrying failed transactions
+    /// and implementing proper timeout detection to prevent GUI hangs
+    /// - Parameters:
+    ///   - identifier: Unique identifier for the transaction (default: "mainOperation")
+    ///   - maxRetries: Maximum number of retry attempts (default: 3)
+    ///   - timeoutSeconds: Timeout for each attempt in seconds (default: 30)
+    ///   - completion: Callback with transaction start success status
+    func beginXPCServiceTransactionWithRetry(
+        identifier: String = "mainOperation",
+        maxRetries: Int = 3,
+        timeoutSeconds: TimeInterval = 30,
+        completion: @escaping (Bool) -> Void
+    ) {
+        beginXPCServiceTransactionWithRetryInternal(
+            identifier: identifier,
+            maxRetries: maxRetries,
+            timeoutSeconds: timeoutSeconds,
+            currentAttempt: 0,
+            completion: completion
+        )
+    }
+
+    /// Internal retry implementation with exponential backoff
+    private func beginXPCServiceTransactionWithRetryInternal(
+        identifier: String,
+        maxRetries: Int,
+        timeoutSeconds: TimeInterval,
+        currentAttempt: Int,
+        completion: @escaping (Bool) -> Void
+    ) {
+        Logger.info("XPCManager: Starting transaction attempt \(currentAttempt + 1)/\(maxRetries + 1) for \(identifier)", category: .core, toUserDirectory: true)
+
+        // Create timeout handler
+        let timeoutTimer = DispatchSource.makeTimerSource(queue: .main)
+        var hasCompleted = false
+
+        timeoutTimer.schedule(deadline: .now() + timeoutSeconds)
+        timeoutTimer.setEventHandler {
+            guard !hasCompleted else { return }
+            hasCompleted = true
+            timeoutTimer.cancel()
+
+            Logger.warning("XPCManager: Transaction attempt \(currentAttempt + 1) timed out after \(timeoutSeconds)s", category: .core, toUserDirectory: true)
+
+            if currentAttempt < maxRetries {
+                let delay = min(pow(2.0, Double(currentAttempt)) * 1.0, 10.0) // Exponential backoff, max 10s
+                Logger.info("XPCManager: Retrying transaction in \(delay)s...", category: .core, toUserDirectory: true)
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    self.beginXPCServiceTransactionWithRetryInternal(
+                        identifier: identifier,
+                        maxRetries: maxRetries,
+                        timeoutSeconds: timeoutSeconds,
+                        currentAttempt: currentAttempt + 1,
+                        completion: completion
+                    )
+                }
+            } else {
+                Logger.error("XPCManager: Transaction failed after \(maxRetries + 1) attempts", category: .core, toUserDirectory: true)
+                completion(false)
+            }
+        }
+        timeoutTimer.resume()
+
+        // Attempt the transaction
+        beginXPCServiceTransaction(identifier: identifier) { success in
+            guard !hasCompleted else { return }
+            hasCompleted = true
+            timeoutTimer.cancel()
+
+            if let success = success, success {
+                Logger.info("XPCManager: Transaction \(identifier) started successfully on attempt \(currentAttempt + 1)", category: .core, toUserDirectory: true)
+                completion(true)
+            } else {
+                Logger.warning("XPCManager: Transaction attempt \(currentAttempt + 1) failed", category: .core, toUserDirectory: true)
+
+                if currentAttempt < maxRetries {
+                    let delay = min(pow(2.0, Double(currentAttempt)) * 1.0, 10.0) // Exponential backoff, max 10s
+                    Logger.info("XPCManager: Retrying transaction in \(delay)s...", category: .core, toUserDirectory: true)
+
+                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                        self.beginXPCServiceTransactionWithRetryInternal(
+                            identifier: identifier,
+                            maxRetries: maxRetries,
+                            timeoutSeconds: timeoutSeconds,
+                            currentAttempt: currentAttempt + 1,
+                            completion: completion
+                        )
+                    }
+                } else {
+                    Logger.error("XPCManager: Transaction failed after \(maxRetries + 1) attempts", category: .core, toUserDirectory: true)
+                    completion(false)
+                }
+            }
+        }
+    }
+
+    /// Checks daemon health before attempting transactions
+    /// This helps avoid starting transactions when the daemon is known to be unresponsive
+    /// - Parameter completion: Callback with health status (true = healthy, false = unhealthy)
+    func checkDaemonHealth(completion: @escaping (Bool) -> Void) {
+        let timeoutTimer = DispatchSource.makeTimerSource(queue: .main)
+        var hasCompleted = false
+
+        // 5 second timeout for health check
+        timeoutTimer.schedule(deadline: .now() + 5.0)
+        timeoutTimer.setEventHandler {
+            guard !hasCompleted else { return }
+            hasCompleted = true
+            timeoutTimer.cancel()
+            Logger.warning("XPCManager: Daemon health check timed out", category: .core, toUserDirectory: true)
+            completion(false)
+        }
+        timeoutTimer.resume()
+
+        checkXPCServiceRunning { success in
+            guard !hasCompleted else { return }
+            hasCompleted = true
+            timeoutTimer.cancel()
+
+            let isHealthy = success ?? false
+            Logger.info("XPCManager: Daemon health check result: \(isHealthy ? "healthy" : "unhealthy")", category: .core, toUserDirectory: true)
+            completion(isHealthy)
+        }
+    }
+
     // MARK: - Status Management
     
     /// Cleans up stale operation status entries in the daemon

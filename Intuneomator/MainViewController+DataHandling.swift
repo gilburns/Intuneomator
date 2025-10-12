@@ -48,22 +48,10 @@ extension MainViewController {
      * significantly improving load times for large numbers of managed apps.
      */
     func loadAppData() {
-        
+
         Task {
             do {
-                XPCManager.shared.scanAllInstallomatorManagedLabels() { success in
-                    if let success = success {
-                        if success {
-                            DispatchQueue.main.async {
-                                self.progressSpinner.stopAnimation(self)
-                                self.statusLabel.isHidden = true
-                                self.tableView.reloadData()
-                                self.setLabelCount()
-                            }
-                        }
-                    }
-                }
-                
+                // Load local data first (non-blocking, immediate UI population)
                 let directoryContents = try FileManager.default.contentsOfDirectory(
                     at: URL(fileURLWithPath: AppConstants.intuneomatorManagedTitlesFolderURL.path),
                     includingPropertiesForKeys: nil
@@ -87,10 +75,23 @@ extension MainViewController {
                     DispatchQueue.main.async {
                         self.appData = loadedAppData.sorted(by: { $0.name.lowercased() < $1.name.lowercased() })
                         self.filteredAppData = loadedAppData.sorted(by: { $0.name.lowercased() < $1.name.lowercased() })
+
+                        // Update UI immediately with local data
+                        self.progressSpinner.stopAnimation(self)
+                        self.statusLabel.isHidden = true
+                        self.tableView.reloadData()
+                        self.setLabelCount()
+
+                        // Now run the XPC scan in the background (non-blocking)
+                        self.runBackgroundXPCScan()
                     }
                 }
             } catch {
                 Logger.info("Error loading app data: \(error)", category: .core, toUserDirectory: true)
+                DispatchQueue.main.async {
+                    self.progressSpinner.stopAnimation(self)
+                    self.statusLabel.stringValue = "Error loading app data"
+                }
             }
         }
         
@@ -213,5 +214,33 @@ extension MainViewController {
 
         return nil
     }
-    
+
+    // MARK: - Background Operations
+
+    /**
+     * Runs the XPC scan operation in the background after UI has loaded.
+     *
+     * This method implements the non-blocking startup approach by running the
+     * potentially slow XPC scan operation after the UI has been populated with
+     * local data. This prevents startup hangs while still running the scan.
+     */
+    private func runBackgroundXPCScan() {
+        Logger.info("Starting background XPC scan...", category: .core, toUserDirectory: true)
+
+        // Run XPC scan in background queue to avoid blocking UI
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            XPCManager.shared.scanAllInstallomatorManagedLabels() { success in
+                DispatchQueue.main.async {
+                    if let success = success, success {
+                        Logger.info("Background XPC scan completed successfully", category: .core, toUserDirectory: true)
+                        // Could optionally reload data here if the scan modified anything
+                        // self?.tableView.reloadData()
+                    } else {
+                        Logger.warning("Background XPC scan failed or returned no result", category: .core, toUserDirectory: true)
+                    }
+                }
+            }
+        }
+    }
+
 }
