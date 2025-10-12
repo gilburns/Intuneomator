@@ -269,6 +269,17 @@
                                                 <action selector="notificationStyleChanged:" target="notifications-settings-vc" id="5t9-cg-M4H"/>
                                             </connections>
                                         </popUpButton>
+                                        <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ukW-qd-p3S">
+                                            <rect key="frame" x="459" y="238" width="81" height="16"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                                            <buttonCell key="cell" type="push" title="Test Webhook" bezelStyle="rounded" alignment="center" controlSize="mini" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="rXU-Md-F1W">
+                                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                <font key="font" metaFont="miniSystem"/>
+                                                <connections>
+                                                    <action selector="testTeamsWebhook:" target="notifications-settings-vc" id="w7c-Pv-g3U"/>
+                                                </connections>
+                                            </buttonCell>
+                                        </button>
                                     </subviews>
                                 </view>
                             </box>
@@ -282,6 +293,7 @@
                         <outlet property="buttonSendTeamsNotificationsForLabelUpdates" destination="uKU-6j-jie" id="Tic-6J-dpQ"/>
                         <outlet property="buttonSendTeamsNotificationsForUpdates" destination="90K-W3-1am" id="mIA-kH-ljd"/>
                         <outlet property="buttonSendTeamsNotificationsStyle" destination="k3y-bz-kcJ" id="Bkr-VD-HZH"/>
+                        <outlet property="buttonTestTeamsWebhook" destination="ukW-qd-p3S" id="R94-Kt-5bR"/>
                         <outlet property="fieldTeamsWebhookURL" destination="lsc-76-gqp" id="ghC-P5-19g"/>
                     </connections>
                 </viewController>
@@ -483,7 +495,7 @@
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                     <prototypeCellViews>
                                                         <tableCellView identifier="name" id="lBX-qx-ALB">
-                                                            <rect key="frame" x="18" y="0.0" width="178" height="24"/>
+                                                            <rect key="frame" x="8" y="0.0" width="178" height="24"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
                                                                 <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="onM-au-wRa">
@@ -515,7 +527,7 @@
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                     <prototypeCellViews>
                                                         <tableCellView identifier="account" id="7Lx-jA-2zQ">
-                                                            <rect key="frame" x="213" y="0.0" width="150" height="24"/>
+                                                            <rect key="frame" x="203" y="0.0" width="150" height="24"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
                                                                 <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ih5-n0-o5v">
@@ -547,7 +559,7 @@
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                     <prototypeCellViews>
                                                         <tableCellView identifier="container" id="iwC-xw-2CH">
-                                                            <rect key="frame" x="380" y="0.0" width="100" height="24"/>
+                                                            <rect key="frame" x="370" y="0.0" width="100" height="24"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
                                                                 <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Hea-Cs-IM4">
@@ -579,7 +591,7 @@
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                     <prototypeCellViews>
                                                         <tableCellView identifier="auth" id="8XH-QN-TcS">
-                                                            <rect key="frame" x="497" y="0.0" width="140" height="24"/>
+                                                            <rect key="frame" x="487" y="0.0" width="140" height="24"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
                                                                 <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Kkq-un-7MS">
@@ -611,7 +623,7 @@
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                     <prototypeCellViews>
                                                         <tableCellView identifier="cleanup" id="HUJ-MV-8d7">
-                                                            <rect key="frame" x="654" y="0.0" width="70" height="24"/>
+                                                            <rect key="frame" x="644" y="0.0" width="70" height="24"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
                                                                 <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="y3i-di-vTS">
@@ -643,7 +655,7 @@
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                     <prototypeCellViews>
                                                         <tableCellView identifier="status" id="JFs-tj-HH3">
-                                                            <rect key="frame" x="741" y="0.0" width="72" height="24"/>
+                                                            <rect key="frame" x="731" y="0.0" width="72" height="24"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
                                                                 <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="yDX-OI-dqF">
