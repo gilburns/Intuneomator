@@ -749,21 +749,67 @@ extension XPCService {
                     reply(false)
                     return
                 }
-                
+
                 let teamsNotifier = TeamsNotifier(webhookURL: webhookURL)
                 let success = await teamsNotifier.sendCustomMessage(message)
-                
+
                 if success {
                     Logger.info("Successfully sent Teams notification", category: .core)
                 } else {
                     Logger.error("Failed to send Teams notification", category: .core)
                 }
-                
+
                 reply(success)
             }
         }
     }
-    
+
+    /// Sends a test notification to verify Teams webhook configuration
+    func sendTeamsTestNotification(reply: @escaping (Bool) -> Void) {
+        Task {
+            let webhookURL = ConfigManager.readPlistValue(key: "TeamsWebhookURL") ?? ""
+            guard !webhookURL.isEmpty else {
+                Logger.error("Teams webhook URL not configured", category: .core)
+                reply(false)
+                return
+            }
+
+            let teamsNotifier = TeamsNotifier(webhookURL: webhookURL)
+            let success = await teamsNotifier.sendTestNotification()
+
+            if success {
+                Logger.info("Successfully sent Teams test notification", category: .core)
+            } else {
+                Logger.error("Failed to send Teams test notification", category: .core)
+            }
+
+            reply(success)
+        }
+    }
+
+    /// Sends a test notification to a specific webhook URL without saving it
+    func sendTeamsTestNotificationWithURL(webhookURL: String, reply: @escaping (Bool) -> Void) {
+        Task {
+            let trimmedURL = webhookURL.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmedURL.isEmpty else {
+                Logger.error("Teams webhook URL is empty", category: .core)
+                reply(false)
+                return
+            }
+
+            let teamsNotifier = TeamsNotifier(webhookURL: trimmedURL)
+            let success = await teamsNotifier.sendTestNotification()
+
+            if success {
+                Logger.info("Successfully sent Teams test notification to provided URL", category: .core)
+            } else {
+                Logger.error("Failed to send Teams test notification to provided URL", category: .core)
+            }
+
+            reply(success)
+        }
+    }
+
     /// Lists all files in Azure Storage using a named configuration
     func listAzureStorageFiles(configurationName: String, reply: @escaping ([[String: Any]]?) -> Void) {
         Task {

@@ -22,6 +22,9 @@ class NotificationsSettingsViewController: NSViewController {
     @IBOutlet weak var buttonSendTeamsNotificationsForUpdates: NSButton!
     @IBOutlet weak var buttonSendTeamsNotificationsStyle: NSPopUpButton!
     
+    @IBOutlet weak var buttonTestTeamsWebhook: NSButton!
+    
+    
     // MARK: - Properties
     
     /// Parent tabbed sheet view controller for coordination
@@ -53,6 +56,7 @@ class NotificationsSettingsViewController: NSViewController {
     
     private func setupObservers() {
         fieldTeamsWebhookURL.delegate = self
+        updateTestButtonState()
     }
     
     // MARK: - Actions
@@ -70,11 +74,50 @@ class NotificationsSettingsViewController: NSViewController {
         markAsChanged()
     }
     
+    
+    @IBAction func testTeamsWebhook(_ sender: Any) {
+        // Get the current webhook URL from the text field
+        let webhookURL = fieldTeamsWebhookURL.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Test the URL directly without saving it first
+        XPCManager.shared.sendTeamsTestNotification(withURL: webhookURL) { success in
+            DispatchQueue.main.async {
+                if let success = success {
+                    if success {
+                        // Show success alert
+                        let alert = NSAlert()
+                        alert.messageText = "Test Notification Sent"
+                        alert.informativeText = "Your Teams webhook is configured correctly! Check your Teams channel for the test message."
+                        alert.alertStyle = .informational
+                        alert.addButton(withTitle: "OK")
+                        alert.runModal()
+                    } else {
+                        // Show error alert
+                        let alert = NSAlert()
+                        alert.messageText = "Test Failed"
+                        alert.informativeText = "Failed to send test notification. Please verify your webhook URL is correct and try again."
+                        alert.alertStyle = .warning
+                        alert.addButton(withTitle: "OK")
+                        alert.runModal()
+                    }
+                } else {
+                    // XPC connection failed
+                    let alert = NSAlert()
+                    alert.messageText = "Service Error"
+                    alert.informativeText = "Failed to communicate with the Intuneomator service."
+                    alert.alertStyle = .critical
+                    alert.addButton(withTitle: "OK")
+                    alert.runModal()
+                }
+            }
+        }
+    }
+    
     // MARK: - Helper Methods
     
     private func updateNotificationControlsState() {
         let isEnabled = buttonSendTeamsNotifications.state == .on
-        
+
         fieldTeamsWebhookURL.isEnabled = isEnabled
         buttonSendTeamsNotificationsForCleanup.isEnabled = isEnabled
         buttonSendTeamsNotificationsForCVEs.isEnabled = isEnabled
@@ -82,6 +125,16 @@ class NotificationsSettingsViewController: NSViewController {
         buttonSendTeamsNotificationsForLabelUpdates.isEnabled = isEnabled
         buttonSendTeamsNotificationsForUpdates.isEnabled = isEnabled
         buttonSendTeamsNotificationsStyle.isEnabled = isEnabled
+        updateTestButtonState()
+    }
+
+    /// Updates the test button enabled state based on webhook URL validity
+    private func updateTestButtonState() {
+        let webhookURL = fieldTeamsWebhookURL.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Enable test button only if webhook URL is not empty and looks valid
+        let isValid = !webhookURL.isEmpty && webhookURL.hasPrefix("https://")
+        buttonTestTeamsWebhook.isEnabled = isValid
     }
     
     private func markAsChanged() {
@@ -94,36 +147,37 @@ class NotificationsSettingsViewController: NSViewController {
         if let sendNotifications = initialData["sendTeamsNotifications"] as? Bool {
             buttonSendTeamsNotifications.state = sendNotifications ? .on : .off
         }
-        
+
         if let webhookURL = initialData["teamsWebhookURL"] as? String {
             fieldTeamsWebhookURL.stringValue = webhookURL
         }
-        
+
         if let cleanup = initialData["sendNotificationsForCleanup"] as? Bool {
             buttonSendTeamsNotificationsForCleanup.state = cleanup ? .on : .off
         }
-        
+
         if let cves = initialData["sendNotificationsForCVEs"] as? Bool {
             buttonSendTeamsNotificationsForCVEs.state = cves ? .on : .off
         }
-        
+
         if let groups = initialData["sendNotificationsForGroups"] as? Bool {
             buttonSendTeamsNotificationsForGroups.state = groups ? .on : .off
         }
-        
+
         if let labelUpdates = initialData["sendNotificationsForLabelUpdates"] as? Bool {
             buttonSendTeamsNotificationsForLabelUpdates.state = labelUpdates ? .on : .off
         }
-        
+
         if let updates = initialData["sendNotificationsForUpdates"] as? Bool {
             buttonSendTeamsNotificationsForUpdates.state = updates ? .on : .off
         }
-        
+
         if let style = initialData["notificationStyle"] as? Int {
             buttonSendTeamsNotificationsStyle.selectItem(at: style)
         }
-        
+
         updateNotificationControlsState()
+        updateTestButtonState()
     }
 }
 
@@ -200,7 +254,9 @@ extension NotificationsSettingsViewController: TabbedSheetChildProtocol {
                 "webhook.office.com",        // Traditional Teams webhooks
                 "logic.azure.com",           // Logic Apps webhooks
                 "outlook.office.com",        // Outlook connectors
-                "teams.microsoft.com"        // Teams connectors
+                "teams.microsoft.com",       // Teams connectors
+                "powerplatform.com",         // PowerPlatform
+                "https"                      // Any https URL
             ]
             
             let hasValidDomain = validDomains.contains { domain in
@@ -219,8 +275,9 @@ extension NotificationsSettingsViewController: TabbedSheetChildProtocol {
 // MARK: - NSTextFieldDelegate
 
 extension NotificationsSettingsViewController: NSTextFieldDelegate {
-    
+
     func controlTextDidChange(_ obj: Notification) {
         markAsChanged()
+        updateTestButtonState()
     }
 }
