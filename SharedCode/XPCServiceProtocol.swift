@@ -967,7 +967,17 @@ import Foundation
     ///   - message: Message content to send
     ///   - reply: Callback indicating if notification was sent successfully
     func sendTeamsNotification(message: String, reply: @escaping (Bool) -> Void)
-    
+
+    /// Sends a test notification to verify Teams webhook configuration
+    /// - Parameter reply: Callback indicating if test notification was sent successfully
+    func sendTeamsTestNotification(reply: @escaping (Bool) -> Void)
+
+    /// Sends a test notification to a specific webhook URL without saving it
+    /// - Parameters:
+    ///   - webhookURL: The webhook URL to test
+    ///   - reply: Callback indicating if test notification was sent successfully
+    func sendTeamsTestNotificationWithURL(webhookURL: String, reply: @escaping (Bool) -> Void)
+
     /// Lists all files in Azure Storage using a named configuration
     /// - Parameters:
     ///   - configurationName: Name of the Azure Storage configuration to use
