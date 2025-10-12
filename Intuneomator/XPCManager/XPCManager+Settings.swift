@@ -259,6 +259,22 @@ extension XPCManager {
         sendRequest({ $0.getTeamsNotificationsStyle(reply: $1) }, completion: completion)
     }
 
+    /// Sends a test notification to verify Teams webhook configuration
+    /// Sends a formatted test message to the configured Teams channel to confirm connectivity
+    /// - Parameter completion: Callback with success status or nil on XPC failure
+    func sendTeamsTestNotification(completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.sendTeamsTestNotification(reply: $1) }, completion: completion)
+    }
+
+    /// Sends a test notification to a specific webhook URL without saving it
+    /// Allows testing webhook URLs before committing them to configuration
+    /// - Parameters:
+    ///   - webhookURL: The webhook URL to test
+    ///   - completion: Callback with success status or nil on XPC failure
+    func sendTeamsTestNotification(withURL webhookURL: String, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.sendTeamsTestNotificationWithURL(webhookURL: webhookURL, reply: $1) }, completion: completion)
+    }
+
     /// Retrieves the SHA-1 thumbprint of the stored authentication certificate
     /// Used for certificate identification and validation
     /// - Parameter completion: Callback with certificate thumbprint string or nil on XPC failure
