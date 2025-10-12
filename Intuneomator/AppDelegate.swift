@@ -160,27 +160,41 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - First Run Management
     
     /// Checks if this is the first application run and shows appropriate interface.
-    /// 
+    ///
     /// Determines whether to show the main application window or the setup wizard
     /// based on the first-run completion status retrieved from the XPC service.
-    /// 
+    ///
     /// **Flow:**
-    /// - If first run is complete: Shows main application window
-    /// - If first run is not complete: Opens setup wizard
-    /// - Defaults to setup wizard if status cannot be determined
+    /// - If daemon is healthy and first run is complete: Shows main application window
+    /// - If daemon is healthy and first run is not complete: Opens setup wizard
+    /// - If daemon is not responding: Shows error dialog with recovery options
     private func checkForFirstRun() {
-        XPCManager.shared.getFirstRunCompleted { [weak self] isComplete in
+        // First check if daemon is responsive before making decisions
+        XPCManager.shared.checkDaemonHealth { [weak self] isHealthy in
+            guard let self = self else { return }
+
             DispatchQueue.main.async {
-                let completed = isComplete ?? false
-                if completed {
-                    self?.showMainWindow()
-                } else if let strongSelf = self {
-                    strongSelf.openSetupWizard(strongSelf)
+                if !isHealthy {
+                    // Daemon not responding - show error instead of wizard
+                    self.showDaemonNotAvailableError()
+                    return
                 }
-                
-                // Mark initialization as complete after window is shown
-                self?.isInitializing = false
-                Logger.info("App initialization complete, normal termination behavior restored", category: .core, toUserDirectory: true)
+
+                // Daemon is healthy, check first run status
+                XPCManager.shared.getFirstRunCompleted { [weak self] isComplete in
+                    DispatchQueue.main.async {
+                        let completed = isComplete ?? false // Now we know daemon is responding
+                        if completed {
+                            self?.showMainWindow()
+                        } else if let strongSelf = self {
+                            strongSelf.openSetupWizard(strongSelf)
+                        }
+
+                        // Mark initialization as complete after window is shown
+                        self?.isInitializing = false
+                        Logger.info("App initialization complete, normal termination behavior restored", category: .core, toUserDirectory: true)
+                    }
+                }
             }
         }
     }
@@ -849,6 +863,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             if let httpResponse = response as? HTTPURLResponse {
                 // Accept any response in the 200-399 range as "connected"
+                // Accept 405 (Method Not Allowed) as "connected"
                 let isConnected = (200...399).contains(httpResponse.statusCode) || httpResponse.statusCode == 405
                 Logger.info("Connectivity test to \(urlString): \(isConnected ? "Success" : "Failed") (Status: \(httpResponse.statusCode))", category: .core, toUserDirectory: true)
                 return isConnected
@@ -949,28 +964,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     /// Shows a warning dialog about Graph authentication issues but allows app to continue.
-    /// 
+    ///
     /// Unlike the network connectivity error, this warning is non-blocking to allow users
     /// to access the settings and fix authentication issues without restarting the app.
-    /// 
+    ///
     /// **Dialog Features:**
     /// - Clear description of the authentication problem
     /// - Guidance on how to resolve the issue
     /// - Non-blocking to allow access to settings
-    /// 
+    ///
     /// - Parameter message: Descriptive message about the authentication issue
     private func showGraphAuthenticationWarning(message: String) {
         let alert = NSAlert()
         alert.messageText = "Microsoft Graph Authentication Issue"
         alert.informativeText = """
         \(message)
-        
+
         Some features that depend on Microsoft Graph API may not work properly:
         • Discovered Apps Manager
         • Application category assignment
         • Entra group management
         • Assignment filter configuration
-        
+
         You can continue using the application and fix this issue by:
         1. Opening Settings from the main window
         2. Configuring your authentication credentials
@@ -978,9 +993,60 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         """
         alert.alertStyle = .warning
         alert.addButton(withTitle: "Continue")
-        
+
         Logger.info("Showing Graph authentication warning to user", category: .core, toUserDirectory: true)
         alert.runModal()
+    }
+
+    /// Shows an error dialog when the Intuneomator daemon is not available.
+    ///
+    /// This error occurs when the XPC service is not running or not responding.
+    /// Provides users with clear guidance on how to resolve the issue and options
+    /// for recovery without forcing application termination.
+    ///
+    /// **Dialog Features:**
+    /// - Clear explanation of the daemon requirement
+    /// - Helpful troubleshooting steps
+    /// - Options to retry or quit gracefully
+    private func showDaemonNotAvailableError() {
+        let alert = NSAlert()
+        alert.messageText = "Intuneomator Service Not Available"
+        alert.informativeText = """
+        The Intuneomator background service is not running or not responding. This service is required for the application to function properly.
+
+        This can happen if:
+        • The service failed to start during system boot
+        • The service crashed or was manually stopped
+        • There are permission issues with the service
+
+        Troubleshooting steps:
+        1. Try restarting the application
+        2. Restart your Mac to reload system services
+        3. Check if you have administrative privileges
+        4. Reinstall Intuneomator if the problem persists
+
+        What would you like to do?
+        """
+        alert.alertStyle = .critical
+        alert.addButton(withTitle: "Retry")
+        alert.addButton(withTitle: "Quit")
+
+        Logger.error("Daemon not available during startup - showing error dialog", category: .core, toUserDirectory: true)
+
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            // User chose to retry
+            Logger.info("User chose to retry daemon connection", category: .core, toUserDirectory: true)
+
+            // Wait a moment and retry the first run check
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                self?.checkForFirstRun()
+            }
+        } else {
+            // User chose to quit
+            Logger.info("User chose to quit due to daemon unavailability", category: .core, toUserDirectory: true)
+            NSApplication.shared.terminate(nil)
+        }
     }
     
     // MARK: - Public Methods
