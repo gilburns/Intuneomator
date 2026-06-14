@@ -50,6 +50,7 @@ extension EditViewController {
             developer: developer,
             informationUrl: informationURL,
             ignoreVersionDetection: (radioYes.state == .on),
+            isCliPKG: (buttonCliPkg.state == .on),
             isFeatured: (buttonFeatureApp.state == .on),
             isManaged: (buttonManagedApp.state == .on),
             minimumOS: getSelectedMinimumOsID() ?? "",
@@ -97,6 +98,12 @@ extension EditViewController {
         // Highlight if categories are non-empty
         if !currentMetadata.categories.isEmpty {
             highlightField(buttonSelectCategories)
+            hasUnsavedChanges = true
+        }
+
+        // Highlight if cliPkg is not its default value
+        if currentMetadata.isCliPKG != false { // Assume false as default
+            highlightField(buttonCliPkg)
             hasUnsavedChanges = true
         }
 
@@ -173,6 +180,7 @@ extension EditViewController {
         fieldIntuneID.backgroundColor = nil
         radioYes.layer?.backgroundColor = nil
         radioNo.layer?.backgroundColor = nil
+        buttonCliPkg.layer?.backgroundColor = nil
         buttonFeatureApp.layer?.backgroundColor = nil
         buttonManagedApp.layer?.backgroundColor = nil
         buttonDeploymentType.layer?.backgroundColor = nil
@@ -244,6 +252,13 @@ extension EditViewController {
         } else {
             clearHighlight(radioYes)
             clearHighlight(radioNo)
+        }
+
+        // Check CLI PKG App
+        if currentMetadata.isCliPKG != lastMetadata.isCliPKG {
+            highlightField(buttonCliPkg)
+        } else {
+            clearHighlight(buttonCliPkg)
         }
 
         // Check feature in Company Portal
@@ -366,6 +381,7 @@ extension EditViewController {
 //                buttonDeployAsArch.selectItem(withTag: 0)
 //            }
             menuItemUniversalPkg.isHidden = true
+            buttonCliPkg.isHidden = true
         } else if sender.selectedItem?.tag == 1 {
 //            if buttonDeployAsArch.selectedItem?.tag == 0 {
 //                buttonDeployAsArch.selectItem(withTag: 2)
@@ -374,17 +390,20 @@ extension EditViewController {
 //                buttonDeployAsArch.selectItem(withTag: 2)
 //            }
             menuItemUniversalPkg.isHidden = false
+            if let installer = appData?.CLIInstaller, !installer.isEmpty {
+                buttonCliPkg.isHidden = false
+            }
         }
         
         if sender.selectedItem?.tag == 2 {
             buttonManagedApp.isEnabled = true
             labelManagedApp.textColor = .labelColor
+            buttonCliPkg.isHidden = true
 
         } else {
             buttonManagedApp.isEnabled = false
             buttonManagedApp.state = .off
             labelManagedApp.textColor = .lightGray
-
         }
         
         switch sender.selectedItem?.tag {
@@ -414,6 +433,13 @@ extension EditViewController {
     /// Invokes `trackChanges()` to re-evaluate unsaved modifications.
     /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
     @IBAction func fieldDescriptionDidChange(_ sender: NSTextView) {
+        trackChanges()
+    }
+
+    /// Called when the corresponding UI field value changes, triggering the change-tracking process.
+    /// Invokes `trackChanges()` to re-evaluate unsaved modifications.
+    /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
+    @IBAction func buttonCliPkgDidChange(_ sender: NSButton) {
         trackChanges()
     }
 
