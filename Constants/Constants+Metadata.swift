@@ -34,6 +34,9 @@ struct Metadata: Codable, Equatable {
     /// Skip automatic version detection during updates
     var ignoreVersionDetection: Bool
 
+    /// PKG the application using the CLI to install
+    var isCliPKG: Bool?
+
     /// Whether this app should be featured in Company Portal
     var isFeatured: Bool
 
