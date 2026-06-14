@@ -56,6 +56,8 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
 
     /// Pop-up button for selecting deployment type (DMG, PKG, LOB).
     @IBOutlet weak var buttonDeploymentType: NSPopUpButton!
+    /// Checkbox to mark the application as featured in the Company Portal.
+    @IBOutlet weak var buttonCliPkg: NSButton!
     /// Menu item representing DMG deployment type.
     @IBOutlet weak var menuItemDMGType: NSMenuItem!
     /// Menu item representing LOB deployment type.
@@ -164,10 +166,29 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         }
         self.appData = appData
         self.parentTabViewController = parent
-        
+
+        // Only access IBOutlets if the view is already loaded;
+        // otherwise viewDidLoad will handle this setup
+        if isViewLoaded {
+            configureUIFromAppData()
+        }
+    }
+
+    /// Configures UI elements that depend on IBOutlets being connected.
+    /// Called from configure() if the view is already loaded, or from viewDidLoad() otherwise.
+    private func configureUIFromAppData() {
+        guard let appData = appData else { return }
+
+        if appData.CLIInstaller.isEmpty {
+            buttonCliPkg.isHidden = true
+            buttonCliPkg.isEnabled = false
+        } else {
+            buttonCliPkg.isHidden = false
+            buttonCliPkg.isEnabled = true
+        }
+
         setupCategoriesPopover()
         populateCategories()
-        
     }
     
     /// View lifecycle callback invoked after the view has been loaded.
@@ -179,6 +200,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         // Use appData to configure the view
         if (appData != nil) {
             populateFieldsFromAppData()
+            configureUIFromAppData()
         }
         
         registerNotifications()
@@ -362,6 +384,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         
         fieldIntuneID.stringValue = appMetadata?.CFBundleIdentifier ?? ""
         AppDataManager.shared.currentAppBundleID = appMetadata?.CFBundleIdentifier ?? ""
+        buttonCliPkg.state = appMetadata?.isCliPKG ?? false ? .on : .off
         buttonFeatureApp.state = appMetadata?.isFeatured ?? false ? .on : .off
         buttonManagedApp.state = appMetadata?.isManaged ?? false ? .on : .off
         radioYes.state = appMetadata?.ignoreVersionDetection ?? false ? .on : .off
@@ -395,6 +418,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         buttonDeploymentType.isHidden = true
         fieldDeloyAsAdobeCCPkg.isHidden = false
         buttonDeployAsArch.item(at: 2)?.isHidden = true
+        buttonCliPkg.isHidden = true
     }
     
     /// Checks whether the label supports dual-architecture (universal/i386).
