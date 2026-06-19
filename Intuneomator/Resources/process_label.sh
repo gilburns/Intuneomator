@@ -191,7 +191,7 @@ INSTALL="force"
 labelFile=$(/bin/cat "${fullPathToLabel}")
 
 # Load all values in label into respective variables
-eval 'case "$label" in '"$labelFile"'; esac' >/dev/null 2>&1
+eval 'case "$label" in '"$labelFile"'; esac' >/dev/null >&1
 
 downloadFile=$downloadURL:t
 labelPath=$fullPathToLabel:h
@@ -205,31 +205,34 @@ elif [[ -f "${labelPath}/${label}.gif" ]]; then
     labelIcon="${labelPath}/${label}.gif"
 fi
 
+if [[ -f "${pathOnly}/${label}${arch_alt}.plist" ]]; then
+    rm "${pathOnly}/${label}${arch_alt}.plist"
+fi
 
 # Output the json of all available values
 # printf '{ "appName": "%s", "appNewVersion": "%s", "archiveName": "%s", "blockingProcesses": "%s", "CLIInstaller": "%s", "CLIArguments": "%s", "curlOptions": "%s", "description": "%s", "downloadFile": "%s", "downloadURL": "%s", "expectedTeamID": "%s", "icon": "%s", "installerTool": "%s", "label": "%s", "name": "%s", "packageID": "%s", "pkgName": "%s", "targetDir": "%s", "type": "%s", "versionKey": "%s" }\n' "$appName" "$appNewVersion" "$archiveName" "$blockingProcesses" "$CLIInstaller" "$CLIArguments" "$curlOptions" "$labelDescription" "$downloadFile" "$downloadURL" "$expectedTeamID" "$labelIcon" "$installerTool" "$label" "$name" "$packageID" "$pkgName" "$targetDir" "$type" "$versionKey"
 
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "appName" "$appName" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "appName" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "appNewVersion" "$appNewVersion" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "appNewVersion" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "archiveName" "$archiveName" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "archiveName" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "blockingProcesses" "$blockingProcesses" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "blockingProcesses" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "CLIInstaller" "$CLIInstaller" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "CLIInstaller" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "CLIArguments" "$CLIArguments" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "CLIArguments" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "curlOptions" "$curlOptions" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "curlOptions" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "Arch" "$current_arch" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "curlOptions" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "downloadFile" "$downloadFile" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "downloadFile" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "downloadURL" "$downloadURL" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "downloadURL" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "expectedTeamID" "$expectedTeamID" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "expectedTeamID" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "guid" "$guid" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "guid" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "labelIcon" "$labelIcon" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "labelIcon" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "installerTool" "$installerTool" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "installerTool" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "label" "$label" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "label" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "name" "$name" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "name" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "packageID" "$packageID" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "packageID" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "pkgName" "$pkgName" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "pkgName" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "targetDir" "$targetDir" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "targetDir" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "type" "$type" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "type" "" 2>/dev/null
-/usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "versionKey" "$versionKey" 2>/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "versionKey" "" 2>/dev/null
+/usr/libexec/PlistBuddy -c "Add 'appName' string '$appName'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "appName" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'appNewVersion' string '$appNewVersion'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "appNewVersion" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'archiveName' string '$archiveName'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "archiveName" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'blockingProcesses' string '$blockingProcesses'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "blockingProcesses" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'CLIInstaller' string '$CLIInstaller'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "CLIInstaller" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'CLIArguments' string '$CLIArguments'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "CLIArguments" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'curlOptions' string '$curlOptions'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "curlOptions" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'current_arch' string '$current_arch'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "curlOptions" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'downloadFile' string '$downloadFile'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "downloadFile" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'downloadURL' string '$downloadURL'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "downloadURL" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'expectedTeamID' string '$expectedTeamID'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "expectedTeamID" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'guid' string '$guid'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "guid" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'labelIcon' string '$labelIcon'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "labelIcon" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'installerTool' string '$installerTool'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "installerTool" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'label' string '$label'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "label" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'name' string '$name'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "name" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'packageID' string '$packageID'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "packageID" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'pkgName' string '$pkgName'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "pkgName" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'targetDir' string '$targetDir'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "targetDir" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'type' string '$type'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "type" "" >/dev/null
+/usr/libexec/PlistBuddy -c "Add 'versionKey' string '$versionKey'" "${pathOnly}/${label}${arch_alt}.plist" >/dev/null || /usr/bin/defaults write "${pathOnly}/${label}${arch_alt}.plist" "versionKey" "" >/dev/null
 
 chmod +r "${pathOnly}/${label}${arch_alt}.plist"
 
