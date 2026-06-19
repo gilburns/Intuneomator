@@ -125,6 +125,7 @@
 			membershipExceptions = (
 				"App Dmg Pkg/AdobeCCPkgCreator.swift",
 				"App Dmg Pkg/AppInspector.swift",
+				"App Dmg Pkg/CLIAppPkgCreator.swift",
 				"App Dmg Pkg/DMGCreator.swift",
 				"App Dmg Pkg/PKGCreator.swift",
 				"App Dmg Pkg/PKGCreatorUniversal.swift",

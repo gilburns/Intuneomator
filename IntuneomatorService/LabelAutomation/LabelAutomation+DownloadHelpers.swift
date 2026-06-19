@@ -99,6 +99,12 @@ extension LabelAutomation {
             throw NSError(domain: "ExtractionError", code: 201, userInfo: [NSLocalizedDescriptionKey: "Failed to extract ZIP file"])
         }
         
+        do {
+            try FileManager.default.removeItem(atPath: zipURL.path)
+        } catch {
+            Logger.error("Failed to delete zip file: \(error.localizedDescription)", category: .automation)
+        }
+        
         Logger.info("✅ ZIP extraction complete", category: .automation)
         Logger.info("Extracted folder: \(extractFolder.path)", category: .automation)
         return extractFolder
@@ -135,6 +141,12 @@ extension LabelAutomation {
             throw NSError(domain: "ExtractionError", code: 201, userInfo: [NSLocalizedDescriptionKey: "Failed to extract ZIP file with ditto"])
         }
         
+        do {
+            try FileManager.default.removeItem(atPath: zipURL.path)
+        } catch {
+            Logger.error("Failed to delete zip file: \(error.localizedDescription)", category: .automation)
+        }
+
         Logger.info("✅ ZIP extraction complete", category: .automation)
         Logger.info("Extracted folder: \(extractFolder.path)", category: .automation)
         return extractFolder
@@ -169,6 +181,12 @@ extension LabelAutomation {
             throw NSError(domain: "ExtractionError", code: 202, userInfo: [NSLocalizedDescriptionKey: "Failed to extract TBZ file"])
         }
         
+        do {
+            try FileManager.default.removeItem(atPath: tbzURL.path)
+        } catch {
+            Logger.error("Failed to delete tbz file: \(error.localizedDescription)", category: .automation)
+        }
+
         Logger.info("✅ TBZ extraction complete", category: .automation)
         return extractFolder
     }

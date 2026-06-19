@@ -211,7 +211,7 @@ extension LabelAutomation {
                     case "zip", "tbz", "dmg", "appindmginzip":
                         statusManager.updateProcessingStatus(operationId, "Processing app bundle", progress: 0.3)
 
-                        let (url, filename, bundleID, version) = try await processAppFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, deploymentType: deploymentType, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID, expectedVersion: expectedVersion)
+                        let (url, filename, bundleID, version) = try await processAppFile(downloadURL: downloadURL, folderName: folderName, downloadType: downloadType, deploymentType: deploymentType, fileUploadName: fileUploadName, expectedTeamID: expectedTeamID, expectedBundleID: expectedBundleID, expectedVersion: expectedVersion, appResults: processedAppResults)
 
                         statusManager.updateProcessingStatus(operationId, "App processing complete", progress: 1.0)
 
@@ -307,6 +307,27 @@ extension LabelAutomation {
                 // Clean up the download before we bail
                 let deleteFolder = cleanUpTmpFiles(forAppLabel: appLabelName)
                 Logger.info("  Folder cleanup: \(deleteFolder)", category: .automation)
+                
+                // Clean up extra older versions of the app (AppVersionsToKeep changed?)
+                do {
+                    let appVersionsToKeep = ConfigManager.readPlistValue(key: "AppVersionsToKeep") ?? 2
+                    let totalVersions = appInfo.count
+                    let versionsToDeleteCount = max(0, totalVersions - appVersionsToKeep)
+                    if versionsToDeleteCount > 0 {
+                        // Since appInfo is sorted oldest to newest, delete the earliest ones
+                        let appsToDelete = appInfo.prefix(versionsToDeleteCount)
+                        for app in appsToDelete {
+                            guard !app.isAssigned else { continue }
+                            Logger.info("Deleting older app \(app.displayName)", category: .automation)
+                            Logger.info("Deleting older app \(app.primaryBundleVersion)", category: .automation)
+                            Logger.info("Deleting older app \(app.id)", category: .automation)
+                            try await EntraGraphRequests.deleteIntuneApp(authToken: authToken, appId: app.id)
+                        }
+                    }
+                } catch {
+                    Logger.error("Failed to delete older apps from Intune: \(error.localizedDescription)", category: .automation)
+                }
+                
                 let successMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) already exists in Intune"
                 statusManager.failOperation(operationId: operationId, errorMessage: "Version \(processedAppResults.appVersionActual) already exists in Intune")
                 return (successMessage, processedAppResults.appDisplayName, "", true)

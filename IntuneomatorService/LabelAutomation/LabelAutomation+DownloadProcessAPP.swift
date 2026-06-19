@@ -65,14 +65,14 @@ extension LabelAutomation {
     /// - 125: Invalid copy directory for DMG processing
     /// - 126: Invalid copy directory for ZIP-DMG processing
     /// - 127: Unsupported download type
-    static func processAppFile(downloadURL: URL, folderName: String, downloadType: String, deploymentType: Int, fileUploadName: String, expectedTeamID: String, expectedBundleID: String, expectedVersion: String) async throws -> (url: URL?, appName: String, appBundleID: String, appVersion: String) {
+    static func processAppFile(downloadURL: URL, folderName: String, downloadType: String, deploymentType: Int, fileUploadName: String, expectedTeamID: String, expectedBundleID: String, expectedVersion: String, appResults: ProcessedAppResults) async throws -> (url: URL?, appName: String, appBundleID: String, appVersion: String) {
         
         Logger.info("Processing App Download URL type: \(downloadType) - \(downloadURL)", category: .automation)
         
         var outputURL: URL? = nil
-        var outputAppName: String
-        var outputAppBundleID: String
-        var outputAppVersion: String
+        var outputAppName: String = ""
+        var outputAppBundleID: String = ""
+        var outputAppVersion: String = ""
         
         Logger.info("Processing downloaded file: \(downloadURL.lastPathComponent)", category: .automation)
         Logger.debug("File type: \(downloadType)", category: .automation)
@@ -215,7 +215,7 @@ extension LabelAutomation {
                         continuation.resume(returning: version)
                     } else {
                         Logger.info("  Bundle ID '\(expectedBundleID)' not found in the .app", category: .automation)
-                        continuation.resume(returning: "None")
+                        continuation.resume(returning: expectedBundleID)
                     }
                 case .failure(let error):
                     Logger.error("Error inspecting .app: \(error.localizedDescription)", category: .automation)
@@ -225,6 +225,8 @@ extension LabelAutomation {
         }
         
         // MARK: - DMG/Package Creation
+        
+        Logger.info("appResults \(appResults)", category: .automation)
         
         // Create version-specific output directory
         if labelName != "adobecreativeclouddesktop" {
@@ -253,7 +255,7 @@ extension LabelAutomation {
                     Logger.error("Failed to extract filename from path: \(outputURLResult)", category: .automation)
                     return (nil, "" ,"", "")
                 }
-
+                
                 finalDestinationFolder = downloadFolder
                     .appendingPathComponent(outputAppVersionResult)
                 try FileManager.default.createDirectory(at: finalDestinationFolder, withIntermediateDirectories: true)
@@ -269,6 +271,40 @@ extension LabelAutomation {
                 outputAppBundleID = outputAppBundleIDResult
                 outputAppVersion = outputAppVersionResult
             }
+            
+        // Handle CLI PKG Creation
+        } else if appResults.appIsCliInstall == true {
+            // Create package for Intune deployment
+            Logger.info("Creating CLI PKG package for Intune deployment", category: .automation)
+            let cliPkgCreator = CLIAppPkgCreator()
+
+            guard let (outputURLResult, outputAppNameResult, outputAppBundleIDResult, outputAppVersionResult) = await cliPkgCreator.createPackage(inputPath: appFile.path, outputDir: finalDestinationFolder.path, applicationDisplayName: appResults.appDisplayName, applicationVersion: appResults.appVersionExpected,  applicationID: appResults.appBundleIdExpected, appCLI: appResults.appCliInstaller, appArgs: appResults.appCliArguments) else {
+                Logger.error("CLI PKG creation failed for \(appFile.path)", category: .automation)
+                return (nil, "", "", "")
+            }
+
+            do {
+                Logger.info("Created PKG at \(outputURLResult) for \(outputAppNameResult) (\(outputAppBundleIDResult)) version \(outputAppVersionResult)", category: .automation)
+
+                let outputName = URL(fileURLWithPath: outputURLResult).lastPathComponent
+
+                finalDestinationFolder = downloadFolder
+                    .appendingPathComponent(outputAppVersionResult)
+                try FileManager.default.createDirectory(at: finalDestinationFolder, withIntermediateDirectories: true)
+                let finalDestinationFileURL = finalDestinationFolder
+                    .appendingPathComponent(outputName)
+                if FileManager.default.fileExists(atPath: finalDestinationFileURL.path) {
+                    try FileManager.default.removeItem(at: finalDestinationFileURL)
+                }
+                try FileManager.default.moveItem(atPath: outputURLResult, toPath: finalDestinationFileURL.path)
+
+                outputURL = finalDestinationFileURL
+                outputAppName = outputAppNameResult
+                outputAppBundleID = outputAppBundleIDResult
+                outputAppVersion = outputAppVersionResult
+            }
+
+            
         // Create deployment package based on specified type
         } else if deploymentType == 0 {
             // Create DMG package for Intune deployment

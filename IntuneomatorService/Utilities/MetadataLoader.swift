@@ -43,6 +43,7 @@ struct MetadataLoader {
         // Extract metadata fields
         let expectedBundleID = metadata?.CFBundleIdentifier
         let categories = metadata?.categories
+        let cliPKG = metadata?.isCliPKG ?? false
         let developer = metadata?.developer ?? ""
         let deployAsArchTagRaw = metadata?.deployAsArchTag
         let deploymentTypeTagRaw = metadata?.deploymentTypeTag
@@ -110,6 +111,8 @@ struct MetadataLoader {
         let downloadURLx86_64 = downloadURLx86_64String
         
         let appNewVersion = plistData["appNewVersion"] as? String
+        let cliPkgInstaller = plistData["CLIInstaller"] as? String ?? ""
+        let cliPkgArguements = plistData["CLIArguments"] as? String ?? ""
         let downloadURLString = plistData["downloadURL"] as? String
         let downloadURL = downloadURLString
         let expectedTeamID = plistData["expectedTeamID"] as? String
@@ -191,6 +194,8 @@ struct MetadataLoader {
             appBundleIdActual: "",
             appBundleIdExpected: validatedExpectedBundleID,
             appCategories: categories ?? [],
+            appCliInstaller: cliPkgInstaller,
+            appCliArguments: cliPkgArguements,
             appDeploymentArch: deployAsArchTag.rawValue,
             appDeploymentType: deploymentTypeTag.rawValue,
             appDescription: validatedDescription,
@@ -201,6 +206,7 @@ struct MetadataLoader {
             appIconURL: validatedLabelIcon,
             appIgnoreVersion: ignoreVersion,
             appInfoURL: informationURL,
+            appIsCliInstall: cliPKG,
             appIsDualArchCapable: isDualArch,
             appIsFeatured: featured,
             appIsManaged: managed,

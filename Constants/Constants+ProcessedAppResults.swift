@@ -23,7 +23,13 @@ struct ProcessedAppResults {
     
     /// Application categories for Intune portal organization
     let appCategories: [Category]
-    
+
+    /// Application CLI Installer for CLIAppPkgCreator
+    var appCliInstaller: String
+
+    /// Application CLI Arguments for CLIAppPkgCreator
+    var appCliArguments: String
+
     /// Architecture deployment configuration (0=ARM64, 1=x86_64, 2=Universal)
     let appDeploymentArch: Int
     
@@ -54,6 +60,9 @@ struct ProcessedAppResults {
     /// Application information/homepage URL
     let appInfoURL: String
     
+    /// Whether app should be installed with a CLI
+    var appIsCliInstall: Bool
+
     /// Whether app supports both Intel and ARM architectures
     let appIsDualArchCapable: Bool
     
@@ -118,6 +127,8 @@ extension ProcessedAppResults {
     appBundleIdActual: "",
     appBundleIdExpected: "",
     appCategories: [],
+    appCliInstaller: "",
+    appCliArguments: "",
     appDeploymentArch: 3,
     appDeploymentType: 3,
     appDescription: "",
@@ -128,6 +139,7 @@ extension ProcessedAppResults {
     appIconURL: "",
     appIgnoreVersion: false,
     appInfoURL: "",
+    appIsCliInstall: false,
     appIsDualArchCapable: false,
     appIsFeatured: false,
     appIsManaged: false,

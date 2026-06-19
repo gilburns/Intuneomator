@@ -22,7 +22,7 @@ class CLIAppPkgCreator {
     ///   - appCLI: The Command Line Installer path
     ///   - appArgs: The arguments to pass to the command line installer tool
     /// - Returns: Tuple containing package path, app name, bundle ID, and version, or nil on failure
-    func createPackage(inputPath: String, outputDir: String?, applicationID: String, appCLI: String, appArgs: String) async -> (packagePath: String, appName: String, appID: String, appVersion: String)? {
+    func createPackage(inputPath: String, outputDir: String?, applicationDisplayName: String, applicationVersion: String, applicationID: String, appCLI: String, appArgs: String) async -> (packagePath: String, appName: String, appID: String, appVersion: String)? {
         
         let fileManager = FileManager.default
         let outputDirectory = outputDir ?? (inputPath as NSString).deletingLastPathComponent
@@ -30,6 +30,16 @@ class CLIAppPkgCreator {
         var mountPoint: String?
         var appPath: String?
         
+        
+//        log("Output directory: \(outputDirectory)")
+//        log("inputPath: \(inputPath)")
+//        log("outputDir: \(outputDir?.isEmpty == true ? "nil" : outputDir!)")
+//        log("applicationDisplayName: \(applicationDisplayName)")
+//        log("applicationVersion: \(applicationVersion)")
+//        log("applicationID: \(applicationID)")
+//        log("appCLI: \(appCLI)")
+//        log("appArgs: \(appArgs)")
+
         // Output values
         var outputPackagePath: String = ""
         var appName: String = ""
@@ -57,8 +67,14 @@ class CLIAppPkgCreator {
                 return nil
             }
             appPath = foundApp
+        } else if inputPath.hasSuffix(".app") {
+            guard fileManager.fileExists(atPath: inputPath) else {
+                log("Error: .app bundle not found at path: \(inputPath)")
+                return nil
+            }
+            appPath = inputPath
         } else {
-            log("Error: Input file must be a .dmg.")
+            log("Error: Input file must be a .dmg or .app bundle.")
             return nil
         }
 
@@ -75,25 +91,35 @@ class CLIAppPkgCreator {
             return nil
         }
 
+//        log("tempDir: \(tempDir ?? "unknown")")
+
         guard let packageRoot = preparePackageRoot(appPath: appPath, tempDir: tempDir!),
               let scriptRoot = prepareScriptRoot(tempDir: tempDir!, cliPath: appCLI, cliArgs: appArgs),
               let appInfo = extractAppInfo(from: appPath),
               let componentPlistPath = analyzeComponentPlist(for: packageRoot, tempDir: tempDir!),
-              modifyComponentPlist(at: componentPlistPath),
-              let componentPackage = createComponentPackage(from: packageRoot, scriptRoot: scriptRoot, tempDir: tempDir!, appName: appInfo.name, appID: applicationID, appVersion: appInfo.version, componentPlistPath: componentPlistPath),
+              modifyComponentPlist(at: componentPlistPath) else {
+            return nil
+        }
+
+        let effectiveApplicationID = applicationID.isEmpty ? appInfo.appID : applicationID
+
+//        log("effectiveApplicationID: \(tempDir ?? "effectiveApplicationID")")
+        
+
+        guard let componentPackage = createComponentPackage(from: packageRoot, scriptRoot: scriptRoot, tempDir: tempDir!, appName: applicationDisplayName, appID: effectiveApplicationID, appVersion: applicationVersion, componentPlistPath: componentPlistPath),
               let distributionXML = synthesizeDistributionXML(for: componentPackage, tempDir: tempDir!, appName: appInfo.name, appVersion: appInfo.version) else {
             return nil
         }
 
-        let finalPackagePath = createDistributionPackage(with: distributionXML, tempDir: tempDir!, appName: appInfo.name, appVersion: appInfo.version, appArch: appInfo.arch, outputDir: outputDirectory)
+        let finalPackagePath = createDistributionPackage(with: distributionXML, tempDir: tempDir!, appName: applicationDisplayName, appVersion: appInfo.version, appArch: appInfo.arch, outputDir: outputDirectory)
 
         guard !finalPackagePath.isEmpty else {
             return nil
         }
 
         outputPackagePath = finalPackagePath
-        appName = appInfo.name
-        appID = appInfo.appID
+        appName = applicationDisplayName
+        appID = effectiveApplicationID
         appVersion = appInfo.version
 
         return (outputPackagePath, appName, appID, appVersion)
@@ -114,11 +140,27 @@ class CLIAppPkgCreator {
     /// - Parameter appPath: Path to the .app bundle
     /// - Returns: Architecture string ("universal", "arm64", "x86_64") or "unknown" if undetermined
     func getAppArchitecture(appPath: String) -> String {
-        let infoPlistPath = appPath + "/Contents/Info.plist"
-        let macOSPath = appPath + "/Contents/MacOS"
+        let infoPlistURL = URL(fileURLWithPath: appPath)
+            .appendingPathComponent("Contents/Info.plist")
+        log("Info.plist: \(infoPlistURL.path)")
+
+        if FileManager.default.fileExists(atPath: infoPlistURL.path) == false {
+            log("No Info.plist found.")
+        } else {
+            log("Found Info.plist.")
+        }
         
-        // Load the Info.plist
-        guard let plistData = FileManager.default.contents(atPath: infoPlistPath),
+        let macOSURL = URL(fileURLWithPath: appPath)
+            .appendingPathComponent("Contents/MacOS")
+        log("MacOS directory: \(macOSURL.path)")
+
+        if FileManager.default.fileExists(atPath: macOSURL.path) == false {
+            log("No macOS directory found.")
+        } else {
+            log("Found macOS directory.")
+        }
+
+        guard let plistData = try? Data(contentsOf: infoPlistURL),
               let plist = try? PropertyListSerialization.propertyList(from: plistData, options: [], format: nil),
               let plistDict = plist as? [String: Any],
               let executableName = plistDict["CFBundleExecutable"] as? String else {
@@ -126,7 +168,7 @@ class CLIAppPkgCreator {
             return "unknown"
         }
         
-        let fullExecutablePath = "\(macOSPath)/\(executableName)"
+        let fullExecutablePath = "\(macOSURL.path)/\(executableName)"
         
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/file")
@@ -267,10 +309,13 @@ class CLIAppPkgCreator {
     /// - Returns: Tuple with app name, bundle ID, version, and architecture, or nil on failure
     private func extractAppInfo(from appPath: String) -> (name: String, appID: String, version: String, arch: String)? {
         let infoPlistPath = "\(appPath)/Contents/Info.plist"
-        guard let plistData = NSDictionary(contentsOfFile: infoPlistPath),
-              let appID = plistData["CFBundleIdentifier"] as? String,
-              let appVersion = plistData["CFBundleShortVersionString"] as? String,
-              let appName = plistData["CFBundleName"] as? String else {
+        let infoPlistURL = URL(fileURLWithPath: infoPlistPath)
+        guard let rawData = try? Data(contentsOf: infoPlistURL),
+              let plist = (try? PropertyListSerialization.propertyList(from: rawData, options: [], format: nil)) as? [String: Any],
+              let appID = plist["CFBundleIdentifier"] as? String,
+              let appVersion = plist["CFBundleShortVersionString"] as? String
+        ?? plist["CFBundleVersion"] as? String,
+              let appName = plist["CFBundleName"] as? String else {
             log("Error: Unable to read Info.plist from \(appPath).")
             return nil
         }
