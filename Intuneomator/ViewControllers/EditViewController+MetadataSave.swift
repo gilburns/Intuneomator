@@ -67,6 +67,7 @@ extension EditViewController: TabSaveable {
             developer: partialDeveloper ?? "",
             informationUrl: partialInformationURL ?? "",
             ignoreVersionDetection: (radioNo.state == .off),
+            isCliPKG: (buttonCliPkg.state == .on),
             isFeatured: (buttonFeatureApp.state == .on),
             isManaged: (buttonManagedApp.state == .on),
             minimumOS: getSelectedMinimumOsID() ?? "",

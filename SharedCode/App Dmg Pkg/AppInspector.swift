@@ -27,18 +27,20 @@ class AppInspector {
             let plistData = try Data(contentsOf: infoPlistPath)
             let plist = try PropertyListSerialization.propertyList(from: plistData, options: [], format: nil) as? [String: Any]
             
-            guard let bundleID = plist?["CFBundleIdentifier"] as? String,
-                  let version = plist?["CFBundleShortVersionString"] as? String  else {
+            guard let bundleID = plist?["CFBundleIdentifier"] as? String else {
                 throw NSError(domain: "AppInspector", code: 1, userInfo: [NSLocalizedDescriptionKey: "Required keys not found in Info.plist"])
             }
             
+            let version = plist?["CFBundleShortVersionString"] as? String
+                     ?? plist?["CFBundleVersion"] as? String
+                     ?? "Unknown"
+            
             let minOSVersion = plist?["LSMinimumSystemVersion"] as? String ?? "Unknown"
-                        
+            
             completion(.success((bundleID, version, minOSVersion)))
         } catch {
             completion(.failure(error))
-        }
-    }
+        }    }
     
     
     /// Extracts the version string from an application bundle with bundle ID validation
@@ -51,8 +53,11 @@ class AppInspector {
         inspect(appAt: location) { result in
             switch result {
             case .success(let bundleIDVersionPair):
-                let (bundleID, version, _) = bundleIDVersionPair
+                let (bundleID, version, minimumOS) = bundleIDVersionPair
                 
+                Logger.info("Expected results: \(expectedBundleID)", category: .automation)
+                Logger.info("Inspection results: \(bundleID), \(version) \(minimumOS)", category: .automation)
+
                 // Check if the bundle ID matches the expected one
                 if bundleID == expectedBundleID {
                     // Return the version if it matches

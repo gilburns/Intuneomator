@@ -54,6 +54,11 @@ extension EditViewController {
             setDefaultMetadataValues() // Set defaults when no metadata file is found
         }
         
+        // Set a value for metadata saved in older versions pre this key
+        if appMetadata?.isCliPKG == nil {
+            appMetadata?.isCliPKG = false
+        }
+        
         populateFieldsFromAppMetadata()
         
         let developer = appMetadata?.developer ?? ""
@@ -101,6 +106,7 @@ extension EditViewController {
         radioNo.state = .on
         buttonFeatureApp.state = .off
         buttonManagedApp.state = .off
+        buttonCliPkg.state = .off
         buttonDeploymentType.selectItem(withTag: 0)
         
         // Set default categories
@@ -117,6 +123,7 @@ extension EditViewController {
             developer: "",
             informationUrl: "",
             ignoreVersionDetection: false,
+            isCliPKG: false,
             isFeatured: false,
             isManaged: false,
             minimumOS: "v13_0",

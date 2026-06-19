@@ -529,6 +529,12 @@ extension EditViewController {
             throw NSError(domain: "EditViewController", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to unzip dmg in zip"])
         }
         
+        do {
+            try FileManager.default.removeItem(atPath: location.path)
+        } catch {
+            Logger.error("Failed to delete zip file: \(error.localizedDescription)", category: .automation)
+        }
+
         let dmgFiles = try FileManager.default.contentsOfDirectory(at: tempDir, includingPropertiesForKeys: nil)
             .filter { $0.pathExtension == "dmg" }
         
