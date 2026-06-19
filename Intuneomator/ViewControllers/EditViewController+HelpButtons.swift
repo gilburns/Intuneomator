@@ -140,6 +140,27 @@ Display the app prominently on the main page of the Company Portal when users br
         helpPopover.showHelp(anchorView: sender, helpText: helpText)
     }
 
+    /// Displays help about Installomator CliInstaller type pkg.
+    /// - Parameter sender: The help button that was clicked.
+
+    @IBAction func showHelpForCliInstaller(_ sender: NSButton) {
+        // Create the full string
+        let helpText = NSMutableAttributedString(string: """
+Some manufactures can't seem to figure out how to create a standard macOS PKG file: 
+
+They create their own app installers. These can be called with custom command lines and arguemnts. Selecting this for labels that contain CLIInstaller and CLIArguments variable will create a custom PKG that will make the command line calls for you.
+""")
+
+        // Add custom styling for the rest of the text
+        helpText.addAttributes([
+            .foregroundColor: NSColor.textColor,
+            .font: NSFont.systemFont(ofSize: 13)
+        ], range: NSRange(location: 0, length: helpText.length))
+
+        // Show the popover
+        helpPopover.showHelp(anchorView: sender, helpText: helpText)
+    }
+
     /// Displays help about the "Deploy as Architecture" setting.
     /// Explains deployment options for Apple Silicon, Intel, or Universal binaries.
     /// - Parameter sender: The help button that was clicked.

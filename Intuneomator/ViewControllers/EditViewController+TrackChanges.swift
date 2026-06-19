@@ -381,7 +381,7 @@ extension EditViewController {
 //                buttonDeployAsArch.selectItem(withTag: 0)
 //            }
             menuItemUniversalPkg.isHidden = true
-            buttonCliPkg.isHidden = true
+            buttonCliPkg.isEnabled = false
         } else if sender.selectedItem?.tag == 1 {
 //            if buttonDeployAsArch.selectedItem?.tag == 0 {
 //                buttonDeployAsArch.selectItem(withTag: 2)
@@ -390,15 +390,15 @@ extension EditViewController {
 //                buttonDeployAsArch.selectItem(withTag: 2)
 //            }
             menuItemUniversalPkg.isHidden = false
-            if let installer = appData?.CLIInstaller, !installer.isEmpty {
-                buttonCliPkg.isHidden = false
+            if let installer = appData?.CLIInstaller, installer.isEmpty {
+                buttonCliPkg.isEnabled = false
             }
         }
         
         if sender.selectedItem?.tag == 2 {
             buttonManagedApp.isEnabled = true
             labelManagedApp.textColor = .labelColor
-            buttonCliPkg.isHidden = true
+            buttonCliPkg.isEnabled = false
 
         } else {
             buttonManagedApp.isEnabled = false

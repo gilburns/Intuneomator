@@ -179,16 +179,15 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     private func configureUIFromAppData() {
         guard let appData = appData else { return }
 
+        setupCategoriesPopover()
+        populateCategories()
+        
         if appData.CLIInstaller.isEmpty {
-            buttonCliPkg.isHidden = true
             buttonCliPkg.isEnabled = false
         } else {
-            buttonCliPkg.isHidden = false
             buttonCliPkg.isEnabled = true
         }
 
-        setupCategoriesPopover()
-        populateCategories()
     }
     
     /// View lifecycle callback invoked after the view has been loaded.
@@ -418,7 +417,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         buttonDeploymentType.isHidden = true
         fieldDeloyAsAdobeCCPkg.isHidden = false
         buttonDeployAsArch.item(at: 2)?.isHidden = true
-        buttonCliPkg.isHidden = true
+        buttonCliPkg.isEnabled = false
     }
     
     /// Checks whether the label supports dual-architecture (universal/i386).
