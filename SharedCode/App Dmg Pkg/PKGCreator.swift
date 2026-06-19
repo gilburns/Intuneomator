@@ -143,6 +143,7 @@ class PKGCreator {
     /// - Parameter message: Message to log
     func log(_ message: String) {
         print("[PKGCreator] \(message)")
+        Logger.info("\(message)", category: .automation)
     }
 
     /// Determines the architecture of a macOS application bundle
@@ -484,11 +485,15 @@ class PKGCreator {
         let infoPlistPath = "\(appPath)/Contents/Info.plist"
         guard let plistData = NSDictionary(contentsOfFile: infoPlistPath),
               let appID = plistData["CFBundleIdentifier"] as? String,
-              let appVersion = plistData["CFBundleShortVersionString"] as? String,
-              let appName = plistData["CFBundleName"] as? String else {
+              let appVersion = plistData["CFBundleShortVersionString"] as? String
+                           ?? plistData["CFBundleVersion"] as? String else {
             log("Error: Unable to read Info.plist from \(appPath).")
             return nil
         }
+
+        let appName = plistData["CFBundleName"] as? String
+                   ?? plistData["CFBundleDisplayName"] as? String
+                   ?? URL(fileURLWithPath: appPath).deletingPathExtension().lastPathComponent
         
         let appArch: String = getAppArchitecture(appPath: appPath)
         
