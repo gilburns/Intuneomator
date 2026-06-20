@@ -203,7 +203,8 @@ class AppInspectorViewController: NSViewController {
             (OperatingSystemVersion(majorVersion: 12, minorVersion: 0, patchVersion: 0), "macOS Monterey 12.0"),
             (OperatingSystemVersion(majorVersion: 13, minorVersion: 0, patchVersion: 0), "macOS Ventura 13.0"),
             (OperatingSystemVersion(majorVersion: 14, minorVersion: 0, patchVersion: 0), "macOS Sonoma 14.0"),
-            (OperatingSystemVersion(majorVersion: 14, minorVersion: 0, patchVersion: 0), "macOS Sequoia 15.0"),
+            (OperatingSystemVersion(majorVersion: 15, minorVersion: 0, patchVersion: 0), "macOS Sequoia 15.0"),
+            (OperatingSystemVersion(majorVersion: 26, minorVersion: 0, patchVersion: 0), "macOS Tahoe 26.0"),
         ]
 
         // Parse the input version
