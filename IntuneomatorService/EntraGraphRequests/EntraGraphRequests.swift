@@ -130,9 +130,10 @@ class EntraGraphRequests {
                 var primaryBundleVersion: String?
                 let bundleId: String?
                 let buildNumber: String?
+                let createdDateTime: String?
                 
                 enum CodingKeys: String, CodingKey {
-                    case id, displayName, isAssigned, primaryBundleId, primaryBundleVersion, bundleId, buildNumber
+                    case id, displayName, isAssigned, primaryBundleId, primaryBundleVersion, bundleId, buildNumber, createdDateTime
                 }
                 
                 init(from decoder: Decoder) throws {
@@ -147,6 +148,7 @@ class EntraGraphRequests {
                     primaryBundleVersion = try container.decodeIfPresent(String.self, forKey: .primaryBundleVersion)
                     bundleId = try container.decodeIfPresent(String.self, forKey: .bundleId)
                     buildNumber = try container.decodeIfPresent(String.self, forKey: .buildNumber)
+                    createdDateTime = try container.decodeIfPresent(String.self, forKey: .createdDateTime)
                 }
             }
             
@@ -158,13 +160,15 @@ class EntraGraphRequests {
                 // Use LOB app fields if primary fields are not available
                 let effectiveBundleId = app.primaryBundleId ?? app.bundleId ?? ""
                 let effectiveVersion = app.primaryBundleVersion ?? app.buildNumber ?? ""
+                let createdDateTime = app.createdDateTime ?? ""
                 
                 return FilteredIntuneAppInfo(
                     id: app.id,
                     displayName: app.displayName,
                     isAssigned: app.isAssigned,
                     primaryBundleId: effectiveBundleId,
-                    primaryBundleVersion: effectiveVersion
+                    primaryBundleVersion: effectiveVersion,
+                    createdDateTime: createdDateTime
                 )
             }
             

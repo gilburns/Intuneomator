@@ -53,5 +53,6 @@ struct FilteredIntuneAppInfo: Codable {
     let isAssigned: Bool
     let primaryBundleId: String
     let primaryBundleVersion: String
+    let createdDateTime: String
 }
 
