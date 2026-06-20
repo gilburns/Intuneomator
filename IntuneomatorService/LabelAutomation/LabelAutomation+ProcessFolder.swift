@@ -311,11 +311,10 @@ extension LabelAutomation {
                 // Clean up extra older versions of the app (AppVersionsToKeep changed?)
                 do {
                     let appVersionsToKeep = ConfigManager.readPlistValue(key: "AppVersionsToKeep") ?? 2
-                    let totalVersions = appInfo.count
-                    let versionsToDeleteCount = max(0, totalVersions - appVersionsToKeep)
+                    let sortedAppInfo = appInfo.sorted { $0.createdDateTime < $1.createdDateTime }
+                    let versionsToDeleteCount = max(0, sortedAppInfo.count - appVersionsToKeep)
                     if versionsToDeleteCount > 0 {
-                        // Since appInfo is sorted oldest to newest, delete the earliest ones
-                        let appsToDelete = appInfo.prefix(versionsToDeleteCount)
+                        let appsToDelete = sortedAppInfo.prefix(versionsToDeleteCount)
                         for app in appsToDelete {
                             guard !app.isAssigned else { continue }
                             Logger.info("Deleting older app \(app.displayName)", category: .automation)
@@ -454,7 +453,8 @@ extension LabelAutomation {
                 Logger.info("App: \(app.displayName)", category: .automation)
                 Logger.info("Version: \(app.primaryBundleVersion)", category: .automation)
                 Logger.info("Tracking ID: \(app.id)", category: .automation)
-                
+                Logger.info("Creation Date: \(app.createdDateTime)", category: .automation)
+
                 if app.primaryBundleVersion != processedAppResults.appVersionActual {
                     if app.isAssigned == true {
                         Logger.info("Older assigned version found in Intune!", category: .automation)
@@ -469,11 +469,10 @@ extension LabelAutomation {
             
             // Clean up extra older versions of the app
             let appVersionsToKeep = ConfigManager.readPlistValue(key: "AppVersionsToKeep") ?? 2
-            let totalVersions = appInfo.count
-            let versionsToDeleteCount = max(0, totalVersions - appVersionsToKeep)
+            let sortedAppInfo = appInfo.sorted { $0.createdDateTime < $1.createdDateTime }
+            let versionsToDeleteCount = max(0, sortedAppInfo.count - appVersionsToKeep)
             if versionsToDeleteCount > 0 {
-                // Since appInfo is sorted oldest to newest, delete the earliest ones
-                let appsToDelete = appInfo.prefix(versionsToDeleteCount)
+                let appsToDelete = sortedAppInfo.prefix(versionsToDeleteCount)
                 for app in appsToDelete {
                     guard !app.isAssigned else { continue }
                     Logger.info("Deleting older app \(app.displayName)", category: .automation)
