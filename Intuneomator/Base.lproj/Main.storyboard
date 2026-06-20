@@ -1662,6 +1662,7 @@ Gw
                                                         <menuItem title="macOS Ventura 13.0" identifier="v13_0" id="wGi-cB-eco"/>
                                                         <menuItem title="macOS Sonoma 14.0" identifier="v14_0" id="Qbd-BU-vcE"/>
                                                         <menuItem title="macOS Sequoia 15.0" identifier="v15_0" id="iAN-7c-Cxd"/>
+                                                        <menuItem title="macOS Tahoe 26.0" identifier="v15_0" id="3VR-vt-qo7"/>
                                                     </items>
                                                 </menu>
                                             </popUpButtonCell>
