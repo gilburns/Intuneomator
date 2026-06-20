@@ -382,6 +382,7 @@ extension EditViewController {
 //            }
             menuItemUniversalPkg.isHidden = true
             buttonCliPkg.isEnabled = false
+            buttonCliPkg.state = .off
         } else if sender.selectedItem?.tag == 1 {
 //            if buttonDeployAsArch.selectedItem?.tag == 0 {
 //                buttonDeployAsArch.selectItem(withTag: 2)
@@ -390,9 +391,13 @@ extension EditViewController {
 //                buttonDeployAsArch.selectItem(withTag: 2)
 //            }
             menuItemUniversalPkg.isHidden = false
+            
             if let installer = appData?.CLIInstaller, installer.isEmpty {
                 buttonCliPkg.isEnabled = false
+            } else {
+                buttonCliPkg.isEnabled = true
             }
+            
         }
         
         if sender.selectedItem?.tag == 2 {
