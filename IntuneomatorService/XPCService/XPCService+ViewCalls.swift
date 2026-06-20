@@ -353,6 +353,16 @@ extension XPCService {
                 } else if ["dmg", "zip", "tbz", "appInDmgInZip"].contains(sourceType) {
                     deploymentTypeTag = 0
                 }
+                
+                let cliInstaller = plistDictionary["CLIInstaller"] as? String ?? ""
+                let isCLI: Bool
+                if !cliInstaller.isEmpty {
+                    isCLI = true
+                    deploymentTypeTag = 1
+                } else {
+                    isCLI = false
+                }
+
                 let metadataJSONURL = newDirectoryURL
                     .appendingPathComponent("metadata.json")
                 
@@ -365,10 +375,11 @@ extension XPCService {
                     developer: publisherURLFromPlist,
                     informationUrl: documentationURLFromPlist,
                     ignoreVersionDetection: false,
+                    isCliPKG: isCLI,
                     isFeatured: false,
                     isManaged: managedState,
-                    minimumOS: "v13_0",
-                    minimumOSDisplay: "macOS Ventura 13.0",
+                    minimumOS: "v14_0",
+                    minimumOSDisplay: "macOS Sonoma 14.0",
                     notes: "",
                     owner: "",
                     privacyInformationUrl: privacyURLFromPlist,
