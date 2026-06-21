@@ -1448,11 +1448,6 @@ Gw
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cu9-Ld-wto">
-                                <rect key="frame" x="746" y="723" width="36" height="36"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
-                                <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyUpOrDown" id="gAc-J8-6fQ"/>
-                            </imageView>
                             <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cfk-RJ-Trh">
                                 <rect key="frame" x="13" y="720.5" width="36" height="41"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1462,6 +1457,17 @@ Gw
                                 </buttonCell>
                                 <connections>
                                     <action selector="removeLabelAutomation:" target="yFK-XC-1Jv" id="nsW-11-r7s"/>
+                                </connections>
+                            </button>
+                            <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Q7q-vD-qPb">
+                                <rect key="frame" x="746" y="723" width="36" height="36"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="EOz-r7-rZs">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="findApps:" target="yFK-XC-1Jv" id="uac-xx-M7Q"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -1482,7 +1488,7 @@ Gw
                     <connections>
                         <outlet property="buttonCustomOnOff" destination="m5S-KN-2Ng" id="Gtd-nP-bLy"/>
                         <outlet property="cancelButton" destination="Hpz-vv-0i0" id="KnY-Rf-Pek"/>
-                        <outlet property="imageCloudStatus" destination="cu9-Ld-wto" id="Vnm-Rd-Mk9"/>
+                        <outlet property="imageCloudStatus" destination="Q7q-vD-qPb" id="GGT-k7-P3k"/>
                         <outlet property="labelAppName" destination="rEi-MS-ArC" id="CEp-O7-mHE"/>
                         <outlet property="labelCustomLabel" destination="Fz1-sh-NnB" id="t3o-s8-HRO"/>
                         <outlet property="saveButton" destination="YcY-FA-LRt" id="D5k-aV-cok"/>

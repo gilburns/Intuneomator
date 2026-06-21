@@ -197,6 +197,26 @@ extension XPCService {
         }
     }
     
+    /// Retrieves existing managed apps from the Intuneomator tracking ID
+    /// - Parameters:
+    ///   - trackingId: Unique Intuneomator identifier (GUID) of the application stored in the Notes field in Intune
+    ///   - reply: Callback with array of application dictionaries or nil on failure
+    func findAppsByTrackingID(trackingID: String, reply: @escaping ([[String : Any]]?) -> Void) {
+        Task {
+            do {
+                let entraAuthenticator = EntraAuthenticator.shared
+                let authToken = try await entraAuthenticator.getEntraIDToken()
+                let apps = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: trackingID)
+                let encoded = try JSONEncoder().encode(apps)
+                let result = try JSONSerialization.jsonObject(with: encoded) as? [[String: Any]]
+                reply(result)
+            } catch {
+                Logger.error("Failed to fetch Intune app list: \(error.localizedDescription)", category: .core)
+                reply(nil)
+            }
+        }
+    }
+
     // MARK: - Label Content Management
 
     /// Creates a new managed label folder with initial content and metadata

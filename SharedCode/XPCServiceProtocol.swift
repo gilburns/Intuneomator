@@ -106,6 +106,12 @@ import Foundation
     /// - Parameter reply: Callback indicating if automation data exists
     func checkIntuneForAutomation(reply: @escaping (Bool) -> Void)
 
+    /// Retrieves existing managed apps from the Intuneomator tracking ID
+    /// - Parameters:
+    ///   - trackingId: Unique Intuneomator identifier (GUID) of the application stored in the Notes field in Intune
+    ///   - reply: Callback with array of application dictionaries or nil on failure
+    func findAppsByTrackingID(trackingID: String, reply: @escaping ([[String: Any]]?) -> Void)
+
     // MARK: - Installomator Label Management
     
     /// Adds new label content from a source (GitHub or custom)

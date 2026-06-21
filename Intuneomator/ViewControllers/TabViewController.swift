@@ -29,7 +29,7 @@ class TabViewController: NSViewController {
     @IBOutlet weak var labelAppName: NSTextField!
     
     /// Image view showing cloud upload status with visual indicators
-    @IBOutlet weak var imageCloudStatus: NSImageView!
+    @IBOutlet weak var imageCloudStatus: NSButton!
 
     /// Main tab view container hosting Edit, Scripts, and Assignments tabs
     @IBOutlet var tabView: NSTabView!
@@ -432,6 +432,29 @@ class TabViewController: NSViewController {
             // User canceled deletion
             Logger.info("User canceled deletion", category: .core, toUserDirectory: true)
         }
+    }
+
+    // MARK: - Find Apps Action Methods
+
+    /// Handles lookup of existing app deployments for the given tracking ID
+    /// - Parameter sender: The cloud status button that triggered the action
+    @IBAction func findApps(_ sender: Any) {
+                
+        guard let trackingID = appData?.guid else {
+            Logger.info("No Tracking ID available for loading apps in Intune", category: .core, toUserDirectory: true)
+            return
+        }
+        
+        XPCManager.shared.findAppsByTrackingID(trackingID) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                let vc = IntuneAppsViewController()
+                vc.apps = result ?? []
+                vc.appDisplayName = self.appData?.name ?? ""
+                self.presentAsSheet(vc)
+            }
+        }
+
     }
 
     
