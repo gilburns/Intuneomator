@@ -6,7 +6,7 @@
 #  Created by Gil Burns on 5/20/25.
 #  
 
-set -e  # Exit on error
+	# set -e  # Exit on error
 
 # === Variables ===
 APP_NAME="Intuneomator"
@@ -16,8 +16,8 @@ IDENTIFIER="com.gilburns.Intuneomator"
 # Read version from the actual built app to ensure consistency with build artifacts
 
 # Determine build path first (needed for version reading)
-if [ -d "../DerivedData/Build/Products/Release" ]; then
-    BUILD_PATH="../DerivedData/Build/Products/Release"
+if [ -d "/Users/gilburns/GitHub/Intuneomator/DerivedData/Build/Products/Release" ]; then
+    BUILD_PATH="/Users/gilburns/GitHub/Intuneomator/DerivedData/Build/Products/Release"
     echo "Using Release_Build.sh output from: $BUILD_PATH"
 elif [ -d "/Users/gilburns/Library/Developer/Xcode/DerivedData/Intuneomator-goaiftwymseounhbjldcvcytweic/Build/Products/Release" ]; then
     BUILD_PATH="/Users/gilburns/Library/Developer/Xcode/DerivedData/Intuneomator-goaiftwymseounhbjldcvcytweic/Build/Products/Release"
@@ -95,42 +95,42 @@ find "$TMP_DIR" -name ".DS_Store" -type f -delete
 find "$SCRIPTS_DIR" -name ".DS_Store" -type f -delete
 
 # === Analyze app to generate component plist ===
-/usr/bin/pkgbuild --analyze --root "$TMP_DIR" "$COMPONENT_PLIST"
+/usr/bin/pkgbuild --analyze --root "$TMP_DIR" "/Users/gilburns/GitHub/Intuneomator/Package/$COMPONENT_PLIST"
 
 # === Modify component plist to set BundleIsRelocatable to false ===
-/usr/bin/plutil -replace "BundleIsRelocatable" -bool false "$COMPONENT_PLIST"
+/usr/bin/plutil -replace "BundleIsRelocatable" -bool false "/Users/gilburns/GitHub/Intuneomator/Package/$COMPONENT_PLIST"
 
 # === Build component package ===
 /usr/bin/pkgbuild \
   --root "$TMP_DIR" \
   --identifier "$IDENTIFIER" \
   --version "$VERSION" \
-  --scripts "$SCRIPTS_DIR" \
-  --component-plist "$COMPONENT_PLIST" \
+  --scripts "/Users/gilburns/GitHub/Intuneomator/Package/$SCRIPTS_DIR" \
+  --component-plist "/Users/gilburns/GitHub/Intuneomator/Package/$COMPONENT_PLIST" \
   "$PKG_NAME"
 
 # === Generate Distribution XML ===
-/usr/bin/productbuild --synthesize --package "$PKG_NAME" "$DIST_XML"
+/usr/bin/productbuild --synthesize --package "/Users/gilburns/GitHub/Intuneomator/Package/$PKG_NAME" "/Users/gilburns/GitHub/Intuneomator/Package/$DIST_XML"
 
 # === Build final signed package ===
 /usr/bin/productbuild \
-  --distribution "$DIST_XML" \
-  --package-path "." \
+  --distribution "/Users/gilburns/GitHub/Intuneomator/Package/$DIST_XML" \
+  --package-path "/Users/gilburns/GitHub/Intuneomator/Package/" \
   --sign "$SIGN_ID" \
-  "$SIGNED_PKG_NAME"
+  "/Users/gilburns/GitHub/Intuneomator/Package/$SIGNED_PKG_NAME"
 
 echo "Created signed package: $SIGNED_PKG_NAME"
 
 # === Notarize the package ===
 echo "Submitting package for notarization..."
-if ! xcrun notarytool submit "$SIGNED_PKG_NAME" --keychain-profile "apple-notary-profile" --wait; then
+if ! xcrun notarytool submit "/Users/gilburns/GitHub/Intuneomator/Package/$SIGNED_PKG_NAME" --keychain-profile "apple-notary-profile" --wait; then
   echo "Notarization failed"
   exit 1
 fi
 
 # === Staple the ticket ===
 echo "Stapling notarization ticket..."
-if ! xcrun stapler staple "$SIGNED_PKG_NAME"; then
+if ! xcrun stapler staple "/Users/gilburns/GitHub/Intuneomator/Package/$SIGNED_PKG_NAME"; then
   echo "Stapling failed"
   exit 1
 fi
@@ -139,5 +139,5 @@ echo "Notarization and stapling complete."
 
 # === Output SHA256 hash of the final package ===
 echo "Calculating SHA256 hash..."
-shasum -a 256 "$SIGNED_PKG_NAME" > "${SIGNED_PKG_NAME}.sha256.txt"
-cat "${SIGNED_PKG_NAME}.sha256.txt"
+shasum -a 256 "/Users/gilburns/GitHub/Intuneomator/Package/$SIGNED_PKG_NAME" > "/Users/gilburns/GitHub/Intuneomator/Package/${SIGNED_PKG_NAME}.sha256.txt"
+cat "/Users/gilburns/GitHub/Intuneomator/Package/${SIGNED_PKG_NAME}.sha256.txt"
