@@ -56,8 +56,8 @@ echo "📦 Package version: $VERSION (Marketing: $MARKETING_VERSION, Build: $BUI
 echo "   (Read from built application: $APP_INFO_PLIST)"
 
 INSTALL_LOCATION="/Applications"
-TMP_DIR="./Root"
-SCRIPTS_DIR="./Scripts"
+TMP_DIR="/Users/gilburns/GitHub/Intuneomator/Package/Root"
+SCRIPTS_DIR="/Users/gilburns/GitHub/Intuneomator/Package/Scripts"
 PKG_NAME="${APP_NAME}.pkg"
 SIGNED_PKG_NAME="${APP_NAME}-${VERSION}.pkg"
 COMPONENT_PLIST="component.plist"
@@ -72,6 +72,10 @@ chmod 755 "${SCRIPTS_DIR}/postinstall"
 
 # === Cleanup ===
 rm -rf "$PKG_NAME" "$SIGNED_PKG_NAME" "$COMPONENT_PLIST" "$DIST_XML"
+
+rm -rf "$TMP_DIR${INSTALL_LOCATION}/${APP_NAME}.app" 2>/dev/null
+rm -r "$TMP_DIR/Library/Application Support/Intuneomator/IntuneomatorService" 2>/dev/null
+rm -r "$TMP_DIR/Library/Application Support/Intuneomator/IntuneomatorUpdater" 2>/dev/null
 
 # === Create staging root ===
 mkdir -p "$TMP_DIR/Applications"
