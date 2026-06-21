@@ -80,6 +80,11 @@ extension XPCManager {
     }
 
     
+    /// - Parameter completion: Callback with app list or nil on XPC failure
+    func findAppsByTrackingID(_ trackingID: String, completion: @escaping ([[String: Any]]?) -> Void) {
+        sendRequest({ $0.findAppsByTrackingID(trackingID: trackingID, reply: $1) }, completion: completion)
+    }
+    
     // MARK: - Label Content Management
     
     /// Creates a new managed label folder with initial content and metadata
