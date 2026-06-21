@@ -187,7 +187,7 @@ extension LabelAutomation {
         let pkgInspector = PkgInspector()
         let packageID = expectedBundleID
         
-        let downloadedVersion = await withCheckedContinuation { continuation in
+        var downloadedVersion = await withCheckedContinuation { continuation in
             pkgInspector.getVersion(forPackageID: packageID, inPkgAt: pkgToProcessURL) { result in
                 switch result {
                 case .success(let version):
@@ -209,6 +209,10 @@ extension LabelAutomation {
         if downloadedVersion != expectedVersion && expectedVersion != "" {
             Logger.warning("⚠️ Version mismatch: downloaded \(downloadedVersion), expected \(expectedVersion)", category: .automation)
             // Note: Continuing with downloaded version as it may be a newer release
+        }
+        
+        if downloadedVersion == "None" {
+            downloadedVersion = expectedVersion
         }
         
         // MARK: - File Organization
