@@ -75,6 +75,7 @@ extension EntraGraphRequests {
                 "v13_0": app.appMinimumOS.contains("v13_0"),
                 "v14_0": app.appMinimumOS.contains("v14_0"),
                 "v15_0": app.appMinimumOS.contains("v15_0")
+                "v26_0": app.appMinimumOS.contains("v26_0")
             ],
             "childApps": [[
                 "@odata.type": "#microsoft.graph.macOSLobChildApp",
