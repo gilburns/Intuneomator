@@ -105,9 +105,9 @@ find "$SCRIPTS_DIR" -name ".DS_Store" -type f -delete
   --root "$TMP_DIR" \
   --identifier "$IDENTIFIER" \
   --version "$VERSION" \
-  --scripts "/Users/gilburns/GitHub/Intuneomator/Package/$SCRIPTS_DIR" \
+  --scripts "$SCRIPTS_DIR" \
   --component-plist "/Users/gilburns/GitHub/Intuneomator/Package/$COMPONENT_PLIST" \
-  "$PKG_NAME"
+  "/Users/gilburns/GitHub/Intuneomator/Package/$PKG_NAME"
 
 # === Generate Distribution XML ===
 /usr/bin/productbuild --synthesize --package "/Users/gilburns/GitHub/Intuneomator/Package/$PKG_NAME" "/Users/gilburns/GitHub/Intuneomator/Package/$DIST_XML"
