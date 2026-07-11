@@ -1,3 +1,5 @@
+![](https://img.shields.io/github/v/release/gilburns/Intuneomator)&nbsp;![](https://img.shields.io/github/downloads/gilburns/Intuneomator/latest/total)&nbsp;![](https://img.shields.io/badge/macOS-14.5%2B-success)&nbsp;![](https://img.shields.io/github/license/gilburns/Intuneomator)
+
 # Intuneomator
 
 **Swift-based automated application management for Microsoft Intune**
