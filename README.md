@@ -4,10 +4,6 @@
 
 **Swift-based automated application management for Microsoft Intune**
 
-[![macOS](https://img.shields.io/badge/macOS-14.6+-blue.svg)](https://www.apple.com/macos/)
-[![Swift](https://img.shields.io/badge/Swift-5.0+-orange.svg)](https://swift.org/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
-
 Intuneomator is a powerful macOS enterprise application that bridges the gap between the open-source [Installomator](https://github.com/Installomator/Installomator) project and Microsoft Intune, providing IT administrators with comprehensive automation capabilities for macOS application lifecycle management.
 
 #### As mentioned in [MC1066336](https://mc.merill.net/message/MC1066336), starting July 31, 2025, or soon after, the following Graph APIs will require either DeviceManagementScripts.Read.All or DeviceManagementScripts.ReadWrite.All permissions to continue working:  
