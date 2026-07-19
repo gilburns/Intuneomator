@@ -52,6 +52,14 @@ class GroupSelectionViewController: NSViewController, NSTableViewDelegate, NSTab
     var assignmentType: String = ""
     var existingAssignments: [[String : Any]] = []
     var excludedGroups: [[String : Any]] = []
+    /// The `@odata.type` of the app/item this assignment belongs to (e.g. "#microsoft.graph.macOSLobApp").
+    /// Used to disable the "Exclude" assignment mode for app types that don't support it.
+    var odataType: String = ""
+
+    /// macOS LOB apps do not support "Exclude" group assignments in Intune.
+    private var isExcludeModeUnavailable: Bool {
+        return odataType == "#microsoft.graph.macOSLobApp"
+    }
     
     // Full list of all groups fetched from Entra
     var allGroups: [[String: Any]] = []
@@ -275,7 +283,7 @@ class GroupSelectionViewController: NSViewController, NSTableViewDelegate, NSTab
                 
                 let isExcluded = excludedGroups.contains { ($0["groupId"] as? String) == groupId }
                 let selectedMode = groupSelectionModes[groupId]
-                
+
                 if isExcluded {
                     // Groups already assigned to other intents can't be selected
                     checkbox.isEnabled = false
@@ -283,9 +291,9 @@ class GroupSelectionViewController: NSViewController, NSTableViewDelegate, NSTab
                 } else {
                     // Set the checkbox state based on current selection
                     checkbox.state = (selectedMode == "exclude") ? .on : .off
-                    
-                    // Enable only if not in "include" mode
-                    checkbox.isEnabled = selectedMode != "include"
+
+                    // Enable only if not in "include" mode, and not an app type that disallows exclude assignments
+                    checkbox.isEnabled = selectedMode != "include" && !isExcludeModeUnavailable
                 }
                 return cell
             }
