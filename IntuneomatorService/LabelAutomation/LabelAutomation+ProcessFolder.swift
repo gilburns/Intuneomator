@@ -295,7 +295,21 @@ extension LabelAutomation {
             
             // Check Intune for an existing version
             Logger.info("  " + folderName + ": Fetching app info from Intune...", category: .automation)
-            
+
+            // If the label advertised no version (appVersionExpected == ""), the
+            // expected-version block above was skipped and appInfo was never fetched,
+            // leaving it empty. Fetch it now so the actual-version dedup below has
+            // something to compare against — otherwise a version-less label always
+            // re-uploads and duplicates the app on every run.
+            if !checkedIntune {
+                do {
+                    appInfo = try await EntraGraphRequests.findAppsByTrackingID(authToken: authToken, trackingID: appTrackingID)
+                    Logger.info("    Found \(appInfo.count) apps matching tracking ID \(appTrackingID)", category: .automation)
+                } catch {
+                    Logger.error("Failed to fetch app info from Intune: \(error.localizedDescription)", category: .automation)
+                }
+            }
+
             // Check if current actual version already exists in Intune
             let versionExistsInIntune = isVersionUploadedToIntune(appInfo: appInfo, version: processedAppResults.appVersionActual)
             

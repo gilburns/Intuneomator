@@ -234,14 +234,18 @@ class EntraGraphRequests {
             }
             
             let isVirtual = assignment["isVirtual"] as? Int == 1
-            
+            let isExclusion = mode.lowercased() == "exclude"
+
             // Create the assignment object with correct settings type for macOS
             var assignmentObject: [String: Any] = [
                 "@odata.type": "#microsoft.graph.mobileAppAssignment",
                 "intent": assignmentType.lowercased()
             ]
 
-            if appType == "macOSLobApp" {
+            // Graph rejects any assignment settings on an exclusion target
+            // ("Exclusion assignment does not support MobileAppAssignment Settings"),
+            // so only attach macOSLobApp settings to include/virtual targets.
+            if appType == "macOSLobApp" && !isExclusion {
                 if installAsManaged {
                     assignmentObject["settings"] = [
                         "@odata.type": "#microsoft.graph.macOsLobAppAssignmentSettings",
