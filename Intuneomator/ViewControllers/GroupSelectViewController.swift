@@ -53,6 +53,14 @@ class GroupSelectViewController: NSViewController, NSTableViewDelegate, NSTableV
     var assignmentType: String = ""
     var existingAssignments: [[String : Any]] = []
     var excludedGroups: [[String : Any]] = []
+    /// The app type this assignment belongs to (e.g. "macOSLobApp", from `AppDataManager.shared.currentAppType`).
+    /// Used to disable the "Exclude" assignment mode for app types that don't support it.
+    var appType: String = ""
+
+    /// macOS LOB apps do not support "Exclude" group assignments in Intune.
+    private var isExcludeModeUnavailable: Bool {
+        return appType == "macOSLobApp"
+    }
     
     // Full list of all groups fetched from Entra
     var allGroups: [[String: Any]] = []
@@ -283,7 +291,7 @@ class GroupSelectViewController: NSViewController, NSTableViewDelegate, NSTableV
                 
                 let isExcluded = excludedGroups.contains { ($0["id"] as? String) == groupId }
                 let selectedMode = groupSelectionModes[groupId]
-                
+
                 if isExcluded {
                     // Groups already assigned to other intents can't be selected
                     checkbox.isEnabled = false
@@ -291,9 +299,9 @@ class GroupSelectViewController: NSViewController, NSTableViewDelegate, NSTableV
                 } else {
                     // Set the checkbox state based on current selection
                     checkbox.state = (selectedMode == "exclude") ? .on : .off
-                    
-                    // Enable only if not in "include" mode
-                    checkbox.isEnabled = selectedMode != "include"
+
+                    // Enable only if not in "include" mode, and not an app type that disallows exclude assignments
+                    checkbox.isEnabled = selectedMode != "include" && !isExcludeModeUnavailable
                 }
                 return cell
             }

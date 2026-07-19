@@ -239,6 +239,7 @@ class GroupAssignViewController: NSViewController, Configurable, UnsavedChangesH
         groupSelectVC.assignmentType = assignmentType
         groupSelectVC.existingAssignments = existingAssignments
         groupSelectVC.excludedGroups = excludedGroups
+        groupSelectVC.appType = AppDataManager.shared.currentAppType
         groupSelectVC.delegate = self
         
         // Show the modal

@@ -481,15 +481,16 @@ class GroupAssignmentViewController: NSViewController, Configurable, UnsavedChan
     ///   - existingAssignments: Assignments already set for this type to be pre-selected.
     ///   - excludedGroups: Assignments for other types to be excluded from selection.
     private func presentGroupSelectionModal(displayName: String, assignmentType: String, existingAssignments: [[String: Any]] = [], excludedGroups: [[String: Any]] = []) {
-        
+
         let storyboard = NSStoryboard(name: "GroupAssignment", bundle: nil)
         let groupSelectVC = storyboard.instantiateController(withIdentifier: "GroupSelectionViewController") as! GroupSelectionViewController
-        
+
         // Pass data to the modal
         groupSelectVC.displayName = displayName
         groupSelectVC.assignmentType = assignmentType
         groupSelectVC.existingAssignments = existingAssignments
         groupSelectVC.excludedGroups = excludedGroups
+        groupSelectVC.odataType = initialData?["@odata.type"] as? String ?? ""
         groupSelectVC.delegate = self
         
         // Show the modal
