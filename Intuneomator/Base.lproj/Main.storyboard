@@ -3255,7 +3255,7 @@ Gw
                                                                     </tableCellView>
                                                                 </prototypeCellViews>
                                                             </tableColumn>
-                                                            <tableColumn identifier="GroupExcludeColumn" width="50" minWidth="50" maxWidth="50" id="k5d-JP-1o3">
+                                                            <tableColumn identifier="GroupExcludeColumn" width="50" minWidth="50" maxWidth="50" headerToolTip="" id="k5d-JP-1o3">
                                                                 <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Exclude">
                                                                     <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -3271,7 +3271,7 @@ Gw
                                                                         <rect key="frame" x="410" y="0.0" width="47" height="17"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                                         <subviews>
-                                                                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7Ur-l6-5Ex">
+                                                                            <button toolTip="Not supported for LOB" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7Ur-l6-5Ex">
                                                                                 <rect key="frame" x="-4" y="0.0" width="50" height="18"/>
                                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                                                 <buttonCell key="cell" type="check" bezelStyle="regularSquare" imagePosition="only" alignment="center" state="on" inset="2" id="w75-HO-hKy">
