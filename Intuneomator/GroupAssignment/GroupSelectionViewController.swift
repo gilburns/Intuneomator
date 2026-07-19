@@ -219,6 +219,7 @@ class GroupSelectionViewController: NSViewController, NSTableViewDelegate, NSTab
             if let mode = groupSelectionModes[groupId] {
                 selections.append([
                     "id": groupId,
+                    "groupId": groupId,
                     "displayName": group["displayName"] as? String ?? "",
                     "mode": mode,
                     "isVirtual": false

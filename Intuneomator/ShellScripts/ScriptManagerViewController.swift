@@ -284,7 +284,7 @@ class ScriptManagerViewController: NSViewController, NSTableViewDelegate, NSTabl
             case "#microsoft.graph.groupAssignmentTarget":
                 if let groupId = target["groupId"] as? String {
                     transformedAssignment["groupId"] = groupId
-                    
+
                     // Check if this is a virtual group
                     if groupId == "adadadad-808e-44e2-905a-0b7873a8a531" {
                         transformedAssignment["displayName"] = "All Devices"
@@ -295,16 +295,17 @@ class ScriptManagerViewController: NSViewController, NSTableViewDelegate, NSTabl
                     } else {
                         transformedAssignment["displayName"] = getGroupDisplayName(for: groupId)
                         transformedAssignment["isVirtual"] = false
+                        transformedAssignment["id"] = groupId  // Add id field for real groups
                     }
-                    
+
                     transformedAssignment["mode"] = "include"
                     transformedAssignment["assignmentType"] = "Required"
                 }
-                
+
             case "#microsoft.graph.exclusionGroupAssignmentTarget":
                 if let groupId = target["groupId"] as? String {
                     transformedAssignment["groupId"] = groupId
-                    
+
                     // Check if this is a virtual group (though exclude shouldn't be used for virtual groups)
                     if groupId == "adadadad-808e-44e2-905a-0b7873a8a531" {
                         transformedAssignment["displayName"] = "All Devices"
@@ -315,8 +316,9 @@ class ScriptManagerViewController: NSViewController, NSTableViewDelegate, NSTabl
                     } else {
                         transformedAssignment["displayName"] = getGroupDisplayName(for: groupId)
                         transformedAssignment["isVirtual"] = false
+                        transformedAssignment["id"] = groupId  // Add id field for real groups
                     }
-                    
+
                     transformedAssignment["mode"] = "exclude"
                     transformedAssignment["assignmentType"] = "Required"
                 }
