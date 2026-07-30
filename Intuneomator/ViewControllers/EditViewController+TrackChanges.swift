@@ -49,6 +49,7 @@ extension EditViewController {
             deploymentTypeTag: getDeploymentTypeTag() ?? 0,
             developer: developer,
             informationUrl: informationURL,
+            intuneDisplayName: fieldIntuneName.stringValue,
             ignoreVersionDetection: (radioYes.state == .on),
             isCliPKG: (buttonCliPkg.state == .on),
             isFeatured: (buttonFeatureApp.state == .on),
@@ -162,7 +163,13 @@ extension EditViewController {
             setTextViewBorder(field: fieldLabelDescription, color: NSColor.systemYellow)
             hasUnsavedChanges = true
         }
-        
+
+        // Highlight the name field
+        if !(currentMetadata.intuneDisplayName ?? "").isEmpty {
+            highlightField(fieldIntuneName)
+            hasUnsavedChanges = true
+        }
+
 
         // Notify TabViewController about unsaved changes if any
         parentTabViewController?.updateSaveButtonState()
@@ -174,10 +181,11 @@ extension EditViewController {
     private func clearFieldHighlights() {
         clearHighlight(buttonSelectCategories)
 //        fieldInfoURL.backgroundColor = nil
-        fieldPublisher.backgroundColor = nil
+        clearHighlight(fieldIntuneName)
+        clearHighlight(fieldPublisher)
         buttonPopUpMinimumOs.layer?.backgroundColor = nil
         buttonDeployAsArch.layer?.backgroundColor = nil
-        fieldIntuneID.backgroundColor = nil
+        clearHighlight(fieldIntuneID)
         radioYes.layer?.backgroundColor = nil
         radioNo.layer?.backgroundColor = nil
         buttonCliPkg.layer?.backgroundColor = nil
@@ -199,6 +207,13 @@ extension EditViewController {
 //        } else {
 //            clearHighlight(fieldInfoURL)
 //        }
+
+        // Highlight Intune Name field if changed
+        if currentMetadata.intuneDisplayName != lastMetadata.intuneDisplayName {
+            highlightField(fieldIntuneName)
+        } else {
+            clearHighlight(fieldIntuneName)
+        }
 
         // Highlight publisher field if changed
         if currentMetadata.publisher != lastMetadata.publisher {
@@ -296,11 +311,17 @@ extension EditViewController {
 
     }
 
-    /// Applies a yellow background to the given control to indicate a changed state.
-    /// Supports `NSTextField` and `NSButton` types.
+    /// Applies a yellow highlight to the given control to indicate a changed state.
+    /// `NSTextField`s are highlighted with a border (since a bezeled text field's
+    /// `backgroundColor` is only honored while the field editor has focus, and is
+    /// otherwise painted over by the system's bezel rendering). `NSButton`s use a
+    /// layer background color, which isn't subject to that limitation.
     private func highlightField(_ field: NSControl) {
         if let textField = field as? NSTextField {
-            textField.backgroundColor = NSColor.systemYellow
+            textField.wantsLayer = true
+            textField.layer?.borderColor = NSColor.systemYellow.cgColor
+            textField.layer?.borderWidth = 2.0
+            textField.layer?.cornerRadius = 4.0
         } else if let button = field as? NSButton {
             button.layer?.backgroundColor = NSColor.systemYellow.cgColor
         }
@@ -316,7 +337,7 @@ extension EditViewController {
             button.layer?.backgroundColor = NSColor.clear.cgColor
         }
     }
-    
+
     /// Adjusts the border of an `NSTextView`'s enclosing scroll view to the specified color.
     /// Used to visually indicate changes in multiline text fields.
     func setTextViewBorder(field: NSTextView, color: NSColor) {
@@ -331,8 +352,7 @@ extension EditViewController {
         scrollView.layer?.cornerRadius = 4.0  // Optional: Rounded corners
         scrollView.wantsLayer = true  // Ensure the layer is active
     }
-
-
+    
     /// Called when the corresponding UI field value changes, triggering the change-tracking process.
     /// Invokes `trackChanges()` to re-evaluate unsaved modifications.
     /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
@@ -431,6 +451,13 @@ extension EditViewController {
     /// Invokes `trackChanges()` to re-evaluate unsaved modifications.
     /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
     @IBAction func radioButtonDidChange(_ sender: NSButton) {
+        trackChanges()
+    }
+
+    /// Called when the corresponding UI field value changes, triggering the change-tracking process.
+    /// Invokes `trackChanges()` to re-evaluate unsaved modifications.
+    /// - Parameter sender: The control that changed (e.g., `NSTextField` or `NSPopUpButton`).
+    @IBAction func fieldIntuneDisplayNameDidChange(_ sender: NSTextField) {
         trackChanges()
     }
 

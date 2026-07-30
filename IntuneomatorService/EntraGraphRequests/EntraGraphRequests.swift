@@ -446,7 +446,7 @@ class EntraGraphRequests {
 
         let (getData, _) = try await URLSession.shared.data(for: getReq)
         let currentName = (try JSONSerialization.jsonObject(with: getData) as? [String:Any])?["displayName"] as? String
-          ?? app.appDisplayName
+          ?? app.appIntuneDisplayName
         let currentDataType = (try JSONSerialization.jsonObject(with: getData, options: []) as? [String:Any])?["@odata.type"] as? String ?? "#microsoft.graph.macOSLobApp"
 
         if currentDataType != "#microsoft.graph.macOSPkgApp" {
@@ -504,7 +504,7 @@ class EntraGraphRequests {
         }
         
         Logger.info("Successfully updated scripts for app ID \(appId)", category: .core)
-        Logger.info("Successfully updated \(app.appDisplayName) scripts for app ID \(appId)", category: .core)
+        Logger.info("Successfully updated \(app.appIntuneDisplayName) scripts for app ID \(appId)", category: .core)
     }
 
     // MARK: - Intune Delete App Function

@@ -122,6 +122,7 @@ extension EditViewController {
             deploymentTypeTag: 0,
             developer: "",
             informationUrl: "",
+            intuneDisplayName: "",
             ignoreVersionDetection: false,
             isCliPKG: false,
             isFeatured: false,

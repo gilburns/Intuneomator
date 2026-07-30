@@ -48,6 +48,7 @@ struct MetadataLoader {
         let deployAsArchTagRaw = metadata?.deployAsArchTag
         let deploymentTypeTagRaw = metadata?.deploymentTypeTag
         let description = metadata?.description
+        var validatedIntuneDisplayName = (metadata?.intuneDisplayName ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         let featured = metadata?.isFeatured ?? false
         let ignoreVersion = metadata?.ignoreVersionDetection ?? false
         let informationURL = metadata?.informationUrl ?? ""
@@ -133,6 +134,12 @@ struct MetadataLoader {
         }
 //        Logger.info("  Extracted plist and metadata for \(folderName, category: .core): name=\(validatedName), version=\(appNewVersion ?? "N/A"), downloadURL=\(validatedDownloadURL), type=\(validatedType)", logType: logType)
         
+        if validatedIntuneDisplayName.isEmpty {
+            Logger.info("⚠️  Intune display name is empty for \(validatedName). Using name instead: \(validatedName)", category: .automation)
+            Logger.info("⚠️  Intune display name is empty for \(validatedName). Using name instead: \(validatedName)", category: .core)
+            validatedIntuneDisplayName = validatedName
+        }
+        
         // calculate the file name
         var filename: String
         do {
@@ -206,6 +213,7 @@ struct MetadataLoader {
             appIconURL: validatedLabelIcon,
             appIgnoreVersion: ignoreVersion,
             appInfoURL: informationURL,
+            appIntuneDisplayName: validatedIntuneDisplayName,
             appIsCliInstall: cliPKG,
             appIsDualArchCapable: isDualArch,
             appIsFeatured: featured,
@@ -242,11 +250,18 @@ struct MetadataLoader {
     
     
     static func finalFilename(forAppTitle title: String, version: String, deploymentType: DeploymentTypeTag, deploymentArch: DeploymentArchTag, isDualArch: Bool) throws -> String {
-        
+
         guard !version.isEmpty else {
             return ""
         }
-        
+
+        // Titles may come from free-text user input (e.g. the Intune display name override),
+        // so strip characters that would otherwise be interpreted as path separators.
+        let sanitizedTitle = title
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "/", with: "-")
+            .replacingOccurrences(of: ":", with: "-")
+
         let fileName: String
         
         let fileSuffix: String = (deploymentType == .dmg) ? "dmg" : "pkg"
@@ -266,7 +281,7 @@ struct MetadataLoader {
             fileArch = "universal"
         }
         
-        fileName = "\(title)-\(version)-\(fileArch).\(fileSuffix)"
+        fileName = "\(sanitizedTitle)-\(version)-\(fileArch).\(fileSuffix)"
 
         return fileName
     }

@@ -394,6 +394,7 @@ extension XPCService {
                     deploymentTypeTag: deploymentTypeTag,
                     developer: publisherURLFromPlist,
                     informationUrl: documentationURLFromPlist,
+                    intuneDisplayName: "",
                     ignoreVersionDetection: false,
                     isCliPKG: isCLI,
                     isFeatured: false,

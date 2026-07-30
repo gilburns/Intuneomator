@@ -42,14 +42,14 @@ extension LabelAutomation {
             return
         }
         
-        Logger.info("  Extracted ProcessedAppResults data for \(processedAppResults.appDisplayName)", category: .automation)
+        Logger.info("  Extracted ProcessedAppResults data for \(processedAppResults.appIntuneDisplayName)", category: .automation)
         Logger.info("  Label: \(processedAppResults.appLabelName)", category: .automation)
         Logger.info("  Tracking ID: \(processedAppResults.appTrackingID)", category: .automation)
         Logger.info("  Version to check: \(processedAppResults.appVersionExpected)", category: .automation)
         
         let trackingID = processedAppResults.appTrackingID
         let appLabelName = processedAppResults.appLabelName
-        let appDisplayName = processedAppResults.appDisplayName
+        let appDisplayName = processedAppResults.appIntuneDisplayName
         
         let operationId = "\(folderName)_metadata"
         let statusManager = StatusNotificationManager.shared
@@ -112,7 +112,7 @@ extension LabelAutomation {
                     Logger.info("✅ Successfully updated metadata for \(app.displayName)", category: .automation)
                     
                 } catch {
-                    Logger.error("Error updating \(processedAppResults.appDisplayName) with AppID \(app.id) metadata in Intune: \(error.localizedDescription)", category: .automation)
+                    Logger.error("Error updating \(processedAppResults.appIntuneDisplayName) with AppID \(app.id) metadata in Intune: \(error.localizedDescription)", category: .automation)
                     statusManager.failOperation(operationId: operationId, errorMessage: "Failed to update metadata for \(app.displayName): \(error.localizedDescription)")
                     return
                 }
@@ -158,12 +158,12 @@ extension LabelAutomation {
             return
         }
         
-        Logger.info("  Extracted ProcessedAppResults data for \(processedAppResults.appDisplayName)", category: .automation)
+        Logger.info("  Extracted ProcessedAppResults data for \(processedAppResults.appIntuneDisplayName)", category: .automation)
         Logger.info("  Label: \(String(describing: processedAppResults.appLabelName))", category: .automation)
         
         let trackingID = processedAppResults.appTrackingID
         let appLabelName = processedAppResults.appLabelName
-        let appDisplayName = processedAppResults.appDisplayName
+        let appDisplayName = processedAppResults.appIntuneDisplayName
         Logger.info("  Tracking ID: \(trackingID)", category: .automation)
         
         let operationId = "\(folderName)_scripts"
@@ -217,7 +217,7 @@ extension LabelAutomation {
                     Logger.info("✅ Successfully updated scripts for \(app.displayName)", category: .automation)
                     
                 } catch {
-                    Logger.error("Error updating \(processedAppResults.appDisplayName) with AppID \(app.id) scripts in Intune: \(error.localizedDescription)", category: .automation)
+                    Logger.error("Error updating \(processedAppResults.appIntuneDisplayName) with AppID \(app.id) scripts in Intune: \(error.localizedDescription)", category: .automation)
                     statusManager.failOperation(operationId: operationId, errorMessage: "Failed to update scripts for \(app.displayName): \(error.localizedDescription)")
                     return
                 }
@@ -264,12 +264,12 @@ extension LabelAutomation {
             return
         }
         
-        Logger.info("  Extracted ProcessedAppResults data for \(processedAppResults.appDisplayName)", category: .automation)
+        Logger.info("  Extracted ProcessedAppResults data for \(processedAppResults.appIntuneDisplayName)", category: .automation)
         Logger.info("  Label: \(String(describing: processedAppResults.appLabelName))", category: .automation)
         
         let trackingID = processedAppResults.appTrackingID
         let appLabelName = processedAppResults.appLabelName
-        let appDisplayName = processedAppResults.appDisplayName
+        let appDisplayName = processedAppResults.appIntuneDisplayName
         Logger.info("  Tracking ID: \(trackingID)", category: .automation)
         
         let operationId = "\(folderName)_assignments"
@@ -350,7 +350,7 @@ extension LabelAutomation {
                         Logger.info("✅ Successfully updated assignments for \(app.displayName)", category: .automation)
                         
                     } catch {
-                        Logger.error("Error updating \(processedAppResults.appDisplayName) with AppID \(app.id) assignment in Intune: \(error.localizedDescription)", category: .automation)
+                        Logger.error("Error updating \(processedAppResults.appIntuneDisplayName) with AppID \(app.id) assignment in Intune: \(error.localizedDescription)", category: .automation)
                         statusManager.failOperation(operationId: operationId, errorMessage: "Failed to update assignments for \(app.displayName): \(error.localizedDescription)")
                         return
                     }

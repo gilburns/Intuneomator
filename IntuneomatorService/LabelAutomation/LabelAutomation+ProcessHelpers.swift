@@ -276,7 +276,7 @@ extension LabelAutomation {
         
         do {
             // Extract application metadata for logging
-            let labelDisplayName = processedAppResults.appDisplayName
+            let labelDisplayName = processedAppResults.appIntuneDisplayName
             let labelName = processedAppResults.appLabelName
             let finalURL: String = processedAppResults.appLocalURL
             let finalFilename = (finalURL as NSString).lastPathComponent

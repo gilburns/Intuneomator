@@ -54,6 +54,9 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     /// Label indicating the managed app option.
     @IBOutlet weak var labelManagedApp: NSTextField!
 
+    /// Text field for entering the display name of the item in  Intune.
+    @IBOutlet weak var fieldIntuneName: NSTextField!
+
     /// Pop-up button for selecting deployment type (DMG, PKG, LOB).
     @IBOutlet weak var buttonDeploymentType: NSPopUpButton!
     /// Checkbox to mark the application as featured in the Company Portal.
@@ -179,6 +182,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     private func configureUIFromAppData() {
         guard let appData = appData else { return }
 
+        fieldIntuneName.placeholderString = appData.name
         setupCategoriesPopover()
         populateCategories()
         
@@ -349,6 +353,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
     func populateFieldsFromAppMetadata() {
         
         // Populate UI with loaded data
+        fieldIntuneName.stringValue = appMetadata?.intuneDisplayName ?? ""
         fieldLabelDescription.string = appMetadata?.description ?? ""
         fieldPublisher.stringValue = appMetadata?.publisher ?? ""
         if let osItem = buttonPopUpMinimumOs.item(withTitle: appMetadata?.minimumOSDisplay ?? "macOS Ventura 13.0") {
@@ -395,12 +400,14 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         populateCategories() // Refresh the UI checkboxes
         updateCategoryButtonTitle() // Update the button title based on loaded categories
         
+        let intuneDisplayName = appMetadata?.intuneDisplayName ?? ""
         let developer = appMetadata?.developer ?? ""
         let informationURL = appMetadata?.informationUrl ?? ""
         let notes = appMetadata?.notes ?? ""
         let owner = appMetadata?.owner ?? ""
         let privacyInformationURL = appMetadata?.privacyInformationUrl ?? ""
         
+        appMetadata?.intuneDisplayName = intuneDisplayName
         appMetadata?.developer = developer
         appMetadata?.informationUrl = informationURL
         appMetadata?.notes = notes

@@ -76,7 +76,7 @@ extension LabelAutomation {
 
         }
         
-        Logger.info("  Extracted ProcessedAppResults data for \(processedAppResults.appDisplayName)", category: .automation)
+        Logger.info("  Extracted ProcessedAppResults data for \(processedAppResults.appIntuneDisplayName)", category: .automation)
         
         Logger.info("  Label: \(processedAppResults.appLabelName)", category: .automation)
         Logger.info("  Tracking ID: \(processedAppResults.appTrackingID)", category: .automation)
@@ -85,7 +85,7 @@ extension LabelAutomation {
         
         let appLabelName = processedAppResults.appLabelName
         let appTrackingID = processedAppResults.appTrackingID
-        let appDisplayName = processedAppResults.appDisplayName
+        let appDisplayName = processedAppResults.appIntuneDisplayName
         
         let operationId = "\(folderName)"
         let statusManager = StatusNotificationManager.shared
@@ -107,9 +107,9 @@ extension LabelAutomation {
             authToken = try await entraAuthenticator.getEntraIDToken()
         } catch {
             Logger.error("Failed to get Entra ID Token: \(error.localizedDescription)", category: .automation)
-            let errorMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appTrackingID) failed to get Entra ID Token"
+            let errorMessage = "\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appTrackingID) failed to get Entra ID Token"
             statusManager.failOperation(operationId: operationId, errorMessage: errorMessage)
-            return (errorMessage, processedAppResults.appDisplayName, "", false)
+            return (errorMessage, processedAppResults.appIntuneDisplayName, "", false)
         }
         
         // MARK: - Check Intune with expected app version
@@ -142,7 +142,7 @@ extension LabelAutomation {
                     Logger.info("    ---", category: .automation)
                     Logger.info("    Version \(processedAppResults.appVersionExpected) already exists in Intune", category: .automation)
                     statusManager.failOperation(operationId: operationId, errorMessage: "Version \(processedAppResults.appVersionExpected) already exists in Intune")
-                    return ("\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) already exists in Intune", "", "", true)
+                    return ("\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual) already exists in Intune", "", "", true)
 
                 }
                 
@@ -153,7 +153,7 @@ extension LabelAutomation {
             } catch {
                 Logger.error("Failed to fetch app info from Intune: \(error.localizedDescription)", category: .automation)
                 statusManager.failOperation(operationId: operationId, errorMessage: error.localizedDescription)
-                return ("\(processedAppResults.appDisplayName) \(processedAppResults.appTrackingID) failed to fetch app info from Intune.", "", "", false)
+                return ("\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appTrackingID) failed to fetch app info from Intune.", "", "", false)
 
             }
         }
@@ -237,10 +237,10 @@ extension LabelAutomation {
                     let downloadType: String = processedAppResults.appLabelType
                     let downloadURL: URL = armURL
                     guard let downloadURLx86_64 = x86URL else {
-                        let errorMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) x86_64 binary not available"
+                        let errorMessage = "\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual) x86_64 binary not available"
                         Logger.info("  \(errorMessage)", category: .automation)
                         statusManager.failOperation(operationId: operationId, errorMessage: errorMessage)
-                        return (errorMessage, processedAppResults.appDisplayName, "", false)
+                        return (errorMessage, processedAppResults.appIntuneDisplayName, "", false)
                     }
                     let fileUploadName: String = processedAppResults.appUploadFilename
                     let expectedTeamID: String = processedAppResults.appTeamID
@@ -266,8 +266,8 @@ extension LabelAutomation {
 
                 // Attempt cleanup on processing failure
                 let _ = cleanUpTmpFiles(forAppLabel: appLabelName)
-                let errorMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) download/processing failed: \(error.localizedDescription)"
-                return (errorMessage, processedAppResults.appDisplayName, "", false)
+                let errorMessage = "\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual) download/processing failed: \(error.localizedDescription)"
+                return (errorMessage, processedAppResults.appIntuneDisplayName, "", false)
             }
 
         }
@@ -285,12 +285,12 @@ extension LabelAutomation {
             let deploymentTypeTag = DeploymentTypeTag(rawValue: processedAppResults.appDeploymentType) ?? .dmg
 
             do {
-                let newFileName = try MetadataLoader.finalFilename(forAppTitle: processedAppResults.appDisplayName, version: processedAppResults.appVersionActual, deploymentType: deploymentTypeTag, deploymentArch: deployAsArchTag, isDualArch: processedAppResults.appIsDualArchCapable)
+                let newFileName = try MetadataLoader.finalFilename(forAppTitle: processedAppResults.appIntuneDisplayName, version: processedAppResults.appVersionActual, deploymentType: deploymentTypeTag, deploymentArch: deployAsArchTag, isDualArch: processedAppResults.appIsDualArchCapable)
                 processedAppResults.appUploadFilename = newFileName
             } catch {
                 Logger.error("Error constructing new filename: \(error.localizedDescription)", category: .automation)
                 statusManager.failOperation(operationId: operationId, errorMessage: "Error constructing new filename: \(error.localizedDescription)")
-                return ("\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual)  download failed: \(error.localizedDescription)", "\(processedAppResults.appDisplayName)", "", false)
+                return ("\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual)  download failed: \(error.localizedDescription)", "\(processedAppResults.appIntuneDisplayName)", "", false)
             }
             
             // Check Intune for an existing version
@@ -341,9 +341,9 @@ extension LabelAutomation {
                     Logger.error("Failed to delete older apps from Intune: \(error.localizedDescription)", category: .automation)
                 }
                 
-                let successMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) already exists in Intune"
+                let successMessage = "\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual) already exists in Intune"
                 statusManager.failOperation(operationId: operationId, errorMessage: "Version \(processedAppResults.appVersionActual) already exists in Intune")
-                return (successMessage, processedAppResults.appDisplayName, "", true)
+                return (successMessage, processedAppResults.appIntuneDisplayName, "", true)
             }
 
             checkedIntune = true
@@ -367,9 +367,9 @@ extension LabelAutomation {
                 // Cleanup before returning
                 let _ = cleanUpTmpFiles(forAppLabel: appLabelName)
                 
-                let returnMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual): File not found: \(localFilePath)"
+                let returnMessage = "\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual): File not found: \(localFilePath)"
                 statusManager.failOperation(operationId: operationId, errorMessage: "File not found")
-                return (returnMessage, processedAppResults.appDisplayName, "", false)
+                return (returnMessage, processedAppResults.appIntuneDisplayName, "", false)
             }
 
             // Call the upload function
@@ -379,9 +379,9 @@ extension LabelAutomation {
             Logger.info("New app ID post upload: \(newAppID)", category: .automation)
             
             guard !newAppID.isEmpty else {
-                statusManager.failOperation(operationId: operationId, errorMessage: "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) failed to get AppID from upload to Intune")
+                statusManager.failOperation(operationId: operationId, errorMessage: "\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual) failed to get AppID from upload to Intune")
 
-                return ("\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) failed to get AppID from upload to Intune", "\(processedAppResults.appDisplayName)", "", false)
+                return ("\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual) failed to get AppID from upload to Intune", "\(processedAppResults.appIntuneDisplayName)", "", false)
             }
             
         } catch {
@@ -393,10 +393,10 @@ extension LabelAutomation {
             // Cleanup before returning
             let _ = cleanUpTmpFiles(forAppLabel: appLabelName)
             
-            let returnMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) error uploading to Intune: \(error.localizedDescription)"
-            statusManager.failOperation(operationId: operationId, errorMessage: "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) error uploading to Intune: \(error.localizedDescription)")
+            let returnMessage = "\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual) error uploading to Intune: \(error.localizedDescription)"
+            statusManager.failOperation(operationId: operationId, errorMessage: "\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual) error uploading to Intune: \(error.localizedDescription)")
 
-            return (returnMessage, processedAppResults.appDisplayName, "", false)
+            return (returnMessage, processedAppResults.appIntuneDisplayName, "", false)
         }
 
         
@@ -454,9 +454,9 @@ extension LabelAutomation {
             // Cleanup temporary files
             let _ = cleanUpTmpFiles(forAppLabel: appLabelName)
             
-            let errorMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) failed to upload to Intune"
+            let errorMessage = "\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual) failed to upload to Intune"
             statusManager.failOperation(operationId: operationId, errorMessage: errorMessage)
-            return (errorMessage, processedAppResults.appDisplayName, "", false)
+            return (errorMessage, processedAppResults.appIntuneDisplayName, "", false)
         }
 
         // ...continue with unassigning/removing old versions
@@ -498,7 +498,7 @@ extension LabelAutomation {
             
         } catch {
             Logger.error("Failed to delete older apps from Intune: \(error.localizedDescription)", category: .automation)
-            return ("\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) uploaded. Failed to delete older apps from Intune: \(error.localizedDescription)", "\(processedAppResults.appDisplayName)", newAppID, true)
+            return ("\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual) uploaded. Failed to delete older apps from Intune: \(error.localizedDescription)", "\(processedAppResults.appIntuneDisplayName)", newAppID, true)
         }
 
         
@@ -530,10 +530,10 @@ extension LabelAutomation {
 
         // MARK: - Return Success
         
-        let successMessage = "\(processedAppResults.appDisplayName) \(processedAppResults.appVersionActual) uploaded to Intune."
+        let successMessage = "\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual) uploaded to Intune."
         Logger.info("✅ Processing completed successfully: \(successMessage)", category: .automation)
         statusManager.completeOperation(operationId: operationId)
-        return (successMessage, processedAppResults.appDisplayName, newAppID, true)
+        return (successMessage, processedAppResults.appIntuneDisplayName, newAppID, true)
 
     }
     

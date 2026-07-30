@@ -66,6 +66,7 @@ extension EditViewController: TabSaveable {
             deploymentTypeTag: getDeploymentTypeTag() ?? 0,
             developer: partialDeveloper ?? "",
             informationUrl: partialInformationURL ?? "",
+            intuneDisplayName: fieldIntuneName.stringValue.trimmingCharacters(in: .whitespacesAndNewlines),
             ignoreVersionDetection: (radioNo.state == .off),
             isCliPKG: (buttonCliPkg.state == .on),
             isFeatured: (buttonFeatureApp.state == .on),

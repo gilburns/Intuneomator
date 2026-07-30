@@ -60,6 +60,10 @@ struct ProcessedAppResults {
     /// Application information/homepage URL
     let appInfoURL: String
     
+    /// Display name for the application in Intune. Always populated: the
+    /// metadata.json override if present, otherwise the label's plist `name`.
+    var appIntuneDisplayName: String
+
     /// Whether app should be installed with a CLI
     var appIsCliInstall: Bool
 
@@ -139,6 +143,7 @@ extension ProcessedAppResults {
     appIconURL: "",
     appIgnoreVersion: false,
     appInfoURL: "",
+    appIntuneDisplayName: "",
     appIsCliInstall: false,
     appIsDualArchCapable: false,
     appIsFeatured: false,
