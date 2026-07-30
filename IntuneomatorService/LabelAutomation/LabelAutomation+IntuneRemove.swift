@@ -42,14 +42,14 @@ extension LabelAutomation {
             return
         }
         
-        Logger.info("  Extracted ProcessedAppResults data for \(processedAppResults.appDisplayName)", category: .automation)
+        Logger.info("  Extracted ProcessedAppResults data for \(processedAppResults.appIntuneDisplayName)", category: .automation)
         Logger.info("  Label: \(processedAppResults.appLabelName)", category: .automation)
         Logger.info("  Tracking ID: \(processedAppResults.appTrackingID)", category: .automation)
         Logger.info("  Version to check: \(processedAppResults.appVersionExpected)", category: .automation)
         
         let trackingID = processedAppResults.appTrackingID
         let appLabelName = processedAppResults.appLabelName
-        let appDisplayName = processedAppResults.appDisplayName
+        let appDisplayName = processedAppResults.appIntuneDisplayName
         
         let operationId = "\(folderName)_remove"
         let statusManager = StatusNotificationManager.shared

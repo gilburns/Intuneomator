@@ -16,6 +16,7 @@ struct Metadata: Codable, Equatable {
     /// Application categories for organization in Intune portal
     var categories: [Category]
 
+
     /// Detailed description of the application's purpose and functionality
     var description: String
 
@@ -30,6 +31,9 @@ struct Metadata: Codable, Equatable {
 
     /// URL to application information or homepage
     var informationUrl: String?
+
+    /// Display name of the application that will appear in Intune and potentially Company Portal
+    var intuneDisplayName: String?
 
     /// Skip automatic version detection during updates
     var ignoreVersionDetection: Bool

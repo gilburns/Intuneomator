@@ -89,7 +89,7 @@ extension TeamsNotifier {
         if uploadSucceeded {
             // Send success notification with complete metadata
             await teamsNotifier.sendSuccessNotification(
-                title: processedAppResults.appDisplayName,
+                title: processedAppResults.appIntuneDisplayName,
                 version: "⦿ \(processedAppResults.appVersionActual)",
                 size: size,
                 time: time,
@@ -112,7 +112,7 @@ extension TeamsNotifier {
             
             // Send failure notification with error details
             teamsNotifier.sendErrorNotification(
-                title: processedAppResults.appDisplayName,
+                title: processedAppResults.appIntuneDisplayName,
                 version: processedAppResults.appVersionActual,
                 size: size,
                 time: time,

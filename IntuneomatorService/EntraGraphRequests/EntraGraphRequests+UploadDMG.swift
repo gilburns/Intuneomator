@@ -42,7 +42,7 @@ extension EntraGraphRequests {
         // Generate display name with architecture information for multi-arch support
         let fileName = URL(fileURLWithPath: app.appLocalURL).lastPathComponent
         let arch = ["arm64", "x86_64"].first { fileName.contains($0) }
-        let displayName = "\(app.appDisplayName) \(app.appVersionActual)\(arch.map { " \($0)" } ?? "")"
+        let displayName = "\(app.appIntuneDisplayName) \(app.appVersionActual)\(arch.map { " \($0)" } ?? "")"
 
         // Construct comprehensive DMG application metadata
         var metadata: [String: Any] = [

@@ -1751,7 +1751,7 @@ Gw
                                                 <font key="font" metaFont="smallSystem"/>
                                             </buttonCell>
                                             <connections>
-                                                <action selector="showHelpForDeploymentType:" target="ReB-I2-ePG" id="fsR-ee-bHj"/>
+                                                <action selector="showHelpForAppDisplayName:" target="ReB-I2-ePG" id="rvQ-f7-6lN"/>
                                             </connections>
                                         </button>
                                         <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="chl-RN-iYc">
@@ -1954,6 +1954,10 @@ Gw
                                                 <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
+                                            <accessibility identifier="Name"/>
+                                            <connections>
+                                                <action selector="fieldIntuneDisplayNameDidChange:" target="ReB-I2-ePG" id="fLw-cu-n4A"/>
+                                            </connections>
                                         </textField>
                                         <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="UpQ-AY-fc6">
                                             <rect key="frame" x="188" y="203" width="75" height="16"/>
@@ -2373,6 +2377,7 @@ Gw
                         <outlet property="fieldDownloadURL" destination="iVX-rF-MaA" id="kpn-Om-2BO"/>
                         <outlet property="fieldExpectedTeamID" destination="jpg-7k-BdT" id="EFT-pS-QwI"/>
                         <outlet property="fieldIntuneID" destination="E9b-43-Y0G" id="4df-Nd-74u"/>
+                        <outlet property="fieldIntuneName" destination="zr4-L2-XOI" id="VJD-Kh-aDZ"/>
                         <outlet property="fieldIntuneVersion" destination="h9b-RH-wyI" id="x9g-gk-mCd"/>
                         <outlet property="fieldItemGUID" destination="cpY-sr-8nS" id="tp2-Ql-534"/>
                         <outlet property="fieldLabel" destination="Wvo-Af-CgJ" id="J25-VA-3QE"/>
@@ -3320,7 +3325,7 @@ Gw
                                                     </tableView>
                                                 </subviews>
                                             </clipView>
-                                            <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" doubleValue="0.86764705882352944" horizontal="YES" id="Fha-0b-bPh">
+                                            <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="Fha-0b-bPh">
                                                 <rect key="frame" x="1" y="198" width="398" height="17"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                             </scroller>

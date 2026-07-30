@@ -224,9 +224,17 @@ extension EntraGraphRequests {
         getReq.addValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
         
         let (getData, _) = try await URLSession.shared.data(for: getReq)
-        let currentName = (try JSONSerialization.jsonObject(with: getData) as? [String:Any])?["displayName"] as? String
+        var currentName = (try JSONSerialization.jsonObject(with: getData) as? [String:Any])?["displayName"] as? String
         ?? app.appDisplayName
         let currentDataType = (try JSONSerialization.jsonObject(with: getData, options: []) as? [String:Any])?["@odata.type"] as? String ?? "#microsoft.graph.macOSLobApp"
+        
+        let newName = app.appIntuneDisplayName
+        if newName == currentName {
+            Logger.info("No change for name: \(currentName)")
+        } else {
+            Logger.info("Name changed from \(currentName) to: \(newName)")
+            currentName = newName
+        }
         
         // Prepare PATCH request for metadata update
         let updateURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps/\(appId)")!
@@ -290,6 +298,6 @@ extension EntraGraphRequests {
         }
         
         Logger.info("Successfully updated metadata for app ID \(appId)", category: .core)
-        Logger.info("Successfully updated \(app.appDisplayName) metadata for app ID \(appId)", category: .core)
+        Logger.info("Successfully updated \(app.appIntuneDisplayName) metadata for app ID \(appId)", category: .core)
     }
 }

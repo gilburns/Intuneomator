@@ -136,7 +136,7 @@ extension LabelAutomation {
         let finalFilename = extractDownloadFilename(
             from: response,
             fallbackURL: url,
-            appDisplayName: processedAppResults.appDisplayName,
+            appDisplayName: processedAppResults.appIntuneDisplayName,
             appVersion: processedAppResults.appVersionExpected
         )
         

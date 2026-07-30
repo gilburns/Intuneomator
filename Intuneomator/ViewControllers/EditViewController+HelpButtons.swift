@@ -21,6 +21,24 @@ import AppKit
 extension EditViewController {
     
     // MARK: - Help Buttons
+    /// Displays help about the "App Display Name" field.
+    /// Shows a popover explaining how the display name  is used in Intune and  Company Portal.
+    /// - Parameter sender: The help button that was clicked.
+    
+    @IBAction func showHelpForAppDisplayName(_ sender: NSButton) {
+        // Create the full string
+        let helpText = NSMutableAttributedString(string: "This is optional. If you do not enter any value the default will be the app name from the Installomator label variable.\n\nEnter the display name to override the default value. The display name will appears Intune and in the Company Portal.\n\nThe version number will automatically be appended when it appears in Intune.\n\nExample:\nLabel value = 'Firefox'\nOverride value = 'Mozilla Firefox'")
+
+        // Add custom styling for the rest of the text
+        helpText.addAttributes([
+            .foregroundColor: NSColor.textColor,
+            .font: NSFont.systemFont(ofSize: 13)
+        ], range: NSRange(location: 0, length: helpText.length))
+
+        // Show the popover
+        helpPopover.showHelp(anchorView: sender, helpText: helpText)
+    }
+
     /// Displays help about the "App Description" field.
     /// Shows a popover explaining how the description is used in the Company Portal.
     /// - Parameter sender: The help button that was clicked.
