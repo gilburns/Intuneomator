@@ -29,27 +29,19 @@ extension EditViewController {
         dialog.allowedContentTypes = [.png, .jpeg, .gif, .bmp, .tiff, .heif, .application]
         dialog.message = "Select an image file or app bundle…"
         
-        var url: URL?
-        if dialog.runModal() == .OK {
-            if dialog.url == nil {
-                progImageEdit.stopAnimation(self)
-                return
-            } else {
-                url = dialog.url
-            }
+        guard dialog.runModal() == .OK, let url = dialog.url else {
+            progImageEdit.stopAnimation(self)
+            return
         }
-        
-        do {
-            XPCManager.shared.importIconToLabel(url!.path, labelFolder) { success in
-                if success! {
-                    DispatchQueue.main.async {
-                        self.loadIcon()
-                    }
-                } else {
+
+        XPCManager.shared.importIconToLabel(url.path, labelFolder) { success in
+            DispatchQueue.main.async {
+                if success == true {
+                    self.loadIcon()
                 }
+                self.progImageEdit.stopAnimation(self)
             }
         }
-        progImageEdit.stopAnimation(self)
     }
     
     /// Resets the label's icon to a generic default by invoking XPC to import the
