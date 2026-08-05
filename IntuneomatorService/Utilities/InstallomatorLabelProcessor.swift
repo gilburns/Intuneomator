@@ -90,22 +90,30 @@ class InstallomatorLabelProcessor {
     /// - Throws: Process execution errors
     private static func executeProcess(executableURL: URL, arguments: [String], folderName: String) throws -> String? {
         let process = Process()
-        let pipe = Pipe()
-        
+        let outputPipe = Pipe()
+        let errorPipe = Pipe()
+
         process.executableURL = executableURL
         process.arguments = arguments
-        process.standardOutput = pipe
-        process.standardError = pipe
-        
+        process.standardOutput = outputPipe
+        process.standardError = errorPipe
+
         try process.run()
         process.waitUntilExit()
-        
+
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            // Diagnostic/warning noise from tools like `xpath` (e.g. Docker's label) is expected
+            // on stderr even on success, so this is logged for visibility but doesn't affect the result.
+            Logger.info("  stderr from \(executableURL.lastPathComponent) for \(folderName): \(errorOutput)", category: .core)
+        }
+
         guard process.terminationStatus == 0 else {
             Logger.error("❌ Process failed with exit code \(process.terminationStatus) for \(folderName)", category: .core)
             return nil
         }
-        
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+
+        let data = outputPipe.fileHandleForReading.readDataToEndOfFile()
         return String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
