@@ -134,6 +134,11 @@ class AdobeCCPkgCreator {
         inputPipe.fileHandleForWriting.closeFile()
         process.waitUntilExit()
 
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(path): \(errorOutput)", category: .core)
+        }
+
         guard process.terminationStatus == 0 else {
             let errorOutput = String(data: errorPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? "Unknown error"
             log("Error: Failed to mount .dmg file. \(errorOutput)")
@@ -165,13 +170,19 @@ class AdobeCCPkgCreator {
         process.arguments = ["detach", mountPoint, "-quiet"]
         
         let outputPipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = outputPipe
-        process.standardError = outputPipe
+        process.standardError = errorPipe
 
         do {
             process.launch()
             process.waitUntilExit()
             
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+                Logger.info(" stderr from |(executableURL.lastPathComponent) with \(mountPoint): \(errorOutput)", category: .core)
+            }
+
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
 
@@ -381,13 +392,19 @@ exit "${exitCode}"
         process.arguments = ["--analyze", "--root", packageRoot, componentPlistPath]
 
         let outputPipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = outputPipe
-        process.standardError = outputPipe
+        process.standardError = errorPipe
 
         do {
             process.launch()
             process.waitUntilExit()
             
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+                Logger.info(" stderr from |(executableURL.lastPathComponent) with \(packageRoot): \(errorOutput)", category: .core)
+            }
+
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
 
@@ -441,13 +458,19 @@ exit "${exitCode}"
         ]
         
         let outputPipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = outputPipe
-        process.standardError = outputPipe
+        process.standardError = errorPipe
 
         do {
             process.launch()
             process.waitUntilExit()
             
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+                Logger.info(" stderr from |(executableURL.lastPathComponent) with \(packageRoot): \(errorOutput)", category: .core)
+            }
+
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
 
@@ -476,13 +499,19 @@ exit "${exitCode}"
         process.arguments = ["--synthesize", "--package", componentPackage, distributionXMLPath]
 
         let outputPipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = outputPipe
-        process.standardError = outputPipe
+        process.standardError = errorPipe
 
         do {
             process.launch()
             process.waitUntilExit()
             
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+                Logger.info(" stderr from |(executableURL.lastPathComponent) with \(componentPackage): \(errorOutput)", category: .core)
+            }
+
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
 
@@ -557,13 +586,19 @@ exit "${exitCode}"
         ]
         
         let outputPipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = outputPipe
-        process.standardError = outputPipe
+        process.standardError = errorPipe
 
         do {
             process.launch()
             process.waitUntilExit()
             
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+                Logger.info(" stderr from |(executableURL.lastPathComponent) with \(distributionXML): \(errorOutput)", category: .core)
+            }
+
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
 

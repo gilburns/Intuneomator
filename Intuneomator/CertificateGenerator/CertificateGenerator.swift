@@ -27,12 +27,19 @@ class CertificateGenerator {
         process.arguments = arguments
 
         let pipe = Pipe()
+        let errorPipe = Pipe()
+
         process.standardOutput = pipe
-        process.standardError = pipe
+        process.standardError = errorPipe
 
         try process.run()
         process.waitUntilExit()
 
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(arguments): \(errorOutput)", category: .core)
+        }
+        
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         if let output = String(data: data, encoding: .utf8) {
             Logger.debug("\(output)", category: .debug)
@@ -104,11 +111,17 @@ class CertificateGenerator {
         process.arguments = ["x509", "-noout", "-fingerprint", "-sha1", "-inform", "pem", "-in", certificatePath]
 
         let pipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = pipe
-        process.standardError = pipe
+        process.standardError = errorPipe
 
         try process.run()
         process.waitUntilExit()
+
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(certificatePath): \(errorOutput)", category: .core)
+        }
 
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         guard let output = String(data: data, encoding: .utf8), process.terminationStatus == 0 else {

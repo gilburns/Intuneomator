@@ -674,10 +674,17 @@ extension EditViewController {
         process.arguments = ["imageinfo", path, "-plist"]
         
         let pipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = pipe
+        process.standardError = errorPipe
         process.launch()
         process.waitUntilExit()
         
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(path): \(errorOutput)", category: .core)
+        }
+
         guard process.terminationStatus == 0 else {
             Logger.info("Error: Failed to check for SLA in DMG.", category: .core, toUserDirectory: true)
             return false
@@ -708,8 +715,9 @@ extension EditViewController {
         process.arguments = ["convert", "-format", "UDRW", "-o", tempFileURL.path, path]
         
         let pipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = pipe
-        process.standardError = pipe
+        process.standardError = errorPipe
         
         do {
             try process.run()
@@ -725,6 +733,11 @@ extension EditViewController {
             }
         }
         
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(path): \(errorOutput)", category: .core)
+        }
+
         guard process.terminationStatus == 0 else {
             Logger.info("Error: hdiutil failed to convert DMG with SLA.", category: .core, toUserDirectory: true)
             return false

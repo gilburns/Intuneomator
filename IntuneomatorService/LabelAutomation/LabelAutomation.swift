@@ -192,16 +192,22 @@ class LabelAutomation {
         // Call `/usr/bin/file` on that binary with proper resource management
         let process = Process()
         let pipe = Pipe()
+        let errorPipe = Pipe()
         
         process.executableURL = URL(fileURLWithPath: fileToolPath)
         process.arguments = ["-bL", binaryURL.path] // -b for brief, -L to follow symlinks
         process.standardOutput = pipe
-        process.standardError = pipe
+        process.standardError = errorPipe
         
         do {
             try process.run()
             process.waitUntilExit()
             
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+                Logger.info(" stderr from |(executableURL.lastPathComponent) with \(appURL.path): \(errorOutput)", category: .core)
+            }
+
             // Ensure file handle is properly closed
             let fileHandle = pipe.fileHandleForReading
             let outputData = fileHandle.readDataToEndOfFile()

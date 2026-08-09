@@ -167,11 +167,17 @@ class ScheduledTaskManager {
         process.arguments = args
 
         let pipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = pipe
-        process.standardError = pipe
+        process.standardError = errorPipe
 
         try process.run()
         process.waitUntilExit()
+
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(args): \(errorOutput)", category: .core)
+        }
 
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         return String(data: data, encoding: .utf8) ?? ""
