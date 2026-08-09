@@ -169,8 +169,10 @@ class PKGCreator {
         process.arguments = [fullExecutablePath]
         
         let pipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = pipe
-        
+        process.standardError = errorPipe
+
         do {
             try process.run()
         } catch {
@@ -180,6 +182,11 @@ class PKGCreator {
         
         process.waitUntilExit()
         
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(appPath): \(errorOutput)", category: .core)
+        }
+
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         guard let output = String(data: data, encoding: .utf8) else {
             return "unknown"
@@ -206,9 +213,17 @@ class PKGCreator {
         process.arguments = ["imageinfo", path, "-plist"]
 
         let pipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = pipe
+        process.standardError = errorPipe
+
         process.launch()
         process.waitUntilExit()
+
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(path): \(errorOutput)", category: .core)
+        }
 
         guard process.terminationStatus == 0 else {
             log("Error: Failed to check for SLA in DMG.")
@@ -239,8 +254,9 @@ class PKGCreator {
         process.arguments = ["convert", "-format", "UDRW", "-o", tempFileURL.path, path]
         
         let pipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = pipe
-        process.standardError = pipe
+        process.standardError = errorPipe
         
         do {
             try process.run()
@@ -256,6 +272,11 @@ class PKGCreator {
             }
         }
         
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(path): \(errorOutput)", category: .core)
+        }
+
         guard process.terminationStatus == 0 else {
             log("Error: hdiutil failed to convert DMG with SLA.")
             return false
@@ -346,13 +367,19 @@ class PKGCreator {
         process.arguments = ["detach", mountPoint, "-quiet"]
         
         let outputPipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = outputPipe
-        process.standardError = outputPipe
+        process.standardError = errorPipe
 
         do {
             process.launch()
             process.waitUntilExit()
             
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+                Logger.info(" stderr from |(executableURL.lastPathComponent) with \(mountPoint): \(errorOutput)", category: .core)
+            }
+
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
 
@@ -381,12 +408,18 @@ class PKGCreator {
             process.arguments = ["-x", "-k", path, destinationPath]
 
             let outputPipe = Pipe()
+            let errorPipe = Pipe()
             process.standardOutput = outputPipe
-            process.standardError = outputPipe
+            process.standardError = errorPipe
 
             do {
                 process.launch()
                 process.waitUntilExit()
+                
+                let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+                if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+                    Logger.info(" stderr from |(executableURL.lastPathComponent) with \(path): \(errorOutput)", category: .core)
+                }
                 
                 let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
                 let output = String(data: outputData, encoding: .utf8) ?? ""
@@ -424,13 +457,19 @@ class PKGCreator {
             process.arguments = ["-xf", path, "-C", destinationPath]
 
             let outputPipe = Pipe()
+            let errorPipe = Pipe()
             process.standardOutput = outputPipe
-            process.standardError = outputPipe
+            process.standardError = errorPipe
 
             do {
                 process.launch()
                 process.waitUntilExit()
                 
+                let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+                if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+                    Logger.info(" stderr from |(executableURL.lastPathComponent) with \(path): \(errorOutput)", category: .core)
+                }
+
                 let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
                 let output = String(data: outputData, encoding: .utf8) ?? ""
 
@@ -534,13 +573,19 @@ class PKGCreator {
         process.arguments = ["--analyze", "--root", packageRoot, componentPlistPath]
 
         let outputPipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = outputPipe
-        process.standardError = outputPipe
+        process.standardError = errorPipe
 
         do {
             process.launch()
             process.waitUntilExit()
             
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+                Logger.info(" stderr from |(executableURL.lastPathComponent) with \(packageRoot): \(errorOutput)", category: .core)
+            }
+
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
 
@@ -593,13 +638,19 @@ class PKGCreator {
         ]
         
         let outputPipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = outputPipe
-        process.standardError = outputPipe
+        process.standardError = errorPipe
 
         do {
             process.launch()
             process.waitUntilExit()
             
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+                Logger.info(" stderr from |(executableURL.lastPathComponent) with \(packageRoot): \(errorOutput)", category: .core)
+            }
+
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
 
@@ -628,13 +679,19 @@ class PKGCreator {
         process.arguments = ["--synthesize", "--package", componentPackage, distributionXMLPath]
 
         let outputPipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = outputPipe
-        process.standardError = outputPipe
+        process.standardError = errorPipe
 
         do {
             process.launch()
             process.waitUntilExit()
             
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+                Logger.info(" stderr from |(executableURL.lastPathComponent) with \(componentPackage): \(errorOutput)", category: .core)
+            }
+
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
 
@@ -709,13 +766,19 @@ class PKGCreator {
         ]
         
         let outputPipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = outputPipe
-        process.standardError = outputPipe
+        process.standardError = errorPipe
 
         do {
             process.launch()
             process.waitUntilExit()
             
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+                Logger.info(" stderr from |(executableURL.lastPathComponent) with \(distributionXML): \(errorOutput)", category: .core)
+            }
+
             let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: outputData, encoding: .utf8) ?? ""
 

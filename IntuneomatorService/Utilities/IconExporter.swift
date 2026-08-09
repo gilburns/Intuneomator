@@ -71,13 +71,19 @@ class IconExporter {
         process.arguments = ["-s", "format", "png", icnsPath, "--out", outputPath]
         
         let pipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = pipe
-        process.standardError = pipe
+        process.standardError = errorPipe
 
         do {
             try process.run()
             process.waitUntilExit()
             
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+                Logger.info(" stderr from |(executableURL.lastPathComponent) with \(appPath): \(errorOutput)", category: .core)
+            }
+
             // Check conversion success via process exit code
             if process.terminationStatus == 0 {
                 Logger.info("✅ Icon converted successfully to: \(outputPath)", category: .core)

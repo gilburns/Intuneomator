@@ -43,17 +43,23 @@ class SignatureInspector {
 
         let process = Process()
         let pipe = Pipe()
-
+        let errorPipe = Pipe()
+        
         process.executableURL = URL(fileURLWithPath: "/usr/sbin/spctl")
         process.arguments = ["-a", "-vv", "-t", type, path]
         process.standardOutput = pipe
-        process.standardError = pipe
+        process.standardError = errorPipe
 
         do {
             try process.run()
             process.waitUntilExit()
         } catch {
             throw InspectionError.spctlError("Failed to execute spctl command.")
+        }
+
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(path): \(errorOutput)", category: .core)
         }
 
         let data = pipe.fileHandleForReading.readDataToEndOfFile()

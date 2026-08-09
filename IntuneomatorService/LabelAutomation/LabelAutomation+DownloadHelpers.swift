@@ -89,11 +89,19 @@ extension LabelAutomation {
         process.arguments = ["-q", zipURL.path, "-d", extractFolder.path]
         
         let outputPipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = outputPipe
+        process.standardError = errorPipe
         
         try process.run()
         process.waitUntilExit()
         
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(zipURL.path): \(errorOutput)", category: .core)
+        }
+
+
         // Verify successful extraction
         guard process.terminationStatus == 0 else {
             throw NSError(domain: "ExtractionError", code: 201, userInfo: [NSLocalizedDescriptionKey: "Failed to extract ZIP file"])
@@ -131,11 +139,18 @@ extension LabelAutomation {
         process.arguments = ["-x", "-k", zipURL.path, extractFolder.path]
         
         let outputPipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = outputPipe
+        process.standardError = errorPipe
         
         try process.run()
         process.waitUntilExit()
         
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(zipURL.path): \(errorOutput)", category: .core)
+        }
+
         // Verify successful extraction
         guard process.terminationStatus == 0 else {
             throw NSError(domain: "ExtractionError", code: 201, userInfo: [NSLocalizedDescriptionKey: "Failed to extract ZIP file with ditto"])
@@ -171,11 +186,18 @@ extension LabelAutomation {
         process.arguments = ["-xf", tbzURL.path, "-C", extractFolder.path]
         
         let outputPipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = outputPipe
+        process.standardError = errorPipe
         
         try process.run()
         process.waitUntilExit()
         
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(tbzURL.path): \(errorOutput)", category: .core)
+        }
+
         // Verify successful extraction
         guard process.terminationStatus == 0 else {
             throw NSError(domain: "ExtractionError", code: 202, userInfo: [NSLocalizedDescriptionKey: "Failed to extract TBZ file"])
@@ -272,10 +294,18 @@ extension LabelAutomation {
         process.arguments = ["imageinfo", path, "-plist"]
         
         let pipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = pipe
+        process.standardError = errorPipe
+        
         process.launch()
         process.waitUntilExit()
         
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(path): \(errorOutput)", category: .core)
+        }
+
         // Verify command executed successfully
         guard process.terminationStatus == 0 else {
             Logger.error("Error: Failed to check for SLA in DMG.", category: .automation)
@@ -308,8 +338,9 @@ extension LabelAutomation {
         process.arguments = ["convert", "-format", "UDRW", "-o", tempFileURL.path, path]
 
         let pipe = Pipe()
+        let errorPipe = Pipe()
         process.standardOutput = pipe
-        process.standardError = pipe
+        process.standardError = errorPipe
 
         do {
             try process.run()
@@ -323,6 +354,11 @@ extension LabelAutomation {
             process.terminationHandler = { _ in
                 continuation.resume()
             }
+        }
+
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(path): \(errorOutput)", category: .core)
         }
 
         // Verify conversion completed successfully
@@ -370,6 +406,11 @@ extension LabelAutomation {
         try process.run()
         process.waitUntilExit()
         
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(mountPoint): \(errorOutput)", category: .core)
+        }
+
         // Log success or failure with detailed error information
         if process.terminationStatus == 0 {
             Logger.info("  DMG unmounted successfully", category: .automation)

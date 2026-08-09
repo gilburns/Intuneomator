@@ -144,12 +144,18 @@ func installPackage(at path: String, target: String) -> Bool {
     process.arguments = ["-pkg", path, "-target", target]
 
     let pipe = Pipe()
+    let errorPipe = Pipe()
     process.standardOutput = pipe
-    process.standardError = pipe
+    process.standardError = errorPipe
 
     do {
         try process.run()
         process.waitUntilExit()
+
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(path): \(errorOutput)", category: .core)
+        }
 
         let outputData = pipe.fileHandleForReading.readDataToEndOfFile()
         pipe.fileHandleForReading.closeFile()
@@ -175,13 +181,19 @@ func checkDaemonLoaded(_ launchDaemonLabel: String) -> DaemonLoadStatus {
     task.arguments = ["list", launchDaemonLabel]
     
     let pipe = Pipe()
+    let errorPipe = Pipe()
     task.standardOutput = pipe
-    task.standardError = pipe
+    task.standardError = errorPipe
     
     do {
         try task.run()
         task.waitUntilExit()
         
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+            Logger.info(" stderr from |(executableURL.lastPathComponent) with \(launchDaemonLabel): \(errorOutput)", category: .core)
+        }
+
         _ = pipe.fileHandleForReading.readDataToEndOfFile()
         pipe.fileHandleForReading.closeFile()
         
