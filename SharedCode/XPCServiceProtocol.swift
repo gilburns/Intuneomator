@@ -148,6 +148,13 @@ import Foundation
     ///   - reply: Callback indicating if toggle was successful
     func toggleCustomLabel(_ labelFolder: String, _ toggle: Bool, reply: @escaping (Bool) -> Void)
 
+    /// Toggles paused-automation status for a managed folder by creating or removing a `.pauseUpdates` marker file
+    /// - Parameters:
+    ///   - labelFolder: Target label folder name
+    ///   - toggle: True to pause automation (create marker file), false to resume (remove marker file)
+    ///   - reply: Callback indicating if toggle was successful
+    func toggleActiveAutomation(_ labelFolder: String, _ toggle: Bool, reply: @escaping (Bool) -> Void)
+
     // MARK: - Label Editing Operations
     
     /// Imports a custom icon file to a label folder

@@ -568,7 +568,39 @@ extension XPCService {
         }
     }
 
-    
+    /// Pauses or resumes automation for a managed label by creating or removing a `.pauseUpdates` marker file
+    /// - Parameters:
+    ///   - labelFolder: Name of the label folder to modify
+    ///   - toggle: True to pause automation (create marker file), false to resume (remove marker file)
+    ///   - reply: Callback with success status of the toggle operation
+    func toggleActiveAutomation(_ labelFolder: String, _ toggle: Bool, reply: @escaping (Bool) -> Void) {
+
+        let labelFolderURL = AppConstants.intuneomatorManagedTitlesFolderURL
+            .appendingPathComponent(labelFolder)
+
+        let touchFileURL = labelFolderURL
+            .appendingPathComponent(".pauseUpdates")
+
+        if toggle {
+            let success = FileManager.default.createFile(atPath: touchFileURL.path, contents: nil, attributes: nil)
+            if !success {
+                Logger.error("Failed to create pause updates touch file for \(labelFolder)", category: .core)
+            }
+            reply(success)
+        } else {
+            do {
+                if FileManager.default.fileExists(atPath: touchFileURL.path) {
+                    try FileManager.default.removeItem(at: touchFileURL)
+                }
+                reply(true)
+            } catch {
+                Logger.error("Failed to delete pause updates touch file for \(labelFolder): \(error.localizedDescription)", category: .core)
+                reply(false)
+            }
+        }
+    }
+
+
     // MARK: - Icon Management Operations
     
     /// Imports an icon file or extracts icon from application bundle for a label
