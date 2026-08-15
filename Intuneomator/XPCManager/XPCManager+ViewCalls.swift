@@ -134,7 +134,16 @@ extension XPCManager {
         sendRequest({ $0.toggleCustomLabel(labelDirectory, toggle, reply: $1) }, completion: completion)
     }
 
-    
+    /// Pauses or resumes automation for a managed label by creating or removing a `.pauseUpdates` marker file
+    /// - Parameters:
+    ///   - labelDirectory: Name of the label folder to modify
+    ///   - toggle: True to pause automation, false to resume
+    ///   - completion: Callback with toggle operation success status or nil on XPC failure
+    func toggleActiveAutomation(_ labelDirectory: String, _ toggle: Bool, completion: @escaping (Bool?) -> Void) {
+        sendRequest({ $0.toggleActiveAutomation(labelDirectory, toggle, reply: $1) }, completion: completion)
+    }
+
+
     // MARK: - Icon Management Operations
     
     /// Imports an icon file or extracts icon from application bundle for a label

@@ -25,7 +25,11 @@ struct FolderScanner {
 
             for folderName in folderContents {
                 let folderPath = (basePath as NSString).appendingPathComponent(folderName)
-                if AutomationCheck.validateFolder(at: folderPath) {
+                let pauseUpdatesPath = (folderPath as NSString).appendingPathComponent(".pauseUpdates")
+
+                if FileManager.default.fileExists(atPath: pauseUpdatesPath) {
+                    Logger.info("⏸️ Automation paused: \(folderName)", category: .core)
+                } else if AutomationCheck.validateFolder(at: folderPath) {
                     Logger.info("✅ Ready for automation: \(folderName)", category: .core)
                     validFolders.append(folderName)
                 } else {

@@ -187,10 +187,17 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
             isValid = AutomationCheck.validateFolder(at: folderURL.path)
             validationCache[folderURL.path] = isValid
         }
+        // Paused automation takes precedence over readiness validation
+        let isPaused = FileManager.default.fileExists(atPath: folderURL.appendingPathComponent(".pauseUpdates").path)
+
         var readyState: String?
         var iconImage: NSImage!
-        // Load the appropriate icon based on validation
-        if isValid {
+        // Load the appropriate icon based on pause state and validation
+        if isPaused {
+            readyState = String("Automation Paused")
+            iconImage = AutomationStatusImage.Paused.image
+        }
+        else if isValid {
             readyState = String("Ready for Automation")
             iconImage = AutomationStatusImage.Ready.image
         }

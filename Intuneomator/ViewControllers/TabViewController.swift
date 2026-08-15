@@ -28,6 +28,9 @@ class TabViewController: NSViewController {
     /// Label displaying the name of the application being edited
     @IBOutlet weak var labelAppName: NSTextField!
     
+    /// Button to pause update automation for the given title
+    @IBOutlet weak var buttonPauseUpdates: NSButton!
+
     /// Image view showing cloud upload status with visual indicators
     @IBOutlet weak var imageCloudStatus: NSButton!
 
@@ -124,6 +127,7 @@ class TabViewController: NSViewController {
 
         checkCustomLabel()
         setToggleCustomButtonAvailability()
+        checkPauseUpdatesState()
 
         // Save current window size for next session
         if let window = view.window {
@@ -252,8 +256,37 @@ class TabViewController: NSViewController {
         }
     }
 
+    // MARK: - Pause Update Management Methods
+
+    /// Handles pausing of the updates for the given label
+    /// Switches between active and paused label via XPC service
+    /// Updates UI button and notifies other components of changes
+    /// - Parameter sender: The toggle switch that triggered the action
+    @IBAction func toggleActiveAutomation(_ sender: NSButton) {
+        let labelName = appData?.label ?? ""
+        let labelGuid = appData?.guid ?? ""
+        let directoryPath = "\(labelName)_\(labelGuid)"
+
+        // Determine desired new state from the button's current tint color.
+        // Red indicates automation is currently paused; green indicates it is active.
+        let isCurrentlyPaused = (sender.contentTintColor == .systemRed)
+        let newPausedState = !isCurrentlyPaused
+
+        XPCManager.shared.toggleActiveAutomation(directoryPath, newPausedState) { success in
+            if success! {
+                DispatchQueue.main.async {
+                    sender.contentTintColor = newPausedState ? .systemRed : .systemGreen
+                    sender.toolTip = newPausedState ? "Resume Updates" : "Pause Updates"
+                }
+            } else {
+                Logger.info("Toggle Pause Updates Failed: \(directoryPath)", category: .core, toUserDirectory: true)
+            }
+        }
+    }
+
+
     // MARK: - Custom Label Management Methods
-    
+
     /// Handles custom Installomator label toggle switch changes
     /// Switches between standard and custom label implementations via XPC service
     /// Updates UI visual indicators and notifies other components of changes
@@ -646,6 +679,25 @@ class TabViewController: NSViewController {
         } else {
             labelCustomLabel.textColor = .lightGray
             buttonCustomOnOff.state = .off
+        }
+    }
+
+    /// Checks whether automation is currently paused for this label and updates the
+    /// pause/resume button's icon tint to reflect the current state.
+    /// Green indicates automation is active; red indicates it is paused.
+    private func checkPauseUpdatesState() {
+        let labelFolder = "\(appData!.label)_\(appData!.guid)"
+
+        let pauseCheckURL = AppConstants.intuneomatorManagedTitlesFolderURL
+            .appendingPathComponent(labelFolder)
+            .appendingPathComponent(".pauseUpdates")
+
+        if FileManager.default.fileExists(atPath: pauseCheckURL.path) {
+            buttonPauseUpdates.contentTintColor = .systemRed
+            buttonPauseUpdates.toolTip = "Resume Updates"
+        } else {
+            buttonPauseUpdates.contentTintColor = .systemGreen
+            buttonPauseUpdates.toolTip = "Pause Updates"
         }
     }
 

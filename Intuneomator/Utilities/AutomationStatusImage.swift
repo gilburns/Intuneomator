@@ -8,7 +8,7 @@
 import Cocoa
 
 enum AutomationStatusImage: Int {
-    case Ready, NotReady
+    case Ready, NotReady, Paused
 
     var image: NSImage {
         switch self {
@@ -16,6 +16,8 @@ enum AutomationStatusImage: Int {
             return NSImage(named: "NSStatusAvailable")!
         case .NotReady:
             return NSImage(named: "NSStatusPartiallyAvailable")!
+        case .Paused:
+            return NSImage(named: "NSStatusUnavailable")!
         }
     }
 }
