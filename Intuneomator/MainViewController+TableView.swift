@@ -202,7 +202,8 @@ extension MainViewController: NSTableViewDataSource, NSTableViewDelegate {
             iconImage = AutomationStatusImage.Ready.image
         }
         else {
-            readyState = String("Not Ready for Automation")
+            let missingAutomation = AutomationCheck.validationReport(at: folderURL.path)
+            readyState = String(missingAutomation)
             iconImage = AutomationStatusImage.NotReady.image
         }
 
