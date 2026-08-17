@@ -58,7 +58,12 @@ extension EditViewController {
         if appMetadata?.isCliPKG == nil {
             appMetadata?.isCliPKG = false
         }
-        
+
+        // Set a value for metadata saved in older versions pre this key
+        if appMetadata?.useSingleAppPolicy == nil {
+            appMetadata?.useSingleAppPolicy = false
+        }
+
         populateFieldsFromAppMetadata()
         
         let developer = appMetadata?.developer ?? ""
@@ -107,6 +112,7 @@ extension EditViewController {
         buttonFeatureApp.state = .off
         buttonManagedApp.state = .off
         buttonCliPkg.state = .off
+        buttonSingleAppPolicy.state = .off
         buttonDeploymentType.selectItem(withTag: 0)
         
         // Set default categories
@@ -127,6 +133,7 @@ extension EditViewController {
             isCliPKG: false,
             isFeatured: false,
             isManaged: false,
+            useSingleAppPolicy: false,
             minimumOS: "v13_0",
             minimumOSDisplay: "macOS Ventura 13.0",
             notes: "",

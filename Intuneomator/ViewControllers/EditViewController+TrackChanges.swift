@@ -54,6 +54,7 @@ extension EditViewController {
             isCliPKG: (buttonCliPkg.state == .on),
             isFeatured: (buttonFeatureApp.state == .on),
             isManaged: (buttonManagedApp.state == .on),
+            useSingleAppPolicy: (buttonSingleAppPolicy.state == .on),
             minimumOS: getSelectedMinimumOsID() ?? "",
             minimumOSDisplay: buttonPopUpMinimumOs.selectedItem?.title ?? "",
             notes: notes,
@@ -158,6 +159,12 @@ extension EditViewController {
             hasUnsavedChanges = true
         }
 
+        // Highlight if useSingleAppPolicy is not its default value
+        if currentMetadata.useSingleAppPolicy != false { // Assume false as default
+            highlightField(buttonSingleAppPolicy)
+            hasUnsavedChanges = true
+        }
+
         // Highlight the description field
         if !currentMetadata.description.isEmpty {
             setTextViewBorder(field: fieldLabelDescription, color: NSColor.systemYellow)
@@ -191,6 +198,7 @@ extension EditViewController {
         buttonCliPkg.layer?.backgroundColor = nil
         buttonFeatureApp.layer?.backgroundColor = nil
         buttonManagedApp.layer?.backgroundColor = nil
+        buttonSingleAppPolicy.layer?.backgroundColor = nil
         buttonDeploymentType.layer?.backgroundColor = nil
         setTextViewBorder(field: fieldLabelDescription, color: NSColor.clear)
         clearHighlight(buttonEditOther)
@@ -289,7 +297,14 @@ extension EditViewController {
         } else {
             clearHighlight(buttonManagedApp)
         }
-        
+
+        // Check Single App Policy
+        if currentMetadata.useSingleAppPolicy != lastMetadata.useSingleAppPolicy {
+            highlightField(buttonSingleAppPolicy)
+        } else {
+            clearHighlight(buttonSingleAppPolicy)
+        }
+
 
         // Check description
         if currentMetadata.description != lastMetadata.description {

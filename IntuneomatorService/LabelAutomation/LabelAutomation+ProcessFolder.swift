@@ -323,24 +323,31 @@ extension LabelAutomation {
                 Logger.info("  Folder cleanup: \(deleteFolder)", category: .automation)
                 
                 // Clean up extra older versions of the app (AppVersionsToKeep changed?)
-                do {
-                    let appVersionsToKeep = ConfigManager.readPlistValue(key: "AppVersionsToKeep") ?? 2
-                    let sortedAppInfo = appInfo.sorted { $0.createdDateTime < $1.createdDateTime }
-                    let versionsToDeleteCount = max(0, sortedAppInfo.count - appVersionsToKeep)
-                    if versionsToDeleteCount > 0 {
-                        let appsToDelete = sortedAppInfo.prefix(versionsToDeleteCount)
-                        for app in appsToDelete {
-                            guard !app.isAssigned else { continue }
-                            Logger.info("Deleting older app \(app.displayName)", category: .automation)
-                            Logger.info("Deleting older app \(app.primaryBundleVersion)", category: .automation)
-                            Logger.info("Deleting older app \(app.id)", category: .automation)
-                            try await EntraGraphRequests.deleteIntuneApp(authToken: authToken, appId: app.id)
+                // Skipped entirely in single-app-policy mode — deleting Intune records is a
+                // destructive action that must go through the GUI-confirmed consolidate flow,
+                // never silently as a side effect of an automated background run.
+                if !processedAppResults.appUseSingleAppPolicy {
+                    do {
+                        let appVersionsToKeep = ConfigManager.readPlistValue(key: "AppVersionsToKeep") ?? 2
+                        let sortedAppInfo = appInfo.sorted { $0.createdDateTime < $1.createdDateTime }
+                        let versionsToDeleteCount = max(0, sortedAppInfo.count - appVersionsToKeep)
+                        if versionsToDeleteCount > 0 {
+                            let appsToDelete = sortedAppInfo.prefix(versionsToDeleteCount)
+                            for app in appsToDelete {
+                                guard !app.isAssigned else { continue }
+                                Logger.info("Deleting older app \(app.displayName)", category: .automation)
+                                Logger.info("Deleting older app \(app.primaryBundleVersion)", category: .automation)
+                                Logger.info("Deleting older app \(app.id)", category: .automation)
+                                try await EntraGraphRequests.deleteIntuneApp(authToken: authToken, appId: app.id)
+                            }
                         }
+                    } catch {
+                        Logger.error("Failed to delete older apps from Intune: \(error.localizedDescription)", category: .automation)
                     }
-                } catch {
-                    Logger.error("Failed to delete older apps from Intune: \(error.localizedDescription)", category: .automation)
+                } else if appInfo.count > 1 {
+                    Logger.info("⚠️ Single-policy mode: \(appInfo.count) existing Intune records found for this title; use the GUI's consolidate action to trim to one.", category: .automation)
                 }
-                
+
                 let successMessage = "\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual) already exists in Intune"
                 statusManager.failOperation(operationId: operationId, errorMessage: "Version \(processedAppResults.appVersionActual) already exists in Intune")
                 return (successMessage, processedAppResults.appIntuneDisplayName, "", true)
@@ -349,6 +356,17 @@ extension LabelAutomation {
             checkedIntune = true
             
             Logger.info("  Version \(processedAppResults.appVersionActual) is not yet uploaded to Intune", category: .automation)
+        }
+
+        // MARK: - Determine reuse target for single-app-policy mode
+        // Reuses the already-fetched appInfo array (populated by the expected- or
+        // actual-version checks above) — no extra Graph round-trip needed.
+        var existingAppId: String? = nil
+        if processedAppResults.appUseSingleAppPolicy, !appInfo.isEmpty {
+            existingAppId = appInfo.sorted { $0.createdDateTime < $1.createdDateTime }.last?.id
+            if appInfo.count > 1 {
+                Logger.info("⚠️ Single-policy mode: uploading against the most recent of \(appInfo.count) existing records (id: \(existingAppId ?? "?")). Use the GUI's consolidate action to trim duplicates.", category: .automation)
+            }
         }
 
         // MARK: - Upload to Intune
@@ -374,7 +392,7 @@ extension LabelAutomation {
 
             // Call the upload function
             statusManager.updateUploadStatus(operationId, "Uploading to Microsoft Intune", progress: 0.0)
-            newAppID = try await EntraGraphRequests.uploadAppToIntune(authToken: authToken, app: processedAppResults, operationId: operationId)
+            newAppID = try await EntraGraphRequests.uploadAppToIntune(authToken: authToken, app: processedAppResults, operationId: operationId, existingAppId: existingAppId)
             statusManager.updateUploadStatus(operationId, "Upload completed", progress: 1.0)
             Logger.info("New app ID post upload: \(newAppID)", category: .automation)
             
@@ -460,45 +478,50 @@ extension LabelAutomation {
         }
 
         // ...continue with unassigning/removing old versions
-        // Unassign old versions
-        do {
-            
-            for app in appInfo {
-                Logger.info("App: \(app.displayName)", category: .automation)
-                Logger.info("Version: \(app.primaryBundleVersion)", category: .automation)
-                Logger.info("Tracking ID: \(app.id)", category: .automation)
-                Logger.info("Creation Date: \(app.createdDateTime)", category: .automation)
+        // Skipped entirely in single-app-policy mode — the same record was patched in place,
+        // and uploadAppToIntune's assignGroupsToApp call already reasserted the correct
+        // assignment set on that single record, so there is nothing to unassign or delete.
+        if !processedAppResults.appUseSingleAppPolicy {
+            // Unassign old versions
+            do {
 
-                if app.primaryBundleVersion != processedAppResults.appVersionActual {
-                    if app.isAssigned == true {
-                        Logger.info("Older assigned version found in Intune!", category: .automation)
-                        Logger.info("Unassigning older version for app \(app.displayName)", category: .automation)
-                        Logger.info("Unassigning older version for app \(app.primaryBundleVersion)", category: .automation)
-                        Logger.info("Unassigning older version for app \(app.id)", category: .automation)
+                for app in appInfo {
+                    Logger.info("App: \(app.displayName)", category: .automation)
+                    Logger.info("Version: \(app.primaryBundleVersion)", category: .automation)
+                    Logger.info("Tracking ID: \(app.id)", category: .automation)
+                    Logger.info("Creation Date: \(app.createdDateTime)", category: .automation)
 
-                        try await EntraGraphRequests.removeAllAppAssignments(authToken: authToken, appId: app.id)
+                    if app.primaryBundleVersion != processedAppResults.appVersionActual {
+                        if app.isAssigned == true {
+                            Logger.info("Older assigned version found in Intune!", category: .automation)
+                            Logger.info("Unassigning older version for app \(app.displayName)", category: .automation)
+                            Logger.info("Unassigning older version for app \(app.primaryBundleVersion)", category: .automation)
+                            Logger.info("Unassigning older version for app \(app.id)", category: .automation)
+
+                            try await EntraGraphRequests.removeAllAppAssignments(authToken: authToken, appId: app.id)
+                        }
                     }
                 }
-            }
-            
-            // Clean up extra older versions of the app
-            let appVersionsToKeep = ConfigManager.readPlistValue(key: "AppVersionsToKeep") ?? 2
-            let sortedAppInfo = appInfo.sorted { $0.createdDateTime < $1.createdDateTime }
-            let versionsToDeleteCount = max(0, sortedAppInfo.count - appVersionsToKeep)
-            if versionsToDeleteCount > 0 {
-                let appsToDelete = sortedAppInfo.prefix(versionsToDeleteCount)
-                for app in appsToDelete {
-                    guard !app.isAssigned else { continue }
-                    Logger.info("Deleting older app \(app.displayName)", category: .automation)
-                    Logger.info("Deleting older app \(app.primaryBundleVersion)", category: .automation)
-                    Logger.info("Deleting older app \(app.id)", category: .automation)
-                    try await EntraGraphRequests.deleteIntuneApp(authToken: authToken, appId: app.id)
+
+                // Clean up extra older versions of the app
+                let appVersionsToKeep = ConfigManager.readPlistValue(key: "AppVersionsToKeep") ?? 2
+                let sortedAppInfo = appInfo.sorted { $0.createdDateTime < $1.createdDateTime }
+                let versionsToDeleteCount = max(0, sortedAppInfo.count - appVersionsToKeep)
+                if versionsToDeleteCount > 0 {
+                    let appsToDelete = sortedAppInfo.prefix(versionsToDeleteCount)
+                    for app in appsToDelete {
+                        guard !app.isAssigned else { continue }
+                        Logger.info("Deleting older app \(app.displayName)", category: .automation)
+                        Logger.info("Deleting older app \(app.primaryBundleVersion)", category: .automation)
+                        Logger.info("Deleting older app \(app.id)", category: .automation)
+                        try await EntraGraphRequests.deleteIntuneApp(authToken: authToken, appId: app.id)
+                    }
                 }
+
+            } catch {
+                Logger.error("Failed to delete older apps from Intune: \(error.localizedDescription)", category: .automation)
+                return ("\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual) uploaded. Failed to delete older apps from Intune: \(error.localizedDescription)", "\(processedAppResults.appIntuneDisplayName)", newAppID, true)
             }
-            
-        } catch {
-            Logger.error("Failed to delete older apps from Intune: \(error.localizedDescription)", category: .automation)
-            return ("\(processedAppResults.appIntuneDisplayName) \(processedAppResults.appVersionActual) uploaded. Failed to delete older apps from Intune: \(error.localizedDescription)", "\(processedAppResults.appIntuneDisplayName)", newAppID, true)
         }
 
         

@@ -53,6 +53,7 @@ struct MetadataLoader {
         let ignoreVersion = metadata?.ignoreVersionDetection ?? false
         let informationURL = metadata?.informationUrl ?? ""
         let managed = metadata?.isManaged ?? false
+        let singleAppPolicy = metadata?.useSingleAppPolicy ?? false
         let notes = metadata?.notes ?? ""
         let owner = metadata?.owner ?? ""
         let minimumOS = metadata?.minimumOS
@@ -218,6 +219,7 @@ struct MetadataLoader {
             appIsDualArchCapable: isDualArch,
             appIsFeatured: featured,
             appIsManaged: managed,
+            appUseSingleAppPolicy: singleAppPolicy,
             appLabelName: labelName,
             appLabelType: validatedType,
             appLocalURL: "",

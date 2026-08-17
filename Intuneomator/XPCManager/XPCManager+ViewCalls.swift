@@ -84,7 +84,17 @@ extension XPCManager {
     func findAppsByTrackingID(_ trackingID: String, completion: @escaping ([[String: Any]]?) -> Void) {
         sendRequest({ $0.findAppsByTrackingID(trackingID: trackingID, reply: $1) }, completion: completion)
     }
-    
+
+    /// Consolidates all existing Intune app records for a label folder's tracking ID down to
+    /// a single survivor (newest by createdDateTime), deleting the rest. Destructive — caller
+    /// must have already obtained user confirmation.
+    /// - Parameters:
+    ///   - labelFolder: Target label folder name (format "label_GUID")
+    ///   - completion: Callback with a result dictionary ("survivorAppId", "deletedCount", "success", "message") or nil on XPC failure
+    func consolidateToSingleAppPolicy(_ labelFolder: String, completion: @escaping ([String: Any]?) -> Void) {
+        sendRequest({ $0.consolidateToSingleAppPolicy(labelFolder, reply: $1) }, completion: completion)
+    }
+
     // MARK: - Label Content Management
     
     /// Creates a new managed label folder with initial content and metadata
