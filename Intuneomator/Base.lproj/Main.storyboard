@@ -2366,6 +2366,33 @@ Gw
                                     </subviews>
                                 </view>
                             </box>
+                            <button horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="3Xy-FJ-heG">
+                                <rect key="frame" x="696" y="599" width="24" height="24"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="help" bezelStyle="helpButton" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ICT-ZC-dha">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="showHelpForSingleAppPolicy:" target="ReB-I2-ePG" id="kry-0k-xFP"/>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Spa-01-Chk">
+                                <rect key="frame" x="561" y="602" width="127" height="18"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                                <string key="toolTip">Reuse a single Intune app record across versions instead of creating a new one for every version. Turning this on when duplicate records already exist will prompt to consolidate them.</string>
+                                <buttonCell key="cell" type="check" title="Single App Policy" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Spa-02-Cel">
+                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="buttonSingleAppPolicyDidChange:" target="ReB-I2-ePG" id="Spa-03-Act"/>
+                                </connections>
+                            </button>
+                            <progressIndicator fixedFrame="YES" maxValue="100" displayedWhenStopped="NO" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="UcO-1P-geu">
+                                <rect key="frame" x="537" y="603" width="16" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                            </progressIndicator>
                         </subviews>
                     </view>
                     <connections>
@@ -2380,6 +2407,7 @@ Gw
                         <outlet property="buttonPopUpMinimumOs" destination="35w-Np-gFu" id="CVo-1i-djO"/>
                         <outlet property="buttonPreviewLabel" destination="zYf-2P-bnN" id="4py-Xc-J6M"/>
                         <outlet property="buttonSelectCategories" destination="chl-RN-iYc" id="wg0-RQ-73m"/>
+                        <outlet property="buttonSingleAppPolicy" destination="Spa-01-Chk" id="Spa-04-Out"/>
                         <outlet property="fieldAppNewVersion" destination="bbR-An-aq9" id="rC6-4y-r6f"/>
                         <outlet property="fieldDeloyAsAdobeCCPkg" destination="1cr-oF-VfT" id="88E-R8-Fms"/>
                         <outlet property="fieldDeloyAsArchUniversal" destination="tPI-cn-AxM" id="iCw-Ns-gvj"/>
@@ -2405,6 +2433,7 @@ Gw
                         <outlet property="menuItemUniversalPkg" destination="fZm-Ej-R3q" id="Sjk-sR-Gd4"/>
                         <outlet property="progImageEdit" destination="UQC-om-L1Z" id="T6g-pe-ETe"/>
                         <outlet property="progPkgInspect" destination="l3Z-fp-jr9" id="paS-pc-jfC"/>
+                        <outlet property="progSingleAppPolicy" destination="UcO-1P-geu" id="1Kx-c9-BF4"/>
                         <outlet property="radioNo" destination="05v-kt-o8i" id="5SF-a5-m9g"/>
                         <outlet property="radioYes" destination="P7t-UB-VZI" id="QdS-IM-4qN"/>
                     </connections>

@@ -31,6 +31,12 @@ import UniformTypeIdentifiers
 /// It manages UI interactions, metadata loading/saving, inspection workflows, and change tracking.
 class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextStorageDelegate, Configurable, UnsavedChangesHandling, EditOtherViewControllerDelegate {
     
+    /// Checkbox to reuse a single Intune app record across versions instead of creating a new one each time.
+    @IBOutlet weak var buttonSingleAppPolicy: NSButton!
+
+    /// Progress indicator for changing the automation to a single Intune app policy.
+    @IBOutlet weak var progSingleAppPolicy: NSProgressIndicator!
+
     /// Progress indicator for package inspection/download tasks.
     @IBOutlet weak var progPkgInspect: NSProgressIndicator!
 
@@ -391,6 +397,7 @@ class EditViewController: NSViewController, URLSessionDownloadDelegate, NSTextSt
         buttonCliPkg.state = appMetadata?.isCliPKG ?? false ? .on : .off
         buttonFeatureApp.state = appMetadata?.isFeatured ?? false ? .on : .off
         buttonManagedApp.state = appMetadata?.isManaged ?? false ? .on : .off
+        buttonSingleAppPolicy.state = appMetadata?.useSingleAppPolicy ?? false ? .on : .off
         radioYes.state = appMetadata?.ignoreVersionDetection ?? false ? .on : .off
         radioNo.state = appMetadata?.ignoreVersionDetection ?? true ? .off : .on
         

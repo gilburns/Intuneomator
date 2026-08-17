@@ -71,6 +71,7 @@ extension EditViewController: TabSaveable {
             isCliPKG: (buttonCliPkg.state == .on),
             isFeatured: (buttonFeatureApp.state == .on),
             isManaged: (buttonManagedApp.state == .on),
+            useSingleAppPolicy: (buttonSingleAppPolicy.state == .on),
             minimumOS: getSelectedMinimumOsID() ?? "",
             minimumOSDisplay: buttonPopUpMinimumOs.selectedItem?.title ?? "",
             notes: partialNotes,

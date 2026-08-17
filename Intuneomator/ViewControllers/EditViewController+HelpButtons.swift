@@ -21,6 +21,24 @@ import AppKit
 extension EditViewController {
     
     // MARK: - Help Buttons
+    /// Displays help about the "Single App Policy" button.
+    /// Shows a popover explaining how the single app policy effects Intune and  Company Portal.
+    /// - Parameter sender: The help button that was clicked.
+    
+    @IBAction func showHelpForSingleAppPolicy(_ sender: NSButton) {
+        // Create the full string
+        let helpText = NSMutableAttributedString(string: "Reuse a single Intune app record across every new versions instead of creating a new one for every version.\n\nTurning this on when duplicate records already exist will prompt to consolidate them. Confirming will delete the extra app policies. The delete operation cannot be undone.\n\nTurning it off will have the effect of creating multiple policies for each version. The number of extra policies is limited by the preference for number of apps to keep.\n\nFor line-of-business (LOB) apps, if the app is assigned with Required intent and the admin updates the app content, installation is attempted at the next device check-in. If installation fails, Intune retries every 24 hours.\n\nWhen you upload a new version of an available app to Intune, users must select Install or Reinstall in Company Portal to update the app on their device.\n")
+
+        // Add custom styling for the rest of the text
+        helpText.addAttributes([
+            .foregroundColor: NSColor.textColor,
+            .font: NSFont.systemFont(ofSize: 13)
+        ], range: NSRange(location: 0, length: helpText.length))
+
+        // Show the popover
+        helpPopover.showHelp(anchorView: sender, helpText: helpText)
+    }
+
     /// Displays help about the "App Display Name" field.
     /// Shows a popover explaining how the display name  is used in Intune and  Company Portal.
     /// - Parameter sender: The help button that was clicked.

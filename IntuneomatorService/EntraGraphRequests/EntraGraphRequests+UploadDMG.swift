@@ -21,16 +21,11 @@ extension EntraGraphRequests {
     /// - Parameters:
     ///   - authToken: OAuth bearer token for Microsoft Graph authentication
     ///   - app: ProcessedAppResults containing all application data and configuration
+    ///   - existingAppId: When non-nil, reuse this existing Intune DMG app record (patch its
+    ///     content version and version metadata in place) instead of creating a new app record
     /// - Returns: The unique identifier of the uploaded DMG application in Intune
     /// - Throws: Upload errors, encryption errors, network errors, or API errors
-    static func uploadDMGApp(authToken: String, app: ProcessedAppResults, operationId: String? = nil) async throws -> String {
-        // Step 1: Create application metadata in Intune
-        let metadataURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps")!
-        var request = URLRequest(url: metadataURL)
-        request.httpMethod = "POST"
-        request.addValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+    static func uploadDMGApp(authToken: String, app: ProcessedAppResults, operationId: String? = nil, existingAppId: String? = nil) async throws -> String {
         // Build comprehensive notes field with Intuneomator tracking ID
         let fullNotes: String
         if app.appNotes.isEmpty {
@@ -44,81 +39,96 @@ extension EntraGraphRequests {
         let arch = ["arm64", "x86_64"].first { fileName.contains($0) }
         let displayName = "\(app.appIntuneDisplayName) \(app.appVersionActual)\(arch.map { " \($0)" } ?? "")"
 
-        // Construct comprehensive DMG application metadata
-        var metadata: [String: Any] = [
-            "@odata.type": "#microsoft.graph.macOSDmgApp",
-            "displayName": displayName,
-            "description": app.appDescription,
-            "developer": app.appDeveloper,
-            "publisher": app.appPublisherName,
-            "owner": app.appOwner,
-            "notes": fullNotes,
-            "fileName": "\(URL(fileURLWithPath: app.appLocalURL).lastPathComponent)",
-            "privacyInformationUrl": app.appPrivacyPolicyURL,
-            "informationUrl": app.appInfoURL,
-            "primaryBundleId": app.appBundleIdActual,
-            "primaryBundleVersion": app.appVersionActual,
-            "ignoreVersionDetection": app.appIgnoreVersion,
-            "isFeatured": app.appIsFeatured,
-            "includedApps": [[
-                "@odata.type": "#microsoft.graph.macOSIncludedApp",
-                "bundleId": app.appBundleIdActual,
-                "bundleVersion": app.appVersionActual
-            ]]
-        ]
-        
-        // Add minimum macOS version requirements
-        metadata["minimumSupportedOperatingSystem"] = [
-            "@odata.type": "#microsoft.graph.macOSMinimumOperatingSystem",
-            "v10_13": app.appMinimumOS.contains("v10_13"),
-            "v10_14": app.appMinimumOS.contains("v10_14"),
-            "v10_15": app.appMinimumOS.contains("v10_15"),
-            "v11_0": app.appMinimumOS.contains("v11_0"),
-            "v12_0": app.appMinimumOS.contains("v12_0"),
-            "v13_0": app.appMinimumOS.contains("v13_0"),
-            "v14_0": app.appMinimumOS.contains("v14_0"),
-            "v15_0": app.appMinimumOS.contains("v15_0"),
-            "v26_0": app.appMinimumOS.contains("v26_0")
-        ]
-        
-        // Include application icon if available
-        if FileManager.default.fileExists(atPath: app.appIconURL),
-           let iconData = try? Data(contentsOf: URL(fileURLWithPath: app.appIconURL)) {
-            metadata["largeIcon"] = [
-                "@odata.type": "#microsoft.graph.mimeContent",
-                "type": "image/png",
-                "value": iconData.base64EncodedString()
+        let appId: String
+        if let existingAppId {
+            // Reuse mode: skip creating a new app record entirely — the content version
+            // upload below (Steps 2-8) and the merged PATCH (Step 9) target this record.
+            appId = existingAppId
+            Logger.info("  ♻️ Reusing existing DMG app record. App ID: \(appId)", category: .core)
+        } else {
+            // Step 1: Create application metadata in Intune
+            let metadataURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps")!
+            var request = URLRequest(url: metadataURL)
+            request.httpMethod = "POST"
+            request.addValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            // Construct comprehensive DMG application metadata
+            var metadata: [String: Any] = [
+                "@odata.type": "#microsoft.graph.macOSDmgApp",
+                "displayName": displayName,
+                "description": app.appDescription,
+                "developer": app.appDeveloper,
+                "publisher": app.appPublisherName,
+                "owner": app.appOwner,
+                "notes": fullNotes,
+                "fileName": "\(URL(fileURLWithPath: app.appLocalURL).lastPathComponent)",
+                "privacyInformationUrl": app.appPrivacyPolicyURL,
+                "informationUrl": app.appInfoURL,
+                "primaryBundleId": app.appBundleIdActual,
+                "primaryBundleVersion": app.appVersionActual,
+                "ignoreVersionDetection": app.appIgnoreVersion,
+                "isFeatured": app.appIsFeatured,
+                "includedApps": [[
+                    "@odata.type": "#microsoft.graph.macOSIncludedApp",
+                    "bundleId": app.appBundleIdActual,
+                    "bundleVersion": app.appVersionActual
+                ]]
             ]
-        }
-        
-        request.httpBody = try JSONSerialization.data(withJSONObject: metadata, options: [])
-        
-        // Create DMG application in Intune
-        let (metadataData, metadataResponse) = try await URLSession.shared.data(for: request)
-        
-        if let httpResponse = metadataResponse as? HTTPURLResponse {
-            Logger.info("Metadata response status code: \(httpResponse.statusCode)", category: .core)
-            if !(200...299).contains(httpResponse.statusCode) {
-                let responseBody = String(data: metadataData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.error("Error response body: \(responseBody)", category: .core)
-                throw NSError(domain: "UploadDMGApp", code: httpResponse.statusCode, userInfo: [
-                    NSLocalizedDescriptionKey: "Failed to create DMG app metadata. Status: \(httpResponse.statusCode)"
+
+            // Add minimum macOS version requirements
+            metadata["minimumSupportedOperatingSystem"] = [
+                "@odata.type": "#microsoft.graph.macOSMinimumOperatingSystem",
+                "v10_13": app.appMinimumOS.contains("v10_13"),
+                "v10_14": app.appMinimumOS.contains("v10_14"),
+                "v10_15": app.appMinimumOS.contains("v10_15"),
+                "v11_0": app.appMinimumOS.contains("v11_0"),
+                "v12_0": app.appMinimumOS.contains("v12_0"),
+                "v13_0": app.appMinimumOS.contains("v13_0"),
+                "v14_0": app.appMinimumOS.contains("v14_0"),
+                "v15_0": app.appMinimumOS.contains("v15_0"),
+                "v26_0": app.appMinimumOS.contains("v26_0")
+            ]
+
+            // Include application icon if available
+            if FileManager.default.fileExists(atPath: app.appIconURL),
+               let iconData = try? Data(contentsOf: URL(fileURLWithPath: app.appIconURL)) {
+                metadata["largeIcon"] = [
+                    "@odata.type": "#microsoft.graph.mimeContent",
+                    "type": "image/png",
+                    "value": iconData.base64EncodedString()
+                ]
+            }
+
+            request.httpBody = try JSONSerialization.data(withJSONObject: metadata, options: [])
+
+            // Create DMG application in Intune
+            let (metadataData, metadataResponse) = try await URLSession.shared.data(for: request)
+
+            if let httpResponse = metadataResponse as? HTTPURLResponse {
+                Logger.info("Metadata response status code: \(httpResponse.statusCode)", category: .core)
+                if !(200...299).contains(httpResponse.statusCode) {
+                    let responseBody = String(data: metadataData, encoding: .utf8) ?? "<non-UTF8 data>"
+                    Logger.error("Error response body: \(responseBody)", category: .core)
+                    throw NSError(domain: "UploadDMGApp", code: httpResponse.statusCode, userInfo: [
+                        NSLocalizedDescriptionKey: "Failed to create DMG app metadata. Status: \(httpResponse.statusCode)"
+                    ])
+                }
+            }
+
+            guard let metadataJson = try JSONSerialization.jsonObject(with: metadataData) as? [String: Any] else {
+                throw NSError(domain: "UploadDMGApp", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON returned from metadata request."])
+            }
+
+            guard let newAppId = metadataJson["id"] as? String else {
+                throw NSError(domain: "UploadDMGApp", code: 1, userInfo: [
+                    NSLocalizedDescriptionKey: "Failed to parse app ID from response: \(metadataJson)"
                 ])
             }
+            appId = newAppId
+
+            Logger.info("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", category: .core)
         }
-        
-        guard let metadataJson = try JSONSerialization.jsonObject(with: metadataData) as? [String: Any] else {
-            throw NSError(domain: "UploadDMGApp", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON returned from metadata request."])
-        }
-        
-        guard let appId = metadataJson["id"] as? String else {
-            throw NSError(domain: "UploadDMGApp", code: 1, userInfo: [
-                NSLocalizedDescriptionKey: "Failed to parse app ID from response: \(metadataJson)"
-            ])
-        }
-        
-        Logger.info("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", category: .core)
-        Logger.info("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", category: .core)
 
         // Step 2: Begin file upload workflow
         do {
@@ -251,10 +261,24 @@ extension EntraGraphRequests {
             updateRequest.addValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
             updateRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
             
-            let patchData = try JSONSerialization.data(withJSONObject: [
+            var patchBody: [String: Any] = [
                 "@odata.type": "#microsoft.graph.macOSDmgApp",
                 "committedContentVersion": versionId
-            ])
+            ]
+            if existingAppId != nil {
+                // Reuse mode: fold the version-carrying fields into this same PATCH so the
+                // existing record's displayed version, primaryBundleVersion, and includedApps
+                // bundleVersion advance to match the newly committed content version.
+                patchBody["displayName"] = displayName
+                patchBody["fileName"] = "\(URL(fileURLWithPath: app.appLocalURL).lastPathComponent)"
+                patchBody["primaryBundleVersion"] = app.appVersionActual
+                patchBody["includedApps"] = [[
+                    "@odata.type": "#microsoft.graph.macOSIncludedApp",
+                    "bundleId": app.appBundleIdActual,
+                    "bundleVersion": app.appVersionActual
+                ]]
+            }
+            let patchData = try JSONSerialization.data(withJSONObject: patchBody)
             updateRequest.httpBody = patchData
             
             let (updateResponseData, updateResponse) = try await URLSession.shared.data(for: updateRequest)

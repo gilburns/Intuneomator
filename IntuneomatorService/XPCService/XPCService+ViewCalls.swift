@@ -217,6 +217,26 @@ extension XPCService {
         }
     }
 
+    /// Consolidates all existing Intune app records for a label folder's tracking ID down to
+    /// a single survivor (newest by createdDateTime), deleting the rest and reasserting the
+    /// current local group assignments on the survivor. Destructive — the caller must have
+    /// already obtained user confirmation before invoking this.
+    /// - Parameters:
+    ///   - labelFolder: Target label folder name (format "label_GUID")
+    ///   - reply: Callback with a result dictionary containing "survivorAppId" (String?),
+    ///     "deletedCount" (Int), "success" (Bool), and "message" (String)
+    func consolidateToSingleAppPolicy(_ labelFolder: String, reply: @escaping ([String: Any]?) -> Void) {
+        Task {
+            let result = await LabelAutomation.consolidateToSingleAppPolicy(named: labelFolder)
+            reply([
+                "survivorAppId": result.survivorAppId as Any,
+                "deletedCount": result.deletedCount,
+                "success": result.success,
+                "message": result.message
+            ])
+        }
+    }
+
     // MARK: - Label Content Management
 
     /// Creates a new managed label folder with initial content and metadata

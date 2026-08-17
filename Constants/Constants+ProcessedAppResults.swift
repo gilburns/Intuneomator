@@ -75,7 +75,11 @@ struct ProcessedAppResults {
     
     /// Whether app has configuration policies (LOB only)
     let appIsManaged: Bool
-    
+
+    /// Whether this title reuses a single existing Intune app record across versions
+    /// instead of creating a new one for every version
+    let appUseSingleAppPolicy: Bool
+
     /// Installomator label name used for processing
     let appLabelName: String
     
@@ -148,6 +152,7 @@ extension ProcessedAppResults {
     appIsDualArchCapable: false,
     appIsFeatured: false,
     appIsManaged: false,
+    appUseSingleAppPolicy: false,
     appLabelName: "",
     appLabelType: "",
     appLocalURL: "",

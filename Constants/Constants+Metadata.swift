@@ -47,6 +47,10 @@ struct Metadata: Codable, Equatable {
     /// Whether the app is managed (has configuration policies applies to LOB type only)
     var isManaged: Bool
 
+    /// Reuse a single Intune app record across versions (patch content/version in place)
+    /// instead of creating a new app record for every version
+    var useSingleAppPolicy: Bool?
+
     /// Minimum macOS version required (e.g., "14.0")
     var minimumOS: String
 

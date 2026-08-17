@@ -22,17 +22,12 @@ extension EntraGraphRequests {
     ///   - authToken: OAuth bearer token for Microsoft Graph authentication
     ///   - app: ProcessedAppResults containing all application data and configuration
     ///   - operationId: Optional operation ID for upload progress tracking
+    ///   - existingAppId: When non-nil, reuse this existing Intune LOB app record (patch its
+    ///     content version and version metadata in place) instead of creating a new app record
     /// - Returns: The unique identifier of the uploaded LOB application in Intune
     /// - Throws: Upload errors, encryption errors, network errors, or API errors
-    static func uploadLOBPkg(authToken: String, app: ProcessedAppResults, operationId: String? = nil) async throws -> String {
-        
-        // Step 1: Create LOB application metadata in Intune
-        let metadataURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps")!
-        var request = URLRequest(url: metadataURL)
-        request.httpMethod = "POST"
-        request.addValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+    static func uploadLOBPkg(authToken: String, app: ProcessedAppResults, operationId: String? = nil, existingAppId: String? = nil) async throws -> String {
+
         // Build comprehensive notes field with Intuneomator tracking ID
         let fullNotes: String
         if app.appNotes.isEmpty {
@@ -45,87 +40,102 @@ extension EntraGraphRequests {
         let fileName = URL(fileURLWithPath: app.appLocalURL).lastPathComponent
         let arch = ["arm64", "x86_64"].first { fileName.contains($0) }
         let displayName = "\(app.appIntuneDisplayName) \(app.appVersionActual)\(arch.map { " \($0)" } ?? "")"
-        
-        // Construct comprehensive LOB application metadata
-        var metadata: [String: Any] = [
-            "@odata.type": "#microsoft.graph.macOSLobApp",
-            "displayName": displayName,
-            "description": app.appDescription,
-            "developer": app.appDeveloper,
-            "publisher": app.appPublisherName,
-            "owner": app.appOwner,
-            "notes": fullNotes,
-            "fileName": "\(URL(fileURLWithPath: app.appLocalURL).lastPathComponent)",
-            "privacyInformationUrl": app.appPrivacyPolicyURL,
-            "informationUrl": app.appInfoURL,
-            "primaryBundleId": app.appBundleIdActual,
-            "primaryBundleVersion": app.appVersionActual,
-            "ignoreVersionDetection": app.appIgnoreVersion,
-            "installAsManaged": app.appIsManaged,
-            "isFeatured": app.appIsFeatured,
-            "bundleId": app.appBundleIdActual,
-            "buildNumber": app.appVersionActual,
-            "minimumSupportedOperatingSystem": [
-                "@odata.type": "#microsoft.graph.macOSMinimumOperatingSystem",
-                "v10_13": app.appMinimumOS.contains("v10_13"),
-                "v10_14": app.appMinimumOS.contains("v10_14"),
-                "v10_15": app.appMinimumOS.contains("v10_15"),
-                "v11_0": app.appMinimumOS.contains("v11_0"),
-                "v12_0": app.appMinimumOS.contains("v12_0"),
-                "v13_0": app.appMinimumOS.contains("v13_0"),
-                "v14_0": app.appMinimumOS.contains("v14_0"),
-                "v15_0": app.appMinimumOS.contains("v15_0"),
-                "v26_0": app.appMinimumOS.contains("v26_0")
-            ],
-            "childApps": [[
-                "@odata.type": "#microsoft.graph.macOSLobChildApp",
+
+        let appId: String
+        if let existingAppId {
+            // Reuse mode: skip creating a new app record entirely — the content version
+            // upload below (Steps 2-8) and the merged PATCH (Step 9) target this record.
+            appId = existingAppId
+            Logger.info("  ♻️ Reusing existing LOB app record. App ID: \(appId)", category: .core)
+        } else {
+            // Step 1: Create LOB application metadata in Intune
+            let metadataURL = URL(string: "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps")!
+            var request = URLRequest(url: metadataURL)
+            request.httpMethod = "POST"
+            request.addValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            // Construct comprehensive LOB application metadata
+            var metadata: [String: Any] = [
+                "@odata.type": "#microsoft.graph.macOSLobApp",
+                "displayName": displayName,
+                "description": app.appDescription,
+                "developer": app.appDeveloper,
+                "publisher": app.appPublisherName,
+                "owner": app.appOwner,
+                "notes": fullNotes,
+                "fileName": "\(URL(fileURLWithPath: app.appLocalURL).lastPathComponent)",
+                "privacyInformationUrl": app.appPrivacyPolicyURL,
+                "informationUrl": app.appInfoURL,
+                "primaryBundleId": app.appBundleIdActual,
+                "primaryBundleVersion": app.appVersionActual,
+                "ignoreVersionDetection": app.appIgnoreVersion,
+                "installAsManaged": app.appIsManaged,
+                "isFeatured": app.appIsFeatured,
                 "bundleId": app.appBundleIdActual,
                 "buildNumber": app.appVersionActual,
-                "versionNumber": "0.0"
-            ]]
-        ]
-        
-        // Include application icon if available
-        if FileManager.default.fileExists(atPath: app.appIconURL),
-           let iconData = try? Data(contentsOf: URL(fileURLWithPath: app.appIconURL)) {
-            let base64Icon = iconData.base64EncodedString()
-            metadata["largeIcon"] = [
-                "@odata.type": "#microsoft.graph.mimeContent",
-                "type": "image/png",
-                "value": base64Icon
+                "minimumSupportedOperatingSystem": [
+                    "@odata.type": "#microsoft.graph.macOSMinimumOperatingSystem",
+                    "v10_13": app.appMinimumOS.contains("v10_13"),
+                    "v10_14": app.appMinimumOS.contains("v10_14"),
+                    "v10_15": app.appMinimumOS.contains("v10_15"),
+                    "v11_0": app.appMinimumOS.contains("v11_0"),
+                    "v12_0": app.appMinimumOS.contains("v12_0"),
+                    "v13_0": app.appMinimumOS.contains("v13_0"),
+                    "v14_0": app.appMinimumOS.contains("v14_0"),
+                    "v15_0": app.appMinimumOS.contains("v15_0"),
+                    "v26_0": app.appMinimumOS.contains("v26_0")
+                ],
+                "childApps": [[
+                    "@odata.type": "#microsoft.graph.macOSLobChildApp",
+                    "bundleId": app.appBundleIdActual,
+                    "buildNumber": app.appVersionActual,
+                    "versionNumber": "0.0"
+                ]]
             ]
-        }
-        
-        request.httpBody = try JSONSerialization.data(withJSONObject: metadata, options: [])
-        
-        // Create LOB application in Intune
-        let (metadataData, metadataResponse) = try await URLSession.shared.data(for: request)
-        
-        if let httpResponse = metadataResponse as? HTTPURLResponse {
-            Logger.info("Metadata response status code: \(httpResponse.statusCode)", category: .core)
-            if !(200...299).contains(httpResponse.statusCode) {
-                let responseBody = String(data: metadataData, encoding: .utf8) ?? "<non-UTF8 data>"
-                Logger.error("Error response body: \(responseBody)", category: .core)
-                throw NSError(domain: "UploadLOBPkg", code: httpResponse.statusCode, userInfo: [
-                    NSLocalizedDescriptionKey: "Failed to create LOB app metadata. Status: \(httpResponse.statusCode)"
+
+            // Include application icon if available
+            if FileManager.default.fileExists(atPath: app.appIconURL),
+               let iconData = try? Data(contentsOf: URL(fileURLWithPath: app.appIconURL)) {
+                let base64Icon = iconData.base64EncodedString()
+                metadata["largeIcon"] = [
+                    "@odata.type": "#microsoft.graph.mimeContent",
+                    "type": "image/png",
+                    "value": base64Icon
+                ]
+            }
+
+            request.httpBody = try JSONSerialization.data(withJSONObject: metadata, options: [])
+
+            // Create LOB application in Intune
+            let (metadataData, metadataResponse) = try await URLSession.shared.data(for: request)
+
+            if let httpResponse = metadataResponse as? HTTPURLResponse {
+                Logger.info("Metadata response status code: \(httpResponse.statusCode)", category: .core)
+                if !(200...299).contains(httpResponse.statusCode) {
+                    let responseBody = String(data: metadataData, encoding: .utf8) ?? "<non-UTF8 data>"
+                    Logger.error("Error response body: \(responseBody)", category: .core)
+                    throw NSError(domain: "UploadLOBPkg", code: httpResponse.statusCode, userInfo: [
+                        NSLocalizedDescriptionKey: "Failed to create LOB app metadata. Status: \(httpResponse.statusCode)"
+                    ])
+                }
+            }
+
+            guard
+                let metadataJson = try JSONSerialization.jsonObject(with: metadataData) as? [String: Any]
+            else {
+                throw NSError(domain: "UploadLOBPkg", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON returned from metadata request."])
+            }
+
+            guard let newAppId = metadataJson["id"] as? String else {
+                throw NSError(domain: "UploadLOBPkg", code: 1, userInfo: [
+                    NSLocalizedDescriptionKey: "Failed to parse app ID from response: \(metadataJson)"
                 ])
             }
+            appId = newAppId
+
+            Logger.info("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", category: .core)
         }
-        
-        guard
-            let metadataJson = try JSONSerialization.jsonObject(with: metadataData) as? [String: Any]
-        else {
-            throw NSError(domain: "UploadLOBPkg", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON returned from metadata request."])
-        }
-        
-        guard let appId = metadataJson["id"] as? String else {
-            throw NSError(domain: "UploadLOBPkg", code: 1, userInfo: [
-                NSLocalizedDescriptionKey: "Failed to parse app ID from response: \(metadataJson)"
-            ])
-        }
-        
-        Logger.info("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", category: .core)
-        Logger.info("  ⬆️ Uploaded \(displayName) metadata. App ID: \(appId)", category: .core)
 
         // Step 2: Begin file upload workflow
         do {
@@ -262,10 +272,26 @@ extension EntraGraphRequests {
             updateRequest.addValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
             updateRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
             
-            let patchData = try JSONSerialization.data(withJSONObject: [
+            var patchBody: [String: Any] = [
                 "@odata.type": "#microsoft.graph.macOSLobApp",
                 "committedContentVersion": versionId
-            ])
+            ]
+            if existingAppId != nil {
+                // Reuse mode: fold the version-carrying fields into this same PATCH so the
+                // existing record's displayed version, primaryBundleVersion, and childApps
+                // buildNumber advance to match the newly committed content version.
+                patchBody["displayName"] = displayName
+                patchBody["fileName"] = "\(URL(fileURLWithPath: app.appLocalURL).lastPathComponent)"
+                patchBody["primaryBundleVersion"] = app.appVersionActual
+                patchBody["buildNumber"] = app.appVersionActual
+                patchBody["childApps"] = [[
+                    "@odata.type": "#microsoft.graph.macOSLobChildApp",
+                    "bundleId": app.appBundleIdActual,
+                    "buildNumber": app.appVersionActual,
+                    "versionNumber": "0.0"
+                ]]
+            }
+            let patchData = try JSONSerialization.data(withJSONObject: patchBody)
             updateRequest.httpBody = patchData
             
             let (updateResponseData, updateResponse) = try await URLSession.shared.data(for: updateRequest)

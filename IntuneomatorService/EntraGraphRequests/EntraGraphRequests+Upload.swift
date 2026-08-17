@@ -22,22 +22,24 @@ extension EntraGraphRequests {
     ///   - authToken: OAuth bearer token for Microsoft Graph authentication
     ///   - app: ProcessedAppResults containing application data and configuration
     ///   - operationId: Optional operation ID for upload progress tracking
+    ///   - existingAppId: When non-nil, reuse this existing Intune app record (patch its content
+    ///     version and version metadata in place) instead of creating a new app record
     /// - Returns: The unique identifier of the uploaded application in Intune
     /// - Throws: Upload errors, authentication errors, or unsupported file type errors
-    static func uploadAppToIntune(authToken: String, app: ProcessedAppResults, operationId: String? = nil) async throws -> String {
+    static func uploadAppToIntune(authToken: String, app: ProcessedAppResults, operationId: String? = nil, existingAppId: String? = nil) async throws -> String {
         Logger.info("🖥️  Uploading app to Intune...", category: .core)
         let uploadedAppID: String
-        
+
         // Route to appropriate upload method based on deployment type
         if app.appDeploymentType == 2 {
             Logger.info("Deploying LOB app...", category: .core)
-            uploadedAppID = try await uploadLOBPkg(authToken: authToken, app: app, operationId: operationId)
+            uploadedAppID = try await uploadLOBPkg(authToken: authToken, app: app, operationId: operationId, existingAppId: existingAppId)
         } else if app.appDeploymentType == 1 {
             Logger.info("Deploying PKG app...", category: .core)
-            uploadedAppID = try await uploadPKGWithScripts(authToken: authToken, app: app, operationId: operationId)
+            uploadedAppID = try await uploadPKGWithScripts(authToken: authToken, app: app, operationId: operationId, existingAppId: existingAppId)
         } else if app.appDeploymentType == 0 {
             Logger.info("Deploying DMG app...", category: .core)
-            uploadedAppID = try await uploadDMGApp(authToken: authToken, app: app, operationId: operationId)
+            uploadedAppID = try await uploadDMGApp(authToken: authToken, app: app, operationId: operationId, existingAppId: existingAppId)
         } else {
             throw NSError(domain: "UnsupportedFileType", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unsupported file type for upload."])
         }
