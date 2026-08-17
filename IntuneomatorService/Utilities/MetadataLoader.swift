@@ -137,7 +137,7 @@ struct MetadataLoader {
         
         if validatedIntuneDisplayName.isEmpty {
             Logger.info("⚠️  Intune display name is empty for \(validatedName). Using name instead: \(validatedName)", category: .automation)
-            Logger.info("⚠️  Intune display name is empty for \(validatedName). Using name instead: \(validatedName)", category: .core)
+//            Logger.info("⚠️  Intune display name is empty for \(validatedName). Using name instead: \(validatedName)", category: .core)
             validatedIntuneDisplayName = validatedName
         }
         
