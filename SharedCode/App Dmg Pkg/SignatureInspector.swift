@@ -58,16 +58,19 @@ class SignatureInspector {
         }
 
         let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
-        if let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !errorOutput.isEmpty {
+        let errorOutput = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !errorOutput.isEmpty {
             Logger.info(" stderr from |(executableURL.lastPathComponent) with \(path): \(errorOutput)", category: .core)
         }
 
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        guard let output = String(data: data, encoding: .utf8) else {
-            throw InspectionError.spctlError("Failed to read spctl output.")
-        }
+        let standardOutput = String(data: data, encoding: .utf8) ?? ""
 
-        return try parseSpctlOutput(output)
+        // spctl writes its assessment result (accepted/rejected, source=, origin=) to stderr,
+        // not stdout. Combine both so parsing works regardless of which stream carries it.
+        let combinedOutput = [standardOutput, errorOutput].filter { !$0.isEmpty }.joined(separator: "\n")
+
+        return try parseSpctlOutput(combinedOutput)
     }
 
     /// Parses the output of the `spctl` command
