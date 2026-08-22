@@ -142,6 +142,18 @@ class PkgInspector {
                             // Don't recurse into found bundles to avoid finding nested bundles
                             continue
                         }
+
+                        // Some vendor packages install the raw contents of an app bundle
+                        // (a "Contents" folder) directly, without wrapping them in a
+                        // "*.app" folder — the installer/postinstall script only adds the
+                        // ".app" extension at install time. Detect that pattern by checking
+                        // for "Contents/Info.plist" directly under this folder.
+                        let unwrappedInfoPlist = fileURL.appendingPathComponent("Contents/Info.plist")
+                        if fileManager.fileExists(atPath: unwrappedInfoPlist.path) {
+                            bundleURLs.append(fileURL)
+                            // Don't recurse into it either, for the same reason as above
+                            continue
+                        }
                     }
                     
                     // Recurse into directories (but not symbolic links to avoid loops)
@@ -194,8 +206,16 @@ class PkgInspector {
                     }
                 }
             }
+        } else {
+            // Not a ".app" or ".framework" folder — this may be an "unwrapped" app
+            // bundle: the raw "Contents" payload of an app that the installer places
+            // into a folder without the ".app" extension (added at install time).
+            let unwrappedInfoPlist = bundleURL.appendingPathComponent("Contents/Info.plist")
+            if fileManager.fileExists(atPath: unwrappedInfoPlist.path) {
+                infoPlistURL = unwrappedInfoPlist
+            }
         }
-        
+
         guard let plistURL = infoPlistURL, fileManager.fileExists(atPath: plistURL.path) else {
             return nil
         }
