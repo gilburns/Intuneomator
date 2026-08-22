@@ -117,6 +117,7 @@ class TabViewController: NSViewController {
         self.view.addSubview(effectView, positioned: .below, relativeTo: nil)
 
         setCloudStatusIcon()
+        setCloudStatusTooltip()
     }
 
     /// Called when the view controller's view has appeared on screen
@@ -629,6 +630,31 @@ class TabViewController: NSViewController {
         return tinted
     }
 
+    
+    private func setCloudStatusTooltip() {
+        let baseURL = AppConstants.intuneomatorManagedTitlesFolderURL
+        let folderURL = baseURL
+            .appendingPathComponent("\(appData!.label)_\(appData!.guid)")
+
+        var labelUploadCount: Int = 0
+        let labelUploadStateURL = folderURL.appendingPathComponent(".uploaded")
+        
+        // Read upload count from tracking file
+        if FileManager.default.fileExists(atPath: labelUploadStateURL.path) {
+            if let data = FileManager.default.contents(atPath: labelUploadStateURL.path),
+               let countString = String(data: data, encoding: .utf8),
+               let count = Int(countString) {
+                labelUploadCount = count
+            }
+        }
+        if labelUploadCount > 1 {
+            imageCloudStatus.toolTip = "Click me to see the status of the \(labelUploadCount) Intune deployments"
+        } else if labelUploadCount == 1 {
+            imageCloudStatus.toolTip = "Click me to see the status of the Intune deployment"
+        } else if labelUploadCount == 0 {
+            imageCloudStatus.toolTip = "No Intune deployments have been uploaded yet"
+        }
+    }
     
     // MARK: - Tab Management Methods
     
