@@ -2389,7 +2389,7 @@ Gw
                                     <action selector="buttonSingleAppPolicyDidChange:" target="ReB-I2-ePG" id="Spa-03-Act"/>
                                 </connections>
                             </button>
-                            <progressIndicator fixedFrame="YES" maxValue="100" displayedWhenStopped="NO" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="UcO-1P-geu">
+                            <progressIndicator wantsLayer="YES" fixedFrame="YES" maxValue="100" displayedWhenStopped="NO" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="UcO-1P-geu">
                                 <rect key="frame" x="537" y="603" width="16" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
                             </progressIndicator>
