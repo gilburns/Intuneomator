@@ -233,7 +233,104 @@ class IconExporter {
             Logger.error("Failed to finalize image destination.", category: .core)
         }
     }
-    
+
+
+    // MARK: - Icon Sizing for Graph API Upload
+
+    /// Maximum icon file size (in bytes) permitted before the icon is downscaled prior to
+    /// being embedded in a Graph API app metadata request.
+    ///
+    /// Icons are embedded as base64 directly inside the same JSON body used to create/update
+    /// macOS Pkg/Dmg/LOB app metadata. Oversized icons (observed: a 2.9 MB, 1024x1024 PNG) have
+    /// been seen to trigger a generic `StaticContentCommon0ContentValidateContent` internal
+    /// server error (HTTP 500) from Intune's mobileApps metadata-creation endpoint, even though
+    /// every other field in the payload is well-formed.
+    static let maxIconFileSizeBytes = 1_000_000
+
+    /// Starting target dimension (pixels, per side) used when downscaling an oversized icon.
+    static let maxIconDimension = 512
+
+    /// Returns PNG data for the icon at `path`, ready to embed as `largeIcon` in a Graph API
+    /// app metadata request. If the file is already at or under `maxIconFileSizeBytes`, its raw
+    /// bytes are returned unchanged. If it's larger, the icon is downscaled (preserving aspect
+    /// ratio, halving the target dimension as needed) until it fits, falling back to the
+    /// original bytes if downscaling fails for any reason.
+    /// - Parameter path: Full path to the icon PNG file on disk.
+    /// - Returns: PNG data suitable for base64 embedding, or `nil` if the file couldn't be read.
+    static func iconDataForUpload(atPath path: String) -> Data? {
+        guard let originalData = try? Data(contentsOf: URL(fileURLWithPath: path)) else {
+            return nil
+        }
+
+        guard originalData.count > maxIconFileSizeBytes else {
+            return originalData
+        }
+
+        guard let downscaledData = downscaledPNGData(atPath: path, startingDimension: maxIconDimension) else {
+            Logger.error("⚠️ Icon at \(path) is \(originalData.count) bytes and could not be downscaled; uploading as-is.", category: .core)
+            return originalData
+        }
+
+        Logger.info("ℹ️ Downscaled oversized icon before upload: \(path) (\(originalData.count) bytes → \(downscaledData.count) bytes)", category: .core)
+        return downscaledData
+    }
+
+    /// Loads the image at `path` and re-encodes it as PNG data scaled to fit within
+    /// `startingDimension` x `startingDimension`, halving the target dimension (down to a
+    /// floor of 64px) if the result is still larger than `maxIconFileSizeBytes`.
+    private static func downscaledPNGData(atPath path: String, startingDimension: Int) -> Data? {
+        guard let cgImage = getCGImageFromPath(fileImagePath: path) else { return nil }
+
+        var targetDimension = startingDimension
+
+        while targetDimension >= 64 {
+            let scale = min(CGFloat(targetDimension) / CGFloat(cgImage.width),
+                             CGFloat(targetDimension) / CGFloat(cgImage.height),
+                             1.0)
+            let width = max(1, Int(CGFloat(cgImage.width) * scale))
+            let height = max(1, Int(CGFloat(cgImage.height) * scale))
+
+            if let resized = resizedCGImage(cgImage, width: width, height: height),
+               let pngData = pngData(from: resized),
+               pngData.count <= maxIconFileSizeBytes {
+                return pngData
+            }
+
+            targetDimension /= 2
+        }
+
+        return nil
+    }
+
+    /// Draws `image` into a new bitmap context of the given pixel dimensions, producing a
+    /// resized CGImage.
+    private static func resizedCGImage(_ image: CGImage, width: Int, height: Int) -> CGImage? {
+        guard let context = CGContext(
+            data: nil,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: 0,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else { return nil }
+
+        context.interpolationQuality = .high
+        context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        return context.makeImage()
+    }
+
+    /// Encodes a CGImage as in-memory PNG data.
+    private static func pngData(from image: CGImage) -> Data? {
+        let mutableData = NSMutableData()
+        guard let destination = CGImageDestinationCreateWithData(mutableData, UTType.png.identifier as CFString, 1, nil) else {
+            return nil
+        }
+        CGImageDestinationAddImage(destination, image, nil)
+        guard CGImageDestinationFinalize(destination) else { return nil }
+        return mutableData as Data
+    }
+
 }
 
 // Example Usage:

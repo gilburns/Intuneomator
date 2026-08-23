@@ -112,7 +112,7 @@ extension EntraGraphRequests {
 
             // Include application icon if available
             if FileManager.default.fileExists(atPath: app.appIconURL),
-               let iconData = try? Data(contentsOf: URL(fileURLWithPath: app.appIconURL)) {
+               let iconData = IconExporter.iconDataForUpload(atPath: app.appIconURL) {
                 metadata["largeIcon"] = [
                     "@odata.type": "#microsoft.graph.mimeContent",
                     "type": "image/png",
@@ -131,7 +131,8 @@ extension EntraGraphRequests {
                     let responseBody = String(data: metadataData, encoding: .utf8) ?? "<non-UTF8 data>"
                     Logger.error("Error response body: \(responseBody)", category: .core)
                     throw NSError(domain: "UploadPKGWithScripts", code: httpResponse.statusCode, userInfo: [
-                        NSLocalizedDescriptionKey: "Failed to create PKG app metadata. Status: \(httpResponse.statusCode)"
+                        NSLocalizedDescriptionKey: "Failed to create PKG app metadata. Status: \(httpResponse.statusCode). \(responseBody)",
+                        "responseBody": responseBody
                     ])
                 }
             }
@@ -165,7 +166,7 @@ extension EntraGraphRequests {
                 let responseBody = String(data: versionData, encoding: .utf8) ?? "<non-UTF8 data>"
                 Logger.info("Failed to create content version. Status: \(httpResponse.statusCode), Response: \(responseBody)", category: .core)
                 throw NSError(domain: "UploadPKGWithScripts", code: httpResponse.statusCode, userInfo: [
-                    NSLocalizedDescriptionKey: "Failed to create content version. Status: \(httpResponse.statusCode)",
+                    NSLocalizedDescriptionKey: "Failed to create content version. Status: \(httpResponse.statusCode). \(responseBody)",
                     "responseBody": responseBody
                 ])
             }
@@ -204,7 +205,8 @@ extension EntraGraphRequests {
                 let responseBody = String(data: fileData, encoding: .utf8) ?? "<non-UTF8 data>"
                 Logger.info("File registration failed. Status: \(httpResponse.statusCode), Response: \(responseBody)", category: .core)
                 throw NSError(domain: "UploadPKGWithScripts", code: httpResponse.statusCode, userInfo: [
-                    NSLocalizedDescriptionKey: "File registration failed. Status: \(httpResponse.statusCode)"
+                    NSLocalizedDescriptionKey: "File registration failed. Status: \(httpResponse.statusCode). \(responseBody)",
+                    "responseBody": responseBody
                 ])
             }
             
@@ -307,7 +309,8 @@ extension EntraGraphRequests {
                 let responseBody = String(data: updateResponseData, encoding: .utf8) ?? "<non-UTF8 data>"
                 Logger.error("App update failed with status \(httpResponse.statusCode): \(responseBody)", category: .core)
                 throw NSError(domain: "UploadPKGWithScripts", code: 7, userInfo: [
-                    NSLocalizedDescriptionKey: "Failed to update app with committed content version. Status: \(httpResponse.statusCode)"
+                    NSLocalizedDescriptionKey: "Failed to update app with committed content version. Status: \(httpResponse.statusCode). \(responseBody)",
+                    "responseBody": responseBody
                 ])
             }
             
