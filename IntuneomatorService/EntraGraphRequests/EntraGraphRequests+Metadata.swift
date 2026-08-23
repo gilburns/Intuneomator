@@ -280,7 +280,7 @@ extension EntraGraphRequests {
         
         // Include application icon if available
         if FileManager.default.fileExists(atPath: app.appIconURL),
-           let iconData = try? Data(contentsOf: URL(fileURLWithPath: app.appIconURL)) {
+           let iconData = IconExporter.iconDataForUpload(atPath: app.appIconURL) {
             metadataPayload["largeIcon"] = [
                 "@odata.type": "#microsoft.graph.mimeContent",
                 "type": "image/png",
